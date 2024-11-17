@@ -1,22 +1,14 @@
 
-import {auth, signIn, signOut } from "@/lib/auth"
+import {auth, signIn } from "@/lib/auth"
+import { redirect } from 'next/navigation'
 import Button from 'react-bootstrap/Button';
 export default async function SignIn() {
   const session = await auth();
-  const user = session?.user;
-  return user ?  (
-    <>
-    <h1>Wellcome {user.name}</h1>
-    <form
-      action={async () => {
-        "use server"
-        await signOut()
-      }}
-    >
-      <Button variant="danger" type="submit">Sign Out</Button>
-    </form>
-    </>  
-  ) : (
+  console.log(session)
+  if(session){
+    redirect('/')
+  }
+  return(
     <form
     action={async () => {
       "use server"

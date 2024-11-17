@@ -1,7 +1,26 @@
 .sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;  /* Căn giữa theo chiều dọc */
+  justify-content: space-between;  /* Các phần tử trải đều */
+  gap: 30px;  /* Khoảng cách giữa các phần tử */
+  padding: 10px 28px;
+  height: var(--header-height);
+  border-bottom: 1px solid #e8ebed;
+  background-color: #fff;
+  font-size: 1.4rem;
+}
+
+.sticky-header .nav-link {
+  flex: 1;  /* Các liên kết trong Nav sẽ có độ rộng đều nhau */
+}
+
+.title-custom{
+    font-size: 1rem;
+    font-weight: 700;
+    color: #000000;
+}
