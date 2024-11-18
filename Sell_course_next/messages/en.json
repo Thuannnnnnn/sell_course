@@ -1,0 +1,15 @@
+{
+    "HomePage": {
+      "title": "Home Page",
+      "about": "Go to the about page"
+    },
+    "AboutPage":{
+      "title": "About Page"
+    },
+    "Header": {
+      "title": "Learn programming to work",
+      "login":"Sign In",
+      "logout":"log out",
+      "search":"Tìm Kiếm"
+    }
+  }

@@ -1,0 +1,15 @@
+{
+    "HomePage": {
+      "title": "Trang chủ",
+      "about": "Đi tới trang thông tin"
+    },
+    "AboutPage":{
+      "title": "Trang thông tin"
+    },
+    "Header": {
+      "title": "Học lập trình để đi làm",
+      "login":"Đăng nhập",
+      "logout":"Đăng xuất",
+      "search":"Tìm Kiếm"
+    }
+  }
