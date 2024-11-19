@@ -83,11 +83,7 @@
   text-decoration: none;
 }
 .btn-signup:hover {
-  text-decoration: underline;
-  background-color: transparent;
-}
-.btn-signup:target {
-  text-decoration: underline;
+  text-decoration: none;
   background-color: transparent;
 }
 .select-changeLang{
