@@ -4,8 +4,23 @@ html, body {
     flex-direction: column;
     margin: 0;
   }
-  
   body {
     display: flex;
     flex: 1;
   }
+.main-container {
+  display: flex;
+  min-height: 100vh;
+}
+.bottom-container{
+  display: none
+}
+@media (max-width: 600px) {
+  .bottom-container{
+    display: flex;
+    position: sticky
+  }
+  .sidebar-container{
+    display: none
+  }
+}

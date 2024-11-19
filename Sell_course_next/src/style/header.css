@@ -5,22 +5,97 @@
   right: 0;
   z-index: 20;
   display: flex;
-  align-items: center;  /* Căn giữa theo chiều dọc */
-  justify-content: space-between;  /* Các phần tử trải đều */
-  gap: 30px;  /* Khoảng cách giữa các phần tử */
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
   padding: 10px 28px;
   height: var(--header-height);
   border-bottom: 1px solid #e8ebed;
-  background-color: #fff;
   font-size: 1.4rem;
 }
-
 .sticky-header .nav-link {
-  flex: 1;  /* Các liên kết trong Nav sẽ có độ rộng đều nhau */
+  flex: 1;
+}
+@media screen and (max-width: 600px){
+  .title-custom{
+   display: none;
+}
+.btn-signup{
+  display: none
+}
+.select-changeLang{
+  display : none
+}
+.sticky-header{
+  padding: 10px 10px;
+}
+}
+.title-custom{
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+.btn-login{
+  flex-shrink: 0;
+    padding: 9px 20px;
+    border-radius: 99px;
+    color: #fff;
+    background: linear-gradient(to right bottom, #ff8f26, #ff5117);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .25s;
+}
+.btn-login:hover{
+  color: #fff;
+  background: linear-bbradient(to right bottom, #ff9c40, #ff632e);
+  animation-duration:bb4s;
+}
+.search-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 420px;
 }
 
-.title-custom{
-    font-size: 1rem;
-    font-weight: 700;
-    color: #000000;
+.search-form {
+  width: 100%;
+  position: relative;
+}
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+.search-form-input {
+  padding-left: 50px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #e8e8e8;
+  border-radius: 999em;
+}
+.btn-signup {
+  background-color: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-signup:hover {
+  text-decoration: underline;
+  background-color: transparent;
+}
+.btn-signup:target {
+  text-decoration: underline;
+  background-color: transparent;
+}
+.select-changeLang{
+  font-size:0.6em
+}
+.btn-signup.dark {
+  color: white;
+}
+.btn-signup.light {
+  color: black;
 }

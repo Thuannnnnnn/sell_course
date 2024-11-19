@@ -1,7 +1,7 @@
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import React, { ChangeEvent, useTransition } from 'react'
-
+import '../style/Header.css';
 export default function LocalSwitcher() {
      const [isPending, startTrtansition] = useTransition(); 
     const router = useRouter()
@@ -15,7 +15,7 @@ export default function LocalSwitcher() {
   return (
     <div>
             <select
-            className="border-2 rounded bg-transparent py-2 fs-6" onChange={onSelectChange}
+            className="border rounded py-2 select-changeLang" onChange={onSelectChange}
             defaultValue={localActive}
             disabled={isPending}
             title='Change Language'
