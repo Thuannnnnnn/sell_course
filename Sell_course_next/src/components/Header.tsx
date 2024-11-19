@@ -11,6 +11,7 @@ import { IoIosSearch } from "react-icons/io";
 import { useTheme } from '../context/ThemeContext';
 import { MdDarkMode } from "react-icons/md";
 import { MdLightMode } from "react-icons/md";
+import { IoIosLogOut } from "react-icons/io";
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
   const localActive = useLocale();
@@ -51,9 +52,9 @@ const Header: React.FC = () => {
           <span className="nav-link mx-4">Loading...</span>
         ) : session ? (
           <>
-            <Link href="/profile" className="nav-link">{session.user?.name}</Link>
-            <Button onClick={() => signOut()} className="btn btn-link nav-link mx-4">
-              {t("logout")}
+            <Link href={`/${localActive}/profile`} className="nav-link"><Image src={`${session.user?.image}`} alt="avatar" className="border rounded-circle" width="50"/></Link>
+            <Button variant={`${theme}`} onClick={() => signOut()} className="btn btn-link nav-link mx-4">
+            <IoIosLogOut />
             </Button>
           </>
         ) : (
