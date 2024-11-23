@@ -1,7 +1,97 @@
 .sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 10px 28px;
+  height: var(--header-height);
+  border-bottom: 1px solid #e8ebed;
+  font-size: 1.4rem;
+}
+.sticky-header .nav-link {
+  flex: 1;
+}
+@media screen and (max-width: 600px){
+  .title-custom{
+   display: none;
+}
+.btn-signup{
+  display: none
+}
+.select-changeLang{
+  display : none
+}
+.sticky-header{
+  padding: 10px 10px;
+}
+}
+.title-custom{
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+.btn-login{
+  flex-shrink: 0;
+    padding: 9px 20px;
+    border-radius: 99px;
+    color: #fff;
+    background: linear-gradient(to right bottom, #ff8f26, #ff5117);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .25s;
+}
+.btn-login:hover{
+  color: #fff;
+  background: linear-bbradient(to right bottom, #ff9c40, #ff632e);
+  animation-duration:bb4s;
+}
+.search-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 420px;
+}
+
+.search-form {
+  width: 100%;
+  position: relative;
+}
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+.search-form-input {
+  padding-left: 50px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #e8e8e8;
+  border-radius: 999em;
+}
+.btn-signup {
+  background-color: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-signup:hover {
+  text-decoration: none;
+  background-color: transparent;
+}
+.select-changeLang{
+  font-size:0.6em
+}
+.btn-signup.dark {
+  color: white;
+}
+.btn-signup.light {
+  color: black;
+}

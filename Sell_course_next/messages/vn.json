@@ -1,0 +1,56 @@
+{
+    "HomePage": {
+      "title": "Trang chủ",
+      "about": "Đi tới trang thông tin"
+    },
+    "AboutPage":{
+      "title": "Trang thông tin"
+    },
+    "Header": {
+      "title": "Học lập trình để đi làm",
+      "login":"Đăng nhập",
+      "logout":"Đăng xuất",
+      "search":"Tìm kiếm khóa học, bài viết, video, ...",
+      "signup": "Đăng ký"
+    },
+    "sidebar":{
+      "home": "Trang Chủ"
+    },
+      "footer": {
+        "headingF8": "F8",
+        "description": "Học lập trình để làm việc",
+        "phone": "Điện thoại: 08 1919 8989",
+        "email": "Email: contact@fullstack.edu.vn",
+        "address": "Địa chỉ: Số 1, Ngõ 41, Trần Duy Hưng, Cầu Giấy, Hà Nội",
+        "about": "Về F8",
+        "aboutList": {
+          "0": "Giới thiệu",
+          "1": "Liên hệ",
+          "2": "Điều khoản",
+          "3": "Quyền riêng tư"
+        },
+        "products": "Sản phẩm",
+        "productList": {
+          "0": "Game Nester",
+          "1": "Game CSS Diner",
+          "2": "Game CSS Selectors",
+          "3": "Game Froggy",
+          "4": "Game Froggy Pro",
+          "5": "Game Scoops"
+        },
+        "tools": "Công cụ",
+        "toolsList": {
+          "0": "Tạo CV",
+          "1": "Rút gọn liên kết",
+          "2": "Tạo Clip-path",
+          "3": "Tạo đoạn mã",
+          "4": "Tạo lưới CSS",
+          "5": "Cảnh báo chạm mặt"
+        },
+        "companyName": "CÔNG TY CỔ PHẦN GIÁO DỤC CÔNG NGHỆ F8",
+        "taxCode": "Mã số thuế: 0109922901",
+        "foundingDate": "Ngày thành lập: 03/04/2022",
+        "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
+        "copyright": "© 2018 - 2024 F8. Nền tảng học lập trình hàng đầu tại Việt Nam."
+      }    
+  }

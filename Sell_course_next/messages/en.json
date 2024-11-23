@@ -1,0 +1,56 @@
+{
+    "HomePage": {
+      "title": "Home Page",
+      "about": "Go to the about page"
+    },
+    "AboutPage":{
+      "title": "About Page"
+    },
+    "Header": {
+      "title": "Learn programming to work",
+      "login":"Sign In",
+      "logout":"log out",
+      "search":"Search for courses, articles, videos, ...",
+      "signup": "Sign Up"      
+    },
+    "sidebar":{
+      "home": "Home"
+    },
+      "footer": {
+        "headingF8": "F8",
+        "description": "Learn Programming to Work",
+        "phone": "Phone: 08 1919 8989",
+        "email": "Email: contact@fullstack.edu.vn",
+        "address": "Address: No. 1, Alley 41, Tran Duy Hung, Cau Giay, Hanoi",
+        "about": "About F8",
+        "aboutList": {
+          "0": "Introduction",
+          "1": "Contact",
+          "2": "Terms",
+          "3": "Privacy"
+        },
+        "products": "Products",
+        "productList": {
+          "0": "Game Nester",
+          "1": "Game CSS Diner",
+          "2": "Game CSS Selectors",
+          "3": "Game Froggy",
+          "4": "Game Froggy Pro",
+          "5": "Game Scoops"
+        },
+        "tools": "Tools",
+        "toolsList": {
+          "0": "Create a CV",
+          "1": "Link Shortener",
+          "2": "Clip-path Maker",
+          "3": "Snippet Generator",
+          "4": "CSS Grid Generator",
+          "5": "Face Touch Alert"
+        },
+        "companyName": "F8 TECHNOLOGY EDUCATION JOINT STOCK COMPANY",
+        "taxCode": "Tax code: 0109922901",
+        "foundingDate": "Established: 03/04/2022",
+        "activityField": "Field of activity: Education, technology - programming. We focus on building and developing products that bring value to the Vietnamese programming community.",
+        "copyright": "© 2018 - 2024 F8. Leading programming learning platform in Vietnam."
+      }
+    }    
