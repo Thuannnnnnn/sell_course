@@ -12,8 +12,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name ="content")
-public class Content {
+@Entity
+@Table(name ="contents")
+public class Contents {
     @Id
     @Column(name = "content_id", nullable = false)
     private String contentId;
@@ -24,5 +25,8 @@ public class Content {
 
     @OneToMany(mappedBy = "contents", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Video> video;
+
+    @OneToMany(mappedBy = "contents", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Docs> docs;
 
 }

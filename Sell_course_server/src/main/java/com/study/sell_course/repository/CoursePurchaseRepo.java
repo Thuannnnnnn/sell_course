@@ -1,6 +1,9 @@
 package com.study.sell_course.repository;
 
+import com.study.sell_course.entity.CoursePurchase;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface CoursePurchase extends JpaRepository<CoursePurchase, String> {
+@Repository
+public interface CoursePurchaseRepo extends JpaRepository<CoursePurchase, String> {
 }
