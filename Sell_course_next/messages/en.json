@@ -7,36 +7,39 @@
       "title": "About Page"
     },
     "Header": {
-      "title": "Learn programming to work",
+      "title": "RedFlag GoldenStar",
+      "home":"Home",
+      "cart": "Cart",
+      "course": "Course",
+      "forum": "Forum",
       "login":"Sign In",
       "logout":"log out",
-      "search":"Search for courses, articles, videos, ...",
-      "signup": "Sign Up"      
+      "signup": "Sign Up"
     },
     "sidebar":{
       "home": "Home"
     },
       "footer": {
-        "headingF8": "F8",
-        "description": "Learn Programming to Work",
+        "headingF8": "RedFlag GoldenStar",
+        "description": "RedFlag GoldenStar",
         "phone": "Phone: 08 1919 8989",
         "email": "Email: contact@fullstack.edu.vn",
-        "address": "Address: No. 1, Alley 41, Tran Duy Hung, Cau Giay, Hanoi",
-        "about": "About F8",
+        "address": "Address: FPT University CanTho, 123 Nguyen Van Cu, CanTho",
+        "about": "Company",
         "aboutList": {
-          "0": "Introduction",
-          "1": "Contact",
+          "0": "aubout us",
+          "1": "Contact us",
           "2": "Terms",
           "3": "Privacy"
         },
-        "products": "Products",
+        "products": "Support",
         "productList": {
-          "0": "Game Nester",
-          "1": "Game CSS Diner",
-          "2": "Game CSS Selectors",
-          "3": "Game Froggy",
-          "4": "Game Froggy Pro",
-          "5": "Game Scoops"
+          "0": "Question",
+          "1": "Feedback CV",
+          "2": "System Status Page",
+          "3": "Knowledgebase",
+          "4": "Report Abuse",
+          "5": "Live Chat Online"
         },
         "tools": "Tools",
         "toolsList": {
@@ -47,10 +50,13 @@
           "4": "CSS Grid Generator",
           "5": "Face Touch Alert"
         },
-        "companyName": "F8 TECHNOLOGY EDUCATION JOINT STOCK COMPANY",
-        "taxCode": "Tax code: 0109922901",
-        "foundingDate": "Established: 03/04/2022",
+        "companyName": "TECHNOLOGY EDUCATION JOINT STOCK COMPANY ",
+        "taxCode": "Tax code: 010232101123",
+        "foundingDate": "Established: 05/01/2025",
         "activityField": "Field of activity: Education, technology - programming. We focus on building and developing products that bring value to the Vietnamese programming community.",
-        "copyright": "© 2018 - 2024 F8. Leading programming learning platform in Vietnam."
+        "copyright": ". Leading programming learning platform in Vietnam."
+      },
+      "detail" : {
+        "title": "detail"
       }
-    }    
+    }

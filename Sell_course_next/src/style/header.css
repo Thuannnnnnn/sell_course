@@ -14,8 +14,11 @@
   font-size: 1.4rem;
 }
 .sticky-header .nav-link {
-  flex: 1;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: color 0.25s;
 }
+
 @media screen and (max-width: 600px){
   .title-custom{
    display: none;
@@ -34,22 +37,49 @@
     font-size: 0.9rem;
     font-weight: 700;
 }
-.btn-login{
+
+.title-custom .red-flag{
+  color: red;
+  transition: color 0.25s;
+}
+
+.title-custom .golden-star{
+  color: gold;
+}
+
+[data-bs-theme="dark"] .title-custom .red-flag{
+  color: red;
+}
+[data-bs-theme="dark"] .title-custom .golden-star{
+  color: yellow;
+}
+
+[data-bs-theme="light"] .title-custom .red-flag {
+  color: red;
+}
+
+[data-bs-theme="light"] .title-custom .golden-star{
+  color: black;
+}
+
+.btn-login {
   flex-shrink: 0;
-    padding: 9px 20px;
-    border-radius: 99px;
-    color: #fff;
-    background: linear-gradient(to right bottom, #ff8f26, #ff5117);
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity .25s;
-}
-.btn-login:hover{
+  padding: 9px 20px;
+  border-radius: 99px;
   color: #fff;
-  background: linear-bbradient(to right bottom, #ff9c40, #ff632e);
-  animation-duration:bb4s;
+  background: linear-gradient(to right bottom, #1E88E5, #1565C0);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .25s;
 }
+
+.btn-login:hover {
+  color: #fff;
+  background: linear-gradient(to right bottom, #42A5F5, #0D47A1);
+  animation-duration: .4s;
+}
+
 .search-container {
   flex: 1;
   display: flex;

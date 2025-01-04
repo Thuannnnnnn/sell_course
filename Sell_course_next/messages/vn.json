@@ -7,36 +7,39 @@
       "title": "Trang thông tin"
     },
     "Header": {
-      "title": "Học lập trình để đi làm",
+      "title": "RedFlag GoldenStar",
+      "home":"Trang Chủ",
+      "cart": "Giỏ hàng",
+      "course": "khóa học",
+      "forum": "diễn đàn",
       "login":"Đăng nhập",
       "logout":"Đăng xuất",
-      "search":"Tìm kiếm khóa học, bài viết, video, ...",
       "signup": "Đăng ký"
     },
     "sidebar":{
       "home": "Trang Chủ"
     },
       "footer": {
-        "headingF8": "F8",
-        "description": "Học lập trình để làm việc",
+        "headingF8": "RedFlag GoldenStar",
+        "description": "RedFlag GoldenStar",
         "phone": "Điện thoại: 08 1919 8989",
         "email": "Email: contact@fullstack.edu.vn",
-        "address": "Địa chỉ: Số 1, Ngõ 41, Trần Duy Hưng, Cầu Giấy, Hà Nội",
-        "about": "Về F8",
+        "address": "Địa chỉ: FPT University CanTho, 123 Nguyen Van Cu, CanTho",
+        "about": "Công ty",
         "aboutList": {
           "0": "Giới thiệu",
           "1": "Liên hệ",
           "2": "Điều khoản",
           "3": "Quyền riêng tư"
         },
-        "products": "Sản phẩm",
+        "products": "Hỗ trợ",
         "productList": {
-          "0": "Game Nester",
-          "1": "Game CSS Diner",
-          "2": "Game CSS Selectors",
-          "3": "Game Froggy",
-          "4": "Game Froggy Pro",
-          "5": "Game Scoops"
+          "0": "Câu hỏi thường gặp",
+          "1": "đánh giá CV",
+          "2": "Trang thông báo",
+          "3": "Khóa học",
+          "4": "Bản quyền",
+          "5": "Trò chuyện trực tuyến"
         },
         "tools": "Công cụ",
         "toolsList": {
@@ -47,10 +50,13 @@
           "4": "Tạo lưới CSS",
           "5": "Cảnh báo chạm mặt"
         },
-        "companyName": "CÔNG TY CỔ PHẦN GIÁO DỤC CÔNG NGHỆ F8",
+        "companyName": "CÔNG TY CỔ PHẦN GIÁO DỤC CÔNG NGHỆ ",
         "taxCode": "Mã số thuế: 0109922901",
-        "foundingDate": "Ngày thành lập: 03/04/2022",
+        "foundingDate": "Ngày thành lập: 05/01/2025",
         "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
-        "copyright": "© 2018 - 2024 F8. Nền tảng học lập trình hàng đầu tại Việt Nam."
-      }    
+        "copyright": ". Nền tảng học lập trình hàng đầu tại Việt Nam."
+      },
+      "detail" : {
+        "title": "Chi tiết"
+      }
   }
