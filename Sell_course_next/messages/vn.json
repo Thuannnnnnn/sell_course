@@ -52,5 +52,21 @@
         "foundingDate": "Ngày thành lập: 03/04/2022",
         "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
         "copyright": "© 2018 - 2024 F8. Nền tảng học lập trình hàng đầu tại Việt Nam."
-      }    
+      },
+      "banner": {
+        "bannerTitle": "Trang Web Học Tập Tốt Nhất: Tìm Kiến Thức Bạn Cần",
+        "bannerDecription": "Khám phá kiến thức mới, rèn luyện kỹ năng và đạt được mục tiêu của bạn với lộ trình học tập thông minh",
+        "bannerButtom": "Học Ngay"
+      },
+      "homePage": {
+        "homePageTitle": "Học Tập Khóa Học",
+        "homePageContent": "Chào mừng bạn đến với mạng lưới khóa học! Kiểm tra tất cả các lộ trình học, học theo tốc độ của bạn, và phát triển kỹ năng. Chúng tôi rất vui mừng được đồng hành cùng bạn trên con đường đến với kiến thức có ý nghĩa."
+      },
+      "cardCourse": {
+        "0": "Cơ bản (lý thuyết và cú pháp)",
+        "1": "Nâng cao (cấu trúctrúc, logic, OOP)",
+        "2": "Dự án (chứng nhậnnhận)",
+        "3": "Bắt đầu từ:",
+        "4": "Bắt đầu"
+      }
   }

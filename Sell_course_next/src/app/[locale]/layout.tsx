@@ -9,9 +9,10 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import SidebarNavbar from '../../components/Sidebar';
+// import SidebarNavbar from '../../components/Sidebar';
 import BottomBar from '../../components/Bottombar';
 import { ThemeProvider } from '../../context/ThemeContext'; 
+import Banner from '@/components/Banner';
 const geistSans = localFont({
   src: '../fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -51,14 +52,15 @@ export default async function RootLayout({
           <SessionProvider>
             <NextIntlClientProvider messages={messages}>
               <Header />
+              <Banner/>
               <div className="main-container">
-                <div className="sidebar-container">
+                {/* <div className="sidebar-container">
                   <SidebarNavbar />
-                </div>
+                </div> */}
                 <div className="content-container m-4">
                   <main className="content">{children}</main>
                 </div>
-              </div>
+              </div>              
               <Footer />
                 <BottomBar />
             </NextIntlClientProvider>
