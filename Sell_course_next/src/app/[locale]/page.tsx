@@ -16,7 +16,6 @@ import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 export default function HomePage() {
-  // const t = useTranslations('HomePage');
   const t = useTranslations('homePage')
   const tc = useTranslations('cardCourse')
   return (
