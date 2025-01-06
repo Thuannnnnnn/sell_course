@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -11,6 +12,22 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomBar from "../../components/Bottombar";
 import { ThemeProvider } from "../../context/ThemeContext";
+=======
+import type { Metadata } from 'next';
+import localFont from 'next/font/local';
+import './globals.css';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { SessionProvider } from 'next-auth/react';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
+import BottomBar from '../../components/Bottombar';
+import { ThemeProvider } from '../../context/ThemeContext';
+import Banner from '@/components/Banner';
+>>>>>>> 57f322b1f5a600d577e0a1a396d394660dd1850e
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -49,6 +66,7 @@ export default async function RootLayout({
           <SessionProvider>
             <NextIntlClientProvider messages={messages}>
               <Header />
+              <Banner/>
               <div className="main-container">
                 <div className="content-container m-4">
                   <main className="content">{children}</main>

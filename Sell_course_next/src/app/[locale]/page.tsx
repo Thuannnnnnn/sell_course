@@ -12,13 +12,19 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
+<<<<<<< HEAD
 import Banner from '@/components/Banner';
+=======
+>>>>>>> 57f322b1f5a600d577e0a1a396d394660dd1850e
 export default function HomePage() {
   const t = useTranslations('homePage')
   const tc = useTranslations('cardCourse')
   return (
+<<<<<<< HEAD
     <>
     <Banner/>
+=======
+>>>>>>> 57f322b1f5a600d577e0a1a396d394660dd1850e
     <div className="main-container">
       <div className="header-section">
         <Swiper

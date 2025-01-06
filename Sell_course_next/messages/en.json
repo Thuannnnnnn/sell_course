@@ -50,10 +50,14 @@
         "taxCode": "Tax code: 010232101123",
         "foundingDate": "Established: 05/01/2025",
         "activityField": "Field of activity: Education, technology - programming. We focus on building and developing products that bring value to the Vietnamese programming community.",
+<<<<<<< HEAD
         "copyright": ". Leading programming learning platform in Vietnam."
       },
       "detail" : {
         "title": "detail"
+=======
+        "copyright": "© 2018 - 2024 F8. Leading programming learning platform in Vietnam."
+>>>>>>> 57f322b1f5a600d577e0a1a396d394660dd1850e
       },
       "banner": {
         "bannerTitle": "The Best Learning Website: Find All the Knowledge You Need",
@@ -62,8 +66,12 @@
       },
       "homePage": {
         "homePageTitle": "Course Learning",
+<<<<<<< HEAD
         "homePageContent": "Welcome to the course network! Check all the learning paths, learn at your pace, and grow your skills. We are thrilled to accompany you on your path to meaningful knowledge.",
         "title": "Home Page"
+=======
+        "homePageContent": "Welcome to the course network! Check all the learning paths, learn at your pace, and grow your skills. We are thrilled to accompany you on your path to meaningful knowledge."
+>>>>>>> 57f322b1f5a600d577e0a1a396d394660dd1850e
       },
       "cardCourse": {
         "0": " Basic  (theory and syntax)",

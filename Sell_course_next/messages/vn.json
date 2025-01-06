@@ -50,10 +50,14 @@
         "taxCode": "Mã số thuế: 0109922901",
         "foundingDate": "Ngày thành lập: 05/01/2025",
         "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
+<<<<<<< HEAD
         "copyright": ". Nền tảng học lập trình hàng đầu tại Việt Nam."
       },
       "detail" : {
         "title": "Chi tiết"
+=======
+        "copyright": "© 2018 - 2024 F8. Nền tảng học lập trình hàng đầu tại Việt Nam."
+>>>>>>> 57f322b1f5a600d577e0a1a396d394660dd1850e
       },
       "banner": {
         "bannerTitle": "Trang Web Học Tập Tốt Nhất: Tìm Kiến Thức Bạn Cần",
@@ -62,8 +66,12 @@
       },
       "homePage": {
         "homePageTitle": "Học Tập Khóa Học",
+<<<<<<< HEAD
         "homePageContent": "Chào mừng bạn đến với mạng lưới khóa học! Kiểm tra tất cả các lộ trình học, học theo tốc độ của bạn, và phát triển kỹ năng. Chúng tôi rất vui mừng được đồng hành cùng bạn trên con đường đến với kiến thức có ý nghĩa.",
         "title": "Trang chủ"
+=======
+        "homePageContent": "Chào mừng bạn đến với mạng lưới khóa học! Kiểm tra tất cả các lộ trình học, học theo tốc độ của bạn, và phát triển kỹ năng. Chúng tôi rất vui mừng được đồng hành cùng bạn trên con đường đến với kiến thức có ý nghĩa."
+>>>>>>> 57f322b1f5a600d577e0a1a396d394660dd1850e
       },
       "cardCourse": {
         "0": "Cơ bản (lý thuyết và cú pháp)",
