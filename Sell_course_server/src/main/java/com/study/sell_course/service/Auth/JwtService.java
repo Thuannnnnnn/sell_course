@@ -29,7 +29,15 @@ public class JwtService {
                 .signWith(getSignInKey())
                 .compact();
     }
-
+    public String generateRefreshToken(String email) {
+        long REFRESH_EXPIRATION_TIME = 1000 * 60 * 60 * 24;
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION_TIME))
+                .signWith(getSignInKey())
+                .compact();
+    }
     public String extractUsername(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())
