@@ -100,8 +100,8 @@ body {
 
 .icon {
   background-color: #117ce0;
-  width: 1.2rem; 
-  height: 1.2rem; 
+  width: 1.2rem;
+  height: 1.2rem;
   border-radius: 100%;
   display: flex;
   text-align: center;
@@ -167,23 +167,23 @@ body {
     height: 50px;
     object-fit: contain;
   }
-  
+
   .course-card h2 {
     font-size: 1.3rem;
     margin: 1rem 0;
     font-weight: bold;
   }
-  
+
   .course-card ul {
     list-style-type: none;
     padding: 0;
     margin-bottom: 10px;
   }
-  
+
   .icon {
     background-color: #117ce0;
-    width: 0.7rem; 
-    height: 0.7rem; 
+    width: 0.7rem;
+    height: 0.7rem;
     border-radius: 100%;
     display: flex;
     text-align: center;
@@ -191,20 +191,20 @@ body {
     align-items: center;
     margin-right: 0.5rem;
   }
-  
+
   .icon-check {
     color: white;
     width: 1rem;
     height: 1rem;
   }
-  
+
   .course-card ul li {
     font-size: 0.7rem;
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
   }
-  
+
   .course-price {
     font-size: 1rem;
     margin-top: 10px;

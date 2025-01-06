@@ -9,9 +9,9 @@ import logoSQL from '../image/logoSQL_img.jpg';
 
 import { HiOutlineCheck } from "react-icons/hi";
 
-import 'swiper/css'; 
-import 'swiper/css/navigation'; 
-import 'swiper/css/pagination'; 
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
@@ -22,7 +22,7 @@ export default function HomePage() {
   return (
     <div className="main-container">
       <div className="header-section">
-        <Swiper 
+        <Swiper
           spaceBetween={10}
           slidesPerView={4}
           loop={true}
@@ -80,7 +80,7 @@ export default function HomePage() {
           spaceBetween={50}
           slidesPerView={4}
           loop={true}
-          pagination={{ clickable: true }} 
+          pagination={{ clickable: true }}
           breakpoints={{
             600: {
               slidesPerView: 1,

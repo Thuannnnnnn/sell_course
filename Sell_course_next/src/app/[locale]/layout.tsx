@@ -40,7 +40,6 @@ export default async function RootLayout({
   if (!routing.locales.includes(params.locale as "en" | "vn")) {
     notFound();
   }
-  
 
   // Get messages dynamically based on locale
   const messages = await getMessages({ locale: params.locale });
@@ -60,7 +59,7 @@ export default async function RootLayout({
                 <div className="content-container m-4">
                   <main className="content">{children}</main>
                 </div>
-              </div>              
+              </div>
               <Footer />
                 <BottomBar />
             </NextIntlClientProvider>
@@ -68,7 +67,5 @@ export default async function RootLayout({
         </ThemeProvider>
     </body>
   </html>
-  
-  
   );
 }

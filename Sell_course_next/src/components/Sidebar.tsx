@@ -19,7 +19,7 @@ const SidebarNavbar = () => {
                             <IoMdHome size={25} />
                             <p className="fw-semibold mt-2 page">{t('home')}</p>
                         </Link>
-                        </li>              
+                        </li>
                     </ul>
                 </div>
         </>
