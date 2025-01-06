@@ -49,9 +49,8 @@ export default async function RootLayout({
           <SessionProvider>
             <NextIntlClientProvider messages={messages}>
               <Header />
+              <Banner/>
               <div className="main-container">
-                <div className="sidebar-container">
-                </div>
                 <div className="content-container m-4">
                   <main className="content">{children}</main>
                 </div>
@@ -61,7 +60,7 @@ export default async function RootLayout({
             </NextIntlClientProvider>
           </SessionProvider>
         </ThemeProvider>
-      </body>
-    </html>
+    </body>
+  </html>
   );
 }
