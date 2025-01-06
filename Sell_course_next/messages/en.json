@@ -1,8 +1,4 @@
 {
-    "HomePage": {
-      "title": "Home Page",
-      "about": "Go to the about page"
-    },
     "AboutPage":{
       "title": "About Page"
     },
@@ -58,5 +54,22 @@
       },
       "detail" : {
         "title": "detail"
+      },
+      "banner": {
+        "bannerTitle": "The Best Learning Website: Find All the Knowledge You Need",
+        "bannerDecription": "Discover new knowledge, practice skills, and achieve your goals with an intelligent learning path",
+        "bannerButtom": "Learning Now"
+      },
+      "homePage": {
+        "homePageTitle": "Course Learning",
+        "homePageContent": "Welcome to the course network! Check all the learning paths, learn at your pace, and grow your skills. We are thrilled to accompany you on your path to meaningful knowledge.",
+        "title": "Home Page"
+      },
+      "cardCourse": {
+        "0": " Basic  (theory and syntax)",
+        "1": "Advanced (structure, logic, OOP)",
+        "2": "Project ( certificate )",
+        "3": "Staring at",
+        "4": "Get started"
       }
     }
