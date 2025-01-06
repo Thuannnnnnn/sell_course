@@ -43,5 +43,4 @@ public class AuthController {
     public RegisterMailResponse register(@RequestBody RegisterMailRequest registerMailRequest) {
         return emailService.sendRegisterMail(registerMailRequest.getEmail());
     }
-
 }
