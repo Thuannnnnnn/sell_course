@@ -1,7 +1,51 @@
+footer {
+  background-color: #f9f9f9;
+  color: black;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+[data-bs-theme="dark"] footer {
+  background-color: black;
+  color: white;
+}
+
+[data-bs-theme="light"] footer {
+  background-color: #f9f9f9;
+  color: black;
+}
+footer ul li {
+  margin-bottom: 5px;
+}
+
 .social-icons i {
-    font-size: 24px;
-    color: #fff;
-  }
-  footer ul li {
-    margin-bottom: 5px;
-  }
+  font-size: 24px;
+  color: #fff;
+}
+  .title-custom{
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.title-custom .red-flag{
+  color: red;
+  transition: color 0.25s;
+}
+
+.title-custom .golden-star{
+  color: gold;
+}
+
+[data-bs-theme="dark"] .title-custom .red-flag{
+  color: red;
+}
+[data-bs-theme="dark"] .title-custom .golden-star{
+  color: yellow;
+}
+
+[data-bs-theme="light"] .title-custom .red-flag {
+  color: red;
+}
+
+[data-bs-theme="light"] .title-custom .golden-star{
+  color: black;
+}
