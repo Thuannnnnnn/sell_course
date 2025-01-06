@@ -5,11 +5,13 @@ import com.study.sell_course.dto.auth.LoginRequest;
 import com.study.sell_course.dto.auth.RegisterRequest;
 import com.study.sell_course.dto.auth.RegisterResponse;
 import com.study.sell_course.service.Auth.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth APIs")
 public class AuthController {
     private final AuthService authService;
 

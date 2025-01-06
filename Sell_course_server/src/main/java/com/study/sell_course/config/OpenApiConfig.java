@@ -1,4 +1,4 @@
-package com.Server.config;
+package com.study.sell_course.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -20,8 +20,7 @@ public class OpenApiConfig {
                         .description("Spring Boot Online Course Management RESTful APIs Documentation")
                         .version("1.0"))
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Local Server"),
-                        new Server().url("https://ae3.autos").description("HTTPS Server")
+                        new Server().url("http://localhost:8386").description("Local Server")
                 )).addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new io.swagger.v3.oas.models.Components()
                         .addSecuritySchemes("bearerAuth",
