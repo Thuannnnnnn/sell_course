@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomBar from "../../components/Bottombar";
 import { ThemeProvider } from "../../context/ThemeContext";
+import Banner from '@/components/Banner';
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
   variable: "--font-geist-sans",
