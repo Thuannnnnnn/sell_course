@@ -4,17 +4,14 @@ import logoJava from '../image/logoJava_img.jpg';
 import logoJs from '../image/logoJS_img.jpg';
 import logoCPlusPlus from '../image/logoC++_img.png';
 import logoCSharp from '../image/logoC_img.jpg';
-import logoNodeJs from '../image/logoNodeJS_img.png';
+import logoNodeJs from '../image/logoNodeJs_img.png';
 import logoSQL from '../image/logoSQL_img.jpg';
-
 import { HiOutlineCheck } from "react-icons/hi";
-
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
 export default function HomePage() {
   const t = useTranslations('homePage')
   const tc = useTranslations('cardCourse')
@@ -66,14 +63,11 @@ export default function HomePage() {
           </SwiperSlide>
         </Swiper>
       </div>
-
-
       <div className="content-container">
         <h1 className="course-title">{t('homePageTitle')}</h1>
         <p className="course-description">
           {t('homePageContent')}
         </p>
-
         <div className="course-carousel">
         <Swiper
           spaceBetween={50}
@@ -120,7 +114,6 @@ export default function HomePage() {
               <button className="get-started-btn">{tc('4')}</button>
             </div>
           </SwiperSlide>
-
           <SwiperSlide>
             <div className="course-card">
               <Image src={logoJs} alt="JavaScript" />
@@ -146,7 +139,6 @@ export default function HomePage() {
               <button className="get-started-btn">{tc('4')}</button>
             </div>
           </SwiperSlide>
-
           <SwiperSlide>
             <div className="course-card">
               <Image src={logoJs} alt="JavaScript" />
@@ -172,7 +164,6 @@ export default function HomePage() {
               <button className="get-started-btn">{tc('4')}</button>
             </div>
           </SwiperSlide>
-
           <SwiperSlide>
             <div className="course-card">
               <Image src={logoJs} alt="JavaScript" />
@@ -198,7 +189,6 @@ export default function HomePage() {
               <button className="get-started-btn">{tc('4')}</button>
             </div>
           </SwiperSlide>
-
           <SwiperSlide>
             <div className="course-card">
               <Image src={logoJs} alt="JavaScript" />
