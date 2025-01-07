@@ -11,7 +11,6 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomBar from "../../components/Bottombar";
 import { ThemeProvider } from "../../contexts/ThemeContext";
-import { OAuthProvider } from "../../contexts/OAuthContext";
 import { Inter } from "@next/font/google";
 
 const geistSans = localFont({
@@ -56,7 +55,6 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable}`}>
         <ThemeProvider>
           <SessionProvider>
-            <OAuthProvider>
               <NextIntlClientProvider messages={messages}>
                 <Header />
                 <div className="main-container">
@@ -67,7 +65,6 @@ export default async function RootLayout({
                 <Footer />
                 <BottomBar />
               </NextIntlClientProvider>
-            </OAuthProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>
