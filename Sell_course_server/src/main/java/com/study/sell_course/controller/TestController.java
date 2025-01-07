@@ -13,4 +13,8 @@ public class TestController {
     public String sayHello() {
         return "Hello, World";
     }
+    @GetMapping("/api/admin")
+    public String adminTest() {
+        return "Hello, World admin";
+    }
 }

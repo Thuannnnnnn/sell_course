@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.Map;
 
 @Service
 public class JwtService {
@@ -20,9 +21,10 @@ public class JwtService {
     }
 
 
-    public String generateToken(String email) {
+    public String generateToken(String email, Map<String, Object> claims) {
         long EXPIRATION_TIME = 1000 * 60 * 60 * 2;
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))

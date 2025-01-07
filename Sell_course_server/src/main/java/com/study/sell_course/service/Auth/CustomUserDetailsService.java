@@ -1,9 +1,9 @@
 package com.study.sell_course.service.Auth;
 
+import com.study.sell_course.dto.auth.CustomUserDetails;
 import com.study.sell_course.entity.User;
 import com.study.sell_course.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -18,17 +18,19 @@ public class CustomUserDetailsService implements org.springframework.security.co
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public CustomUserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // Tìm người dùng trong cơ sở dữ liệu
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        // Chuyển đổi thành UserDetails
-        return org.springframework.security.core.userdetails.User
-                .builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole()) // Lấy quyền từ user (ví dụ: "USER", "ADMIN")
-                .build();
+        // Trả về CustomUserDetails chứa thông tin người dùng
+        return new CustomUserDetails(
+                user.getEmail(),
+                user.getPassword(),
+                user.getRole(),
+                user.getGender(),
+                user.getBirthDay(),
+                user.getPhoneNumber()
+        );
     }
 }

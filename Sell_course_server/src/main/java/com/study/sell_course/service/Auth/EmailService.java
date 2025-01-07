@@ -81,4 +81,7 @@ public class EmailService {
         return !verificationRequest.getExpired_at().isBefore(LocalDateTime.now());
 
     }
+    public void deleteToken(String email) {
+        emailVerificationRepo.deleteEmailVerificationByEmail(email);
+    }
 }

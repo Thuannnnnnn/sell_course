@@ -19,9 +19,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest loginRequest) {
-        JwtResponse jwtResponse = authService.login(loginRequest);
-        return ResponseEntity.ok(jwtResponse);  // Trả về token JWT
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+        System.out.println("Received login request: " + loginRequest.getEmail() + " " + loginRequest.getPassword());
+        LoginResponse loginResponse = authService.login(loginRequest);
+        return ResponseEntity.ok(loginResponse);
     }
     @PostMapping("/register-user")
     public RegisterResponse register (@RequestBody RegisterRequest registerRequest, @RequestParam String token) {
@@ -42,5 +43,11 @@ public class AuthController {
     @PostMapping("/register")
     public RegisterMailResponse register(@RequestBody RegisterMailRequest registerMailRequest) {
         return emailService.sendRegisterMail(registerMailRequest.getEmail());
+    }
+    @PostMapping("/oauth")
+    public ResponseEntity<LoginResponse> loginGoogle(@RequestBody LoginGoogleRequest loginGoogleRequest) {
+        System.out.println("Received login request: " + loginGoogleRequest.getEmail() + " " + loginGoogleRequest.getUsername());
+        LoginResponse loginResponse = authService.loginGoogle(loginGoogleRequest.getEmail(), loginGoogleRequest.getUsername());
+        return ResponseEntity.ok(loginResponse);
     }
 }
