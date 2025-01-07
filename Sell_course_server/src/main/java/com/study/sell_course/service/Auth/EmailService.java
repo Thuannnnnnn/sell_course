@@ -71,9 +71,10 @@ public class EmailService {
                 .build();
     }
 
-    public boolean verifyToken(String token) {
+    public boolean verifyToken(String token, String email) {
         Optional<EmailVerification> existingRequest = emailVerificationRepo.findByToken(token);
-        if(existingRequest.isEmpty()) {
+        Optional<EmailVerification> existingEmail = emailVerificationRepo.findByEmail(email);
+        if(existingRequest.isEmpty() || existingEmail.isEmpty()) {
             return false;
         }
         EmailVerification verificationRequest = existingRequest.get();
