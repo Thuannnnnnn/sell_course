@@ -24,7 +24,7 @@ public class EmailService {
     public void sendVerificationEmail(String email, String token) throws MessagingException {
         String subject = "Xác nhận đăng ký tài khoản";
         String content = "Vui lòng nhấp vào liên kết dưới đây để xác nhận đăng ký của bạn: " +
-                "http://localhost:8080/api/auth/verify-email?token=" + token;
+                "http://localhost:8386/api/auth/verify-email?token=" + token;
 
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -67,7 +67,7 @@ public class EmailService {
         }
         return RegisterMailResponse.builder()
                 .message("Email sent successfully")
-                .url("http://localhost:8080/api/auth/verify-email?token=" + token)
+                .url("http://localhost:8386/api/auth/verify-email?token=" + token)
                 .build();
     }
 

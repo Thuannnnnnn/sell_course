@@ -48,9 +48,9 @@ public class AuthController {
         return emailService.sendRegisterMail(registerMailRequest.getEmail());
     }
 
-        @GetMapping("/register")
-    public String testRegister(){
-        return "oke";
-    }
+//    @GetMapping("/register")
+//    public String testRegister(){
+//        return "oke";
+//    }
 
 }

@@ -6,6 +6,8 @@ import com.study.sell_course.dto.auth.RegisterRequest;
 import com.study.sell_course.dto.auth.RegisterResponse;
 import com.study.sell_course.entity.User;
 import io.jsonwebtoken.JwtException;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -27,15 +30,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final CustomUserDetailsService userDetailsService;
     private final EmailService emailService;
-    @Autowired
-    public AuthService(UserRepo userRepo, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, CustomUserDetailsService userDetailsService, EmailService emailService) {
-        this.userRepo = userRepo;
-        this.authenticationManager = authenticationManager;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-        this.userDetailsService = userDetailsService;
-        this.emailService = emailService;
-    }
+
 
     public JwtResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -64,9 +59,9 @@ public class AuthService {
         if (userRepo.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email exists!");
         }
-        if(!emailService.verifyToken(token, request.getEmail())) {
-            throw new IllegalArgumentException("Token is invalid");
-        }
+//        if(!emailService.verifyToken(token, request.getEmail())) {
+//            throw new IllegalArgumentException("Token is invalid");
+//        } 
         User user = User.builder()
                 .userId(UUID.randomUUID())
                 .birthDay(request.getBrith_day())
