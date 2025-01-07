@@ -71,5 +71,19 @@
         "2": "Project ( certificate )",
         "3": "Staring at",
         "4": "Get started"
+      },
+      "loginPage": {
+        "title": "Login",
+        "wellcome": "Hi, Welcome back!",
+        "email": "Email Address",
+        "DontHaveAccount": "Don't have an account?",
+        "Register": " Register Now",
+        "placeholderEmail": "Enter your Email Address",
+        "password": "Password",
+        "placeholderPassword": "Enter your Password",
+        "login": "Sign In",
+        "forgot": "Forgot password",
+        "signup": "Sign Up",
+        "google": "Google"
       }
     }

@@ -3,11 +3,13 @@ import React, { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'react-bootstrap/Image';
+import { useOAuth } from "@/contexts/OAuthContext";
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
+  const { data, error, isLoading } = useOAuth();
   const router = useRouter();
 
-  useEffect(() => {
+  useEffect(() => {;
     if (status === 'unauthenticated') {
       router.push('/auth/login');
     }
@@ -19,6 +21,10 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div>
+       <div>
+      <h1>Welcome to the Dashboard</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
       {session ? (
         <>
           <span className="nav-link m-4">Name, {session.user?.name}</span>

@@ -10,7 +10,10 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomBar from "../../components/Bottombar";
-import { ThemeProvider } from "../../context/ThemeContext";
+import { ThemeProvider } from "../../contexts/ThemeContext";
+import { OAuthProvider } from "../../contexts/OAuthContext";
+import { Inter } from "@next/font/google";
+
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -20,6 +23,12 @@ const geistMono = localFont({
   src: "../fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -44,22 +53,24 @@ export default async function RootLayout({
 
   return (
     <html lang={params.locale}>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable}`}>
         <ThemeProvider>
           <SessionProvider>
-            <NextIntlClientProvider messages={messages}>
-              <Header />
-              <div className="main-container">
-                <div className="content-container m-4">
-                  <main className="content">{children}</main>
+            <OAuthProvider>
+              <NextIntlClientProvider messages={messages}>
+                <Header />
+                <div className="main-container">
+                  <div className="">
+                    <main className="content">{children}</main>
+                  </div>
                 </div>
-              </div>
-              <Footer />
-              <BottomBar />
-            </NextIntlClientProvider>
+                <Footer />
+                <BottomBar />
+              </NextIntlClientProvider>
+            </OAuthProvider>
           </SessionProvider>
         </ThemeProvider>
-    </body>
-  </html>
+      </body>
+    </html>
   );
 }

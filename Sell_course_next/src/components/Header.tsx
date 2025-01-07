@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { IoIosLogOut } from "react-icons/io";
 import { MdDarkMode } from "react-icons/md";
 import { MdLightMode } from "react-icons/md";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();

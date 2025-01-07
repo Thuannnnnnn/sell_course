@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/qwik": "^0.5.4",
+    "@next/font": "^14.2.15",
+    "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "dotenv": "^16.4.5",
     "next": "14.2.18",
