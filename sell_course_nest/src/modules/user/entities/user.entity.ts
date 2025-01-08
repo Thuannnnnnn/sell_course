@@ -1,9 +1,11 @@
+import { Course } from 'src/modules/course/entities/course.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   BeforeInsert,
+  OneToMany,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -35,6 +37,9 @@ export class User {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @OneToMany(() => Course, (course) => course.category)
+  courses: Course[];
 
   @BeforeInsert()
   prePersist() {

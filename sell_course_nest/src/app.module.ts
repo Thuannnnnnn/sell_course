@@ -50,6 +50,8 @@ import { ResultQuizzModule } from './modules/result_quizz/result_quizz.module';
 import { VideoModule } from './modules/video/video.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { Category } from './modules/category/entities/category.entity';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -87,6 +89,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
         Video,
         Waitlist,
         Wishlist,
+        Category,
       ],
       synchronize: true,
     }),
@@ -114,6 +117,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     VideoModule,
     WaitlistModule,
     WishlistModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
