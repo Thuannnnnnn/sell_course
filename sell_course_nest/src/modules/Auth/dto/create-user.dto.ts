@@ -7,6 +7,9 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
+  @IsString()
+  token: string;
+
   @IsEmail()
   email: string;
 
