@@ -52,6 +52,10 @@ import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { Category } from './modules/category/entities/category.entity';
 import { CategoryModule } from './modules/category/category.module';
+import { Notify } from './modules/notify/entities/notify.entity';
+import { UserNotify } from './modules/User_Notify/entities/User_Notify.entity';
+import { NotifyModule } from './modules/notify/notify.module';
+import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
 
 @Module({
   imports: [
@@ -66,6 +70,8 @@ import { CategoryModule } from './modules/category/category.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       entities: [
+        Notify,
+        UserNotify,
         User,
         Cart,
         Certificate,
@@ -93,6 +99,8 @@ import { CategoryModule } from './modules/category/category.module';
       ],
       synchronize: true,
     }),
+    NotifyModule,
+    UserNotifyModule,
     UserModule,
     authModule,
     CartModule,
