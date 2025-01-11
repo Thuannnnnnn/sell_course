@@ -6,7 +6,7 @@ export class Lesson {
   @PrimaryColumn({ name: 'lesson_id' })
   lessonId: string;
 
-  @Column({ name: 'courseId' })
+  @Column({ name: 'course_id' })
   @ManyToOne(() => Course)
   courseId: string;
 
