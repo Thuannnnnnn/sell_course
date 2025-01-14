@@ -9,7 +9,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, account}) {
+    async signIn({ user, account }) {
       if (!account) {
         console.error("Account is null");
         return false;
@@ -23,13 +23,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       };
 
       try {
-        const response = await fetch(`${process.env.BACKEND_URL}/api/auth/oauth`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/oauth`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
 
         const responseData = await response.json();
 

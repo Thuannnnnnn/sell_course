@@ -87,7 +87,7 @@ export class authService {
       gender: createUserDto.gender,
       birthDay: createUserDto.birthDay,
       phoneNumber: createUserDto.phoneNumber,
-      role: createUserDto.role,
+      role: "CUSTOMER",
     });
     if (!newUser) {
       throw new HttpException('Error', HttpStatus.INTERNAL_SERVER_ERROR);
