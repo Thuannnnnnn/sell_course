@@ -8,7 +8,9 @@
     background-color: #f8f8f8;
     color: #333;
   }
-
+.icon  {
+    font-size: 200px !important;
+}
   .homeLink {
     margin-top: 1rem;
     color: #0070f3;
