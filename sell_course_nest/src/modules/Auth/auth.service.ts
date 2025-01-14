@@ -8,10 +8,12 @@ import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { JwtStrategy } from './strategies/jwt.strategy';
+// import { JwtStrategy } from './strategies/jwt.strategy';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { MailService } from '../../utilities/mail.service';
 import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
+import { OAuthRequestDto } from './dto/authRequest.dto';
+import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class authService {
   constructor(
@@ -20,6 +22,7 @@ export class authService {
     @InjectRepository(EmailVerification)
     private emailVerifycationRepository: Repository<EmailVerification>,
     private readonly mailService: MailService,
+    private jwtService: JwtService,
   ) {}
 
   async verifyEmail(email: string) {
@@ -38,7 +41,7 @@ export class authService {
       );
     }
 
-    const token = JwtStrategy.generateTokenRegister(email, '1h');
+    const token = this.jwtService.sign(user);
     const emailVerify = this.emailVerifycationRepository.create({
       id: uuidv4(),
       email: email,
@@ -86,7 +89,7 @@ export class authService {
       gender: createUserDto.gender,
       birthDay: createUserDto.birthDay,
       phoneNumber: createUserDto.phoneNumber,
-      role: createUserDto.role,
+      role: 'CUSTOMER',
     });
     if (!newUser) {
       throw new HttpException('Error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -119,12 +122,16 @@ export class authService {
     if (!passwordMatch) {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
-
-    const token = JwtStrategy.generateToken(user, '2h');
-    const refreshToken = JwtStrategy.generateToken(user, '7d');
+    const payload = {
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    };
+    const token = this.jwtService.sign(payload);
+    // const refreshToken = JwtStrategy.generateToken(user, '7d');
     const loginResponse: LoginResponseDto = {
       token,
-      refreshToken,
+      // refreshToken,
       email: user.email,
       username: user.username,
       gender: user.gender,
@@ -134,5 +141,27 @@ export class authService {
     };
 
     throw new HttpException(loginResponse, HttpStatus.OK);
+  }
+
+  async oauth(oAuthRequestDto: OAuthRequestDto) {
+    const { email, name, picture } = oAuthRequestDto;
+    throw new HttpException(
+      {
+        message: 'OAuth data processed successfully',
+        data: { email, name, picture },
+      },
+      HttpStatus.OK,
+    );
+  }
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: { email: email },
+    });
+    const passwordMatch = await bcrypt.compare(pass, user.password);
+    if (!passwordMatch) {
+      //throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
+    }
+
+    return user;
   }
 }

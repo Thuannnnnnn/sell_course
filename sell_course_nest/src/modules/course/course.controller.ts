@@ -6,17 +6,24 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+// import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { RolesGuard } from '../Auth/roles.guard';
+import { Roles } from '../Auth/roles.decorator';
 @Controller('api/courses')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Get('getAll')
+  @Roles('ADMIN', 'CUSTOMER')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,
@@ -30,8 +37,9 @@ export class CourseController {
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     return await this.courseService.getAllCourses();
   }
-
   @Get('getByCourse/:id')
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiResponse({
     status: 200,
@@ -49,6 +57,7 @@ export class CourseController {
   }
 
   @Post('createCourse')
+  @Roles('ADMIN')
   @ApiOperation({ summary: 'Create a new course' })
   @ApiResponse({
     status: 201,
