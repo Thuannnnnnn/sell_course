@@ -3,101 +3,53 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   Post,
   Put,
 } from '@nestjs/common';
-import { CourseDTO } from './dto/courseData.dto';
+import { CourseRequestDTO } from './dto/courseRequestData.dto';
+import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
-import { CustomError } from '../CustomError';
-
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Controller('api/courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Get('getAll')
-  async getAllCourses(): Promise<CourseDTO[]> {
-    try {
-      return await this.courseService.getAllCourses();
-    } catch (error) {
-      if (error instanceof CustomError) {
-        throw new HttpException({ message: error.message }, error.statusCode);
-      }
-
-      throw new HttpException(
-        { message: 'Lỗi không xác định' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getAllCourses(): Promise<CourseResponseDTO[]> {
+    return await this.courseService.getAllCourses();
   }
 
   @Get('getByCourse/:id')
-  async getCourseById(@Param('id') courseId: string): Promise<CourseDTO> {
-    try {
-      return await this.courseService.getCourseById(courseId);
-    } catch (error) {
-      if (error instanceof CustomError) {
-        throw new HttpException({ message: error.message }, error.statusCode);
-      }
-      throw new HttpException(
-        { message: 'Lỗi không xác định' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getCourseById(
+    @Param('id') courseId: string,
+  ): Promise<CourseResponseDTO> {
+    return await this.courseService.getCourseById(courseId);
   }
 
   @Post('createCourse')
-  async createCourse(@Body() createCourseDTO: CourseDTO): Promise<CourseDTO> {
-    try {
-      const course = await this.courseService.createCourse(createCourseDTO);
-      return course;
-    } catch (error) {
-      if (error instanceof CustomError) {
-        throw new HttpException({ message: error.message }, error.statusCode);
-      }
-      throw new HttpException(
-        { message: 'Lỗi không xác định' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  @ApiOperation({ summary: 'Create a new course' })
+  @ApiResponse({
+    status: 201,
+    description: 'The course has been successfully created.',
+    type: CourseResponseDTO,
+  })
+  async createCourse(
+    @Body() createCourseDTO: CourseRequestDTO,
+  ): Promise<CourseResponseDTO> {
+    return await this.courseService.createCourse(createCourseDTO);
   }
 
   @Put('updateCourse/:id')
   async UpdatedCourse(
     @Param('id') courseId: string,
-    @Body() createCourseDTO: CourseDTO,
-  ): Promise<CourseDTO> {
-    try {
-      const course = await this.courseService.updateCourse(
-        courseId,
-        createCourseDTO,
-      );
-      return course;
-    } catch (error) {
-      if (error instanceof CustomError) {
-        throw new HttpException({ message: error.message }, error.statusCode);
-      }
-      throw new HttpException(
-        { message: 'Lỗi không xác định' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    @Body() createCourseDTO: CourseRequestDTO,
+  ): Promise<CourseResponseDTO> {
+    return await this.courseService.updateCourse(courseId, createCourseDTO);
   }
 
   @Delete('deleteCourse/:id')
   async deleteCourse(@Param('id') courseId: string): Promise<void> {
-    try {
-      await this.courseService.deleteCourse(courseId);
-    } catch (error) {
-      if (error instanceof CustomError) {
-        throw new HttpException({ message: error.message }, error.statusCode);
-      }
-      throw new HttpException(
-        { message: 'Lỗi không xác định' },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    await this.courseService.deleteCourse(courseId);
   }
 }

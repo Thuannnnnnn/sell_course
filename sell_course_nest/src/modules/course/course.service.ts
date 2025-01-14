@@ -2,11 +2,12 @@ import { Repository } from 'typeorm';
 import { Course } from './entities/course.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
-import { CourseDTO } from './dto/courseData.dto';
+import { CourseRequestDTO } from './dto/courseRequestData.dto';
+import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { User } from '../user/entities/user.entity';
 import { Category } from '../category/entities/category.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { CustomError } from '../CustomError';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class CourseService {
@@ -19,37 +20,48 @@ export class CourseService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  async getAllCourses(): Promise<CourseDTO[]> {
+  async getAllCourses(): Promise<CourseResponseDTO[]> {
     const courses = await this.CourseRepository.find({
       relations: ['user', 'category'],
     });
-    return courses.map((course) => {
-      return new CourseDTO(
-        course.courseId,
-        course.title,
-        course.price,
-        course.description,
-        course.videoInfo,
-        course.imageInfo,
-        course.createdAt,
-        course.updatedAt,
-        course.user.user_id,
-        course.category.categoryId,
-      );
-    });
+
+    if (courses.length === 0) {
+      throw new HttpException('No courses found.', HttpStatus.NOT_FOUND);
+    }
+
+    throw new HttpException(
+      courses.map((course) => {
+        return new CourseResponseDTO(
+          course.courseId,
+          course.title,
+          course.price,
+          course.description,
+          course.videoInfo,
+          course.imageInfo,
+          course.createdAt,
+          course.updatedAt,
+          course.user.user_id,
+          course.category.categoryId,
+        );
+      }),
+      HttpStatus.OK,
+    );
   }
 
-  async getCourseById(courseId: string): Promise<CourseDTO> {
+  async getCourseById(courseId: string): Promise<CourseResponseDTO> {
     const course = await this.CourseRepository.findOne({
       relations: ['user', 'category'],
       where: { courseId },
     });
 
     if (!course) {
-      throw new CustomError(404, `Course with ID ${courseId} not found`);
+      throw new HttpException(
+        `Course with ID ${courseId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
-    return new CourseDTO(
+    const CourseRequestDTO = new CourseResponseDTO(
       course.courseId,
       course.title,
       course.price,
@@ -61,24 +73,28 @@ export class CourseService {
       course.user.user_id,
       course.category.categoryId,
     );
+    throw new HttpException(CourseRequestDTO, HttpStatus.OK);
   }
 
-  async createCourse(course: CourseDTO): Promise<CourseDTO> {
+  async createCourse(course: CourseRequestDTO): Promise<CourseResponseDTO> {
     const { userId, categoryId, title } = course;
 
     const userData = await this.userRepository.findOne({
       where: { user_id: userId },
     });
     if (!userData) {
-      throw new CustomError(404, `Không tìm thấy user với ID ${userId}.`);
+      throw new HttpException(
+        `User with ID ${userId} not found.`,
+        HttpStatus.NOT_FOUND,
+      );
     }
     const categoryData = await this.categoryRepository.findOne({
       where: { categoryId },
     });
     if (!categoryData) {
-      throw new CustomError(
-        404,
-        `Không tìm thấy category với ID ${categoryId}.`,
+      throw new HttpException(
+        `Category with ID ${categoryId} not found.`,
+        HttpStatus.NOT_FOUND,
       );
     }
 
@@ -86,10 +102,13 @@ export class CourseService {
       where: { title },
     });
     if (courseData) {
-      throw new CustomError(404, `Course với title '${title}' đã tồn tại.`);
+      throw new HttpException(
+        `Course with title '${title}' already exists.`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    const newCourse = await this.CourseRepository.save({
+    await this.CourseRepository.save({
       courseId: uuidv4(),
       title: course.title,
       description: course.description,
@@ -101,48 +120,28 @@ export class CourseService {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-
-    return new CourseDTO(
-      newCourse.courseId,
-      newCourse.title,
-      newCourse.price,
-      newCourse.description,
-      newCourse.videoInfo,
-      newCourse.imageInfo,
-      newCourse.createdAt,
-      newCourse.updatedAt,
-      newCourse.user.user_id,
-      newCourse.category.categoryId,
-    );
+    throw new HttpException('Created', HttpStatus.OK);
   }
 
   async updateCourse(
     courseId: string,
     updateData: Partial<Course>,
-  ): Promise<CourseDTO> {
+  ): Promise<CourseResponseDTO> {
     const course = await this.CourseRepository.findOne({
       where: { courseId },
       relations: ['user', 'category'],
     });
 
     if (!course) {
-      throw new CustomError(404, `Course with ID ${courseId} not found`);
+      throw new HttpException(
+        `Course with ID ${courseId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     Object.assign(course, updateData);
-    const updatedCourse = await this.CourseRepository.save(course);
-    return new CourseDTO(
-      updatedCourse.courseId,
-      updatedCourse.title,
-      updatedCourse.price,
-      updatedCourse.description,
-      updatedCourse.videoInfo,
-      updatedCourse.imageInfo,
-      updatedCourse.createdAt,
-      new Date(),
-      updatedCourse.user.user_id,
-      updatedCourse.category.categoryId,
-    );
+    await this.CourseRepository.save(course);
+    throw new HttpException('Updated', HttpStatus.OK);
   }
 
   async deleteCourse(courseId: string): Promise<void> {
@@ -151,9 +150,13 @@ export class CourseService {
     });
 
     if (!course) {
-      throw new CustomError(404, `Course with ID ${courseId} not found`);
+      throw new HttpException(
+        `Course with ID ${courseId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     await this.CourseRepository.remove(course);
+    throw new HttpException('Removed', HttpStatus.OK);
   }
 }

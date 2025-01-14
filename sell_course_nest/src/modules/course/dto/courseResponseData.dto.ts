@@ -1,4 +1,4 @@
-export class CourseDTO {
+export class CourseResponseDTO {
   constructor(
     public courseId: string,
     public title: string,
