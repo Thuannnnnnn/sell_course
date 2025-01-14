@@ -10,6 +10,14 @@ async function bootstrap() {
     .setDescription('Sell Course OpenAPI')
     .setVersion('1.0')
     .addTag('Course')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'Authorization',
+    )
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, documentFactory);

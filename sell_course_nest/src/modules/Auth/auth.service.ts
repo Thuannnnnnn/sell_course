@@ -145,7 +145,6 @@ export class authService {
 
   async oauth(oAuthRequestDto: OAuthRequestDto) {
     const { email, name, picture } = oAuthRequestDto;
-    console.log('Received OAuth data:', { email, name, picture });
     throw new HttpException(
       {
         message: 'OAuth data processed successfully',
@@ -155,7 +154,6 @@ export class authService {
     );
   }
   async validateUser(email: string, pass: string): Promise<any> {
-    console.log(email, pass);
     const user = await this.userRepository.findOne({
       where: { email: email },
     });

@@ -20,7 +20,6 @@ export class authController {
 
   @Post('verify-email')
   async verifyEmail(@Body('email') email: string) {
-    console.log(email);
     return await this.authService.verifyEmail(email);
   }
   @UseGuards(AuthGuard('local'))
