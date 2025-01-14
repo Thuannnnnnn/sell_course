@@ -1,12 +1,13 @@
 "use client"; // Đảm bảo rằng đây là một client-side component
 import { signIn } from "next-auth/react";
-import { RiHomeLine } from "react-icons/ri";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useTheme } from "../../../../contexts/ThemeContext";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import loginUser from "@/app/api/auth/Login/route";
+import PageLoader from "@/components/PageLoader";
+import "@/style/Login.css";
 
 export default function SignIn() {
   const t = useTranslations("loginPage");
@@ -16,6 +17,7 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const router = useRouter();
   const [isLoadingPage, setIsLoadingPage] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -38,7 +40,7 @@ export default function SignIn() {
     try {
       const response = await loginUser(email, password);
       if (response) {
-        router.push("/dashboard");
+        setIsLoggedIn(true);
       }
     } catch (error) {
       console.error("Error in handleSignIn:", error);
@@ -48,65 +50,57 @@ export default function SignIn() {
     }
   };
 
+  if (isLoggedIn) {
+    console.log("User is logged in, redirecting to dashboard...");
+    return <PageLoader rediecrectPath="/dashboard" delay={2000} />;
+  }
+
   return (
-    <div className={`login ${theme}`}>
-      <div className="banner-login">
-        <span>
-          <RiHomeLine className="banner-logo" />
-          <span className="banner-text"> | {t("title")}</span>
-        </span>
-        <div>
-          <h1 className="title">{t("title")}</h1>
-        </div>
-      </div>
+    <div className="login">
       <div className="login-box">
-        <h2>{t("wellcome")}</h2>
+        <h2 className="title">Hi, Welcome back!</h2>
         {error && <p className="error-message">{error}</p>}
         <div className="register">
-          <span>{t("DontHaveAccount")}</span>
-          <Link href="/register" className="nav-link me-4">
-            {t("Register")}
-          </Link>
+          <span>Don't have an account?</span>
+          <Link href="/register">Register Now</Link>
         </div>
         <div className="input-container">
-          <label htmlFor="inputEmail">{t("email")}</label>
+          <label htmlFor="inputEmail">Email Address</label>
           <input
             id="inputEmail"
             type="email"
-            placeholder={t("placeholderEmail")}
+            placeholder="Enter your Email Address"
             className="input-field"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div className="input-container">
-          <label htmlFor="inputPassword">{t("password")}</label>
+          <label htmlFor="inputPassword">Password</label>
           <input
             id="inputPassword"
             type="password"
-            placeholder={t("placeholderPassword")}
+            placeholder="Enter your Password"
             className="input-field"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="forgotPw">
-          <Link href="/forgot-password" className="nav-link me-4">
-            {t("forgot")}
-          </Link>
+          <Link href="/forgot-password">Forgot Password?</Link>
         </div>
         <div className="groupButton">
           <button
             type="button"
-            className="submit-button sign-in-button"
+            className="submit-button"
             onClick={handleSignIn}
             disabled={isLoadingPage}
           >
-            {isLoadingPage ? "Loading..." : t("login")}
+            {isLoadingPage ? "Loading..." : "Sign In"}
           </button>
         </div>
         <button onClick={handleGoogleSignIn} className="google-sign-in-button">
-          Sign In with Google
+          Google
         </button>
       </div>
     </div>
