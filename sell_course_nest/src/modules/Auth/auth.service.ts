@@ -12,6 +12,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { MailService } from '../../utilities/mail.service';
 import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
+import { OAuthRequestDto } from './dto/authRequest.dto';
 @Injectable()
 export class authService {
   constructor(
@@ -134,5 +135,17 @@ export class authService {
     };
 
     throw new HttpException(loginResponse, HttpStatus.OK);
+  }
+
+  async oauth(oAuthRequestDto: OAuthRequestDto) {
+    const { email, name, picture } = oAuthRequestDto;
+    console.log('Received OAuth data:', { email, name, picture });
+    throw new HttpException(
+      {
+        message: 'OAuth data processed successfully',
+        data: { email, name, picture },
+      },
+      HttpStatus.OK,
+    );
   }
 }
