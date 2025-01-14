@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import loginUser from "@/app/api/auth/Login/route";
 import PageLoader from "@/components/PageLoader";
 import "@/style/Login.css";
+import Banner from "@/components/Banner-SignUp";
 
 export default function SignIn() {
   const t = useTranslations("loginPage");
@@ -18,6 +19,8 @@ export default function SignIn() {
   const router = useRouter();
   const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const tl = useTranslations("signUpBanner");
 
   const handleGoogleSignIn = async () => {
     try {
@@ -56,38 +59,39 @@ export default function SignIn() {
   }
 
   return (
-    <div className="login">
+    <div className={`login ${theme === "dark" ? "dark-bg" : ""}`}>
+      <Banner title={tl("title-2")} />
       <div className="login-box">
-        <h2 className="title">Hi, Welcome back!</h2>
+        <h2 className="title">{t("wellcome")}</h2>
         {error && <p className="error-message">{error}</p>}
         <div className="register">
-          <span>Don't have an account?</span>
-          <Link href="/register">Register Now</Link>
+          <span>{t("DontHaveAccount")}</span>
+          <Link href="/register">{t("Register")}</Link>
         </div>
         <div className="input-container">
-          <label htmlFor="inputEmail">Email Address</label>
+          <label htmlFor="inputEmail">{t("email")}</label>
           <input
             id="inputEmail"
             type="email"
-            placeholder="Enter your Email Address"
+            placeholder={t("placeholderEmail")}
             className="input-field"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div className="input-container">
-          <label htmlFor="inputPassword">Password</label>
+          <label htmlFor="inputPassword">{t("password")}</label>
           <input
             id="inputPassword"
             type="password"
-            placeholder="Enter your Password"
+            placeholder={t("placeholderPassword")}
             className="input-field"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="forgotPw">
-          <Link href="/forgot-password">Forgot Password?</Link>
+          <Link href="/forgot-password">{t("forgot")}</Link>
         </div>
         <div className="groupButton">
           <button
@@ -96,11 +100,11 @@ export default function SignIn() {
             onClick={handleSignIn}
             disabled={isLoadingPage}
           >
-            {isLoadingPage ? "Loading..." : "Sign In"}
+            {t("login")}
           </button>
         </div>
         <button onClick={handleGoogleSignIn} className="google-sign-in-button">
-          Google
+          {t("google")}
         </button>
       </div>
     </div>

@@ -1,13 +1,19 @@
 .login {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     background-color: #f7f7f7;
   }
+  .login.dark-bg {
+    background-color: #333333;
+  }
   
   .login-box {
     background: #ffffff;
+    margin-top: 20px;
+    margin-bottom: 20px;
     padding: 30px 40px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
