@@ -12,14 +12,14 @@ import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+// import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 @Controller('api/courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Get('getAll')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,
@@ -30,7 +30,6 @@ export class CourseController {
     status: 404,
     description: 'No courses found.',
   })
-  @UseGuards(JwtAuthGuard)
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     return await this.courseService.getAllCourses();
   }
@@ -46,7 +45,6 @@ export class CourseController {
     status: 404,
     description: 'Course not found with the given ID.',
   })
-  @UseGuards(JwtAuthGuard)
   async getCourseById(
     @Param('id') courseId: string,
   ): Promise<CourseResponseDTO> {
@@ -64,8 +62,6 @@ export class CourseController {
     status: 400,
     description: 'Invalid course data provided.',
   })
-  @Roles('admin')
-  @UseGuards(RolesGuard)
   async createCourse(
     @Body() createCourseDTO: CourseRequestDTO,
   ): Promise<CourseResponseDTO> {

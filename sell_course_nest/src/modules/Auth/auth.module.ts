@@ -6,6 +6,11 @@ import { authService } from './auth.service';
 import { authController } from './auth.controller';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailService } from 'src/utilities/mail.service';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './passport/local.strategy';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from './constants';
+import { JwtStrategy } from './strategies/jwt.strategy';
 @Module({
   imports: [
     MailerModule.forRoot({
@@ -23,8 +28,13 @@ import { MailService } from 'src/utilities/mail.service';
       },
     }),
     TypeOrmModule.forFeature([User, EmailVerification]),
+    PassportModule,
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '60s' },
+    }),
   ],
-  providers: [authService, MailService],
+  providers: [authService, MailService, LocalStrategy, JwtStrategy],
   controllers: [authController],
 })
 export class authModule {}
