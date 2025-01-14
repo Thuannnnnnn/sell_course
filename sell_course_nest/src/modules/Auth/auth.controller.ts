@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
-
+import { OAuthRequestDto } from './dto/authRequest.dto';
 @Controller('api/auth')
 export class authController {
   constructor(private readonly authService: authService) {}
@@ -29,5 +29,9 @@ export class authController {
   ): Promise<LoginResponseDto> {
     const user = await this.authService.login(loginRequest);
     return user;
+  }
+  @Post('oauth')
+  async oauth(@Body() oAuthRequestDto: OAuthRequestDto) {
+    return await this.authService.oauth(oAuthRequestDto);
   }
 }

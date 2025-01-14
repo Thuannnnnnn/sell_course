@@ -1,22 +1,27 @@
 'use client';
-import { useEffect } from 'react';
-import { handleGoogleSignIn } from '@/actions/authActions';
-import useSession from '../../../hooks/useSession';
+import { signIn } from "next-auth/react"
 import { RiHomeLine } from 'react-icons/ri';
 import { useTranslations } from 'next-intl';
-import '../../../../style/Login.css';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import useLoginApi from '@/app/hooks/useLoginApi';
 export default function SignIn() {
 
   const t = useTranslations('loginPage');
-  const router = useRouter();
   const { theme } = useTheme();
-  useEffect
-  useLoginApi();
+  const handleGoogleSignIn = async () => {
+    try {
+      const response = await signIn("google", { redirect: false });
+      console.log("Google Sign-In Response:", response);
 
+      if (response?.ok) {
+        console.log("Login successful! User data:", response);
+      } else {
+        console.error("Login failed:", response?.error);
+      }
+    } catch (error) {
+      console.error("Error during Google Sign-In:", error);
+    }
+  };
   return (
     <div className={`login ${theme}`}>
       <div className="banner-login">
@@ -64,11 +69,12 @@ export default function SignIn() {
             {t('login')}
           </button>
         </div>
-        <form action={handleGoogleSignIn} className="formGoogle">
+        <button onClick={handleGoogleSignIn}>Sign In with Google</button>
+        {/* <form action={handleGoogleSignIn} className="formGoogle">
           <button type="submit" className="submit-button">
             {t('google')}
           </button>
-        </form>
+        </form> */}
       </div>
     </div>
   );
