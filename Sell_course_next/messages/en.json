@@ -85,5 +85,14 @@
         "forgot": "Forgot password",
         "signup": "Sign Up",
         "google": "Google"
+      },
+      "signUpBanner": {
+        "title":"Student Registation",
+        "title-1": "Helloello"
+      },
+      "signUpForm": {
+        "placeholderEmail":"Enter your Email",
+        "policy": "By signing up, I agree with the website of Terms and Conditions",
+        "button": "Register"
       }
     }

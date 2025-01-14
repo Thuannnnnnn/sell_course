@@ -85,5 +85,14 @@
     "forgot": "Quên mật khẩu",
     "signup": "Đăng ký",
     "google": "Google"
+  },
+  "signUpBanner": {
+        "title":"Đăng Ký Sinh Viên",
+        "title-1": "Xin chào"
+  },
+  "signUpForm": {
+        "placeholderEmail":"Nhập địa chỉ Email của bạn",
+        "policy": "Bằng cách đăng ký, tôi đồng ý với Điều khoản và Điều kiện của website",
+        "button": "Đăng ký"
   }
 }

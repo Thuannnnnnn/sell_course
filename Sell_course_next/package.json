@@ -10,6 +10,12 @@
   },
   "dependencies": {
     "@auth/qwik": "^0.5.4",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/icons": "^4.11.3",
+    "@mui/icons-material": "^6.3.1",
+    "@mui/material": "^6.3.1",
     "@next/font": "^14.2.15",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",

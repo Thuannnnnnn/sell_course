@@ -98,6 +98,9 @@ const Header: React.FC = () => {
             <>
               <Button
                 variant={`${theme}`}
+                onClick={() => {
+                  router.push(`/${localActive}/auth/signUp`)
+                }}
                 className={`btn-signup mx-3 ${theme}`}
               >
                 {t("signup")}
