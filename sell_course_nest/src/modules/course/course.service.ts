@@ -28,24 +28,22 @@ export class CourseService {
     if (courses.length === 0) {
       throw new HttpException('No courses found.', HttpStatus.NOT_FOUND);
     }
+    const courseResponseDTOs = courses.map((course) => {
+      return new CourseResponseDTO(
+        course.courseId,
+        course.title,
+        course.price,
+        course.description,
+        course.videoInfo,
+        course.imageInfo,
+        course.createdAt,
+        course.updatedAt,
+        course.user.user_id,
+        course.category.categoryId,
+      );
+    });
 
-    throw new HttpException(
-      courses.map((course) => {
-        return new CourseResponseDTO(
-          course.courseId,
-          course.title,
-          course.price,
-          course.description,
-          course.videoInfo,
-          course.imageInfo,
-          course.createdAt,
-          course.updatedAt,
-          course.user.user_id,
-          course.category.categoryId,
-        );
-      }),
-      HttpStatus.OK,
-    );
+    return courseResponseDTOs;
   }
 
   async getCourseById(courseId: string): Promise<CourseResponseDTO> {
@@ -60,8 +58,7 @@ export class CourseService {
         HttpStatus.NOT_FOUND,
       );
     }
-
-    const CourseRequestDTO = new CourseResponseDTO(
+    const courseResponseDTO = new CourseResponseDTO(
       course.courseId,
       course.title,
       course.price,
@@ -73,9 +70,8 @@ export class CourseService {
       course.user.user_id,
       course.category.categoryId,
     );
-    throw new HttpException(CourseRequestDTO, HttpStatus.OK);
+    return courseResponseDTO;
   }
-
   async createCourse(course: CourseRequestDTO): Promise<CourseResponseDTO> {
     const { userId, categoryId, title } = course;
 
