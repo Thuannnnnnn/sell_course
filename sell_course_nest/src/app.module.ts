@@ -50,6 +50,12 @@ import { ResultQuizzModule } from './modules/result_quizz/result_quizz.module';
 import { VideoModule } from './modules/video/video.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { Category } from './modules/category/entities/category.entity';
+import { CategoryModule } from './modules/category/category.module';
+import { Notify } from './modules/notify/entities/notify.entity';
+import { UserNotify } from './modules/User_Notify/entities/User_Notify.entity';
+import { NotifyModule } from './modules/notify/notify.module';
+import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
 
 @Module({
   imports: [
@@ -64,6 +70,8 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       entities: [
+        Notify,
+        UserNotify,
         User,
         Cart,
         Certificate,
@@ -87,9 +95,12 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
         Video,
         Waitlist,
         Wishlist,
+        Category,
       ],
       synchronize: true,
     }),
+    NotifyModule,
+    UserNotifyModule,
     UserModule,
     authModule,
     CartModule,
@@ -114,6 +125,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     VideoModule,
     WaitlistModule,
     WishlistModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
