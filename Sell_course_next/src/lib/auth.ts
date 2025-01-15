@@ -1,5 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import axios from "axios";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -7,44 +9,85 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials || !credentials.email || !credentials.password)
+          return null;
+
+        try {
+          const response = await axios.post(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
+            {
+              email: credentials.email,
+              password: credentials.password,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          console.log(response.data);
+
+          if (!response.data) {
+            return null;
+          }
+
+          return response.data;
+        } catch (error) {
+          console.error("Error in credentials authorization:", error);
+          return null;
+        }
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (!account) {
-        console.error("Account is null");
+      console.log("SignIn callback initiated with user and account:", { user, account });
+      
+      if (!user || !account) {
+        console.error("Error: User or account is null");
         return false;
       }
 
-      // Extract relevant data to match the backend DTO
+      if (account.type === "credentials") {
+        console.log("Account type is credentials, sign-in successful");
+        return true;
+      }
+
       const payload = {
         email: user.email,
         name: user.name,
         picture: user.image,
       };
+      console.log("Payload prepared for API call:", payload);
 
       try {
-        const response = await fetch(
+        const response = await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/oauth`,
+          payload,
           {
-            method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(payload),
           }
         );
+        console.log("API response received:", response.data);
 
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          console.error("Failed to send data to API:", responseData);
+        if (!response.data) {
+          console.error("Error: API response data is null");
           return false;
         }
 
-        console.log("Response from backend:", responseData);
+        console.log("Sign-in successful, response from backend:", response.data);
         return true;
       } catch (error) {
-        console.error("Error in sign-in callback:", error);
+        console.error("Error during API call in sign-in callback:", error);
         return false;
       }
     },

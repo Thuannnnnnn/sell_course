@@ -41,9 +41,16 @@ export default function SignIn() {
   const handleSignIn = async () => {
     setIsLoadingPage(true);
     try {
-      const response = await loginUser(email, password);
-      if (response) {
+      const response = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (response?.ok) {
         setIsLoggedIn(true);
+      } else {
+        setError(response?.error || "Login failed");
       }
     } catch (error) {
       console.error("Error in handleSignIn:", error);
@@ -52,10 +59,9 @@ export default function SignIn() {
       setIsLoadingPage(false);
     }
   };
-
   if (isLoggedIn) {
     console.log("User is logged in, redirecting to dashboard...");
-    return <PageLoader rediecrectPath="/dashboard" delay={2000} />;
+    return <PageLoader rediecrectPath="/" delay={2000} />;
   }
 
   return (

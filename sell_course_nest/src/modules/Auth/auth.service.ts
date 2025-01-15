@@ -157,11 +157,14 @@ export class authService {
     const user = await this.userRepository.findOne({
       where: { email: email },
     });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+    }
     const passwordMatch = await bcrypt.compare(pass, user.password);
     if (!passwordMatch) {
-      //throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
-
     return user;
   }
 }
