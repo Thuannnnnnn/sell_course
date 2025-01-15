@@ -56,6 +56,10 @@ import { Notify } from './modules/notify/entities/notify.entity';
 import { UserNotify } from './modules/User_Notify/entities/User_Notify.entity';
 import { NotifyModule } from './modules/notify/notify.module';
 import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
+import { UserPreference } from './modules/user_preference/entities/user_preference.entity';
+import { Recommendation } from './modules/recommendation/entities/recommendation.entity';
+import { UserPreferenceModule } from './modules/user_preference/user_preference.module';
+import { RecommendationModule } from './modules/recommendation/recommendation.module';
 
 @Module({
   imports: [
@@ -96,6 +100,8 @@ import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
         Waitlist,
         Wishlist,
         Category,
+        UserPreference,
+        Recommendation,
       ],
       synchronize: true,
     }),
@@ -126,6 +132,8 @@ import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
     WaitlistModule,
     WishlistModule,
     CategoryModule,
+    UserPreferenceModule,
+    RecommendationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
