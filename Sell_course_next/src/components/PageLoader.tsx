@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface PageLoaderProps {
@@ -8,7 +8,7 @@ interface PageLoaderProps {
 
 const PageLoader: React.FC<PageLoaderProps> = ({
   rediecrectPath,
-  delay = 200000000,
+  delay = 2000,
 }) => {
   const router = useRouter();
 

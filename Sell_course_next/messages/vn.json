@@ -87,12 +87,34 @@
     "google": "Google"
   },
   "signUpBanner": {
-        "title":"Đăng Ký Sinh Viên",
-        "title-1": "Xin chào"
+    "title": "Đăng Ký",
+    "title-1": "Xin chào"
   },
   "signUpForm": {
-        "placeholderEmail":"Nhập địa chỉ Email của bạn",
-        "policy": "Bằng cách đăng ký, tôi đồng ý với Điều khoản và Điều kiện của website",
-        "button": "Đăng ký"
+    "placeholderEmail": "Nhập địa chỉ Email của bạn",
+    "policy": "Bằng cách đăng ký, tôi đồng ý với Điều khoản và Điều kiện của website",
+    "button": "Đăng ký",
+    "emailLabel": "Email",
+    "googleBtn": "Google",
+    "modalMessage": "Email đã gửi thành công, vui lòng kiểm tra email của bạn",
+    "closeModalBtn": "Đóng",
+    "usernameLabel": "Tên người dùng",
+    "placeholderUsername": "Nhập tên người dùng",
+    "passwordLabel": "Mật khẩu",
+    "placeholderPassword": "Nhập mật khẩu của bạn",
+    "rePasswordLabel": "Xác nhận mật khẩu",
+    "placeholderRePassword": "Nhập lại mật khẩu",
+    "genderLabel": "Giới tính",
+    "selectGender": "Chọn giới tính của bạn",
+    "male": "Nam",
+    "female": "Nữ",
+    "other": "Khác",
+    "birthDayLabel": "Ngày sinh",
+    "placeholderBirthDay": "Chọn ngày sinh của bạn",
+    "phoneNumberLabel": "Số điện thoại",
+    "placeholderPhoneNumber": "Nhập số điện thoại của bạn",
+    "modalMessageSuccess": "Đăng Ký Thành Công",
+    "modalMessageFail": "Đăng Ký Thất Bại",
+    "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
   }
 }

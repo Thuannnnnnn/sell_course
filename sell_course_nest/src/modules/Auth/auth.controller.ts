@@ -19,8 +19,9 @@ export class authController {
   }
 
   @Post('verify-email')
-  async verifyEmail(@Body('email') email: string) {
-    return await this.authService.verifyEmail(email);
+  async verifyEmail(@Body() body: { email: string; lang: string }) {
+    const { email, lang } = body;
+    return await this.authService.verifyEmail(email, lang);
   }
   @UseGuards(AuthGuard('local'))
   @Post('login')
