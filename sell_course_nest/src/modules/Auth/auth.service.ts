@@ -108,30 +108,35 @@ export class authService {
     throw new HttpException(userResponse, HttpStatus.CREATED);
   }
   async login(loginRequest: LoginRequestDto): Promise<LoginResponseDto> {
+    console.log('Login request: ', loginRequest);
+
     const user = await this.userRepository.findOne({
       where: { email: loginRequest.email },
     });
     if (!user) {
-      throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Email not found', HttpStatus.UNAUTHORIZED);
     }
+    console.log('Login user: ', user);
 
     const passwordMatch = await bcrypt.compare(
       loginRequest.password,
       user.password,
     );
     if (!passwordMatch) {
+      console.log(passwordMatch);
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
+
     const payload = {
       email: user.email,
       username: user.username,
       role: user.role,
     };
     const token = this.jwtService.sign(payload);
-    // const refreshToken = JwtStrategy.generateToken(user, '7d');
+    console.log('Login token: ', token);
+
     const loginResponse: LoginResponseDto = {
       token,
-      // refreshToken,
       email: user.email,
       username: user.username,
       gender: user.gender,
@@ -140,7 +145,7 @@ export class authService {
       role: user.role,
     };
 
-    throw new HttpException(loginResponse, HttpStatus.OK);
+    return loginResponse;
   }
 
   async oauth(oAuthRequestDto: OAuthRequestDto) {
