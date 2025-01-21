@@ -119,3 +119,9 @@
     text-decoration: underline;
   }
   
+  .error-message {
+    color: red;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    text-align: center;
+  }

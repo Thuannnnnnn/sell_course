@@ -32,7 +32,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               },
             }
           );
-          console.log("Backend Response:", response.data);
           if (response.data?.token) {
             return {
               id: response.data.id,

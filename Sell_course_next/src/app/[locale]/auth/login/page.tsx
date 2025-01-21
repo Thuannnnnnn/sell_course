@@ -1,4 +1,4 @@
-"use client"; // Đảm bảo rằng đây là một client-side component
+"use client";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -50,7 +50,6 @@ export default function SignIn() {
       if (response?.ok && !response.error) {
         setIsLoggedIn(true);
       } else {
-        alert("sai nè ông cố")
         setError(response?.error || "Invalid email or password");
         setIsLoggedIn(false);
       }
@@ -65,7 +64,7 @@ export default function SignIn() {
 
   if (isLoggedIn) {
     console.log("User is logged in, redirecting to dashboard...");
-    return <PageLoader rediecrectPath="/" delay={2000} />;
+    return <PageLoader rediecrectPath="/" delay={1000} />;
   }
 
   return (
