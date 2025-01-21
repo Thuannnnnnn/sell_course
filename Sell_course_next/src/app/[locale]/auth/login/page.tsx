@@ -1,12 +1,14 @@
-"use client"; // Đảm bảo rằng đây là một client-side component
+"use client";
 import { signIn } from "next-auth/react";
-import { RiHomeLine } from "react-icons/ri";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useTheme } from "../../../../contexts/ThemeContext";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import loginUser from "@/app/api/auth/Login/route";
+import PageLoader from "@/components/PageLoader";
+import "@/style/Login.css";
+import Banner from "@/components/Banner-SignUp";
 
 export default function SignIn() {
   const t = useTranslations("loginPage");
@@ -16,6 +18,9 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const router = useRouter();
   const [isLoadingPage, setIsLoadingPage] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const tl = useTranslations("signUpBanner");
 
   const handleGoogleSignIn = async () => {
     try {
@@ -36,37 +41,41 @@ export default function SignIn() {
   const handleSignIn = async () => {
     setIsLoadingPage(true);
     try {
-      const response = await loginUser(email, password);
-      if (response) {
-        router.push("/dashboard");
+      const response = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      console.log("SignIn Response:", response);
+      if (response?.ok && !response.error) {
+        setIsLoggedIn(true);
+      } else {
+        setError(response?.error || "Invalid email or password");
+        setIsLoggedIn(false);
       }
     } catch (error) {
       console.error("Error in handleSignIn:", error);
       setError("Failed to connect to the server");
+      setIsLoggedIn(false);
     } finally {
       setIsLoadingPage(false);
     }
   };
 
+  if (isLoggedIn) {
+    console.log("User is logged in, redirecting to dashboard...");
+    return <PageLoader rediecrectPath="/" delay={1000} />;
+  }
+
   return (
-    <div className={`login ${theme}`}>
-      <div className="banner-login">
-        <span>
-          <RiHomeLine className="banner-logo" />
-          <span className="banner-text"> | {t("title")}</span>
-        </span>
-        <div>
-          <h1 className="title">{t("title")}</h1>
-        </div>
-      </div>
+    <div className={`login ${theme === "dark" ? "dark-bg" : ""}`}>
+      <Banner title={tl("title-2")} />
       <div className="login-box">
-        <h2>{t("wellcome")}</h2>
+        <h2 className="title">{t("wellcome")}</h2>
         {error && <p className="error-message">{error}</p>}
         <div className="register">
           <span>{t("DontHaveAccount")}</span>
-          <Link href="/register" className="nav-link me-4">
-            {t("Register")}
-          </Link>
+          <Link href="/register">{t("Register")}</Link>
         </div>
         <div className="input-container">
           <label htmlFor="inputEmail">{t("email")}</label>
@@ -91,22 +100,20 @@ export default function SignIn() {
           />
         </div>
         <div className="forgotPw">
-          <Link href="/forgot-password" className="nav-link me-4">
-            {t("forgot")}
-          </Link>
+          <Link href="/forgot-password">{t("forgot")}</Link>
         </div>
         <div className="groupButton">
           <button
             type="button"
-            className="submit-button sign-in-button"
+            className="submit-button"
             onClick={handleSignIn}
             disabled={isLoadingPage}
           >
-            {isLoadingPage ? "Loading..." : t("login")}
+            {t("login")}
           </button>
         </div>
         <button onClick={handleGoogleSignIn} className="google-sign-in-button">
-          Sign In with Google
+          {t("google")}
         </button>
       </div>
     </div>

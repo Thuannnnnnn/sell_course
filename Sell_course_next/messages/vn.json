@@ -82,13 +82,14 @@
     "password": "Mật khẩu",
     "placeholderPassword": "Nhập mật khẩu của bạn",
     "login": "Đăng nhập",
-    "forgot": "Quên mật khẩu",
+    "forgot": "Quên mật khẩu?",
     "signup": "Đăng ký",
     "google": "Google"
   },
   "signUpBanner": {
-    "title": "Đăng Ký",
-    "title-1": "Xin chào"
+        "title":"Đăng Ký Sinh Viên",
+        "title-1": "Xin chào",
+        "title-2": "Đăng nhập"
   },
   "signUpForm": {
     "placeholderEmail": "Nhập địa chỉ Email của bạn",

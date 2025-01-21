@@ -50,7 +50,7 @@ const Header: React.FC = () => {
         </div>
 
         <Nav className="d-flex align-items-center flex-nowrap">
-          <Link href={`/${localActive}/home`} className="nav-link me-4">
+          <Link href={`/${localActive}/`} className="nav-link me-4">
             {t("home")}
           </Link>
           <Link href={`/${localActive}/course`} className="nav-link me-4">
@@ -99,7 +99,7 @@ const Header: React.FC = () => {
               <Button
                 variant={`${theme}`}
                 onClick={() => {
-                  router.push(`/${localActive}/auth/signUp`)
+                  router.push(`/${localActive}/auth/signUp`);
                 }}
                 className={`btn-signup mx-3 ${theme}`}
               >
