@@ -1,8 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import axios from "axios";
-
+import axios, { AxiosError } from "axios";
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     GoogleProvider({
@@ -16,9 +15,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials || !credentials.email || !credentials.password)
+        if (!credentials || !credentials.email || !credentials.password) {
+          console.error("Missing credentials");
           return null;
-
+        }
         try {
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
@@ -32,15 +32,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               },
             }
           );
-          console.log(response.data);
-
-          if (!response.data) {
+          console.log("Backend Response:", response.data);
+          if (response.data?.token) {
+            return {
+              id: response.data.id,
+              email: response.data.email,
+              name: response.data.username,
+              role: response.data.role,
+            };
+          } else {
+            console.error("Login failed:", response.data.message || "Unknown error");
             return null;
           }
-
-          return response.data;
         } catch (error) {
-          console.error("Error in credentials authorization:", error);
+          const err = error as AxiosError;
+          console.error("Error in authorize function:", err.response?.data || err.message);
           return null;
         }
       },
@@ -49,7 +55,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       console.log("SignIn callback initiated with user and account:", { user, account });
-      
+
       if (!user || !account) {
         console.error("Error: User or account is null");
         return false;

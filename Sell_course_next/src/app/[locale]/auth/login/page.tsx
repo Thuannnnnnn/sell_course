@@ -46,19 +46,23 @@ export default function SignIn() {
         password,
         redirect: false,
       });
-
-      if (response?.ok) {
+      console.log("SignIn Response:", response);
+      if (response?.ok && !response.error) {
         setIsLoggedIn(true);
       } else {
-        setError(response?.error || "Login failed");
+        alert("sai nè ông cố")
+        setError(response?.error || "Invalid email or password");
+        setIsLoggedIn(false);
       }
     } catch (error) {
       console.error("Error in handleSignIn:", error);
       setError("Failed to connect to the server");
+      setIsLoggedIn(false);
     } finally {
       setIsLoadingPage(false);
     }
   };
+
   if (isLoggedIn) {
     console.log("User is logged in, redirecting to dashboard...");
     return <PageLoader rediecrectPath="/" delay={2000} />;
