@@ -1,5 +1,4 @@
 'use client'
-
 import Banner from "@/components/Banner-SignUp"
 import '../../../../style/SignUp.css'
 import { useTranslations } from "next-intl";
