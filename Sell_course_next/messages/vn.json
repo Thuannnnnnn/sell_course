@@ -94,5 +94,16 @@
         "placeholderEmail":"Nhập địa chỉ Email của bạn",
         "policy": "Bằng cách đăng ký, tôi đồng ý với Điều khoản và Điều kiện của website",
         "button": "Đăng ký"
+  },
+  "dashBoard": {
+    "dashboard": "Bảng điều khiển",
+    "user": "Người dùng",
+    "quizz": "Câu hỏi",
+    "course": "Khóa học",
+    "category": "Thể loại",
+    "report": "Báo cáo",
+    "payment": "Thanh toán",
+    "setting": "Cài đặt",
+    "signout": "Đăng xuất"
   }
 }
