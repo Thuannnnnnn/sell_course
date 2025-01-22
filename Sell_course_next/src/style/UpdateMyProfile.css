@@ -1,0 +1,50 @@
+.content-profile {
+    padding-top: 50px;
+    display: flex;
+    width: 80%;
+    margin: auto;
+}
+.form-profile {
+    margin-left: 10%;
+}
+.form-profile {
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    background-color: white;
+    height: max-content;
+    border-radius: 10px;
+}
+.form-profile h2 {
+    padding: 20px 0px 20px 50px;
+    color: black;
+    border-bottom: 2px solid black;
+}
+
+.link {
+    display: flex;
+}
+
+h5 {
+    padding: 25px 0px 15px 0px;
+}
+
+.link-profile {
+    text-decoration: none !important;
+    font-size: 20px;
+    padding: 0px 0px 0px 50px;
+    font-weight: 600;
+    color: black;
+    margin-top: 20px;
+}
+
+h6 {
+    font-size: 20px;
+}
+
+h6.active {
+    padding: 0px 10px 15px 10px;
+    border-bottom: 3px solid #0813DC;
+    color: #0813DC;
+    background: white;
+    margin: 0;
+}

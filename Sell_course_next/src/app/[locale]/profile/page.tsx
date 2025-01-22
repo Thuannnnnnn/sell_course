@@ -1,45 +1,33 @@
-"use client"
-import React, { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Image from 'react-bootstrap/Image';
-import { useOAuth } from "@/contexts/OAuthContext";
+"use client";
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import BannerUser from "@/components/BannerUser";
+import SignIn from "../auth/login/page";
+
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
-  const { data, error, isLoading } = useOAuth();
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {;
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
+  // Ensure hooks are called consistently
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+    } else if (status === "authenticated") {
+    const storedUser = localStorage.getItem("user");
+      setUser(storedUser ? JSON.parse(storedUser) : session.user);
     }
-  }, [status, router]);
+  }, [session, status, router]);
 
-  if (status === 'loading') {
+  // Handle loading state
+  if (status === "loading") {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
-       <div>
-      <h1>Welcome to the Dashboard</h1>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-      {session ? (
-        <>
-          <span className="nav-link m-4">Name, {session.user?.name}</span>
-          <span className="nav-link m-4">Email, {session.user?.email}</span>
-          {session.user?.image && (
-            <Image 
-              src={session.user.image} 
-              alt="User profile picture" 
-              width={100} 
-              height={100} 
-              className="rounded ms-4" 
-            />
-          )}
-        </>
-      ) : null}
+      {user ? <BannerUser user={user} /> : <SignIn />}
     </div>
   );
 };

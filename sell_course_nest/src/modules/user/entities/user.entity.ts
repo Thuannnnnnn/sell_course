@@ -27,6 +27,9 @@ export class User {
   @Column({ nullable: true })
   birthDay: string;
 
+  @Column({ nullable: true })
+  avartaImg: string;
+
   @Column({ type: 'bigint', nullable: true })
   phoneNumber: number;
 

@@ -14,6 +14,7 @@ import { MailService } from '../../utilities/mail.service';
 import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { JwtService } from '@nestjs/jwt';
+import { use } from 'passport';
 @Injectable()
 export class authService {
   constructor(
@@ -25,7 +26,7 @@ export class authService {
     private jwtService: JwtService,
   ) {}
 
-  async verifyEmail(email: string) {
+  async verifyEmail(email: string, lang: string) {
     if (!email) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
@@ -40,8 +41,7 @@ export class authService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
-    const token = this.jwtService.sign(user);
+    const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
     const emailVerify = this.emailVerifycationRepository.create({
       id: uuidv4(),
       email: email,
@@ -71,9 +71,16 @@ export class authService {
   //   return true;
   // }
   async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    // if(!this.verify_token(createUserDto.token)){
-    //   throw new HttpException('Token invalid', HttpStatus.FORBIDDEN);
-    // }
+    const decoded = this.jwtService.decode(createUserDto.token) as {
+      email: string;
+    };
+    if (decoded.email !== createUserDto.email) {
+      throw new HttpException(
+        'Token email does not match',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     if (!createUserDto) {
       throw new HttpException(
         'create User data not found',
