@@ -117,5 +117,24 @@
     "modalMessageSuccess": "Đăng Ký Thành Công",
     "modalMessageFail": "Đăng Ký Thất Bại",
     "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
+  },
+  "dashboardUser": {
+    "dashboard": "Bảng điều khiển",
+    "myProfile": "Thông tin cá nhân",
+    "enrolledCourse": "Khóa học đã tham gia",
+    "wishList": "Danh sách mong muốn",
+    "orderHistory": "Lịch sử mua hàng",
+    "setting": "Cài đặt",
+    "logout": "Đăng xuất"
+  },
+  "changePassword": {
+    "title": "Cài Đặt",
+    "title-profile": "Thông tin",
+    "title-password": "Mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "btnChange-1": "Thay đổi mật khẩu",
+    "btnChange-2": "Thay đổi..."
   }
 }

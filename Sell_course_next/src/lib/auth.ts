@@ -34,6 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           );
           if (response.data?.token) {
             return {
+              token: response.data.token,
               id: response.data.id,
               email: response.data.email,
               name: response.data.username,
@@ -52,6 +53,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.token = user.token; // Store the token in JWT
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.token = token.token; // Attach the token to session
+      return session;
+    },
     async signIn({ user, account }) {
       console.log("SignIn callback initiated with user and account:", { user, account });
 
@@ -61,11 +72,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       if (account.type === "credentials") {
-        console.log("Account type is credentials, sign-in successful");
+        const payload = {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          token: (user as any).token,
+          provider: account.provider,
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          picture: user.image || "/default-avatar.svg",
+        };
+        console.log("Payload prepared for API call:", payload);
         return true;
       }
 
+
       const payload = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        token: (user as any).token,
         email: user.email,
         name: user.name,
         picture: user.image,

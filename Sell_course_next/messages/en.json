@@ -95,5 +95,24 @@
         "placeholderEmail":"Enter your Email",
         "policy": "By signing up, I agree with the website of Terms and Conditions",
         "button": "Register"
-      }
+      },
+      "dashboardUser": {
+        "dashboard": "Dashborad",
+        "myProfile": "My profile",
+        "enrolledCourse": "Enrolled Coursese",
+        "wishList": "Wishlist",
+        "orderHistory": "Order History",
+        "setting": "Settings",
+        "logout": "Logout"
+      },
+    "changePassword": {
+      "title": "Settings",
+      "title-profile": "Profile",
+      "title-password": "Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "btnChange-1": "Change Password",
+      "btnChange-2": "Change..."
     }
+  }
