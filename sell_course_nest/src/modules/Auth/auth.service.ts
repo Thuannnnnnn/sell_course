@@ -14,6 +14,7 @@ import { MailService } from '../../utilities/mail.service';
 import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { JwtService } from '@nestjs/jwt';
+import { azureUpload } from 'src/utilities/azure.service';
 @Injectable()
 export class authService {
   constructor(
@@ -176,5 +177,8 @@ export class authService {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
     return user;
+  }
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    return await azureUpload(file);
   }
 }
