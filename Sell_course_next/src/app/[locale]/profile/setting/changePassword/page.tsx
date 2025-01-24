@@ -10,6 +10,7 @@ import SignIn from "@/app/[locale]/auth/login/page";
 import Link from "next/link";
 import DashBoardUser from "@/components/DashBoardUser";
 import '../../../../../style/UserProfilePage.css'
+import { User } from "next-auth";
 
 const ChangePasswordPage: React.FC = () => {
   const t = useTranslations('changePassword')
@@ -27,9 +28,9 @@ const ChangePasswordPage: React.FC = () => {
       useEffect(() => {
         if (status === "unauthenticated") {
           router.push("/auth/login");
-        } else if (status === "authenticated") {
-          const storedUser = localStorage.getItem("user");
-          setUser(storedUser ? JSON.parse(storedUser) : session.user);
+        } else if (status === "authenticated" && session?.user) {
+          setUser(session.user as User);
+          console.log("Session User:", session.user); // Log session user
         }
       }, [session, status, router]);
 

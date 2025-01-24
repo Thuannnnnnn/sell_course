@@ -9,6 +9,7 @@ import '../../../../../style/UserProfilePage.css'
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import BannerUser from "@/components/BannerUser";
+import { User } from "next-auth";
 
 const UpdateMyProfilePage: React.FC = () => {
     const { data: session, status } = useSession();
@@ -16,19 +17,19 @@ const UpdateMyProfilePage: React.FC = () => {
     const localActive = useLocale();
     const [user, setUser] = useState<any>(null);
     // Ensure hooks are called consistently
-    useEffect(() => {
-      if (status === "unauthenticated") {
-        router.push("/auth/login");
-      } else if (status === "authenticated") {
-        const storedUser = localStorage.getItem("user");
-        setUser(storedUser ? JSON.parse(storedUser) : session.user);
-      }
-    }, [session, status, router]);
-
-    // Handle loading state
-    if (status === "loading") {
-      return <div>Loading...</div>;
-    }
+      useEffect(() => {
+           if (status === "unauthenticated") {
+             router.push("/auth/login");
+           } else if (status === "authenticated" && session?.user) {
+             setUser(session.user as User);
+             console.log("Session User:", session.user); // Log session user
+           }
+         }, [session, status, router]);
+   
+         // Handle loading state
+         if (status === "loading") {
+           return <div>Loading...</div>;
+         }
 
     return (
       <>
