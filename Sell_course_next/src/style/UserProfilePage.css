@@ -4,10 +4,9 @@
     width: 80%;
     margin: auto;
 }
+
 .form-profile {
     margin-left: 10%;
-}
-.form-profile {
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     width: 100%;
     background-color: white;
@@ -104,4 +103,45 @@ h6.active {
   .dark-bg {
     background-color: #333;
     color: white;
+  }
+
+  /*My profile page*/
+  .table-profile {
+    width: 100%;
+    margin-left: 10%;
+  }
+
+  .tabel-content {
+    display: flex;
+  }
+
+  .table-info {
+    padding: 40px 0px 40px 30px;
+    margin-top: 50px;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    background-color: white;
+
+    border-radius: 10px;
+  }
+  .title-info {
+    padding: 15px;
+    background-color: #ddd;
+    border-bottom: 0.5px solid gray;
+    width: 20%;
+    font-size: 16px;
+  }
+
+  .table-contain {
+    padding: 30px;
+    border: 1px solid rgb(90, 86, 86);
+    border-radius: 20px;
+    margin-right: 30px;
+  }
+
+  .table-info .info {
+    padding: 15px;
+    border-bottom: 0.5px solid gray;
+    width: 100%;
+    margin-right: 30px;
   }

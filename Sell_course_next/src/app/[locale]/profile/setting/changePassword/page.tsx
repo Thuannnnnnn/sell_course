@@ -9,7 +9,7 @@ import BannerUser from "@/components/BannerUser";
 import SignIn from "@/app/[locale]/auth/login/page";
 import Link from "next/link";
 import DashBoardUser from "@/components/DashBoardUser";
-import '../../../../../style/UpdateMyProfile.css'
+import '../../../../../style/UserProfilePage.css'
 
 const ChangePasswordPage: React.FC = () => {
   const t = useTranslations('changePassword')

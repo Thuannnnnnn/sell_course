@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Put,
   Req,
@@ -20,11 +21,14 @@ export class UserController {
     return this.userService.getAllUser();
   }
 
-  @Get('/user/:user_id')
-  async getUserById(
-    @Param('user_id') user_id: string,
-  ): Promise<UserDto | null> {
-    return this.userService.getUserById(user_id); // Calls the service to get the user by user_id
+  @Get('user/:user_id')
+  async getUserById(@Param('user_id') user_id: string): Promise<any> {
+    console.log('Fetching user with ID:', user_id); // Debug để xem user_id có chính xác không
+    const user = await this.userService.getUserById(user_id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -34,10 +38,12 @@ export class UserController {
     @Req() req,
   ) {
     // Log user data to verify it's being passed correctly
-    console.log('User from JWT:', req.user);
-
+    console.log('Received changePassword request:', {
+      username: req.user.username,
+      email: req.user.email,
+    });
     // Ensure the user is authenticated and has a username
-    if (!req.user || !req.user.username || !req.user.email) {
+    if (!req.user || !req.user.username) {
       throw new UnauthorizedException('User not authenticated');
     }
 

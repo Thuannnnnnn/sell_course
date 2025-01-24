@@ -37,6 +37,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               token: response.data.token,
               id: response.data.id,
               email: response.data.email,
+              gender: response.data.gender,
+              birthDay: response.data.birthDay,
+              phoneNumber: response.data.phoneNumber,
               name: response.data.username,
               role: response.data.role,
             };
@@ -55,12 +58,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.token = user.token; // Store the token in JWT
+        token.token = user.token;
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.role = user.role;
+        token.gender = user.gender;
+        token.birthDay = user.birthDay;
+        token.phoneNumber = user.phoneNumber;
       }
       return token;
     },
     async session({ session, token }) {
-      session.user.token = token.token; // Attach the token to session
+      session.user.token = token.token;
+      session.user.id = token.id;
+      session.user.email = token.email;
+      session.user.name = token.name;
+      session.user.role = token.role;
+      session.user.gender = token.gender;
+      session.user.birthDay = token.birthDay;
+      session.user.phoneNumber = token.phoneNumber;
       return session;
     },
     async signIn({ user, account }) {

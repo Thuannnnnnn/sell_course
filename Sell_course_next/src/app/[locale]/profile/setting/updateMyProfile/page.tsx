@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import SignIn from "@/app/[locale]/auth/login/page";
 import DashBoardUser from "@/components/DashBoardUser";
-import '../../../../../style/UpdateMyProfile.css'
+import '../../../../../style/UserProfilePage.css'
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import BannerUser from "@/components/BannerUser";

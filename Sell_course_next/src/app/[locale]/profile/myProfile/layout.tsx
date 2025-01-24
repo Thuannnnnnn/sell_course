@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 export const metadata: Metadata = {
-  title: 'Setting My Profile',
-  description: 'Setting My Profile Page',
+  title: 'My Profile',
+  description: 'My Profile Page',
 };
 
 export default function RootLayout({

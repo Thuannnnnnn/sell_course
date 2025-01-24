@@ -6,9 +6,6 @@
     transition: width 0.3s ease;
   }
 
-  .sidebar-container.closed .sidebar  div:not(.icon-sidebar){
-    width: 60px;
-  }
 
   .active {
     background-color: #f0f0f0;
@@ -45,6 +42,12 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
+
+  .link-text {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
 
   .sidebar ul li:hover {
     background-color: #f0f0f0; /* Hiệu ứng hover */
