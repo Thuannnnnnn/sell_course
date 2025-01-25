@@ -3,14 +3,8 @@ import React, { useEffect} from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'react-bootstrap/Image';
-// import axios from 'axios';
-// interface UserData {
-//   username: string;
-//   email: string;
-// }
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
-
   const router = useRouter();
 
   useEffect(() => {
