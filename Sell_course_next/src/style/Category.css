@@ -80,7 +80,6 @@
   }
 
   @media (max-width: 768px) {
-    /* Hide Parent Category and Description columns */
     .course-table th:nth-child(3),
     .course-table td:nth-child(3),
     .course-table th:nth-child(4),
