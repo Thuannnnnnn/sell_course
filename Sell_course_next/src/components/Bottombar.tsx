@@ -3,7 +3,7 @@ import React from 'react';
 import '../style/Sidebar.css';
 import { IoMdHome } from 'react-icons/io';
 import { useLocale, useTranslations } from 'next-intl';
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import Link from 'next/link';
 
 const BottomBar = () => {

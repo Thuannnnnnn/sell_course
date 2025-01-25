@@ -1,56 +1,121 @@
 {
-    "HomePage": {
-      "title": "Trang chủ",
-      "about": "Đi tới trang thông tin"
+  "AboutPage": {
+    "title": "Trang thông tin"
+  },
+  "Header": {
+    "title": "RedFlag GoldenStar",
+    "home": "Trang Chủ",
+    "cart": "Giỏ hàng",
+    "course": "khóa học",
+    "forum": "diễn đàn",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "signup": "Đăng ký"
+  },
+  "sidebar": {
+    "home": "Trang Chủ"
+  },
+  "footer": {
+    "headingF8": "RedFlag GoldenStar",
+    "description": "RedFlag GoldenStar",
+    "phone": "Điện thoại: 08 1919 8989",
+    "email": "Email: contact@fullstack.edu.vn",
+    "address": "Địa chỉ: FPT University CanTho, 123 Nguyen Van Cu, CanTho",
+    "about": "Công ty",
+    "aboutList": {
+      "0": "Giới thiệu",
+      "1": "Liên hệ",
+      "2": "Điều khoản",
+      "3": "Quyền riêng tư"
     },
-    "AboutPage":{
-      "title": "Trang thông tin"
+    "products": "Hỗ trợ",
+    "productList": {
+      "0": "Câu hỏi thường gặp",
+      "1": "đánh giá CV",
+      "2": "Trang thông báo",
+      "3": "Khóa học",
+      "4": "Bản quyền",
+      "5": "Trò chuyện trực tuyến"
     },
-    "Header": {
-      "title": "Học lập trình để đi làm",
-      "login":"Đăng nhập",
-      "logout":"Đăng xuất",
-      "search":"Tìm kiếm khóa học, bài viết, video, ...",
-      "signup": "Đăng ký"
+    "tools": "Công cụ",
+    "toolsList": {
+      "0": "Tạo CV",
+      "1": "Rút gọn liên kết",
+      "2": "Tạo Clip-path",
+      "3": "Tạo đoạn mã",
+      "4": "Tạo lưới CSS",
+      "5": "Cảnh báo chạm mặt"
     },
-    "sidebar":{
-      "home": "Trang Chủ"
-    },
-      "footer": {
-        "headingF8": "F8",
-        "description": "Học lập trình để làm việc",
-        "phone": "Điện thoại: 08 1919 8989",
-        "email": "Email: contact@fullstack.edu.vn",
-        "address": "Địa chỉ: Số 1, Ngõ 41, Trần Duy Hưng, Cầu Giấy, Hà Nội",
-        "about": "Về F8",
-        "aboutList": {
-          "0": "Giới thiệu",
-          "1": "Liên hệ",
-          "2": "Điều khoản",
-          "3": "Quyền riêng tư"
-        },
-        "products": "Sản phẩm",
-        "productList": {
-          "0": "Game Nester",
-          "1": "Game CSS Diner",
-          "2": "Game CSS Selectors",
-          "3": "Game Froggy",
-          "4": "Game Froggy Pro",
-          "5": "Game Scoops"
-        },
-        "tools": "Công cụ",
-        "toolsList": {
-          "0": "Tạo CV",
-          "1": "Rút gọn liên kết",
-          "2": "Tạo Clip-path",
-          "3": "Tạo đoạn mã",
-          "4": "Tạo lưới CSS",
-          "5": "Cảnh báo chạm mặt"
-        },
-        "companyName": "CÔNG TY CỔ PHẦN GIÁO DỤC CÔNG NGHỆ F8",
-        "taxCode": "Mã số thuế: 0109922901",
-        "foundingDate": "Ngày thành lập: 03/04/2022",
-        "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
-        "copyright": "© 2018 - 2024 F8. Nền tảng học lập trình hàng đầu tại Việt Nam."
-      }    
+    "companyName": "CÔNG TY CỔ PHẦN GIÁO DỤC CÔNG NGHỆ ",
+    "taxCode": "Mã số thuế: 0109922901",
+    "foundingDate": "Ngày thành lập: 05/01/2025",
+    "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
+    "copyright": ". Nền tảng học lập trình hàng đầu tại Việt Nam."
+  },
+  "detail": {
+    "title": "Chi tiết"
+  },
+  "banner": {
+    "bannerTitle": "Trang Web Học Tập Tốt Nhất: Tìm Kiến Thức Bạn Cần",
+    "bannerDecription": "Khám phá kiến thức mới, rèn luyện kỹ năng và đạt được mục tiêu của bạn với lộ trình học tập thông minh",
+    "bannerButtom": "Học Ngay"
+  },
+  "homePage": {
+    "homePageTitle": "Học Tập Khóa Học",
+    "homePageContent": "Chào mừng bạn đến với mạng lưới khóa học! Kiểm tra tất cả các lộ trình học, học theo tốc độ của bạn, và phát triển kỹ năng. Chúng tôi rất vui mừng được đồng hành cùng bạn trên con đường đến với kiến thức có ý nghĩa.",
+    "title": "Trang chủ"
+  },
+  "cardCourse": {
+    "0": "Cơ bản (lý thuyết và cú pháp)",
+    "1": "Nâng cao (cấu trúctrúc, logic, OOP)",
+    "2": "Dự án (chứng nhậnnhận)",
+    "3": "Bắt đầu từ:",
+    "4": "Bắt đầu"
+  },
+  "loginPage": {
+    "title": "Đăng nhập",
+    "wellcome": "Chào mừng bạn quay lại!",
+    "email": "Địa chỉ Email",
+    "DontHaveAccount": "Chưa có tài khoản?",
+    "Register": "Đăng ký ngay",
+    "placeholderEmail": "Nhập địa chỉ Email của bạn",
+    "password": "Mật khẩu",
+    "placeholderPassword": "Nhập mật khẩu của bạn",
+    "login": "Đăng nhập",
+    "forgot": "Quên mật khẩu?",
+    "signup": "Đăng ký",
+    "google": "Google"
+  },
+  "signUpBanner": {
+        "title":"Đăng Ký Sinh Viên",
+        "title-1": "Xin chào",
+        "title-2": "Đăng nhập"
+  },
+  "signUpForm": {
+    "placeholderEmail": "Nhập địa chỉ Email của bạn",
+    "policy": "Bằng cách đăng ký, tôi đồng ý với Điều khoản và Điều kiện của website",
+    "button": "Đăng ký",
+    "emailLabel": "Email",
+    "googleBtn": "Google",
+    "modalMessage": "Email đã gửi thành công, vui lòng kiểm tra email của bạn",
+    "closeModalBtn": "Đóng",
+    "usernameLabel": "Tên người dùng",
+    "placeholderUsername": "Nhập tên người dùng",
+    "passwordLabel": "Mật khẩu",
+    "placeholderPassword": "Nhập mật khẩu của bạn",
+    "rePasswordLabel": "Xác nhận mật khẩu",
+    "placeholderRePassword": "Nhập lại mật khẩu",
+    "genderLabel": "Giới tính",
+    "selectGender": "Chọn giới tính của bạn",
+    "male": "Nam",
+    "female": "Nữ",
+    "other": "Khác",
+    "birthDayLabel": "Ngày sinh",
+    "placeholderBirthDay": "Chọn ngày sinh của bạn",
+    "phoneNumberLabel": "Số điện thoại",
+    "placeholderPhoneNumber": "Nhập số điện thoại của bạn",
+    "modalMessageSuccess": "Đăng Ký Thành Công",
+    "modalMessageFail": "Đăng Ký Thất Bại",
+    "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
   }
+}
