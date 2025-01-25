@@ -1,7 +1,6 @@
 "use client";
 
 import Sidebar from "@/components/SideBar";
-import { useTranslations } from "next-intl";
 import type { Category } from "@/app/type/category/Category";
 import { useEffect, useState } from "react";
 import { fetchCategories } from "@/app/api/category/CategoryAPT";
@@ -9,7 +8,6 @@ import CategoryList from "@/components/category/CourseList";
 import "../../../../style/Category.css";
 
 export default function Category() {
-  const t = useTranslations("Category");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
