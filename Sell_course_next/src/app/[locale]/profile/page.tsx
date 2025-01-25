@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from 'react';
+import React, { useEffect} from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'react-bootstrap/Image';
@@ -7,13 +7,13 @@ const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {;
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
     }
   }, [status, router]);
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return <div>Loading...</div>;
   }
 
@@ -43,3 +43,4 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+

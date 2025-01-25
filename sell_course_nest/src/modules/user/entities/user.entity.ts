@@ -21,6 +21,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ nullable: true, default: 'default-avatar.png' })
+  avatarImg: string;
+
   @Column({ nullable: true })
   gender: string;
 

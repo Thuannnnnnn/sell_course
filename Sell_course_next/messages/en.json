@@ -95,5 +95,15 @@
         "placeholderEmail":"Enter your Email",
         "policy": "By signing up, I agree with the website of Terms and Conditions",
         "button": "Register"
+      },
+      "dashBoard": {
+        "dashboard": "Dashboard",
+        "user": "Users",
+        "quizz": "Quizz",
+        "course": "Courses",
+        "report": "Reports",
+        "payment": "Payment",
+        "setting": "Settings",
+        "signout": "Log Out"
       }
     }
