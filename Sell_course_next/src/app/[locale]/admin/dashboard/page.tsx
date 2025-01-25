@@ -2,8 +2,12 @@ import Sidebar from "@/components/SideBar";
 import { useTranslations } from "next-intl";
 
 export default function DashBoard() {
-    const t = useTranslations('homePage')
+  const t = useTranslations("HomePage");
   return (
-    <Sidebar/>
-  )
+    <div>
+      <Sidebar />
+      <div>{t("DashBoard")}</div>
+      
+    </div>
+  );
 }
