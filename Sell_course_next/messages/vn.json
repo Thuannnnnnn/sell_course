@@ -117,5 +117,12 @@
     "modalMessageSuccess": "Đăng Ký Thành Công",
     "modalMessageFail": "Đăng Ký Thất Bại",
     "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
+  },
+  "categoies": {
+    "category": "Thể loại",
+    "name": "Tên",
+    "description": "Mô tả",
+    "parentCategory": "Nhánh cha",
+    "actions": "Tính năng"
   }
 }

@@ -3,6 +3,7 @@ import "../../style/Category.css";
 import { Category } from "@/app/type/category/Category";
 import { deleteCategory } from "@/app/api/category/CategoryAPT";
 import { Container } from "react-bootstrap";
+import { useTranslations } from "next-intl";
 interface CategoryListProps {
   categories: Category[];
   setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
@@ -11,6 +12,8 @@ const CategoryList: React.FC<CategoryListProps> = ({
   categories,
   setCategories,
 }) => {
+
+  const t = useTranslations('categoies')
   const handleDelete = async (categoryId: string) => {
     try {
       await deleteCategory(categoryId);
@@ -29,10 +32,10 @@ const CategoryList: React.FC<CategoryListProps> = ({
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Parent Category</th>
-            <th>Actions</th>
+            <th>{t("name")}</th>
+            <th>{t("description")}</th>
+            <th>{t("parentCategory")}</th>
+            <th>{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
