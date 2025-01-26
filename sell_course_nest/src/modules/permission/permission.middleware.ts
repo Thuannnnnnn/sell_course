@@ -22,7 +22,6 @@ export class PermissionMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    // Skip for auth routes
     if (req.originalUrl.startsWith('/api/auth/')) {
       console.log('[DEBUG] Skipping middleware for auth routes');
       return next();
@@ -40,20 +39,25 @@ export class PermissionMiddleware implements NestMiddleware {
       payload = this.jwtService.verify(token);
       console.log('[DEBUG] Token payload:', payload);
     } catch {
-      console.error('[DEBUG] Token verification failed:');
+      console.error('[DEBUG] Token verification failed');
       throw new UnauthorizedException('Invalid token');
     }
 
-    const userId = payload?.user_id;
+    const { iat, exp, user_id: userId } = payload;
 
-    if (!userId) {
-      console.error('[DEBUG] Invalid token payload - missing user_id');
+    if (!iat || !exp || !userId) {
+      console.error('[DEBUG] Invalid token payload - missing required fields');
       throw new UnauthorizedException('Invalid token');
+    }
+
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    if (currentTimestamp < iat || currentTimestamp > exp) {
+      console.error('[DEBUG] Token is expired or not yet valid');
+      throw new UnauthorizedException('Token has expired or is not yet valid');
     }
 
     console.log('[DEBUG] User ID from token:', userId);
 
-    // Get user and load their related permissions
     const user = await this.userRepository.findOne({
       where: { user_id: userId },
       relations: ['permissions'],
@@ -66,10 +70,9 @@ export class PermissionMiddleware implements NestMiddleware {
 
     console.log('[DEBUG] Retrieved user:', user);
 
-    // Route should be "/resource/permission_code/..."
     let requiredPermissionCode = req.originalUrl.split('/').slice(2)[0];
     if (req.originalUrl.startsWith('/api/')) {
-      requiredPermissionCode = req.originalUrl.split('/').slice(3)[0];
+      requiredPermissionCode = req.originalUrl.split('/').slice(4)[0];
     }
 
     console.log('[DEBUG] Required permission code:', requiredPermissionCode);
@@ -79,7 +82,6 @@ export class PermissionMiddleware implements NestMiddleware {
       return next();
     }
 
-    // Check for permission
     const hasPermission = await this.checkPermission(
       user.permissions,
       requiredPermissionCode,
@@ -114,7 +116,6 @@ export class PermissionMiddleware implements NestMiddleware {
       return false;
     }
 
-    // Tìm quyền yêu cầu dựa trên code
     const permission = await this.permissionRepository.findOne({
       where: { code: requiredPermissionCode },
     });
@@ -126,7 +127,6 @@ export class PermissionMiddleware implements NestMiddleware {
       return false;
     }
 
-    // Kiểm tra nếu người dùng có quyền trực tiếp
     const hasDirectPermission = userPermissions.some(
       (userPermission) => Number(userPermission.id) === Number(permission.id),
     );
@@ -137,7 +137,6 @@ export class PermissionMiddleware implements NestMiddleware {
       return true;
     }
 
-    // Kiểm tra quyền cha của quyền yêu cầu có nằm trong danh sách quyền của user không
     const ancestors = await this.permissionRepository.findAncestors(permission);
     console.log('[DEBUG] Ancestors of required permission:', ancestors);
 

@@ -1,50 +1,34 @@
-"use client";
+'use client';
 
-import Sidebar from "@/components/SideBar";
-import type { Category } from "@/app/type/category/Category";
-import { useEffect, useState } from "react";
-import { fetchCategories } from "@/app/api/category/CategoryAPT";
-import CategoryList from "@/components/category/CourseList";
-import "../../../../style/Category.css";
-import { useTranslations } from "next-intl";
+import React, { useEffect, useState } from 'react';
+import PermissionsTable from '@/components/PermissionTable';
+import { fetchPermissions } from '@/app/api/permission/Permission'
+import { useTranslations } from 'next-intl';
 
-export default function Category() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const t = useTranslations("authorityPage");
+const PermissionsPage = () => {
+  const [permissions, setPermissions] = useState([]);
+  const [token, setToken] = useState('');
+  const t = useTranslations('permission');
   useEffect(() => {
-    const loadCategories = async () => {
+    const getData = async () => {
       try {
-        setLoading(true);
-        const data = await fetchCategories();
-        setCategories(data);
-        setLoading(false);
+        setToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYTVkYjUwNmYtMmU2OS00ZDBjLWJlMDgtOTk4Yzc0NTYxNmJlIiwiZW1haWwiOiJ0cmFucXVvY3RodWFuMjAwM0BnbWFpbC5jb20iLCJ1c2VybmFtZSI6InRodWFuIiwicm9sZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzM3ODczMjgyLCJleHAiOjE3Mzc4ODA0ODJ9.X26Vzy4CNJbutm11Jdi0q8y2lvrir6RoMwZK87WnOGA');
+        const data = await fetchPermissions(token);
+        setPermissions(data);
       } catch (error) {
-        setError("Failed to load categories." + error);
-        setLoading(false);
+        console.error('Error fetching permissions:', error);
       }
     };
 
-    loadCategories();
-    console.log("load daa: " + JSON.stringify(categories, null, 2));
-  }, []);
+    getData();
+  }, [token]);
 
-  if (loading) return <p>Loading categories...</p>;
-  if (error) return <p>{error}</p>;
   return (
-    <>
-      <div className="d-flex">
-        <div>
-          <div className="sidebar-page">
-            <Sidebar />
-          </div>
-        </div>
-        <div style={{ width: "75%" }}>
-          <h3 style={{ paddingLeft: "15px" }}>{t("title")}</h3>
-          <CategoryList categories={categories} setCategories={setCategories} />
-        </div>
-      </div>
-    </>
+    <div className="container mt-5">
+      <h1 className="mb-4">{t('title')}</h1>
+      <PermissionsTable permissions={permissions} />
+    </div>
   );
-}
+};
+
+export default PermissionsPage;

@@ -11,7 +11,7 @@ import {
 import { PermissionService } from './permission.service';
 import { Permission } from './entities/permission.entity';
 
-@Controller('api/permissions')
+@Controller('api/admin/permissions')
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
   @Post('add_permission')

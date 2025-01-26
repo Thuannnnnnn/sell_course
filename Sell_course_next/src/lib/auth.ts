@@ -40,12 +40,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               role: response.data.role,
             };
           } else {
-            console.error("Login failed:", response.data.message || "Unknown error");
+            console.error(
+              "Login failed:",
+              response.data.message || "Unknown error"
+            );
             return null;
           }
         } catch (error) {
           const err = error as AxiosError;
-          console.error("Error in authorize function:", err.response?.data || err.message);
+          console.error(
+            "Error in authorize function:",
+            err.response?.data || err.message
+          );
           return null;
         }
       },
@@ -53,7 +59,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      console.log("SignIn callback initiated with user and account:", { user, account });
+      console.log("SignIn callback initiated with user and account:", {
+        user,
+        account,
+      });
 
       if (!user || !account) {
         console.error("Error: User or account is null");
@@ -89,7 +98,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return false;
         }
 
-        console.log("Sign-in successful, response from backend:", response.data);
+        console.log(
+          "Sign-in successful, response from backend:",
+          response.data
+        );
         return true;
       } catch (error) {
         console.error("Error during API call in sign-in callback:", error);
