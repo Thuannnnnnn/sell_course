@@ -1,5 +1,4 @@
-"use client"; 
-
+"use client";
 import { useEffect, useState } from "react";
 import "../style/AdminSideBar.css";
 import { MdDashboard } from "react-icons/md";
@@ -44,55 +43,55 @@ const Sidebar = () => {
         <ul>
           <li className="active">
             <div className="icon-sidebar">
-                <MdDashboard />
+              <MdDashboard />
             </div>
             <div>{t('dashboard')}</div>
           </li>
           <li>
             <div className="icon-sidebar">
-                <HiUserGroup />
+              <HiUserGroup />
             </div>
             <div>{t('user')}</div>
           </li>
           <li>
             <div className="icon-sidebar">
-                <FaCircleQuestion />
+              <FaCircleQuestion />
             </div>
             <div>{t('quizz')}</div>
           </li>
           <li>
             <div className="icon-sidebar">
-                <SiCoursera />
+              <SiCoursera />
             </div>
             <div>{t('course')}</div>
           </li>
           <li>
             <div className="icon-sidebar">
-                <BiSolidCategory />
+              <BiSolidCategory />
             </div>
             <div>{t('category')}</div>
           </li>
           <li>
             <div className="icon-sidebar">
-                <TbMessageReportFilled />
+              <TbMessageReportFilled />
             </div>
             <div>{t('report')}</div>
           </li>
           <li>
             <div className="icon-sidebar">
-                <FaWallet />
+              <FaWallet />
             </div>
             <div>{t('payment')}</div>
           </li>
           <li >
             <div className="icon-sidebar">
-                <IoSettingsSharp />
+              <IoSettingsSharp />
             </div>
             <div>{t('setting')}</div>
           </li>
           <li>
             <div className="icon-sidebar">
-                <FaSignOutAlt />
+              <FaSignOutAlt />
             </div>
             <div>{t('signout')}</div>
           </li>

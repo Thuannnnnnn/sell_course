@@ -6,10 +6,14 @@ import {
   Param,
   Body,
   UseGuards,
+  Put,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-// import { Permissions } from '../permission/permission.enum';
-import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { ChangePasswordDto } from './dto/changePassword.dto';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
 @Controller('api/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -39,8 +43,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/user')
-  async get(@Request() req) {
+  async get(@Req() req) {
     const email = req.user.email;
     return this.userService.getUser(email);
   }

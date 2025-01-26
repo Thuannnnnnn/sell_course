@@ -1,7 +1,7 @@
 // import { Injectable, NotFoundException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   BadRequestException,
   Injectable,
@@ -11,6 +11,8 @@ import {
 // import { ChangePasswordDto } from './dto/changePassword.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
+import { Permission } from '../permission/entities/permission.entity';
+import { UserDto } from './dto/userData.dto';
 
 @Injectable()
 export class UserService {
@@ -92,6 +94,35 @@ export class UserService {
     }
 
     Object.assign(user, updateProfileDto);
+    return this.userRepository.save(user);
+  }
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({ relations: ['permissions'] });
+  }
+
+  async findById(userId: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId },
+      relations: ['permissions'],
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  async addPermissions(userId: string, permissionIds: number[]): Promise<User> {
+    const user = await this.findById(userId);
+    const permissions = await this.permissionRepository.findBy({
+      id: In(permissionIds),
+    });
+    user.permissions = [...user.permissions, ...permissions];
+    return this.userRepository.save(user);
+  }
+
+  async removePermission(userId: string, permissionId: number): Promise<User> {
+    const user = await this.findById(userId);
+    user.permissions = user.permissions.filter(
+      (permission) => permission.id !== permissionId,
+    );
     return this.userRepository.save(user);
   }
 }
