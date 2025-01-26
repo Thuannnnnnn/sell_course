@@ -2,6 +2,13 @@
   padding-top: 35px;
 }
 
+.layout-right{
+  width: 75%;
+}
+
+.layout-right h3 {
+  padding-left: 15px;
+}
 .course-table {
   width: 100%;
   margin: 20px;

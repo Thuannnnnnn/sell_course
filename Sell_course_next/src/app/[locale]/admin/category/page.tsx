@@ -39,8 +39,8 @@ export default function Category() {
             <Sidebar />
           </div>
         </div>
-        <div style={{ width: "75%" }}>
-          <h3 style={{ paddingLeft: "15px" }}>Category</h3>
+        <div className="layout-right">
+          <h3>Category</h3>
           <CategoryList categories={categories} setCategories={setCategories} />
         </div>
       </div>
