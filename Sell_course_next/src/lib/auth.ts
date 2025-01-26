@@ -39,6 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               email: response.data.email,
               gender: response.data.gender,
               birthDay: response.data.birthDay,
+              avartaImg: response.data.avartaImg,
               phoneNumber: response.data.phoneNumber,
               name: response.data.username,
               role: response.data.role,
@@ -64,6 +65,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.name = user.name;
         token.role = user.role;
         token.gender = user.gender;
+        token.avartaImg = user.avartaImg;
         token.birthDay = user.birthDay;
         token.phoneNumber = user.phoneNumber;
       }
@@ -73,6 +75,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.token = token.token;
       session.user.id = token.id;
       session.user.email = token.email;
+      session.user.avartaImg = token.avartaImg;
       session.user.name = token.name;
       session.user.role = token.role;
       session.user.gender = token.gender;
@@ -90,13 +93,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (account.type === "credentials") {
         const payload = {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           token: (user as any).token,
           provider: account.provider,
           id: user.id,
           email: user.email,
           name: user.name,
-          picture: user.image || "/default-avatar.svg",
+          avartaImg: user.avartaImg || "/default-avatar.svg",
         };
         console.log("Payload prepared for API call:", payload);
         return true;
@@ -104,11 +106,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 
       const payload = {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         token: (user as any).token,
         email: user.email,
         name: user.name,
-        picture: user.image,
+        avartaImg: user.avartaImg,
       };
       console.log("Payload prepared for API call:", payload);
 

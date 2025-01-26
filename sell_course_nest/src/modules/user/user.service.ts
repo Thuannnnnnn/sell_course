@@ -9,6 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { azureUpload } from 'src/utilities/azure.service';
+// import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -23,8 +25,8 @@ export class UserService {
         user.user_id,
         user.email,
         user.username,
-        user.avartaImg,
         user.gender,
+        user.avartaImg,
         user.birthDay,
         user.phoneNumber,
         user.role,
@@ -82,6 +84,44 @@ export class UserService {
       user.username,
       user.avartaImg,
       user.gender,
+      user.birthDay,
+      user.phoneNumber,
+      user.role,
+    );
+  }
+  async updateUserById(
+    email: string,
+    updateData: Partial<UserDto>,
+    file?: Express.Multer.File,
+  ): Promise<UserDto | null> {
+    // Tìm user bằng email
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      return null;
+    }
+
+    // Nếu có file, upload avatar mới lên Azure Blob Storage
+    if (file) {
+      try {
+        const avatarUrl = await azureUpload(file); // Upload file lên Azure Blob
+        updateData.avartaImg = avatarUrl;
+      } catch (error) {
+        throw new Error('Failed to upload avatar to Azure Blob Storage.');
+      }
+    }
+    console.log('Update data:', file, updateData);
+
+    // Cập nhật thông tin user
+    Object.assign(user, updateData);
+    await this.userRepository.save(user);
+
+    // Trả về UserDto
+    return new UserDto(
+      user.user_id,
+      user.email,
+      user.username,
+      user.gender,
+      user.avartaImg,
       user.birthDay,
       user.phoneNumber,
       user.role,

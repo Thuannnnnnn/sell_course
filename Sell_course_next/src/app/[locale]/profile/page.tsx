@@ -27,9 +27,9 @@ const ProfilePage: React.FC = () => {
         <>
           <span className="nav-link m-4">Name, {session.user?.name}</span>
           <span className="nav-link m-4">Email, {session.user?.email}</span>
-          {session.user?.image && (
+          {session.user?.avartaImg && (
             <Image
-              src={session.user.image}
+              src={session.user.avartaImg}
               alt="User profile picture"
               width={100}
               height={100}

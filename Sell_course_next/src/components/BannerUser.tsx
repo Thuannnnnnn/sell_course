@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 // Define the type for the user prop
 interface User {
-  avatarImg?: string;
+  avartaImg?: string;
   name?: string;
 }
 
@@ -18,7 +18,7 @@ export default function BannerUser({ user }: BannerUserProps) {
     <div className="card">
       <div className="avatar">
         <Image
-          src={user?.avatarImg || defaultAvatar}
+          src={user.avartaImg || defaultAvatar}
           alt="User Avatar"
           className="avatar-img"
         />
