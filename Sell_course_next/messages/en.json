@@ -112,6 +112,19 @@
     "code": "Code",
     "description": "Description",
     "createdAt": "Created At",
-    "updatedAt": "Updated At"
+    "updatedAt": "Updated At",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editPermission": "Edit Permission",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirmDelete": "Confirm Deletion",
+    "confirmDeleteMessage": "Are you sure you want to delete the permission: {{permissionName}}?",
+    "confirm": "Confirm",
+    "none": "None",
+    "parent": "Parent",
+    "deleteConfirmation": "Are you sure for delete this permission",
+    "addPermission": "Add Permission"
   }
 }

@@ -75,7 +75,7 @@ export class PermissionService {
       throw new Error('Permission not found');
     }
     await this.permissionRepository.query(`
-      DELETE FROM permission_closure WHERE descendant_id = ${permission.id} OR ancestor_id = ${permission.id}
+      DELETE FROM permissions_closure WHERE id_descendant = ${permission.id} OR id_ancestor = ${permission.id}
     `);
 
     await this.permissionRepository.remove(permission);

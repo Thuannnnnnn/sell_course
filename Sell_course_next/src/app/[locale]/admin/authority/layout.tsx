@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 export const metadata: Metadata = {
-  title: 'Category',
-  description: 'Admin Category',
+  title: 'Authority',
+  description: 'Admin Authority',
 };
 
 export default function RootLayout({
@@ -11,7 +11,7 @@ export default function RootLayout({
 }>) {
   return (
     <>
-    {children}
-</>
+      {children}
+    </>
   );
 }

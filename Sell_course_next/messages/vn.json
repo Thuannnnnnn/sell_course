@@ -123,7 +123,19 @@
     "name": "Tên",
     "code": "Mã",
     "description": "Mô tả",
-    "createdAt": "Được tạo lúc",
-    "updatedAt": "Được cập nhật lúc"
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "actions": "Hành động",
+    "edit": "Chỉnh sửa",
+    "delete": "Xoá",
+    "editPermission": "Chỉnh sửa quyền",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "confirmDelete": "Xác nhận xoá",
+    "confirmDeleteMessage": "Bạn có chắc chắn muốn xoá quyền: {{permissionName}}?",
+    "confirm": "Xác nhận",
+    "none": "Không có",
+    "deleteConfirmation": "Bạn có chắc chắn muốn xóa quyền này không",
+    "addPermission": "Thêm quyền"
   }
 }

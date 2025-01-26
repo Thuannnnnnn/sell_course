@@ -1,4 +1,3 @@
-// permission.controller.ts
 import {
   Controller,
   Get,
@@ -53,8 +52,6 @@ export class PermissionController {
       description,
     );
   }
-
-  // 5. Delete Permission
   @Delete('delete_permission/:id')
   async deletePermission(@Param('id') id: number): Promise<void> {
     return this.permissionService.deletePermission(id);
