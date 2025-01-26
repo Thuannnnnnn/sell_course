@@ -1,9 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+// import { Injectable, NotFoundException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { Permission } from '../permission/entities/permission.entity';
-import { In } from 'typeorm';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+// import { ChangePasswordDto } from './dto/changePassword.dto';
+import * as bcrypt from 'bcrypt';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
+
 @Injectable()
 export class UserService {
   constructor(
@@ -12,35 +20,78 @@ export class UserService {
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
   ) {}
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: ['permissions'] });
-  }
-
-  async findById(userId: string): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { user_id: userId },
-      relations: ['permissions'],
+  async getAllUser(): Promise<UserDto[]> {
+    const users = await this.userRepository.find();
+    return users.map((user) => {
+      return new UserDto(
+        user.email,
+        user.username,
+        user.gender,
+        user.birthDay,
+        user.phoneNumber,
+        user.role,
+      );
     });
-    if (!user) throw new NotFoundException('User not found');
-    return user;
   }
 
-  // Thêm quyền cho người dùng
-  async addPermissions(userId: string, permissionIds: number[]): Promise<User> {
-    const user = await this.findById(userId);
-    const permissions = await this.permissionRepository.findBy({
-      id: In(permissionIds),
-    });
-    user.permissions = [...user.permissions, ...permissions];
-    return this.userRepository.save(user);
-  }
-
-  // Xóa quyền của người dùng
-  async removePermission(userId: string, permissionId: number): Promise<User> {
-    const user = await this.findById(userId);
-    user.permissions = user.permissions.filter(
-      (permission) => permission.id !== permissionId,
+  async getUser(email: string): Promise<UserDto | null> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      return null;
+    }
+    return new UserDto(
+      user.email,
+      user.username,
+      user.gender,
+      user.birthDay,
+      user.phoneNumber,
+      user.role,
     );
+  }
+
+  async changePassword(
+    email: string,
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string,
+  ): Promise<string> {
+    // Find the user by user_id (which matches the value from the token)
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    // Validate current password
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+    // Check if new password matches confirm password
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException(
+        'New password and confirm password do not match',
+      );
+    }
+    // Hash the new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    // Update the user's password
+    user.password = hashedNewPassword;
+    await this.userRepository.save(user); // Ensure that this saves the updated user in the database
+    return 'Password changed successfully';
+  }
+  async updateProfile(
+    email: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    Object.assign(user, updateProfileDto);
     return this.userRepository.save(user);
   }
 }
