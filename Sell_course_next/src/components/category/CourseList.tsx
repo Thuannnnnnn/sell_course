@@ -4,7 +4,6 @@ import { Category } from "@/app/type/category/Category";
 import { deleteCategory } from "@/app/api/category/CategoryAPT";
 import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
-import { useTheme } from "@/contexts/ThemeContext";
 interface CategoryListProps {
   categories: Category[];
   setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
