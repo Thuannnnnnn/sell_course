@@ -1,10 +1,12 @@
 'use client';
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { updatePermission, deletePermission, addPermission } from '@/app/api/permission/Permission'; // Adjust import path for API calls
+import { updatePermission, deletePermission, addPermission } from '@/app/api/permission/Permission';
 import { useTranslations } from 'next-intl';
-
-// Interface for the Permission type
+import { NotificationContainer, NotificationManager } from 'react-notifications';
+import 'react-notifications/lib/notifications.css';
+import { Table } from 'react-bootstrap';
+import '@/style/Permissions.css';
 interface Permission {
     id: number;
     name: string;
@@ -16,21 +18,19 @@ interface Permission {
     children: Permission[];
 }
 
-// Props type for PermissionsTable
 interface PermissionsTableProps {
     permissions: Permission[];
     token: string;
     onPermissionUpdated: () => void;
     onPermissionDeleted: () => void;
-    onPermissionAdded: () => void; // New callback for adding a permission
+    onPermissionAdded: () => void;
 }
-
 const PermissionsTable: React.FC<PermissionsTableProps> = ({
     permissions,
     token,
     onPermissionUpdated,
     onPermissionDeleted,
-    onPermissionAdded, // Callback for adding permission
+    onPermissionAdded,
 }) => {
     const [expandedPermissions, setExpandedPermissions] = useState<Set<number>>(new Set());
     const [editPermission, setEditPermission] = useState<Permission | null>(null);
@@ -44,11 +44,9 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
         updatedAt: '',
         parentId: null,
         children: [],
-    }); // State for new permission
-    const [showAddModal, setShowAddModal] = useState(false); // Modal visibility for adding a new permission
+    });
+    const [showAddModal, setShowAddModal] = useState(false);
     const t = useTranslations('permission');
-
-    // Toggle expansion of child permissions
     const togglePermission = (id: number) => {
         setExpandedPermissions((prevExpanded) => {
             const newExpanded = new Set(prevExpanded);
@@ -60,13 +58,14 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
             return newExpanded;
         });
     };
-
-    // Render permissions with possible nested children
     const renderPermissions = (permissions: Permission[], level = 0) =>
         permissions.map((permission) => (
             <React.Fragment key={permission.id}>
                 <tr>
-                    <td style={{ paddingLeft: `${level * 20}px`, cursor: 'pointer' }} onClick={() => permission.children.length > 0 && togglePermission(permission.id)}>
+                    <td
+                        className={`permission-name permission-name-level-${level}`}
+                        onClick={() => permission.children.length > 0 && togglePermission(permission.id)}
+                    >
                         {permission.children.length > 0 && (
                             <span>{expandedPermissions.has(permission.id) ? '[-] ' : '[+] '}</span>
                         )}
@@ -77,11 +76,11 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                     <td>{new Date(permission.createdAt).toLocaleDateString()}</td>
                     <td>{new Date(permission.updatedAt).toLocaleDateString()}</td>
                     <td>
-                        <div className="d-flex">
-                            <Button variant="primary" size="sm" className="mr-2" onClick={() => setEditPermission(permission)}>
+                        <div className="permission-actions">
+                            <Button variant="primary" size="sm" className="btn" onClick={() => setEditPermission(permission)}>
                                 {t('edit')}
                             </Button>
-                            <Button variant="danger" size="sm" onClick={() => setDeletePermissionData(permission)}>
+                            <Button variant="danger" size="sm" className="btn" onClick={() => setDeletePermissionData(permission)}>
                                 {t('delete')}
                             </Button>
                         </div>
@@ -90,30 +89,24 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                 {expandedPermissions.has(permission.id) && permission.children.length > 0 && renderPermissions(permission.children, level + 1)}
             </React.Fragment>
         ));
-
-    // Handle closing the edit modal
     const closeEditModal = () => setEditPermission(null);
-
-    // Handle closing the delete confirmation modal
     const closeDeleteModal = () => setDeletePermissionData(null);
-
-    // Handle permission deletion
     const handleDelete = async () => {
         if (deletePermissionData) {
             try {
                 await deletePermission(token, deletePermissionData.id);
                 console.log(`Permission with ID: ${deletePermissionData.id} deleted`);
-                onPermissionDeleted(); // Refresh the list of permissions after delete
+                onPermissionDeleted();
+                createNotification('success', t('permissionDeletedSuccess'))();
             } catch (error) {
                 console.error('Error deleting permission:', error);
+                createNotification('error', t('permissionDeletedError'))();
             }
         }
         closeDeleteModal();
     };
-
-    // Handle permission edit
     const handleEdit = async (event: React.FormEvent) => {
-        event.preventDefault(); // Prevent form submission
+        event.preventDefault();
         if (editPermission) {
             const permissionData = {
                 id: editPermission.id,
@@ -126,14 +119,14 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                 await updatePermission(token, permissionData);
                 console.log(`Permission with ID: ${editPermission.id} updated`);
                 onPermissionUpdated();
+                createNotification('success', t('permissionUpdatedSuccess'))();
             } catch (error) {
                 console.error('Error updating permission:', error);
+                createNotification('error', t('permissionUpdatedError'))();
             }
         }
         closeEditModal();
     };
-
-    // Handle new permission submission
     const handleAddPermission = async (event: React.FormEvent) => {
         event.preventDefault();
         try {
@@ -143,21 +136,40 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                 parentId: newPermission.parentId ?? 0,
                 description: newPermission.description || '',
             };
-            await addPermission(token, permissionData); // Call add API
+            await addPermission(token, permissionData);
             console.log('New permission added');
-            onPermissionAdded(); // Refresh the list of permissions after adding
-            setShowAddModal(false); // Close the modal
+            onPermissionAdded();
+            createNotification('success', t('permissionAddedSuccess'))();
+            setShowAddModal(false);
         } catch (error) {
             console.error('Error adding permission:', error);
+            createNotification('error', t('permissionAddedError'))();
         }
     };
-
+    const createNotification = (type: 'info' | 'success' | 'warning' | 'error', message: string) => {
+        return () => {
+            switch (type) {
+                case 'info':
+                    NotificationManager.info(message || 'Info message');
+                    break;
+                case 'success':
+                    NotificationManager.success(message || 'Success!');
+                    break;
+                case 'warning':
+                    NotificationManager.warning(message || 'Warning!', 3000);
+                    break;
+                case 'error':
+                    NotificationManager.error(message || 'Error occurred', 5000);
+                    break;
+            }
+        };
+    };
     return (
         <div>
-            <Button variant="success" onClick={() => setShowAddModal(true)} className="mb-3">
+            <Button variant="success" onClick={() => setShowAddModal(true)} className="add-modal-button">
                 {t('addPermission')}
             </Button>
-            <table className="table table-bordered">
+            <Table striped>
                 <thead>
                     <tr>
                         <th>{t('name')}</th>
@@ -169,9 +181,7 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                     </tr>
                 </thead>
                 <tbody>{renderPermissions(permissions)}</tbody>
-            </table>
-
-            {/* Add Permission Modal */}
+            </Table>
             {showAddModal && (
                 <Modal show={true} onHide={() => setShowAddModal(false)}>
                     <Modal.Header closeButton>
@@ -217,7 +227,7 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                                 >
                                     <option value="">{t('none')}</option>
                                     {permissions
-                                        .filter((permission) => permission.id !== newPermission.id) // Exclude current permission from being selected as parent
+                                        .filter((permission) => permission.id !== newPermission.id)
                                         .map((permission) => (
                                             <option key={permission.id} value={permission.id}>
                                                 {permission.name}
@@ -225,18 +235,16 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                                         ))}
                                 </Form.Control>
                             </Form.Group>
-                            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+                            <Button variant="secondary" className="modal-button" onClick={() => setShowAddModal(false)}>
                                 {t('cancel')}
                             </Button>
-                            <Button variant="primary" type="submit">
+                            <Button variant="primary" className="modal-button" type="submit">
                                 {t('save')}
                             </Button>
                         </Form>
                     </Modal.Body>
                 </Modal>
             )}
-
-            {/* Edit Modal */}
             {editPermission && (
                 <Modal show={true} onHide={closeEditModal}>
                     <Modal.Header closeButton>
@@ -290,18 +298,16 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                                         ))}
                                 </Form.Control>
                             </Form.Group>
-                            <Button variant="secondary" onClick={closeEditModal}>
+                            <Button variant="secondary" className="modal-button" onClick={closeEditModal}>
                                 {t('cancel')}
                             </Button>
-                            <Button variant="primary" type="submit">
+                            <Button variant="primary" className="modal-button" type="submit">
                                 {t('save')}
                             </Button>
                         </Form>
                     </Modal.Body>
                 </Modal>
             )}
-
-            {/* Delete Confirmation Modal */}
             {deletePermissionData && (
                 <Modal show={true} onHide={closeDeleteModal}>
                     <Modal.Header closeButton>
@@ -309,17 +315,18 @@ const PermissionsTable: React.FC<PermissionsTableProps> = ({
                     </Modal.Header>
                     <Modal.Body>
                         <p>{t('deleteConfirmation')}</p>
-                        <Button variant="secondary" onClick={closeDeleteModal}>
+                        <Button variant="secondary" className="modal-button" onClick={closeDeleteModal}>
                             {t('cancel')}
                         </Button>
-                        <Button variant="danger" onClick={handleDelete}>
+                        <Button variant="danger" className="modal-button" onClick={handleDelete}>
                             {t('delete')}
                         </Button>
                     </Modal.Body>
                 </Modal>
             )}
+
+            <NotificationContainer />
         </div>
     );
 };
-
 export default PermissionsTable;

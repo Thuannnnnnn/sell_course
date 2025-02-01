@@ -118,6 +118,18 @@
     "modalMessageFail": "Đăng Ký Thất Bại",
     "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
   },
+  "dashBoard": {
+    "dashboard": "Bảng điều khiển",
+    "user": "Người dùng",
+    "quizz": "Câu hỏi",
+    "course": "Khóa học",
+    "report": "Báo cáo",
+    "payment": "Thanh toán",
+    "setting": "Cài đặt",
+    "signout": "Đăng xuất",
+    "category": "Danh mục",
+    "permission": "Quyền"
+  },
   "permission": {
     "title": "Quyền",
     "name": "Tên",
@@ -135,7 +147,14 @@
     "confirmDeleteMessage": "Bạn có chắc chắn muốn xoá quyền: {{permissionName}}?",
     "confirm": "Xác nhận",
     "none": "Không có",
+    "parent": "Cha",
     "deleteConfirmation": "Bạn có chắc chắn muốn xóa quyền này không",
-    "addPermission": "Thêm quyền"
+    "addPermission": "Thêm quyền",
+    "permissionAddedSuccess": "Quyền đã được thêm thành công.",
+    "permissionAddedError": "Đã xảy ra lỗi khi thêm quyền.",
+    "permissionUpdatedSuccess": "Quyền đã được cập nhật thành công.",
+    "permissionUpdatedError": "Đã xảy ra lỗi khi cập nhật quyền.",
+    "permissionDeletedSuccess": "Quyền đã được xóa thành công.",
+    "permissionDeletedError": "Đã xảy ra lỗi khi xóa quyền."
   }
 }

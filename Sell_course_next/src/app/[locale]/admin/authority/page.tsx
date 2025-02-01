@@ -4,6 +4,7 @@ import PermissionsTable from '@/components/PermissionTable';
 import { fetchPermissions } from '@/app/api/permission/Permission';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/SideBar'; // Assuming you have Sidebar imported
+import '@/style/Permissions.css';
 
 const PermissionsPage = () => {
   const [permissions, setPermissions] = useState([]);
@@ -38,15 +39,15 @@ const PermissionsPage = () => {
   };
 
   return (
-    <div className="d-flex">
+    <div className="page-container">
       {/* Sidebar Section */}
-      <div style={{ width: '25%' }}>
+      <div className="sidebar-container">
         <Sidebar />
       </div>
 
       {/* Main Content Section */}
-      <div style={{ width: '75%', padding: '20px' }}>
-        <h3>{t('title')}</h3>
+      <div className="content-container">
+        <h3 className="page-title">{t('title')}</h3>
         <PermissionsTable
           permissions={permissions}
           token={token}

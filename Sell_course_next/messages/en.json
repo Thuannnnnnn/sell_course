@@ -104,7 +104,9 @@
     "report": "Reports",
     "payment": "Payment",
     "setting": "Settings",
-    "signout": "Log Out"
+    "signout": "Log Out",
+    "category": "Category",
+    "permission": "Permission"
   },
   "permission": {
     "title": "Permission",
@@ -125,6 +127,12 @@
     "none": "None",
     "parent": "Parent",
     "deleteConfirmation": "Are you sure for delete this permission",
-    "addPermission": "Add Permission"
+    "addPermission": "Add Permission",
+    "permissionAddedSuccess": "Permission has been successfully added.",
+    "permissionAddedError": "Error occurred while adding permission.",
+    "permissionUpdatedSuccess": "Permission has been successfully updated.",
+    "permissionUpdatedError": "Error occurred while updating permission.",
+    "permissionDeletedSuccess": "Permission has been successfully deleted.",
+    "permissionDeletedError": "Error occurred while deleting permission."
   }
 }
