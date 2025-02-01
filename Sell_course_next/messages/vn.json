@@ -98,7 +98,23 @@
   "cartBanner": {
   "title": "Giỏ hàng",
   "subtitle": "Giỏ hàng của bạn"
+},
+"cart": {
+  "title": "Giỏ hàng",
+  "description": "Danh sách sản phẩm đã chọn",
+  "checkout": "Thanh toán",
+  "subtotal": "Tạm tính",
+  "total": "Tổng cộng",
+  "buyNow": "Mua ngay",
+  "emptyMessage": "Giỏ hàng của bạn đang trống",
+  "remove": "Xóa",
+  "quantity": "Số lượng",
+  "price": "Giá",
+  "product": "Sản phẩm",
+  "thumbnail": "Hình ảnh",
+  "removeConfirmation": "Bạn có chắc muốn xóa sản phẩm này không?"
 }
+
 
 
 }

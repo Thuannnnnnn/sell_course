@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Banner from "@/components/Banner-Card";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import "../../../style/Cart.css";
+import Banner from "@/components/Banner-Card";
 import image from "../../image/banner_image.png";
 import { StaticImageData } from "next/image";
 
@@ -20,8 +20,8 @@ interface CartItem {
 }
 
 export default function CartPage() {
-  const t = useTranslations("cart");
-  const tl = useTranslations("cartBanner");
+  const t = useTranslations("cart"); // Lấy nội dung của "cart"
+  const tl = useTranslations("cartBanner"); // Lấy nội dung của "cartBanner"
 
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
@@ -34,9 +34,9 @@ export default function CartPage() {
     {
       id: 2,
       image: defaultImage,
-      title: "Adobe Illustrator for Graphic Design",
-      price: 187.0,
-      quantity: 2,
+      title: "Adobe Photoshop Essentials",
+      price: 150.0,
+      quantity: 1,
     },
   ]);
 
@@ -51,53 +51,57 @@ export default function CartPage() {
       <Banner title={tl("title")} subtitle={tl("subtitle")} />
 
       <div className="cart-container">
-        <div className="cart-wrapper">
-          <table className="cart-table">
-            <thead>
-              <tr>
-                <th>Thumbnail</th>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-                <th>Remove</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cartItems.map(({ id, image, title, price, quantity }) => (
-                <tr key={id}>
-                  <td className="thumbnail">
-                    <Image src={image} alt={`Thumbnail of ${title}`} width={80} height={80} className="product-image" />
-                  </td>
-                  <td className="product-title">{title}</td>
-                  <td className="product-price">${price.toFixed(2)}</td>
-                  <td className="product-quantity">{quantity}</td>
-                  <td className="subtotal">${(price * quantity).toFixed(2)}</td>
-                  <td className="remove-cell">
-                    <button className="remove-btn" onClick={() => handleRemoveItem(id)}>
-                      <RiDeleteBin6Line size={22} color="red" />
-                    </button>
-                  </td>
+        {cartItems.length > 0 ? (
+          <div className="cart-wrapper">
+            <table className="cart-table">
+              <thead>
+                <tr>
+                  <th>{t("thumbnail")}</th>
+                  <th>{t("product")}</th>
+                  <th>{t("price")}</th>
+                  <th>{t("quantity")}</th>
+                  <th>{t("subtotal")}</th>
+                  <th>{t("remove")}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {cartItems.map(({ id, image, title, price, quantity }) => (
+                  <tr key={id}>
+                    <td className="thumbnail">
+                      <Image src={image} alt={title} width={80} height={80} className="product-image" />
+                    </td>
+                    <td className="product-title">{title}</td>
+                    <td className="product-price">${price.toFixed(2)}</td>
+                    <td className="product-quantity">{quantity}</td>
+                    <td className="subtotal">${(price * quantity).toFixed(2)}</td>
+                    <td className="remove-cell">
+                      <button className="remove-btn" onClick={() => handleRemoveItem(id)}>
+                        <RiDeleteBin6Line size={22} color="red" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-        <div className="cart-summary">
-          <h2>Cart totals</h2>
-          <div className="cart-totals">
-            <div className="cart-total-row">
-              <span>Subtotal</span>
-              <span className="cart-price">${subtotal}</span>
-            </div>
-            <div className="cart-total-row">
-              <span>Total</span>
-              <span className="cart-price">${subtotal}</span>
+            <div className="cart-summary">
+              <h2>{t("title")}</h2>
+              <div className="cart-totals">
+                <div className="cart-total-row">
+                  <span>{t("subtotal")}</span>
+                  <span className="cart-price">${subtotal}</span>
+                </div>
+                <div className="cart-total-row">
+                  <span>{t("total")}</span>
+                  <span className="cart-price">${subtotal}</span>
+                </div>
+              </div>
+              <button className="buy-btn">{t("checkout")}</button>
             </div>
           </div>
-          <button className="buy-btn">Buy</button>
-        </div>
+        ) : (
+          <p className="empty-cart">{t("emptyMessage")}</p>
+        )}
       </div>
     </div>
   );

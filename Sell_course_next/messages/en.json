@@ -95,14 +95,25 @@
         "policy": "By signing up, I agree with the website of Terms and Conditions",
         "button": "Register"
       },
-        "cart": {
-          "title": "Shopping Cart",
-          "description": "Your list of selected products",
-          "checkout": "Checkout"
-        },
         "cartBanner": {
           "title": "Cart",
           "subtitle" : "Shopping Cart"
-        }
+        },
+        "cart": {
+  "title": "Shopping Cart",
+  "description": "Your list of selected products",
+  "checkout": "Buy",
+  "subtotal": "Subtotal",
+  "total": "Total",
+  "buyNow": "Buy Now",
+  "emptyMessage": "Your cart is empty",
+  "remove": "Remove",
+  "quantity": "Quantity",
+  "price": "Price",
+  "product": "Product",
+  "thumbnail": "Thumbnail",
+  "removeConfirmation": "Are you sure you want to remove this item?"
+}
+
 
     }
