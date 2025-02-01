@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import gifBean from "../app/image/animation/BeanEater.gif";
 import "@/style/PageLoader.css";

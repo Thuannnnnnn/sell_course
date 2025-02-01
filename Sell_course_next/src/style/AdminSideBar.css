@@ -1,0 +1,112 @@
+/* Container styles */
+.sidebar-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    transition: width 0.3s ease;
+  }
+
+  .sidebar-container.closed .sidebar  div:not(.icon-sidebar){
+    width: 60px;
+  }
+
+  .active {
+    background-color: #f0f0f0;
+    color: #4caf50;
+  }
+
+  .sidebar-container.open .sidebar {
+    width: 250px;
+  }
+
+  .toggle-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    /* font-size: 16px; */
+    border-radius: 4px;
+    margin: 20px 0px 10px 10px;
+  }
+
+  .sidebar {
+    margin: 20px;
+    height: 700px;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .sidebar ul  {
+    padding: 0;
+  }
+
+  .sidebar ul li {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .sidebar ul li:hover {
+    background-color: #f0f0f0; /* Hiệu ứng hover */
+  }
+
+  .sidebar ul li .icon-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .sidebar li {
+    margin: 15px;
+    cursor: pointer;
+    transition: color 0.3s;
+    margin-bottom: 25px;
+  }
+
+  .sidebar li:nth-child(8) {
+    margin: 15px;
+    cursor: pointer;
+    transition: color 0.3s;
+    margin-top: 100px;
+    margin-bottom: 25px;
+  }
+
+  .sidebar li:hover {
+    color: #4caf50;
+  }
+
+  .sidebar-container.closed .sidebar ul div:not(.icon-sidebar) {
+    display: none;
+  }
+
+@media (max-width: 768px) {
+    .sidebar-container.closed .sidebar  div:not(.icon-sidebar) {
+      width: 60px;
+    }
+
+    .sidebar-container.open .sidebar {
+      width: 200px;
+    }
+
+    .sidebar ul {
+      display: block; /* Đảm bảo thông tin hiển thị khi mở */
+    }
+
+    .sidebar li {
+      font-size: 14px; /* Điều chỉnh kích thước font nếu cần */
+      padding: 10px;
+    }
+  
+    .toggle-btn {
+      position: relative;
+      top: 10px;
+      left: 10px;
+    }
+  }
+  
