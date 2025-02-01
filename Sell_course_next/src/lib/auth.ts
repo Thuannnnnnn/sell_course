@@ -19,6 +19,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error("Missing credentials");
           return null;
         }
+
         try {
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
@@ -32,28 +33,56 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               },
             }
           );
+
           if (response.data?.token) {
             return {
+              token: response.data.token, // Lưu token
               id: response.data.id,
               email: response.data.email,
               name: response.data.username,
               role: response.data.role,
             };
           } else {
-            console.error("Login failed:", response.data.message || "Unknown error");
+            console.error(
+              "Login failed:",
+              response.data.message || "Unknown error"
+            );
             return null;
           }
         } catch (error) {
           const err = error as AxiosError;
-          console.error("Error in authorize function:", err.response?.data || err.message);
+          console.error(
+            "Error in authorize function:",
+            err.response?.data || err.message
+          );
           return null;
         }
       },
     }),
   ],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.role = user.role;
+        token.token = user.token;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      session.user.id = token.id as string;
+      session.user.email = token.email as string;
+      session.user.role = token.role as string;
+      session.user.token = token.token as string;
+      return session;
+    },
     async signIn({ user, account }) {
-      console.log("SignIn callback initiated with user and account:", { user, account });
+      console.log("SignIn callback initiated with user and account:", {
+        user,
+        account,
+      });
 
       if (!user || !account) {
         console.error("Error: User or account is null");
@@ -89,7 +118,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return false;
         }
 
-        console.log("Sign-in successful, response from backend:", response.data);
+        console.log(
+          "Sign-in successful, response from backend:",
+          response.data
+        );
         return true;
       } catch (error) {
         console.error("Error during API call in sign-in callback:", error);
