@@ -94,5 +94,11 @@
         "placeholderEmail":"Nhập địa chỉ Email của bạn",
         "policy": "Bằng cách đăng ký, tôi đồng ý với Điều khoản và Điều kiện của website",
         "button": "Đăng ký"
-  }
+  },
+  "cartBanner": {
+  "title": "Giỏ hàng",
+  "subtitle": "Giỏ hàng của bạn"
+}
+
+
 }

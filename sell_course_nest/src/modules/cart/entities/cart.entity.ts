@@ -4,14 +4,14 @@ import { Course } from '../../course/entities/course.entity';
 
 @Entity('cart')
 export class Cart {
-  @PrimaryColumn({ name: 'cart_id' })
+  @PrimaryColumn({ name: 'cart_id', type: 'uuid' })
   cartId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Course)
-  @JoinColumn({ name: 'courseId', referencedColumnName: 'courseId' })
+  @ManyToOne(() => Course, { eager: true })
+  @JoinColumn({ name: 'course_id', referencedColumnName: 'courseId' })
   course: Course;
 }

@@ -94,5 +94,15 @@
         "placeholderEmail":"Enter your Email",
         "policy": "By signing up, I agree with the website of Terms and Conditions",
         "button": "Register"
-      }
+      },
+        "cart": {
+          "title": "Shopping Cart",
+          "description": "Your list of selected products",
+          "checkout": "Checkout"
+        },
+        "cartBanner": {
+          "title": "Cart",
+          "subtitle" : "Shopping Cart"
+        }
+
     }
