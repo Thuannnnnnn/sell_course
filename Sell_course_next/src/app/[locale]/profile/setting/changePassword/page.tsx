@@ -22,7 +22,7 @@ const ChangePasswordPage: React.FC = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const localActive = useLocale();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Ensure hooks are called consistently
       useEffect(() => {

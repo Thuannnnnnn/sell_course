@@ -89,6 +89,7 @@ export class UserService {
       user.role,
     );
   }
+
   async updateUserById(
     email: string,
     updateData: Partial<UserDto>,
@@ -105,13 +106,12 @@ export class UserService {
       try {
         const avatarUrl = await azureUpload(file); // Upload file lên Azure Blob
         updateData.avartaImg = avatarUrl;
-      } catch (error) {
+      } catch {
         throw new Error('Failed to upload avatar to Azure Blob Storage.');
       }
     }
     console.log('Update data:', file, updateData);
 
-    // Cập nhật thông tin user
     Object.assign(user, updateData);
     await this.userRepository.save(user);
 

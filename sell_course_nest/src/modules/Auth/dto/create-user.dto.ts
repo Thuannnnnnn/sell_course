@@ -21,6 +21,10 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
+  avartaImg?: string;
+
+  @IsOptional()
+  @IsString()
   gender?: string;
 
   @IsOptional()

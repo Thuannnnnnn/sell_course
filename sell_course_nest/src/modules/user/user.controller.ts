@@ -37,16 +37,15 @@ export class UserController {
   }
 
   // Define a new route to update user profile
-  @UseGuards(AuthGuard('jwt')) // Sử dụng JWT Guard để xác thực người dùng
+  @UseGuards(AuthGuard('jwt'))
   @Put('/user')
-  @UseInterceptors(FileInterceptor('avatar')) // Xử lý upload file cho avatar
+  @UseInterceptors(FileInterceptor('avatar'))
   async updateUser(
     @Req() req: any,
-    @Body() updateData: Partial<UserDto>, // Dữ liệu cập nhật
-    @UploadedFile() avatarFile?: Express.Multer.File, // File avatar (nếu có)
+    @Body() updateData: Partial<UserDto>,
+    @UploadedFile() avatarFile?: Express.Multer.File,
   ): Promise<UserDto | null> {
-    // Kiểm tra thông tin người dùng đã được xác thực
-    console.log('Authenticated User:', req.user); // In thông tin người dùng ra để kiểm tra
+    console.log('Authenticated User:', req.user);
     const { email, username } = req.user;
 
     if (!email || !username) {
@@ -55,16 +54,13 @@ export class UserController {
       );
     }
 
-    // In dữ liệu yêu cầu cập nhật để kiểm tra
     console.log('Received update request:', { email, updateData, avatarFile });
 
-    // Kiểm tra nếu không có dữ liệu để cập nhật
     if (!Object.keys(updateData).length && !avatarFile) {
       throw new BadRequestException('No data provided for update.');
     }
 
     try {
-      // Cập nhật thông tin người dùng trong cơ sở dữ liệu
       const updatedUser = await this.userService.updateUserById(
         email,
         updateData,
@@ -77,7 +73,6 @@ export class UserController {
         );
       }
 
-      // Trả về thông tin người dùng sau khi cập nhật
       return updatedUser;
     } catch (error) {
       console.error('Error updating user profile:', error);
@@ -94,12 +89,10 @@ export class UserController {
     @Body() changePasswordDto: ChangePasswordDto,
     @Req() req,
   ) {
-    // Log user data to verify it's being passed correctly
     console.log('Received changePassword request:', {
       username: req.user.username,
       email: req.user.email,
     });
-    // Ensure the user is authenticated and has a username
     if (!req.user || !req.user.username || !req.user.email) {
       throw new UnauthorizedException('User not authenticated');
     }
@@ -107,7 +100,6 @@ export class UserController {
     const email = req.user.email;
     console.log('Found email:', email);
 
-    // Delegate to the service method
     return this.userService.changePassword(
       email,
       changePasswordDto.currentPassword,
