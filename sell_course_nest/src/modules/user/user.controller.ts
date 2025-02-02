@@ -1,36 +1,58 @@
 import {
-  Body,
   Controller,
   Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
   Put,
   Req,
-  Request,
   UnauthorizedException,
-  UseGuards,
+  HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ChangePasswordDto } from './dto/changePassword.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
-
 @Controller('api')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  @Get('/users')
-  async getAll() {
-    return this.userService.getAllUser();
+  @Get('/admin/user/view_user')
+  async getAllUsers() {
+    return this.userService.findAll();
+  }
+
+  @Get(':id')
+  async getUserById(@Param('id') userId: string) {
+    return this.userService.findById(userId);
+  }
+
+  @Post('/admin/users/assign_permissions/:id')
+  async addPermissionsToUser(
+    @Param('id') userId: string,
+    @Body() body: { permissionIds: number[] },
+  ) {
+    return this.userService.addPermissions(userId, body.permissionIds);
+  }
+  @Delete(':id/permissions/:permissionId')
+  async removePermissionFromUser(
+    @Param('id') userId: string,
+    @Param('permissionId') permissionId: number,
+  ) {
+    return this.userService.removePermission(userId, permissionId);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/user')
-  async get(@Request() req) {
+  async get(@Req() req) {
     const email = req.user.email;
     return this.userService.getUser(email);
   }
 
   // Change Password
   @UseGuards(AuthGuard('jwt'))
-  @Put('/user/change-password')
+  @Put('/users/user/change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @Req() req,
@@ -47,13 +69,34 @@ export class UserController {
     );
   }
   @UseGuards(AuthGuard('jwt'))
-  @Put('/user/profile')
+  @Put('/users/user/profile')
   async updateProfile(
     @Req() req: any,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    console.log(req.user);
     const email = req.user.email;
     return this.userService.updateProfile(email, updateProfileDto);
+  }
+
+  @Delete('/admin/users/remove_permission/:userId/:permissionId')
+  async removePermission(
+    @Param('userId') userId: string,
+    @Param('permissionId') permissionId: number,
+  ) {
+    try {
+      const updatedUser = await this.userService.removePermission(
+        userId,
+        permissionId,
+      );
+      return {
+        message: 'Permission removed successfully',
+        user: updatedUser,
+      };
+    } catch {
+      throw new HttpException(
+        'Failed to remove permission',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

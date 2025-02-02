@@ -14,6 +14,7 @@ import { MailService } from '../../utilities/mail.service';
 import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { JwtService } from '@nestjs/jwt';
+import { azureUpload } from 'src/utilities/azure.service';
 @Injectable()
 export class authService {
   constructor(
@@ -113,32 +114,27 @@ export class authService {
     throw new HttpException(userResponse, HttpStatus.CREATED);
   }
   async login(loginRequest: LoginRequestDto): Promise<LoginResponseDto> {
-    console.log('Login request: ', loginRequest);
-
     const user = await this.userRepository.findOne({
       where: { email: loginRequest.email },
     });
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.UNAUTHORIZED);
     }
-    console.log('Login user: ', user);
-
     const passwordMatch = await bcrypt.compare(
       loginRequest.password,
       user.password,
     );
     if (!passwordMatch) {
-      console.log(passwordMatch);
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
 
     const payload = {
+      user_id: user.user_id,
       email: user.email,
       username: user.username,
       role: user.role,
     };
     const token = this.jwtService.sign(payload);
-    console.log('Login token: ', token);
 
     const loginResponse: LoginResponseDto = {
       token,
@@ -176,5 +172,8 @@ export class authService {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
     return user;
+  }
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    return await azureUpload(file);
   }
 }

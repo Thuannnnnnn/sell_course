@@ -1,109 +1,153 @@
 {
-    "AboutPage":{
-      "title": "About Page"
+  "AboutPage": {
+    "title": "About Page"
+  },
+  "Header": {
+    "title": "RedFlag GoldenStar",
+    "home": "Home",
+    "cart": "Cart",
+    "course": "Course",
+    "forum": "Forum",
+    "login": "Sign In",
+    "logout": "log out",
+    "signup": "Sign Up"
+  },
+  "sidebar": {
+    "home": "Home"
+  },
+  "footer": {
+    "headingF8": "RedFlag GoldenStar",
+    "description": "RedFlag GoldenStar",
+    "phone": "Phone: 08 1919 8989",
+    "email": "Email: contact@fullstack.edu.vn",
+    "address": "Address: FPT University CanTho, 123 Nguyen Van Cu, CanTho",
+    "about": "Company",
+    "aboutList": {
+      "0": "aubout us",
+      "1": "Contact us",
+      "2": "Terms",
+      "3": "Privacy"
     },
-    "Header": {
-      "title": "RedFlag GoldenStar",
-      "home":"Home",
-      "cart": "Cart",
-      "course": "Course",
-      "forum": "Forum",
-      "login":"Sign In",
-      "logout":"log out",
-      "signup": "Sign Up"
+    "products": "Support",
+    "productList": {
+      "0": "Question",
+      "1": "Feedback CV",
+      "2": "System Status Page",
+      "3": "Knowledgebase",
+      "4": "Report Abuse",
+      "5": "Live Chat Online"
     },
-    "sidebar":{
-      "home": "Home"
+    "tools": "Tools",
+    "toolsList": {
+      "0": "Create a CV",
+      "1": "Link Shortener",
+      "2": "Clip-path Maker",
+      "3": "Snippet Generator",
+      "4": "CSS Grid Generator",
+      "5": "Face Touch Alert"
     },
-      "footer": {
-        "headingF8": "RedFlag GoldenStar",
-        "description": "RedFlag GoldenStar",
-        "phone": "Phone: 08 1919 8989",
-        "email": "Email: contact@fullstack.edu.vn",
-        "address": "Address: FPT University CanTho, 123 Nguyen Van Cu, CanTho",
-        "about": "Company",
-        "aboutList": {
-          "0": "aubout us",
-          "1": "Contact us",
-          "2": "Terms",
-          "3": "Privacy"
-        },
-        "products": "Support",
-        "productList": {
-          "0": "Question",
-          "1": "Feedback CV",
-          "2": "System Status Page",
-          "3": "Knowledgebase",
-          "4": "Report Abuse",
-          "5": "Live Chat Online"
-        },
-        "tools": "Tools",
-        "toolsList": {
-          "0": "Create a CV",
-          "1": "Link Shortener",
-          "2": "Clip-path Maker",
-          "3": "Snippet Generator",
-          "4": "CSS Grid Generator",
-          "5": "Face Touch Alert"
-        },
-        "companyName": "TECHNOLOGY EDUCATION JOINT STOCK COMPANY ",
-        "taxCode": "Tax code: 010232101123",
-        "foundingDate": "Established: 05/01/2025",
-        "activityField": "Field of activity: Education, technology - programming. We focus on building and developing products that bring value to the Vietnamese programming community.",
-        "copyright": ". Leading programming learning platform in Vietnam."
-      },
-      "detail" : {
-        "title": "detail"
-      },
-      "banner": {
-        "bannerTitle": "The Best Learning Website: Find All the Knowledge You Need",
-        "bannerDecription": "Discover new knowledge, practice skills, and achieve your goals with an intelligent learning path",
-        "bannerButtom": "Learning Now"
-      },
-      "homePage": {
-        "homePageTitle": "Course Learning",
-        "homePageContent": "Welcome to the course network! Check all the learning paths, learn at your pace, and grow your skills. We are thrilled to accompany you on your path to meaningful knowledge.",
-        "title": "Home Page"
-      },
-      "cardCourse": {
-        "0": " Basic  (theory and syntax)",
-        "1": "Advanced (structure, logic, OOP)",
-        "2": "Project ( certificate )",
-        "3": "Staring at",
-        "4": "Get started"
-      },
-      "loginPage": {
-        "title": "Login",
-        "wellcome": "Hi, Welcome back!",
-        "email": "Email Address",
-        "DontHaveAccount": "Don't have an account?",
-        "Register": " Register Now",
-        "placeholderEmail": "Enter your Email Address",
-        "password": "Password",
-        "placeholderPassword": "Enter your Password",
-        "login": "Sign In",
-        "forgot": "Forgot password",
-        "signup": "Sign Up",
-        "google": "Google"
-      },
-      "signUpBanner": {
-        "title":"Student Registation",
-        "title-1": "Hello",
-        "title-2": "login"
-      },
-      "signUpForm": {
-        "placeholderEmail":"Enter your Email",
-        "policy": "By signing up, I agree with the website of Terms and Conditions",
-        "button": "Register"
-      },
-      "dashBoard": {
-        "dashboard": "Dashboard",
-        "user": "Users",
-        "quizz": "Quizz",
-        "course": "Courses",
-        "report": "Reports",
-        "payment": "Payment",
-        "setting": "Settings",
-        "signout": "Log Out"
-      }
-    }
+    "companyName": "TECHNOLOGY EDUCATION JOINT STOCK COMPANY ",
+    "taxCode": "Tax code: 010232101123",
+    "foundingDate": "Established: 05/01/2025",
+    "activityField": "Field of activity: Education, technology - programming. We focus on building and developing products that bring value to the Vietnamese programming community.",
+    "copyright": ". Leading programming learning platform in Vietnam."
+  },
+  "detail": {
+    "title": "detail"
+  },
+  "banner": {
+    "bannerTitle": "The Best Learning Website: Find All the Knowledge You Need",
+    "bannerDecription": "Discover new knowledge, practice skills, and achieve your goals with an intelligent learning path",
+    "bannerButtom": "Learning Now"
+  },
+  "homePage": {
+    "homePageTitle": "Course Learning",
+    "homePageContent": "Welcome to the course network! Check all the learning paths, learn at your pace, and grow your skills. We are thrilled to accompany you on your path to meaningful knowledge.",
+    "title": "Home Page"
+  },
+  "cardCourse": {
+    "0": " Basic  (theory and syntax)",
+    "1": "Advanced (structure, logic, OOP)",
+    "2": "Project ( certificate )",
+    "3": "Staring at",
+    "4": "Get started"
+  },
+  "loginPage": {
+    "title": "Login",
+    "wellcome": "Hi, Welcome back!",
+    "email": "Email Address",
+    "DontHaveAccount": "Don't have an account?",
+    "Register": " Register Now",
+    "placeholderEmail": "Enter your Email Address",
+    "password": "Password",
+    "placeholderPassword": "Enter your Password",
+    "login": "Sign In",
+    "forgot": "Forgot password",
+    "signup": "Sign Up",
+    "google": "Google"
+  },
+  "signUpBanner": {
+    "title": "Student Registation",
+    "title-1": "Hello",
+    "title-2": "login"
+  },
+  "signUpForm": {
+    "placeholderEmail": "Enter your Email",
+    "policy": "By signing up, I agree with the website of Terms and Conditions",
+    "button": "Register"
+  },
+  "dashBoard": {
+    "dashboard": "Dashboard",
+    "user": "Users",
+    "quizz": "Quizz",
+    "course": "Courses",
+    "report": "Reports",
+    "payment": "Payment",
+    "setting": "Settings",
+    "signout": "Log Out",
+    "category": "Category",
+    "permission": "Permission"
+  },
+  "permission": {
+    "title": "Permission",
+    "name": "Name",
+    "code": "Code",
+    "description": "Description",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editPermission": "Edit Permission",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirmDelete": "Confirm Deletion",
+    "confirmDeleteMessage": "Are you sure you want to delete the permission: {{permissionName}}?",
+    "confirm": "Confirm",
+    "none": "None",
+    "parent": "Parent",
+    "deleteConfirmation": "Are you sure for delete this permission",
+    "addPermission": "Add Permission",
+    "permissionAddedSuccess": "Permission has been successfully added.",
+    "permissionAddedError": "Error occurred while adding permission.",
+    "permissionUpdatedSuccess": "Permission has been successfully updated.",
+    "permissionUpdatedError": "Error occurred while updating permission.",
+    "permissionDeletedSuccess": "Permission has been successfully deleted.",
+    "permissionDeletedError": "Error occurred while deleting permission.",
+    "assignPermissions": "Assign Permissions",
+    "assignPermissionsSuccess": "Permissions assigned successfully!",
+    "assignPermissionsFail": "Failed to assign permissions"
+  },
+  "user": {
+    "title": "User List",
+    "email": "Email",
+    "username": "Username",
+    "role": "Role,",
+    "permissions": "Permission",
+    "action": "Action",
+    "noPermisssion": "No Permission",
+    "addBtn": "Add Permission",
+    "remove": "Remove",
+    "removing": "Removing..."
+  }
+}
