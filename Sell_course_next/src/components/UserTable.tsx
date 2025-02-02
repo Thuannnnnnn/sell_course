@@ -3,7 +3,8 @@ import { User } from '@/app/type/user/User';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import PermissionModal from '@/components/Permission/PermissionModal';
-import { removePermission } from '@/app/api/user/User'; // Import hàm removePermission
+import { removePermission } from '@/app/api/user/User';
+import { useTranslations } from 'next-intl';
 
 interface UserTableProps {
     users: User[];
@@ -15,7 +16,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUsers }) => {
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
-
+    const t = useTranslations('user');
     const handleOpenModal = (userId: string) => {
         setSelectedUserId(userId);
         setShowModal(true);
@@ -27,9 +28,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUsers }) => {
         setLoading(true);
 
         try {
-            await removePermission(session.user.token, userId, permissionId); // Gọi API removePermission
-
-            // Cập nhật UI sau khi xóa thành công
+            await removePermission(session.user.token, userId, permissionId);
             const updatedUsers = users.map(user =>
                 user.user_id === userId
                     ? { ...user, permissions: user.permissions.filter(p => p.id !== permissionId) }
@@ -49,11 +48,11 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUsers }) => {
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>Email</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Permissions</th>
-                        <th>Action</th>
+                        <th>{t('email')}</th>
+                        <th>{t('username')}</th>
+                        <th>{t('role')}</th>
+                        <th>{t('permissions')}</th>
+                        <th>{t('action')}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,7 +65,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUsers }) => {
                                 {user.permissions.length > 0 ? (
                                     <ul>
                                         {user.permissions.map((p) => (
-                                            <li key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <li key={p.id} className={'li-table-user'}>
                                                 {p.name}
                                                 <Button
                                                     variant="danger"
@@ -74,13 +73,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUsers }) => {
                                                     disabled={loading}
                                                     onClick={() => handleRemovePermission(user.user_id, p.id)}
                                                 >
-                                                    {loading ? 'Removing...' : 'Remove'}
+                                                    {loading ? t('removing') : t('remove')}
                                                 </Button>
                                             </li>
                                         ))}
                                     </ul>
                                 ) : (
-                                    <span>No permissions</span>
+                                    <span>{t('noPermisssion')}</span>
                                 )}
                             </td>
                             <td>
@@ -88,7 +87,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUsers }) => {
                                     variant="primary"
                                     onClick={() => handleOpenModal(user.user_id)}
                                 >
-                                    Add Permission
+                                    {t('addBtn')}
                                 </Button>
                             </td>
                         </tr>

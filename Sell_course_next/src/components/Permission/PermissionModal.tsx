@@ -4,6 +4,8 @@ import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { fetchPermissions } from '@/app/api/permission/Permission';
 import { AssignPermission } from '@/app/api/user/User';
 import { NotificationManager } from 'react-notifications';
+import '../../style/PermissionModal.css';
+import { useTranslations } from 'next-intl';
 
 interface Permission {
     id: number;
@@ -26,24 +28,24 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ show, handleClose, us
     const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
     const [expandedPermissions, setExpandedPermissions] = useState<Set<number>>(new Set());
     const [loading, setLoading] = useState(false);
+    const t = useTranslations('permission'); // Hook for translations
 
     useEffect(() => {
+        const loadPermissions = async () => {
+            try {
+                setLoading(true);
+                const data = await fetchPermissions(token);
+                setPermissions(data);
+            } catch (error) {
+                console.error('Error fetching permissions:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
         if (show) {
             loadPermissions();
         }
-    }, [show]);
-
-    const loadPermissions = async () => {
-        try {
-            setLoading(true);
-            const data = await fetchPermissions(token);
-            setPermissions(data);
-        } catch (error) {
-            console.error('Error fetching permissions:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [show, token]);
 
     const togglePermissionSelection = (id: number) => {
         setSelectedPermissions((prev) =>
@@ -66,23 +68,23 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ show, handleClose, us
     const handleAssignPermissions = async () => {
         try {
             await AssignPermission(token, userId, selectedPermissions);
-            NotificationManager.success('Permissions assigned successfully!');
+            NotificationManager.success(t('assignPermissionsSuccess')); // Use translation for success message
             handleClose();
         } catch (error) {
             console.error('Error assigning permissions:', error);
-            NotificationManager.error('Failed to assign permissions');
+            NotificationManager.error(t('assignPermissionsFail')); // Use translation for error message
         }
     };
 
     const renderPermissions = (permissions: Permission[], level = 0) => (
         permissions.map((perm) => (
-            <div key={perm.id} style={{ marginLeft: level * 20, display: 'flex', alignItems: 'center' }}>
+            <div key={perm.id} className={`permission-container level-${level}`}>
                 {perm.children.length > 0 && (
                     <Button
                         variant="link"
                         size="sm"
                         onClick={() => toggleExpandPermission(perm.id)}
-                        style={{ textDecoration: 'none' }}
+                        className="expand-button"
                     >
                         {expandedPermissions.has(perm.id) ? '[-]' : '[+]'}
                     </Button>
@@ -92,9 +94,10 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ show, handleClose, us
                     label={perm.name}
                     checked={selectedPermissions.includes(perm.id)}
                     onChange={() => togglePermissionSelection(perm.id)}
+                    className="permission-checkbox"
                 />
                 {expandedPermissions.has(perm.id) && perm.children.length > 0 && (
-                    <div style={{ marginLeft: 20 }}>
+                    <div className="permission-indent">
                         {renderPermissions(perm.children, level + 1)}
                     </div>
                 )}
@@ -105,11 +108,11 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ show, handleClose, us
     return (
         <Modal show={show} onHide={handleClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Assign Permissions</Modal.Title>
+                <Modal.Title>{t('assignPermissions')}</Modal.Title> {/* Use translation */}
             </Modal.Header>
             <Modal.Body>
                 {loading ? (
-                    <div className="text-center">
+                    <div className="spinner-container">
                         <Spinner animation="border" />
                     </div>
                 ) : (
@@ -119,9 +122,9 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ show, handleClose, us
                 )}
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>Cancel</Button>
-                <Button variant="primary" onClick={handleAssignPermissions} disabled={loading}>
-                    Assign Permissions
+                <Button variant="secondary" onClick={handleClose}>{t('cancel')}</Button> {/* Use translation */}
+                <Button variant="primary" onClick={handleAssignPermissions} disabled={loading} className="modal-footer-button">
+                    {t('assignPermissions')} {/* Use translation */}
                 </Button>
             </Modal.Footer>
         </Modal>

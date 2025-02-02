@@ -133,6 +133,21 @@
     "permissionUpdatedSuccess": "Permission has been successfully updated.",
     "permissionUpdatedError": "Error occurred while updating permission.",
     "permissionDeletedSuccess": "Permission has been successfully deleted.",
-    "permissionDeletedError": "Error occurred while deleting permission."
+    "permissionDeletedError": "Error occurred while deleting permission.",
+    "assignPermissions": "Assign Permissions",
+    "assignPermissionsSuccess": "Permissions assigned successfully!",
+    "assignPermissionsFail": "Failed to assign permissions"
+  },
+  "user": {
+    "title": "User List",
+    "email": "Email",
+    "username": "Username",
+    "role": "Role,",
+    "permissions": "Permission",
+    "action": "Action",
+    "noPermisssion": "No Permission",
+    "addBtn": "Add Permission",
+    "remove": "Remove",
+    "removing": "Removing..."
   }
 }

@@ -17,7 +17,6 @@ import { Permission } from './entities/permission.entity';
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
   @Post('add_permission')
-  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Create a new permission' })
   @ApiResponse({
     status: 201,
@@ -38,7 +37,6 @@ export class PermissionController {
     );
   }
   @Get('view_permission')
-  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get all permissions' })
   @ApiResponse({
     status: 200,
@@ -50,7 +48,6 @@ export class PermissionController {
   }
 
   @Get('view_permission_id/:id')
-  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get a permission by ID' })
   @ApiResponse({
     status: 200,
@@ -62,7 +59,6 @@ export class PermissionController {
   }
 
   @Put('update_permission/:id')
-  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Update a permission' })
   @ApiResponse({
     status: 200,

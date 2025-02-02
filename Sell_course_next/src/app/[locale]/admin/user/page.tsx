@@ -7,12 +7,13 @@ import { User } from '@/app/type/user/User';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/SideBar';
 import '@/style/User.css';
+import { useTranslations } from 'next-intl';
 
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
-
+  const t = useTranslations('user');
   useEffect(() => {
     const getUsers = async () => {
       const token = session?.user.token;
@@ -34,7 +35,7 @@ const UsersPage = () => {
         <Sidebar />
       </div>
       <div className="content-container">
-        <h3 className="page-title">User List</h3>
+        <h3 className="page-title">{t('title')}</h3>
         {loading ? (
           <Spinner animation="border" />
         ) : (

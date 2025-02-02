@@ -155,6 +155,21 @@
     "permissionUpdatedSuccess": "Quyền đã được cập nhật thành công.",
     "permissionUpdatedError": "Đã xảy ra lỗi khi cập nhật quyền.",
     "permissionDeletedSuccess": "Quyền đã được xóa thành công.",
-    "permissionDeletedError": "Đã xảy ra lỗi khi xóa quyền."
+    "permissionDeletedError": "Đã xảy ra lỗi khi xóa quyền.",
+    "assignPermissions": "Gán Quyền",
+    "assignPermissionsSuccess": "Gán quyền thành công!",
+    "assignPermissionsFail": "Gán quyền thất bại"
+  },
+  "user": {
+    "title": "Danh Sách Người Dùng",
+    "email": "Email",
+    "username": "Tên",
+    "role": "Vai Trò,",
+    "permissions": "Quyền",
+    "action": "Hành động",
+    "noPermisssion": "Không có quyền",
+    "addBtn": "Thêm quyền",
+    "remove": "Xóa",
+    "removing": "Đang xóa..."
   }
 }
