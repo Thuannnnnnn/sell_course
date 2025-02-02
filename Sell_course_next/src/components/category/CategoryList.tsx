@@ -1,7 +1,7 @@
 import React from "react";
 import "../../style/Category.css";
 import { Category } from "@/app/type/category/Category";
-import { deleteCategory } from "@/app/api/category/CategoryAPT";
+import { deleteCategory } from "@/app/api/category/CategoryAPI";
 import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
 interface CategoryListProps {

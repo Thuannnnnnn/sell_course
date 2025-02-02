@@ -3,7 +3,7 @@ import Sidebar from "@/components/SideBar";
 import type { Category } from "@/app/type/category/Category";
 import { useEffect, useState } from "react";
 import { fetchCategories } from "@/app/api/category/CategoryAPI";
-import CategoryList from "@/components/category/CategoryList";
+import CourseList from "@/components/course/courseListAdmin";
 import "../../../../style/Category.css";
 import { useTranslations } from "next-intl";
 
@@ -41,7 +41,7 @@ export default function Category() {
         </div>
         <div className="layout-right">
           <h3>{t("category")}</h3>
-          <CategoryList categories={categories} setCategories={setCategories} />
+          <CourseList courses={} setCouse={} />
         </div>
       </div>
     </>
