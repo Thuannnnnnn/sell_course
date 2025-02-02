@@ -15,14 +15,14 @@ const WithRoleProtection: React.FC<WithRoleProtectionProps> = ({
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "loading") return; // Đợi loading session
+    if (status === "loading") return;
     if (!session || session.user?.role !== allowedRole) {
       router.push("/auth/login");
     }
   }, [status, session, router, allowedRole]);
 
   if (status === "loading" || !session || session.user?.role !== allowedRole) {
-    return <div>Loading...</div>; // Hoặc một thông báo nào đó nếu chưa đủ quyền
+    return <div>Loading...</div>;
   }
 
   return <>{children}</>;
