@@ -171,5 +171,12 @@
     "addBtn": "Thêm quyền",
     "remove": "Xóa",
     "removing": "Đang xóa..."
+  },
+  "categoies": {
+    "category": "Thể loại",
+    "name": "Tên",
+    "description": "Mô tả",
+    "parentCategory": "Nhánh cha",
+    "actions": "Tính năng"
   }
 }

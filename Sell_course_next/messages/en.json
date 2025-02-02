@@ -149,5 +149,12 @@
     "addBtn": "Add Permission",
     "remove": "Remove",
     "removing": "Removing..."
+  },
+  "categoies": {
+    "category": "Category",
+    "name": "Name",
+    "description": "Description",
+    "parentCategory": "Parent Category",
+    "actions": "Actions"
   }
 }

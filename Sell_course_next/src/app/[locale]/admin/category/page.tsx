@@ -1,17 +1,17 @@
 "use client";
-
 import Sidebar from "@/components/SideBar";
 import type { Category } from "@/app/type/category/Category";
 import { useEffect, useState } from "react";
 import { fetchCategories } from "@/app/api/category/CategoryAPT";
 import CategoryList from "@/components/category/CourseList";
 import "../../../../style/Category.css";
+import { useTranslations } from "next-intl";
 
 export default function Category() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const t = useTranslations('categoies')
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -39,8 +39,8 @@ export default function Category() {
             <Sidebar />
           </div>
         </div>
-        <div style={{ width: "75%" }}>
-          <h3 style={{ paddingLeft: "15px" }}>Category</h3>
+        <div className="layout-right">
+          <h3>{t("category")}</h3>
           <CategoryList categories={categories} setCategories={setCategories} />
         </div>
       </div>
