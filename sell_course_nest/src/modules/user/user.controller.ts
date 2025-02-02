@@ -44,11 +44,11 @@ export class UserController {
     return this.userService.removePermission(userId, permissionId);
   }
 
-  // @UseGuards(AuthGuard('jwt'))
-  // async get(@Req() req) {
-  //   const email = req.user.email;
-  //   return this.userService.getUser(email);
-  // }
+  @UseGuards(AuthGuard('jwt'))
+  async get(@Req() req) {
+    const email = req.user.email;
+    return this.userService.getUser(email);
+  }
 
   // Change Password
   @UseGuards(AuthGuard('jwt'))
@@ -74,7 +74,6 @@ export class UserController {
     @Req() req: any,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    console.log(req.user);
     const email = req.user.email;
     return this.userService.updateProfile(email, updateProfileDto);
   }

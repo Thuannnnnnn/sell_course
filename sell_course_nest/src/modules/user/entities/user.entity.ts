@@ -8,7 +8,7 @@ import {
   JoinTable,
   BeforeInsert,
 } from 'typeorm';
-import { Permission } from '../../permission/entities/permission.entity'; // Đảm bảo đường dẫn đúng
+import { Permission } from '../../permission/entities/permission.entity';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity('users')
@@ -39,12 +39,11 @@ export class User {
 
   @ManyToMany(() => Permission, { cascade: true })
   @JoinTable({
-    name: 'user_permissions', // Bảng trung gian lưu trữ quyền của người dùng
+    name: 'user_permissions',
     joinColumn: { name: 'user_id', referencedColumnName: 'user_id' },
     inverseJoinColumn: { name: 'permission_id', referencedColumnName: 'id' },
   })
-  permissions: Permission[]; // Danh sách quyền của người dùng
-
+  permissions: Permission[];
   @Column()
   role: string;
 

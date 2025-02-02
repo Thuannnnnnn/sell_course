@@ -10,8 +10,6 @@ export class PermissionService {
     @InjectRepository(Permission)
     private permissionRepository: TreeRepository<Permission>,
   ) {}
-
-  // 1. Create Permission
   async createPermission(
     name: string,
     code: string,
@@ -21,17 +19,15 @@ export class PermissionService {
     const parentPermission = parentId
       ? await this.permissionRepository.findOne({ where: { id: parentId } })
       : null;
-
     const permission = this.permissionRepository.create({
       name,
       code,
       description,
-      parent: parentPermission, // Thiết lập quyền cha nếu có
+      parent: parentPermission,
     });
 
     return await this.permissionRepository.save(permission);
   }
-
   async getAllPermissions(): Promise<Permission[]> {
     return this.permissionRepository.findTrees();
   }
@@ -77,7 +73,6 @@ export class PermissionService {
     await this.permissionRepository.query(`
       DELETE FROM permissions_closure WHERE id_descendant = ${permission.id} OR id_ancestor = ${permission.id}
     `);
-
     await this.permissionRepository.remove(permission);
   }
 }

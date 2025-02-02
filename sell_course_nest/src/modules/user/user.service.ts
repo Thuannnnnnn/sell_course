@@ -1,4 +1,3 @@
-// import { Injectable, NotFoundException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
@@ -8,7 +7,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-// import { ChangePasswordDto } from './dto/changePassword.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { Permission } from '../permission/entities/permission.entity';
@@ -22,34 +20,18 @@ export class UserService {
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
   ) {}
-  // async getAllUser(): Promise<UserDto[]> {
-  //   const users = await this.userRepository.find();
-  //   return users.map((user) => {
-  //     return new UserDto(
-  //       user.email,
-  //       user.username,
-  //       user.gender,
-  //       user.birthDay,
-  //       user.phoneNumber,
-  //       user.role,
-  //     );
-  //   });
-  // }
+  async getUser(email: string): Promise<UserDTO | null> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['permissions'],
+    });
 
-  // async getUser(email: string): Promise<UserDto | null> {
-  //   const user = await this.userRepository.findOne({ where: { email } });
-  //   if (!user) {
-  //     return null;
-  //   }
-  //   return new UserDto(
-  //     user.email,
-  //     user.username,
-  //     user.gender,
-  //     user.birthDay,
-  //     user.phoneNumber,
-  //     user.role,
-  //   );
-  // }
+    if (!user) {
+      return null;
+    }
+
+    return new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() });
+  }
 
   async changePassword(
     email: string,
@@ -132,13 +114,6 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-
-    console.log(`🔍 User found:`, user);
-    console.log(
-      `🔍 User permissions:`,
-      user.permissions.map((p) => p.id),
-    );
-
     const permissionIdNumber = Number(permissionId);
     const permissionIndex = user.permissions.findIndex(
       (p) => p.id === permissionIdNumber,
