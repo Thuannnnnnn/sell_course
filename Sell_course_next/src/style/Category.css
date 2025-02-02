@@ -25,7 +25,6 @@
 }
 
 [data-bs-theme="dark"] .course-table {
-  background-color: black;
   background: none;
   box-shadow: none;
   border-radius: 0;
