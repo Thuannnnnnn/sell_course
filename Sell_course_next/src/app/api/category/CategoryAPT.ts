@@ -47,8 +47,30 @@ export const addCategory = async (category: Category): Promise<Category> => {
       children: category.children || [],
     };
 
-    const response = await axios.post(`${API_BASE_URL}/createCategory`, payload);
-    return response.data; // Trả về dữ liệu danh mục từ API
+    const response = await axios.post(
+      `${API_BASE_URL}/createCategory`,
+      payload
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+export const updateCategory = async (category: Category): Promise<Category> => {
+  try {
+    const payload = {
+      name: category.name,
+      description: category.description,
+      parentId: category.parentId,
+      children: category.children || [],
+    };
+
+    const response = await axios.put(
+      `${API_BASE_URL}/updateCategory/${category.categoryId}`,
+      payload
+    );
+    return response.data;
   } catch (error: any) {
     throw new Error(error.message);
   }

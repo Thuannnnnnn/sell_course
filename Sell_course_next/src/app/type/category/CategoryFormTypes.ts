@@ -19,8 +19,7 @@ export interface CategoryFormProps {
   name: string;
   description: string;
   error: CategoryFormErrors;
-  onNameChange: (value: string) => void;
-  onDescriptionChange: (value: string) => void;
+  onChange: (field: "name" | "description", value: string) => void;
 }
 
 export interface SubCategoryFormProps {
@@ -50,4 +49,7 @@ export interface SubCategoryListProps {
 export interface FormButtonsProps {
   loading: boolean;
   onCancel: () => void;
+  submitText: string;
+  cancelText: string;
+  loadingText: string;
 }

@@ -4,6 +4,9 @@ import { FormButtonsProps } from "@/app/type/category/CategoryFormTypes";
 export const FormButtons: React.FC<FormButtonsProps> = ({
   loading,
   onCancel,
+  submitText,
+  cancelText,
+  loadingText,
 }) => {
   return (
     <div className="form-buttons">
@@ -22,7 +25,7 @@ export const FormButtons: React.FC<FormButtonsProps> = ({
             strokeLinecap="round"
           />
         </svg>
-        Hủy
+        {cancelText}
       </button>
       <button type="submit" disabled={loading} className="btn btn-submit">
         {loading ? (
@@ -42,7 +45,7 @@ export const FormButtons: React.FC<FormButtonsProps> = ({
                 strokeLinecap="round"
               />
             </svg>
-            Đang lưu...
+            {loadingText}
           </>
         ) : (
           <>
@@ -60,7 +63,7 @@ export const FormButtons: React.FC<FormButtonsProps> = ({
                 strokeLinecap="round"
               />
             </svg>
-            Lưu danh mục
+            {submitText}
           </>
         )}
       </button>

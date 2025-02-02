@@ -1,34 +1,35 @@
-import React from 'react';
-import { CategoryFormProps } from '@/app/type/category/CategoryFormTypes';
+import React from "react";
+import { CategoryFormProps } from "@/app/type/category/CategoryFormTypes";
+import { useTranslations } from "next-intl";
 
 export const CategoryForm: React.FC<CategoryFormProps> = ({
   name,
   description,
   error,
-  onNameChange,
-  onDescriptionChange,
+  onChange,
 }) => {
+  const t = useTranslations("categoies");
   return (
     <div className="form-section">
       <div className="form-group">
-        <label>Tên danh mục</label>
+        <label>{t("name")}</label>
         <input
           type="text"
           className="form-control"
           value={name}
-          onChange={(e) => onNameChange(e.target.value)}
-          placeholder="Nhập tên danh mục"
+          onChange={(e) => onChange("name", e.target.value)}
+          placeholder={t("placeHodelName")}
         />
         {error.name && <p className="error-text">{error.name}</p>}
       </div>
 
       <div className="form-group">
-        <label>Mô tả</label>
+        <label>{t("description")}</label>
         <textarea
           className="form-control"
           value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Nhập mô tả danh mục"
+          onChange={(e) => onChange("description", e.target.value)}
+          placeholder={t("placeHodelDescription")}
         />
         {error.description && <p className="error-text">{error.description}</p>}
       </div>

@@ -1,5 +1,6 @@
 import React from "react";
 import { SubCategoryFormProps } from "@/app/type/category/CategoryFormTypes";
+import { useTranslations } from "next-intl";
 
 export const SubCategoryForm: React.FC<SubCategoryFormProps> = ({
   index,
@@ -8,10 +9,13 @@ export const SubCategoryForm: React.FC<SubCategoryFormProps> = ({
   onUpdate,
   onRemove,
 }) => {
+  const t = useTranslations("categoies");
   return (
     <div className="sub-category-form">
       <div className="sub-category-header">
-        <h4 className="sub-category-title">Danh mục con #{index + 1}</h4>
+        <h4 className="sub-category-title">
+          {t("TitleCreateSubCategory")} #{index + 1}
+        </h4>
         <button
           type="button"
           onClick={() => onRemove(index)}
@@ -35,24 +39,24 @@ export const SubCategoryForm: React.FC<SubCategoryFormProps> = ({
       </div>
 
       <div className="form-group">
-        <label>Tên danh mục con</label>
+        <label>{t("name")}</label>
         <input
           type="text"
           className="form-control"
           value={data.name}
           onChange={(e) => onUpdate(index, "name", e.target.value)}
-          placeholder="Nhập tên danh mục con"
+          placeholder={t("placeHodelName")}
         />
         {error.name && <p className="error-text">{error.name}</p>}
       </div>
 
       <div className="form-group">
-        <label>Mô tả danh mục con</label>
+        <label>{t("description")}</label>
         <textarea
           className="form-control"
           value={data.description}
           onChange={(e) => onUpdate(index, "description", e.target.value)}
-          placeholder="Nhập mô tả danh mục con"
+          placeholder={t("placeHodelDescription")}
         />
         {error.description && <p className="error-text">{error.description}</p>}
       </div>

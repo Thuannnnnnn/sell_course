@@ -11,15 +11,22 @@ import {
   CategoryFormErrors,
   SubCategoryFormData,
 } from "@/app/type/category/CategoryFormTypes";
+import { useTranslations } from "next-intl";
 
 export default function AddCategoryPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [error, setError] = useState<CategoryFormErrors>({ name: "", description: "" });
+  const [error, setError] = useState<CategoryFormErrors>({
+    name: "",
+    description: "",
+  });
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategoryFormData[]>([]);
-  const [subCategoryErrors, setSubCategoryErrors] = useState<CategoryFormErrors[]>([]);
+  const [subCategoryErrors, setSubCategoryErrors] = useState<
+    CategoryFormErrors[]
+  >([]);
+  const t = useTranslations("categoies");
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -129,15 +136,17 @@ export default function AddCategoryPage() {
 
   return (
     <div className="add-category-container">
-      <h1 className="add-category-title">Thêm Danh Mục Mới</h1>
+      <h1 className="add-category-title">{t("createNewCategory")}</h1>
 
       <form onSubmit={handleSubmit}>
         <CategoryForm
           name={name}
           description={description}
           error={error}
-          onNameChange={setName}
-          onDescriptionChange={setDescription}
+          onChange={(field, value) => {
+            if (field === "name") setName(value);
+            if (field === "description") setDescription(value);
+          }}
         />
 
         <SubCategoryList
@@ -148,7 +157,13 @@ export default function AddCategoryPage() {
           onRemove={removeSubCategory}
         />
 
-        <FormButtons loading={loading} onCancel={() => window.history.back()} />
+        <FormButtons
+          loading={loading}
+          onCancel={() => window.history.back()}
+          submitText={t("categorySummit")}
+          cancelText={t("categoryCancel")}
+          loadingText={t("loading")}
+        />
       </form>
     </div>
   );
