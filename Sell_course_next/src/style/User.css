@@ -1,0 +1,55 @@
+.permission-name {
+  cursor: pointer;
+}
+
+.permission-name-level-0 {
+  padding-left: 0;
+}
+
+.permission-name-level-1 {
+  padding-left: 20px;
+}
+
+.permission-name-level-2 {
+  padding-left: 40px;
+}
+
+.permission-actions {
+  display: flex;
+}
+
+.permission-actions .btn {
+  margin-right: 10px;
+}
+
+.add-modal-button {
+  margin-bottom: 20px;
+}
+
+.modal-button {
+  margin: 5px;
+}
+
+.table th,
+.table td {
+  text-align: start;
+}
+.page-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.sidebar-container {
+  width: 25%;
+}
+
+.content-container {
+  width: 75%;
+  padding: 20px;
+  text-align: start;
+}
+
+.page-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}

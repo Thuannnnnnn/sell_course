@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+// app.module.ts
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
@@ -56,6 +57,11 @@ import { Notify } from './modules/notify/entities/notify.entity';
 import { UserNotify } from './modules/User_Notify/entities/User_Notify.entity';
 import { NotifyModule } from './modules/notify/notify.module';
 import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
+import { Permission } from './modules/permission/entities/permission.entity';
+import { PermissionModule } from './modules/permission/permission.module';
+import { PermissionMiddleware } from './modules/permission/permission.middleware';
+// import { APP_GUARD } from '@nestjs/core';
+// import { PermissionsGuard } from './modules/permission/permissions.guard';
 
 @Module({
   imports: [
@@ -96,9 +102,11 @@ import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
         Waitlist,
         Wishlist,
         Category,
+        Permission,
       ],
       synchronize: true,
     }),
+    TypeOrmModule.forFeature([User, Permission]),
     NotifyModule,
     UserNotifyModule,
     UserModule,
@@ -126,8 +134,13 @@ import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
     WaitlistModule,
     WishlistModule,
     CategoryModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(PermissionMiddleware).forRoutes('/api/admin/*');
+  }
+}
