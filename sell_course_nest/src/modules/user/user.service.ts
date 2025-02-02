@@ -12,7 +12,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { Permission } from '../permission/entities/permission.entity';
-import { UserDto } from './dto/userData.dto';
+import { UserDTO } from './dto/userData.dto';
 
 @Injectable()
 export class UserService {
@@ -22,34 +22,34 @@ export class UserService {
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
   ) {}
-  async getAllUser(): Promise<UserDto[]> {
-    const users = await this.userRepository.find();
-    return users.map((user) => {
-      return new UserDto(
-        user.email,
-        user.username,
-        user.gender,
-        user.birthDay,
-        user.phoneNumber,
-        user.role,
-      );
-    });
-  }
+  // async getAllUser(): Promise<UserDto[]> {
+  //   const users = await this.userRepository.find();
+  //   return users.map((user) => {
+  //     return new UserDto(
+  //       user.email,
+  //       user.username,
+  //       user.gender,
+  //       user.birthDay,
+  //       user.phoneNumber,
+  //       user.role,
+  //     );
+  //   });
+  // }
 
-  async getUser(email: string): Promise<UserDto | null> {
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      return null;
-    }
-    return new UserDto(
-      user.email,
-      user.username,
-      user.gender,
-      user.birthDay,
-      user.phoneNumber,
-      user.role,
-    );
-  }
+  // async getUser(email: string): Promise<UserDto | null> {
+  //   const user = await this.userRepository.findOne({ where: { email } });
+  //   if (!user) {
+  //     return null;
+  //   }
+  //   return new UserDto(
+  //     user.email,
+  //     user.username,
+  //     user.gender,
+  //     user.birthDay,
+  //     user.phoneNumber,
+  //     user.role,
+  //   );
+  // }
 
   async changePassword(
     email: string,
@@ -96,8 +96,14 @@ export class UserService {
     Object.assign(user, updateProfileDto);
     return this.userRepository.save(user);
   }
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: ['permissions'] });
+  async findAll(): Promise<UserDTO[]> {
+    const users = await this.userRepository.find({
+      relations: ['permissions'],
+    });
+    return users.map(
+      (user) =>
+        new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() }),
+    );
   }
 
   async findById(userId: string): Promise<User> {
@@ -117,12 +123,33 @@ export class UserService {
     user.permissions = [...user.permissions, ...permissions];
     return this.userRepository.save(user);
   }
-
   async removePermission(userId: string, permissionId: number): Promise<User> {
-    const user = await this.findById(userId);
-    user.permissions = user.permissions.filter(
-      (permission) => permission.id !== permissionId,
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId },
+      relations: ['permissions'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    console.log(`🔍 User found:`, user);
+    console.log(
+      `🔍 User permissions:`,
+      user.permissions.map((p) => p.id),
     );
-    return this.userRepository.save(user);
+
+    const permissionIdNumber = Number(permissionId);
+    const permissionIndex = user.permissions.findIndex(
+      (p) => p.id === permissionIdNumber,
+    );
+    if (permissionIndex === -1) {
+      throw new BadRequestException(
+        `Permission ID ${permissionId} not found in user's permissions`,
+      );
+    }
+    user.permissions.splice(permissionIndex, 1);
+    await this.userRepository.save(user);
+    return user;
   }
 }

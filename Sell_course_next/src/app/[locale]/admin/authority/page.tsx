@@ -1,20 +1,24 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import PermissionsTable from '@/components/PermissionTable';
+import PermissionsTable from '@/components/Permission/PermissionTable';
 import { fetchPermissions } from '@/app/api/permission/Permission';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/SideBar'; // Assuming you have Sidebar imported
 import '@/style/Permissions.css';
+import { useSession } from 'next-auth/react';
 
 const PermissionsPage = () => {
   const [permissions, setPermissions] = useState([]);
-  const [token] = useState('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYTVkYjUwNmYtMmU2OS00ZDBjLWJlMDgtOTk4Yzc0NTYxNmJlIiwiZW1haWwiOiJ0cmFucXVvY3RodWFuMjAwM0BnbWFpbC5jb20iLCJ1c2VybmFtZSI6InRodWFuIiwicm9sZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzM3ODc2NTA1LCJleHAiOjE3Mzc4ODM3MDV9.n6XZU9bSSroqq2-b_nR93W2Q7oC3eJszgXKmjw1c2I0'); // Replace with your token logic
   const t = useTranslations('permission');
+  const { data: session } = useSession();
 
-  // Fetch permissions on page load
   useEffect(() => {
     const getPermissions = async () => {
       try {
+        const token = session?.user.token;
+        if (!token) {
+          return;
+        }
         const data = await fetchPermissions(token);
         setPermissions(data);
       } catch (error) {
@@ -22,35 +26,45 @@ const PermissionsPage = () => {
       }
     };
 
-    if (token) {
+    if (session) {
       getPermissions();
     }
-  }, [token]);
+  }, [session]);
 
-  // Handlers for updating/deleting permissions
-  const onPermissionUpdated = () => {
-    fetchPermissions(token).then(data => setPermissions(data));
+  const onPermissionUpdated = async () => {
+    const token = session?.user.token;
+    if (token) {
+      const data = await fetchPermissions(token);
+      setPermissions(data);
+    }
   };
-  const onPermissionDeleted = () => {
-    fetchPermissions(token).then(data => setPermissions(data));
+
+  const onPermissionDeleted = async () => {
+    const token = session?.user.token;
+    if (token) {
+      const data = await fetchPermissions(token);
+      setPermissions(data);
+    }
   };
-  const onPermissionAdded = () => {
-    fetchPermissions(token).then(data => setPermissions(data));
+
+  const onPermissionAdded = async () => {
+    const token = session?.user.token;
+    if (token) {
+      const data = await fetchPermissions(token);
+      setPermissions(data);
+    }
   };
 
   return (
     <div className="page-container">
-      {/* Sidebar Section */}
       <div className="sidebar-container">
         <Sidebar />
       </div>
-
-      {/* Main Content Section */}
       <div className="content-container">
         <h3 className="page-title">{t('title')}</h3>
         <PermissionsTable
           permissions={permissions}
-          token={token}
+          token={session?.user.token || ''}
           onPermissionUpdated={onPermissionUpdated}
           onPermissionDeleted={onPermissionDeleted}
           onPermissionAdded={onPermissionAdded}
