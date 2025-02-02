@@ -23,7 +23,9 @@ export const fetchCategories = async (): Promise<Category[]> => {
 
 export const deleteCategory = async (categoryId: string): Promise<void> => {
   try {
-    await axios.delete<Category[]>(`${API_BASE_URL}/deleteCategory/` + categoryId);
+    await axios.delete<Category[]>(
+      `${API_BASE_URL}/deleteCategory/` + categoryId
+    );
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error(
@@ -34,5 +36,20 @@ export const deleteCategory = async (categoryId: string): Promise<void> => {
       console.error("Unexpected error fetching categories:", error);
     }
     throw error;
+  }
+};
+export const addCategory = async (category: Category): Promise<Category> => {
+  try {
+    const payload = {
+      name: category.name,
+      description: category.description,
+      parentId: category.parentId,
+      children: category.children || [],
+    };
+
+    const response = await axios.post(`${API_BASE_URL}/createCategory`, payload);
+    return response.data; // Trả về dữ liệu danh mục từ API
+  } catch (error: any) {
+    throw new Error(error.message);
   }
 };
