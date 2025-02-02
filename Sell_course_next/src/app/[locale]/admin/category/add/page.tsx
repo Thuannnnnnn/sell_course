@@ -4,22 +4,22 @@ import React, { useState, useEffect } from "react";
 import { addCategory, fetchCategories } from "@/app/api/category/CategoryAPT";
 import "@/style/Category.css";
 import { Category } from "@/app/type/category/Category";
-
-interface SubCategory {
-  name: string;
-  description: string;
-}
+import { CategoryForm } from "@/components/category/CategoryForm";
+import { SubCategoryList } from "@/components/category/SubCategoryList";
+import { FormButtons } from "@/components/FormButtons";
+import {
+  CategoryFormErrors,
+  SubCategoryFormData,
+} from "@/app/type/category/CategoryFormTypes";
 
 export default function AddCategoryPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [error, setError] = useState({ name: "", description: "" });
+  const [error, setError] = useState<CategoryFormErrors>({ name: "", description: "" });
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [subCategoryErrors, setSubCategoryErrors] = useState<
-    { name: string; description: string }[]
-  >([]);
+  const [subCategories, setSubCategories] = useState<SubCategoryFormData[]>([]);
+  const [subCategoryErrors, setSubCategoryErrors] = useState<CategoryFormErrors[]>([]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -38,7 +38,6 @@ export default function AddCategoryPage() {
     let newErrors = { name: "", description: "" };
     let newSubErrors = subCategories.map(() => ({ name: "", description: "" }));
 
-    // Validate main category
     if (name.trim().length < 3) {
       newErrors.name = "Tên danh mục phải có ít nhất 3 ký tự.";
       isValid = false;
@@ -48,7 +47,6 @@ export default function AddCategoryPage() {
       isValid = false;
     }
 
-    // Validate sub categories
     subCategories.forEach((subCat, index) => {
       if (subCat.name.trim().length < 3) {
         newSubErrors[index].name = "Tên danh mục phải có ít nhất 3 ký tự.";
@@ -77,7 +75,7 @@ export default function AddCategoryPage() {
 
   const updateSubCategory = (
     index: number,
-    field: keyof SubCategory,
+    field: keyof SubCategoryFormData,
     value: string
   ) => {
     const newSubCategories = [...subCategories];
@@ -134,190 +132,23 @@ export default function AddCategoryPage() {
       <h1 className="add-category-title">Thêm Danh Mục Mới</h1>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-section">
-          {/* Category Name */}
-          <div className="form-group">
-            <label>Tên danh mục</label>
-            <input
-              type="text"
-              className="form-control"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nhập tên danh mục"
-            />
-            {error.name && <p className="error-text">{error.name}</p>}
-          </div>
+        <CategoryForm
+          name={name}
+          description={description}
+          error={error}
+          onNameChange={setName}
+          onDescriptionChange={setDescription}
+        />
 
-          {/* Description */}
-          <div className="form-group">
-            <label>Mô tả</label>
-            <textarea
-              className="form-control"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Nhập mô tả danh mục"
-            />
-            {error.description && (
-              <p className="error-text">{error.description}</p>
-            )}
-          </div>
-        </div>
+        <SubCategoryList
+          subCategories={subCategories}
+          subCategoryErrors={subCategoryErrors}
+          onUpdate={updateSubCategory}
+          onAdd={addSubCategory}
+          onRemove={removeSubCategory}
+        />
 
-        {/* Sub Categories */}
-        <div className="sub-categories-section">
-          <div className="sub-categories-header">
-            <h3 className="sub-categories-title">Danh mục con</h3>
-            <button
-              type="button"
-              onClick={addSubCategory}
-              className="btn btn-add"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 4V16M4 10H16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Thêm danh mục con
-            </button>
-          </div>
-
-          {subCategories.map((subCat, index) => (
-            <div key={index} className="sub-category-form">
-              <div className="sub-category-header">
-                <h4 className="sub-category-title">
-                  Danh mục con #{index + 1}
-                </h4>
-                <button
-                  type="button"
-                  onClick={() => removeSubCategory(index)}
-                  className="btn btn-remove"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M4 4L12 12M4 12L12 4"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="form-group">
-                <label>Tên danh mục con</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={subCat.name}
-                  onChange={(e) =>
-                    updateSubCategory(index, "name", e.target.value)
-                  }
-                  placeholder="Nhập tên danh mục con"
-                />
-                {subCategoryErrors[index]?.name && (
-                  <p className="error-text">{subCategoryErrors[index].name}</p>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label>Mô tả danh mục con</label>
-                <textarea
-                  className="form-control"
-                  value={subCat.description}
-                  onChange={(e) =>
-                    updateSubCategory(index, "description", e.target.value)
-                  }
-                  placeholder="Nhập mô tả danh mục con"
-                />
-                {subCategoryErrors[index]?.description && (
-                  <p className="error-text">
-                    {subCategoryErrors[index].description}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Buttons */}
-        <div className="form-buttons">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="btn btn-cancel"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 4L4 10M4 10L10 16M4 10H16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            Hủy
-          </button>
-          <button type="submit" disabled={loading} className="btn btn-submit">
-            {loading ? (
-              <>
-                <svg
-                  className="animate-spin"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10 4C6.68629 4 4 6.68629 4 10C4 13.3137 6.68629 16 10 16"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M4 10L8 14L16 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                Lưu danh mục
-              </>
-            )}
-          </button>
-        </div>
+        <FormButtons loading={loading} onCancel={() => window.history.back()} />
       </form>
     </div>
   );
