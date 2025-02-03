@@ -54,6 +54,7 @@ export default function BannerUser({ user }: BannerUserProps) {
           src={user.avartaImg || defaultAvatar}
           alt="User Avatar"
           className="avatar-img"
+          layout="fixed"
           width={100}
           height={100}
         />

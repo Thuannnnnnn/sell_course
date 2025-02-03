@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
@@ -11,6 +10,8 @@ import Link from "next/link";
 import DashBoardUser from "@/components/DashBoardUser";
 import '../../../../../style/UserProfilePage.css'
 import { User } from "next-auth";
+import { changePassword } from "@/app/api/auth/User/route";
+
 
 const ChangePasswordPage: React.FC = () => {
   const t = useTranslations('changePassword')
@@ -24,30 +25,36 @@ const ChangePasswordPage: React.FC = () => {
   const localActive = useLocale();
   const [user, setUser] = useState<User | null>(null);
 
-  // Ensure hooks are called consistently
-      useEffect(() => {
-        if (status === "unauthenticated") {
-          router.push("/auth/login");
-        } else if (status === "authenticated" && session?.user) {
-          setUser(session.user as User);
-          console.log("Session User:", session.user); // Log session user
-        }
-      }, [session, status, router]);
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+    } else if (status === "authenticated" && session?.user) {
+      setUser(session.user as User);
+    }
+  }, [session, status, router]);
 
-      // Handle loading state
-      if (status === "loading") {
-        return <div>Loading...</div>;
-      }
-
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError("Please fill in all fields.");
+      setError(t('errorFillAllFields'));
+      return;
+    }
+
+    if (newPassword === currentPassword) {
+      setError(t('errorPasswordsMatch'));
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError(t('errorPasswordTooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("New password and confirmation do not match.");
+      setError(t('errorPasswordsDontMatch'));
       return;
     }
 
@@ -56,34 +63,21 @@ const ChangePasswordPage: React.FC = () => {
 
     try {
       const token = session?.user?.token;
-      console.log("Token ne" , token)
       if (!token) {
-        setError("Authentication token not found. Please log in again.");
+        setError(t('errorTokenNotFound'));
         setIsLoading(false);
         return;
       }
 
-      const payload = { currentPassword, newPassword, confirmPassword };
+      const data = await changePassword(token, currentPassword, newPassword, confirmPassword);
+      alert(data.message || t('passwordChangeSuccess'));
 
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/change-password`,
-        payload,
-        {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      alert(response.data.message || "Password changed successfully.");
       setCurrentPassword("");
       setNewPassword("");
-      setConfirmPassword("");  // Clear the fields after success
+      setConfirmPassword("");
       router.push(`/${localActive}/profile`);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to change password.");
+    } catch (err) {
+      setError(err as string);
     } finally {
       setIsLoading(false);
     }
@@ -92,24 +86,24 @@ const ChangePasswordPage: React.FC = () => {
   return (
     <>
       <div>
-            {user ? <BannerUser user={user} /> : <SignIn />}
+        {user ? <BannerUser user={user} /> : <SignIn />}
       </div>
-      <div>
-        <div>
-        <div className="content-profile">
+      <div className="content-profile">
         <div className="dashboard"><DashBoardUser /></div>
         <div className="form-profile">
           <div className="form-header">
             <h2>{t('title')}</h2>
             <div className="link">
-                <Link className="link-profile" href={`/${localActive}/profile/setting/updateMyProfile`}>
-                    <h6 >{t('title-profile')}</h6>
-                </Link>
-                <Link className="link-profile" href={`/${localActive}/profile/setting/changePassword`}>
-                  <h6 className="active">{t('title-password')}</h6>
-                </Link>
+              <Link className="link-profile" href={`/${localActive}/profile/setting/updateMyProfile`}>
+                <h6>{t('title-profile')}</h6>
+              </Link>
+              <Link className="link-profile" href={`/${localActive}/profile/setting/changePassword`}>
+                <h6 className="active">{t('title-password')}</h6>
+              </Link>
             </div>
-            <div className="change-password">
+
+          </div>
+          <div className="change-password">
               {error && <p className="error-message">{error}</p>}
               <form onSubmit={(e) => e.preventDefault()}>
                 <div className="input-container">
@@ -152,14 +146,10 @@ const ChangePasswordPage: React.FC = () => {
                 </button>
               </form>
             </div>
-          </div>
         </div>
       </div>
-    </div>
-  </div>
-  </>
+    </>
   );
 };
 
 export default ChangePasswordPage;
-

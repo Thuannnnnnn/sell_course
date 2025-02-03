@@ -4,10 +4,18 @@ import { useSession, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "react-bootstrap/Image";
 
+// Define the type for the user
+interface User {
+  name?: string;
+  email?: string;
+  avartaImg?: string;
+}
+
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [user, setUser] = useState(session?.user);
+
+  const [user, setUser] = useState<User | undefined>(session?.user);
 
   // Update the session in case of changes
   useEffect(() => {

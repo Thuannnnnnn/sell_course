@@ -113,6 +113,12 @@
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",
       "btnChange-1": "Change Password",
-      "btnChange-2": "Change..."
+      "btnChange-2": "Change...",
+      "errorPasswordsMatch": "New password cannot be the same as the current password.",
+      "errorPasswordsDontMatch": "New password and confirm password do not match.",
+      "passwordChangeSuccess": "Password changed successfully.",
+      "errorFillAllFields": "Please fill in all fields",
+      "errorTokenNotFound": "Token not found. Please try again.",
+      "errorPasswordTooShort": "Password must be at least 8 characters long."
     }
   }
