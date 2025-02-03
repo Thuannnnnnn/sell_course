@@ -18,6 +18,7 @@ const Header: React.FC = () => {
   const t = useTranslations("Header");
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);

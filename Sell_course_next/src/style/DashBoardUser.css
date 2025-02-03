@@ -6,17 +6,10 @@
     transition: width 0.3s ease;
   }
 
-  .sidebar-container.closed .sidebar  div:not(.icon-sidebar){
-    width: 60px;
-  }
 
   .active {
     background-color: #f0f0f0;
     color: #4caf50;
-  }
-
-  .sidebar-container.open .sidebar {
-    width: 250px;
   }
 
   .toggle-btn {
@@ -31,10 +24,11 @@
   }
 
   .sidebar {
-    margin: 20px;
-    height: 700px;
+    height: 500px;
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    margin-bottom: 50px;
   }
 
   .sidebar ul  {
@@ -48,6 +42,12 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
+
+  .link-text {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
 
   .sidebar ul li:hover {
     background-color: #f0f0f0; /* Hiệu ứng hover */
@@ -85,27 +85,3 @@
     display: none;
   }
 
-@media (max-width: 768px) {
-    .sidebar-container.closed .sidebar  div:not(.icon-sidebar) {
-      width: 60px;
-    }
-
-    .sidebar-container.open .sidebar {
-      width: 200px;
-    }
-
-    .sidebar ul {
-      display: block;
-    }
-
-    .sidebar li {
-      font-size: 14px;
-      padding: 10px;
-    }
-
-    .toggle-btn {
-      position: relative;
-      top: 10px;
-      left: 10px;
-    }
-  }

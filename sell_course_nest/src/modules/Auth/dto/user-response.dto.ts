@@ -11,6 +11,12 @@ export class UserResponseDto {
   username: string;
 
   @IsString()
+  phoneNumber: number;
+
+  @IsString()
+  avartaImg: string;
+
+  @IsString()
   gender: string;
 
   @IsString()

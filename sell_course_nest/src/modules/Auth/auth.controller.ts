@@ -3,8 +3,8 @@ import {
   Post,
   Body,
   UseGuards,
-  UseInterceptors,
   UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { authService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';

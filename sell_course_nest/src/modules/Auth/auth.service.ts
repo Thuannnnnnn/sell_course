@@ -41,7 +41,7 @@ export class authService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
+    const token = this.jwtService.sign({ email }, { expiresIn: '3d' });
     const emailVerify = this.emailVerifycationRepository.create({
       id: uuidv4(),
       email: email,
@@ -89,6 +89,7 @@ export class authService {
       user_id: uuidv4(),
       email: createUserDto.email,
       username: createUserDto.username,
+      avartaImg: createUserDto.avartaImg,
       password: hashedPassword,
       gender: createUserDto.gender,
       birthDay: createUserDto.birthDay,
@@ -105,6 +106,8 @@ export class authService {
       user_id: savedUser.user_id,
       email: savedUser.email,
       username: savedUser.username,
+      phoneNumber: savedUser.phoneNumber,
+      avartaImg: savedUser.avartaImg,
       gender: savedUser.gender,
       birthDay: savedUser.birthDay,
       role: savedUser.role,
@@ -114,31 +117,37 @@ export class authService {
     throw new HttpException(userResponse, HttpStatus.CREATED);
   }
   async login(loginRequest: LoginRequestDto): Promise<LoginResponseDto> {
+    console.log('Login request: ', loginRequest);
+
     const user = await this.userRepository.findOne({
       where: { email: loginRequest.email },
     });
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.UNAUTHORIZED);
     }
+    console.log('Login user: ', user);
+
     const passwordMatch = await bcrypt.compare(
       loginRequest.password,
       user.password,
     );
     if (!passwordMatch) {
+      console.log(passwordMatch);
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
 
     const payload = {
-      user_id: user.user_id,
       email: user.email,
       username: user.username,
       role: user.role,
     };
     const token = this.jwtService.sign(payload);
+    console.log('Login token: ', token);
 
     const loginResponse: LoginResponseDto = {
       token,
       email: user.email,
+      avartaImg: user.avartaImg,
       username: user.username,
       gender: user.gender,
       birthDay: user.birthDay,
