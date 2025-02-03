@@ -155,6 +155,15 @@
     "name": "Name",
     "description": "Description",
     "parentCategory": "Parent Category",
-    "actions": "Actions"
+    "actions": "Actions",
+    "createNewCategory": "Create New Category",
+    "addSubCategory":"add new subCategories",
+    "subCategories":"update New subCategory",
+    "updateCategory":"update New Category",
+    "categoryCancel": "Cancel",
+    "categorySummit": "Summit",
+    "placeHodelName":"Enter name",
+    "placeHodelDescription":"Enter decription",
+    "TitleCreateSubCategory": "Sub Category"
   }
 }
