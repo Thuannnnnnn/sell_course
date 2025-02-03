@@ -87,9 +87,9 @@
     "google": "Google"
   },
   "signUpBanner": {
-        "title":"Đăng Ký Sinh Viên",
-        "title-1": "Xin chào",
-        "title-2": "Đăng nhập"
+    "title": "Đăng Ký Sinh Viên",
+    "title-1": "Xin chào",
+    "title-2": "Đăng nhập"
   },
   "signUpForm": {
     "placeholderEmail": "Nhập địa chỉ Email của bạn",
@@ -118,23 +118,78 @@
     "modalMessageFail": "Đăng Ký Thất Bại",
     "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
   },
-  "dashboardUser": {
+  "dashBoard": {
     "dashboard": "Bảng điều khiển",
-    "myProfile": "Thông tin cá nhân",
-    "enrolledCourse": "Khóa học đã tham gia",
-    "wishList": "Danh sách mong muốn",
-    "orderHistory": "Lịch sử mua hàng",
+    "user": "Người dùng",
+    "quizz": "Câu hỏi",
+    "course": "Khóa học",
+    "report": "Báo cáo",
+    "payment": "Thanh toán",
     "setting": "Cài đặt",
-    "logout": "Đăng xuất"
+    "signout": "Đăng xuất",
+    "category": "Danh mục",
+    "permission": "Quyền"
   },
-  "changePassword": {
-    "title": "Cài Đặt",
-    "title-profile": "Thông tin",
-    "title-password": "Mật khẩu",
-    "currentPassword": "Mật khẩu hiện tại",
-    "newPassword": "Mật khẩu mới",
-    "confirmPassword": "Xác nhận mật khẩu",
-    "btnChange-1": "Thay đổi mật khẩu",
-    "btnChange-2": "Thay đổi..."
+  "permission": {
+    "title": "Quyền",
+    "name": "Tên",
+    "code": "Mã",
+    "description": "Mô tả",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "actions": "Hành động",
+    "edit": "Chỉnh sửa",
+    "delete": "Xoá",
+    "editPermission": "Chỉnh sửa quyền",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "confirmDelete": "Xác nhận xoá",
+    "confirmDeleteMessage": "Bạn có chắc chắn muốn xoá quyền: {{permissionName}}?",
+    "confirm": "Xác nhận",
+    "none": "Không có",
+    "parent": "Cha",
+    "deleteConfirmation": "Bạn có chắc chắn muốn xóa quyền này không",
+    "addPermission": "Thêm quyền",
+    "permissionAddedSuccess": "Quyền đã được thêm thành công.",
+    "permissionAddedError": "Đã xảy ra lỗi khi thêm quyền.",
+    "permissionUpdatedSuccess": "Quyền đã được cập nhật thành công.",
+    "permissionUpdatedError": "Đã xảy ra lỗi khi cập nhật quyền.",
+    "permissionDeletedSuccess": "Quyền đã được xóa thành công.",
+    "permissionDeletedError": "Đã xảy ra lỗi khi xóa quyền.",
+    "assignPermissions": "Gán Quyền",
+    "assignPermissionsSuccess": "Gán quyền thành công!",
+    "assignPermissionsFail": "Gán quyền thất bại"
+  },
+  "user": {
+    "title": "Danh Sách Người Dùng",
+    "email": "Email",
+    "username": "Tên",
+    "role": "Vai Trò,",
+    "permissions": "Quyền",
+    "action": "Hành động",
+    "noPermisssion": "Không có quyền",
+    "addBtn": "Thêm quyền",
+    "remove": "Xóa",
+    "removing": "Đang xóa..."
+  },
+  "categoies": {
+    "category": "Thể loại",
+    "name": "Tên",
+    "description": "Mô tả",
+    "parentCategory": "Nhánh cha",
+    "actions": "Tính năng",
+    "createNewCategory": "tạo thể loại mới",
+    "addSubCategory": "thêm thể loại nhỏ",
+    "subCategories": "cập nhật thể loại nhỏ",
+    "updateCategory": "cập nhật thể loại",
+    "categoryCancel": "thoát",
+    "categorySummit": "xác nhận",
+    "placeHodelName": "nhập thể loại",
+    "placeHodelDescription": "nhập mô tả",
+    "TitleCreateSubCategory": "thể loại nhỏ",
+    "error1": "Tên danh mục phải có ít nhất 3 ký tự",
+    "error2": "Mô tả phải có ít nhất 5 ký tự",
+    "successfully": "Cập nhật danh mục thành công!",
+    "Failed": "Lỗi khi cập nhật danh mục"
   }
 }
