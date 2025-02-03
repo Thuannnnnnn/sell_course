@@ -4,15 +4,20 @@ import { Category } from "@/app/type/category/Category";
 import { deleteCategory } from "@/app/api/category/CategoryAPI";
 import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
+import { useParams, useRouter } from "next/navigation";
+
 interface CategoryListProps {
   categories: Category[];
   setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
 }
+
 const CategoryList: React.FC<CategoryListProps> = ({
   categories,
   setCategories,
 }) => {
   const t = useTranslations("categoies");
+  const router = useRouter();
+
   const handleDelete = async (categoryId: string) => {
     try {
       await deleteCategory(categoryId);
@@ -23,6 +28,14 @@ const CategoryList: React.FC<CategoryListProps> = ({
       console.error("Failed to delete category: ", error);
       alert("Failed to delete category.");
     }
+  };
+
+  const params = useParams();
+  
+
+  const handleEdit = (categoryId: string) => {
+    const locale = params.locale;
+    router.push(`/${locale}/admin/category/edit/${categoryId}`);
   };
 
   return (
@@ -44,12 +57,13 @@ const CategoryList: React.FC<CategoryListProps> = ({
                 <div>#{index + 1}</div>
               </td>
               <td>{category.name}</td>
-              <td>{category.name}</td>
+              <td>{category.description}</td>
               <td>{category.parentId ? `Parent: ${category.parentId}` : ""}</td>
               <td>
                 <button
-                  onClick={() => console.log("Edit category:", category)}
+                  onClick={() => handleEdit(category.categoryId)}
                   style={{ marginRight: "10px" }}
+                  className="edit-button"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -63,7 +77,10 @@ const CategoryList: React.FC<CategoryListProps> = ({
                     <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
                   </svg>
                 </button>
-                <button onClick={() => handleDelete(category.categoryId)}>
+                <button
+                  onClick={() => handleDelete(category.categoryId)}
+                  className="delete-button"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
