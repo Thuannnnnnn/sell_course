@@ -178,5 +178,15 @@
     "description": "Mô tả",
     "parentCategory": "Nhánh cha",
     "actions": "Tính năng"
-  }
+  },
+  "courses": {
+    "course": "Khóa Học",
+    "author": "Tác giả",
+    "title": "Tiêu đề",
+    "thumbnail" : "Hình ảnh",
+    "description": "Mô tả",
+    "category" : "Thể loại",
+    "dateCreated" : "Ngày tải lên",
+    "actions": "Tính năng"
+    }
 }

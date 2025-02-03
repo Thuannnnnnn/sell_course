@@ -1,49 +1,48 @@
 "use client";
 import Sidebar from "@/components/SideBar";
-import type { Category } from "@/app/type/category/Category";
 import { useEffect, useState } from "react";
-import { fetchCategories } from "@/app/api/category/CategoryAPI";
+import { fetchCourses } from "@/app/api/course/CourseAPI";
 import CourseList from "@/components/course/courseListAdmin";
-import "../../../../style/Category.css";
+import "../../../../style/courseAdmin.css";
 import { useTranslations } from "next-intl";
+import { Course } from "@/app/type/course/Course";
 
-export default function Category() {
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function CoursePage() {
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const t = useTranslations('categoies')
+  const t = useTranslations("courses");
+  const token = "your_auth_token_here";
+
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadCourses = async () => {
       try {
         setLoading(true);
-        const data = await fetchCategories();
-        setCategories(data);
-        setLoading(false);
+        const data = await fetchCourses(token);
+        setCourses(data);
+        console.log("Loaded courses:", data);
       } catch (error) {
-        setError("Failed to load categories." + error);
+        setError("Failed to load courses. " + error);
+      } finally {
         setLoading(false);
       }
     };
 
-    loadCategories();
-    console.log("load daa: " + JSON.stringify(categories, null, 2));
-  }, []);
+    loadCourses();
+  }, [token]);
 
-  if (loading) return <p>Loading categories...</p>;
+  if (loading) return <p>Loading courses...</p>;
   if (error) return <p>{error}</p>;
+
   return (
-    <>
-      <div className="d-flex">
-        <div>
-          <div className="sidebar-page">
-            <Sidebar />
-          </div>
-        </div>
-        <div className="layout-right">
-          <h3>{t("category")}</h3>
-          <CourseList courses={} setCouse={} />
-        </div>
+    <div className="d-flex">
+      <div className="sidebar-page">
+        <Sidebar />
       </div>
-    </>
+      <div className="layout-right">
+        <h3>{t("course")}</h3>
+        <CourseList courses={courses} setCourses={setCourses} />
+      </div>
+    </div>
   );
 }

@@ -156,5 +156,15 @@
     "description": "Description",
     "parentCategory": "Parent Category",
     "actions": "Actions"
-  }
+  },
+  "courses": {
+    "course": "Course",
+    "author": "author",
+    "title": "Title",
+    "thumbnail" : "Thumbnail",
+    "description": "Description",
+    "category" : "Category",
+    "dateCreated" : "Date Created",
+    "actions": "Actions"
+    }
 }

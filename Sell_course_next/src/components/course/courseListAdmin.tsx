@@ -1,24 +1,29 @@
 import React from "react";
-import "../../style/Category.css";
+import "../../style/courseAdmin.css";
 import { Course } from "@/app/type/course/Course";
-import { deleteCategory } from "@/app/api/category/CategoryAPI";
+import { deleteCourse } from "@/app/api/course/CourseAPI";
 import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
+
 interface CourseListProps {
   courses: Course[];
-  setCouse: React.Dispatch<React.SetStateAction<Course[]>>;
+  setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
 }
-const CourseList: React.FC<CourseListProps> = ({ courses, setCouse }) => {
-  const t = useTranslations("categoies");
+
+const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
+  const t = useTranslations("courses");
+  const token = "your_auth_token_here";
+
   const handleDelete = async (courseId: string) => {
     try {
-      await deleteCategory(courseId);
-      setCouse((prev) =>
-        prev.filter((course) => course.categoryId !== courseId)
+      await deleteCourse(courseId, token);
+      setCourses((prev) =>
+        prev.filter((course) => course.courseId !== courseId)
       );
     } catch (error) {
-      console.error("Failed to delete category: ", error);
-      alert("Failed to delete category.");
+      console.error("Failed to delete course: ", error);
+      alert("Failed to delete course.");
     }
   };
 
@@ -27,25 +32,43 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCouse }) => {
       <table>
         <thead>
           <tr>
-            <th></th>
-            <th>{t("name")}</th>
-            <th>{t("description")}</th>
-            <th>{t("parentCategory")}</th>
+            <th>#</th>
+            <th>{t("thumbnail")}</th>
+            <th>{t("title")}</th>
+            <th>{t("category")}</th>
+            <th>{t("author")}</th>
+            <th>{t("dateCreated")}</th>
             <th>{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
           {courses.map((course, index) => (
-            <tr key={course.categoryId}>
+            <tr key={course.courseId}>
+              <td>{index + 1}</td>
               <td>
-                <div>#{index + 1}</div>
+                {course.imageInfo ? (
+                  <Image
+                    src={course.imageInfo}
+                    alt="Course Thumbnail"
+                    width={50}
+                    height={50}
+                    style={{ objectFit: "cover" }}
+                  />
+                ) : (
+                  "N/A"
+                )}
               </td>
               <td>{course.title}</td>
-              <td>{course.title}</td>
-              <td>{course.createdAt ? `Parent: ${course.createdAt}` : ""}</td>
+              <td>{course.categoryName || "N/A"}</td>
+              <td>{course.userName || "N/A"}</td>
+              <td>
+                {course.createdAt
+                  ? new Date(course.createdAt).toLocaleDateString()
+                  : "N/A"}
+              </td>
               <td>
                 <button
-                  onClick={() => console.log("Edit category:", course)}
+                  onClick={() => console.log("Edit course:", course)}
                   style={{ marginRight: "10px" }}
                 >
                   <svg

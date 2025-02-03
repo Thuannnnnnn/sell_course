@@ -11,19 +11,19 @@ import {
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 // import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { RolesGuard } from '../Auth/roles.guard';
 import { Roles } from '../Auth/roles.decorator';
 @Controller('api/courses')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('Course')
+// @UseGuards(JwtAuthGuard, RolesGuard)
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Get('getAll')
   @Roles('ADMIN', 'CUSTOMER')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,
@@ -39,7 +39,6 @@ export class CourseController {
   }
   @Get('getByCourse/:id')
   @Roles('ADMIN')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiResponse({
     status: 200,

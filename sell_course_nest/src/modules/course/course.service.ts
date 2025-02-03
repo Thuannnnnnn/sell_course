@@ -39,6 +39,8 @@ export class CourseService {
         course.createdAt,
         course.updatedAt,
         course.user.user_id,
+        course.user.email,
+        course.category.name,
         course.category.categoryId,
       );
     });
@@ -67,6 +69,8 @@ export class CourseService {
       course.imageInfo,
       course.createdAt,
       course.updatedAt,
+      course.user.user_id,
+      course.category.name,
       course.user.user_id,
       course.category.categoryId,
     );
