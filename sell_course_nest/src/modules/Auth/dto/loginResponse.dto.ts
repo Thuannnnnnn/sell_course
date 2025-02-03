@@ -14,6 +14,9 @@ export class LoginResponseDto {
   username: string;
 
   @IsString()
+  avatarImg: string;
+
+  @IsString()
   gender: string;
 
   @IsString()

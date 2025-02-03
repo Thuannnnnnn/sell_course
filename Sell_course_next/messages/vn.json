@@ -191,5 +191,30 @@
     "error2":"Mô tả phải có ít nhất 5 ký tự",
     "successfully":"Cập nhật danh mục thành công!",
     "Failed":"Lỗi khi cập nhật danh mục"
+  },
+  "dashboardUser": {
+    "dashboard": "Bảng điều khiển",
+    "myProfile": "Thông tin cá nhân",
+    "enrolledCourse": "Khóa học đã tham gia",
+    "wishList": "Danh sách mong muốn",
+    "orderHistory": "Lịch sử mua hàng",
+    "setting": "Cài đặt",
+    "logout": "Đăng xuất"
+  },
+  "changePassword": {
+    "title": "Cài Đặt",
+    "title-profile": "Thông tin",
+    "title-password": "Mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "btnChange-1": "Thay đổi mật khẩu",
+    "btnChange-2": "Thay đổi...",
+    "errorPasswordsMatch": "Mật khẩu mới không thể giống như mật khẩu hiện tại.",
+    "errorPasswordsDontMatch": "Mật khẩu mới và xác nhận mật khẩu không khớp.",
+    "passwordChangeSuccess": "Thay đổi mật khẩu thành công.",
+    "errorFillAllFields": "Vui lòng điền đầy đủ thông tin",
+    "errorTokenNotFound": "Token không tồn tại. Vui lòng thử lại.",
+    "errorPasswordTooShort": "Mật khẩu phải dài ít nhất 8 ký tự."
   }
 }
