@@ -6,7 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 // import { JwtStrategy } from './strategies/jwt.strategy';
 import { HttpException, HttpStatus } from '@nestjs/common';
