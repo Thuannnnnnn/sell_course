@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { authService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -6,6 +13,7 @@ import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('api/auth')
 export class authController {
   constructor(private readonly authService: authService) {}
@@ -19,8 +27,9 @@ export class authController {
   }
 
   @Post('verify-email')
-  async verifyEmail(@Body('email') email: string) {
-    return await this.authService.verifyEmail(email);
+  async verifyEmail(@Body() body: { email: string; lang: string }) {
+    const { email, lang } = body;
+    return await this.authService.verifyEmail(email, lang);
   }
   @UseGuards(AuthGuard('local'))
   @Post('login')
@@ -33,5 +42,13 @@ export class authController {
   @Post('oauth')
   async oauth(@Body() oAuthRequestDto: OAuthRequestDto) {
     return await this.authService.oauth(oAuthRequestDto);
+  }
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ url: string }> {
+    const url = await this.authService.uploadFile(file);
+    return { url };
   }
 }

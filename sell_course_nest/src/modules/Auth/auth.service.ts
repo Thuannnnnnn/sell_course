@@ -6,7 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 // import { JwtStrategy } from './strategies/jwt.strategy';
 import { HttpException, HttpStatus } from '@nestjs/common';
@@ -14,6 +14,7 @@ import { MailService } from '../../utilities/mail.service';
 import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { JwtService } from '@nestjs/jwt';
+import { azureUpload } from 'src/utilities/azure.service';
 @Injectable()
 export class authService {
   constructor(
@@ -25,7 +26,7 @@ export class authService {
     private jwtService: JwtService,
   ) {}
 
-  async verifyEmail(email: string) {
+  async verifyEmail(email: string, lang: string) {
     if (!email) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
@@ -40,8 +41,7 @@ export class authService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
-    const token = this.jwtService.sign(user);
+    const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
     const emailVerify = this.emailVerifycationRepository.create({
       id: uuidv4(),
       email: email,
@@ -56,7 +56,7 @@ export class authService {
     const content = `
       <p>Dear User,</p>
       <p>Thank you for registering with us. Please click the link below to verify your email address:</p>
-      <p><a href="http://localhost:3000/verify-email?token=${token}" target="_blank">Verify Email</a></p>
+      <p><a href="http://localhost:3000/${lang}/auth/signUp/info?token=${token}" target="_blank">Verify Email</a></p>
       <p>This link will expire in 1 hour.</p>
       <p>If you did not request this, please ignore this email.</p>
       <p>Best regards,</p>
@@ -66,20 +66,24 @@ export class authService {
     throw new HttpException('Send mail successfully', HttpStatus.OK);
   }
 
-  // async verify_token(token: string): Promise<boolean> {
-  //   if()
-  //   return true;
-  // }
   async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    // if(!this.verify_token(createUserDto.token)){
-    //   throw new HttpException('Token invalid', HttpStatus.FORBIDDEN);
-    // }
+    const decoded = this.jwtService.decode(createUserDto.token) as {
+      email: string;
+    };
+    if (decoded.email !== createUserDto.email) {
+      throw new HttpException(
+        'Token email does not match',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     if (!createUserDto) {
       throw new HttpException(
         'create User data not found',
         HttpStatus.BAD_REQUEST,
       );
     }
+
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     const newUser = this.userRepository.create({
       user_id: uuidv4(),
@@ -91,9 +95,11 @@ export class authService {
       phoneNumber: createUserDto.phoneNumber,
       role: 'CUSTOMER',
     });
+
     if (!newUser) {
       throw new HttpException('Error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     const savedUser = await this.userRepository.save(newUser);
     const userResponse: UserResponseDto = {
       user_id: savedUser.user_id,
@@ -112,9 +118,8 @@ export class authService {
       where: { email: loginRequest.email },
     });
     if (!user) {
-      throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Email not found', HttpStatus.UNAUTHORIZED);
     }
-
     const passwordMatch = await bcrypt.compare(
       loginRequest.password,
       user.password,
@@ -122,16 +127,17 @@ export class authService {
     if (!passwordMatch) {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
+
     const payload = {
+      user_id: user.user_id,
       email: user.email,
       username: user.username,
       role: user.role,
     };
     const token = this.jwtService.sign(payload);
-    // const refreshToken = JwtStrategy.generateToken(user, '7d');
+
     const loginResponse: LoginResponseDto = {
       token,
-      // refreshToken,
       email: user.email,
       username: user.username,
       gender: user.gender,
@@ -140,7 +146,7 @@ export class authService {
       role: user.role,
     };
 
-    throw new HttpException(loginResponse, HttpStatus.OK);
+    return loginResponse;
   }
 
   async oauth(oAuthRequestDto: OAuthRequestDto) {
@@ -157,11 +163,17 @@ export class authService {
     const user = await this.userRepository.findOne({
       where: { email: email },
     });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+    }
     const passwordMatch = await bcrypt.compare(pass, user.password);
     if (!passwordMatch) {
-      //throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
-
     return user;
+  }
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    return await azureUpload(file);
   }
 }
