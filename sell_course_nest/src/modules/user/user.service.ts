@@ -8,7 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { UpdateProfileDto } from './dto/updateProfile.dto';
+// import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { Permission } from '../permission/entities/permission.entity';
 import { azureUpload } from 'src/utilities/azure.service';
 import { UserDTO } from './dto/userData.dto';

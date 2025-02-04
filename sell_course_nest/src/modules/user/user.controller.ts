@@ -21,7 +21,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserDto } from './dto/updateProfile.dto';
-
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 @Controller('api')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -29,7 +29,7 @@ export class UserController {
   async getAllUsers() {
     return this.userService.findAll();
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getUserById(@Param('id') userId: string) {
     return this.userService.findById(userId);
@@ -45,7 +45,6 @@ export class UserController {
     return user;
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Put('/users/user')
   @UseInterceptors(FileInterceptor('avatar'))
   async updateUser(
