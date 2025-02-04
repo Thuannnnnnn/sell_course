@@ -157,13 +157,32 @@
     "parentCategory": "Parent Category",
     "actions": "Actions",
     "createNewCategory": "Create New Category",
-    "addSubCategory":"add new subCategories",
-    "subCategories":"update New subCategory",
-    "updateCategory":"update New Category",
+    "addSubCategory": "add new subCategories",
+    "subCategories": "update New subCategory",
+    "updateCategory": "update New Category",
     "categoryCancel": "Cancel",
     "categorySummit": "Summit",
-    "placeHodelName":"Enter name",
-    "placeHodelDescription":"Enter decription",
+    "placeHodelName": "Enter name",
+    "placeHodelDescription": "Enter decription",
     "TitleCreateSubCategory": "Sub Category"
+  },
+  "cartBanner": {
+    "title": "Cart",
+    "subtitle": "Cart"
+  },
+  "cart": {
+    "title": "Cart",
+    "description": "Selected products list",
+    "checkout": "Buy",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "buyNow": "Buy Now",
+    "emptyMessage": "Your cart is empty",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "price": "Price",
+    "product": "Product",
+    "thumbnail": "Image",
+    "removeConfirmation": "Are you sure you want to remove this product?"
   }
 }
