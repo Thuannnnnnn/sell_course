@@ -1,22 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "@/style/course/createCourseForm.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { FormControl, InputGroup } from "react-bootstrap";
+import Image from "next/image";
 
 const CreateCourseForm = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
   const [price, setPrice] = useState(30);
   const [category, setCategory] = useState("JavaScript");
   const [image, setImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
+  const [videoUrl, setVideoUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (image && typeof window !== "undefined") {
+      const url = URL.createObjectURL(image);
+      setPreviewUrl(url);
+
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [image]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImage(file);
+    }
+    event.target.value = "";
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      setImage(file);
+    }
+  };
+
+  const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith("video/")) {
+      const url = URL.createObjectURL(file);
+      setVideoUrl(url);
     }
   };
 
@@ -64,33 +98,61 @@ const CreateCourseForm = () => {
             {/* Video */}
             <section>
               <h2>VIDEO</h2>
-              <video className="video" controls>
-                {videoUrl && <source src={videoUrl} type="video/mp4" />}
-                Your browser does not support the video tag.
-              </video>
-              <input
-                type="url"
-                placeholder="Enter a valid video URL"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-              />
+              <div className="video-main">
+                <video className="video" controls width="500">
+                  {videoUrl && <source src={videoUrl} type="video/mp4" />}
+                  Your browser does not support the video tag.
+                </video>
+                <div className="input-videoURL">
+                  <p>URL</p>
+                  <div style={{ marginTop: "10px" }}>
+                    <input
+                      type="url"
+                      placeholder="Enter a valid video URL"
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  style={{ marginTop: "10px" }}
+                />
+              </div>
             </section>
 
             {/* Image */}
-            <section>
+            <section className="img-main">
               <h2>IMAGE</h2>
-              <div className="image-upload">
-                {image && (
-                  <img
-                    src={URL.createObjectURL(image)}
-                    alt="Uploaded"
-                    className="preview-img"
-                  />
+              <div
+                className="image-upload"
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              >
+                {previewUrl ? (
+          
+                     <Image
+                        src={previewUrl}
+                        alt="Uploaded"
+                        layout="fill"
+                        objectFit="cover"
+                        className="preview-container"
+                      />
+            
+                ) : (
+                  <label htmlFor="file-upload" className="upload-label">
+                    Drag & Drop or Click to Upload
+                  </label>
                 )}
+
                 <input
                   type="file"
+                  id="file-upload"
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  onChange={handleFileChange}
                 />
               </div>
             </section>

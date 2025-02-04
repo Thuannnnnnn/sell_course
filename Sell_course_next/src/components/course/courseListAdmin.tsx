@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import "@/style/course/courseAdmin.css";
 import { Course } from "@/app/type/course/Course";
