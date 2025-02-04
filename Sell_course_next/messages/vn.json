@@ -193,6 +193,7 @@
     "Failed":"Lỗi khi cập nhật danh mục"
   },
   "courses": {
+    "create" : "Tạo Khóa Học",
     "course": "Khóa Học",
     "author": "Tác giả",
     "title": "Tiêu đề",

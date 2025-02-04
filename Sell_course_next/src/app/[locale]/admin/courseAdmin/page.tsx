@@ -3,9 +3,10 @@ import Sidebar from "@/components/SideBar";
 import { useEffect, useState } from "react";
 import { fetchCourses } from "@/app/api/course/CourseAPI";
 import CourseList from "@/components/course/courseListAdmin";
-import "../../../../style/courseAdmin.css";
+import "../../../../style/course/courseAdmin.css";
 import { useTranslations } from "next-intl";
 import { Course } from "@/app/type/course/Course";
+import { Button } from "react-bootstrap";
 
 export default function CoursePage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -40,7 +41,13 @@ export default function CoursePage() {
         <Sidebar />
       </div>
       <div className="layout-right">
-        <h3>{t("course")}</h3>
+        <div className="layout-rightHeader">
+          <h3>{t("course")}</h3>
+          <Button className="button-create">
+            <span className="icon">+</span>
+            {t("create")}
+          </Button>
+        </div>
         <CourseList courses={courses} setCourses={setCourses} />
       </div>
     </div>

@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["img.tripi.vn"],
+    domains: ["img.tripi.vn", 'vtcpay.vn'],
   },
 };
  

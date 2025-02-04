@@ -167,6 +167,7 @@
     "TitleCreateSubCategory": "Sub Category"
   },
   "courses": {
+    "create" : "Create Course",
     "course": "Course",
     "author": "author",
     "title": "Title",

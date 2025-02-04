@@ -1,5 +1,5 @@
 import React from "react";
-import "../../style/courseAdmin.css";
+import "@/style/course/courseAdmin.css";
 import { Course } from "@/app/type/course/Course";
 import { deleteCourse } from "@/app/api/course/CourseAPI";
 import { Container } from "react-bootstrap";
@@ -32,7 +32,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
       <table>
         <thead>
           <tr>
-            <th>#</th>
+            <th></th>
             <th>{t("thumbnail")}</th>
             <th>{t("title")}</th>
             <th>{t("category")}</th>
