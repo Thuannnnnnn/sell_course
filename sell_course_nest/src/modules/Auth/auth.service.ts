@@ -41,7 +41,7 @@ export class authService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
+    const token = this.jwtService.sign({ email }, { expiresIn: '2d' });
     const emailVerify = this.emailVerifycationRepository.create({
       id: uuidv4(),
       email: email,

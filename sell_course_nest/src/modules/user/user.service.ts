@@ -9,8 +9,9 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Permission } from '../permission/entities/permission.entity';
-import { UserDto, UserDTO } from './dto/userData.dto';
 import { azureUpload } from 'src/utilities/azure.service';
+import { UserDTO } from './dto/userData.dto';
+import { UserDto } from './dto/updateProfile.dto';
 
 @Injectable()
 export class UserService {
@@ -200,7 +201,7 @@ export class UserService {
     if (file) {
       try {
         const avatarUrl = await azureUpload(file); // Upload file lên Azure Blob
-        updateData.avartaImg = avatarUrl;
+        updateData.avatarImg = avatarUrl;
       } catch {
         throw new Error('Failed to upload avatar to Azure Blob Storage.');
       }

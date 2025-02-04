@@ -20,7 +20,8 @@ import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UserDto } from './dto/userData.dto';
+import { UserDto } from './dto/updateProfile.dto';
+
 @Controller('api')
 export class UserController {
   constructor(private readonly userService: UserService) {}
