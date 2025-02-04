@@ -23,7 +23,6 @@ export class UserController {
   async getAllUsers() {
     return this.userService.findAll();
   }
-
   @Get(':id')
   async getUserById(@Param('id') userId: string) {
     return this.userService.findById(userId);
