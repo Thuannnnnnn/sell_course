@@ -176,4 +176,42 @@ export class authService {
   async uploadFile(file: Express.Multer.File): Promise<string> {
     return await azureUpload(file);
   }
+
+  async validateEmailForgot(email: string, lang: string) {
+    const user = this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
+    }
+    const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
+    const subject = 'Verify your email';
+    const content = `
+      <p>Dear User,</p>
+      <p>Thank you for registering with us. Please click the link below to verify your email address:</p>
+      <p><a href="http://localhost:3000/${lang}/auth/forgot/info?token=${token}" target="_blank">Verify Email</a></p>
+      <p>This link will expire in 1 hour.</p>
+      <p>If you did not request this, please ignore this email.</p>
+      <p>Best regards,</p>
+      <p>Redflag GoldenStart</p>
+    `;
+
+    this.mailService.sendSimpleEmail(email, subject, content);
+    return { message: 'Send mail successfully' };
+  }
+
+  async forgotPw(email: string, password: string, token: string) {
+    const decode = this.jwtService.decode(token);
+    if (decode.email != email) {
+      throw new HttpException('Token invalid', HttpStatus.BAD_REQUEST);
+    }
+    const newPassword = await bcrypt.hash(password, 10);
+
+    const result = await this.userRepository.update(
+      { email },
+      { password: newPassword },
+    );
+    if (result.affected === 0) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return { message: 'reset password successfully' };
+  }
 }
