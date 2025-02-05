@@ -29,7 +29,7 @@ export const updateUserProfile = async (
 ) => {
   try {
     const response = await axios.put(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user`,
       formData,
       {
         headers: {

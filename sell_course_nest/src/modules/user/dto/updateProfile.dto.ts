@@ -37,7 +37,7 @@ export class UserDto {
   email: string;
   username: string;
   avatarImg: string | null;
-  gender: string;
+  gender: string | null;
   birthDay: string | null;
   phoneNumber: number;
   role: string;
@@ -47,7 +47,7 @@ export class UserDto {
     email: string,
     username: string,
     avatarImg: string | null,
-    gender: string,
+    gender: string | null,
     birthDay: string | null,
     phoneNumber: number,
     role: string,

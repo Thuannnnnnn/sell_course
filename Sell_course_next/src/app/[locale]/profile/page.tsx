@@ -8,7 +8,7 @@ import Image from "react-bootstrap/Image";
 interface User {
   name?: string;
   email?: string;
-  avartaImg?: string;
+  avatarImg?: string;
 }
 
 const ProfilePage: React.FC = () => {
@@ -43,9 +43,9 @@ const ProfilePage: React.FC = () => {
         <>
           <span className="nav-link m-4">Name: {user?.name}</span>
           <span className="nav-link m-4">Email: {user?.email}</span>
-          {user?.avartaImg && (
+          {user?.avatarImg && (
             <Image
-              src={user?.avartaImg}
+              src={user?.avatarImg}
               alt="User profile picture"
               width={100}
               height={100}

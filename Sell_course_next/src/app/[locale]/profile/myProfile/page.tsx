@@ -3,17 +3,17 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import BannerUser from "@/components/BannerUser";
 import SignIn from "../../auth/login/page";
+import DashBoardUser from "@/components/DashBoardUser";
 import "../../../../style/UserProfilePage.css";
 import axios from "axios";
-import BannerUser from "@/components/BannerUser";
-import DashBoardUser from "@/components/DashBoardUser";
 
 interface User {
   id: string;
   email: string;
   name: string;
-  avartaImg: string;
+  avatarImg: string;
   gender: string;
   birthDay: string;
   phoneNumber: string;
@@ -31,7 +31,7 @@ const MyProfilePage: React.FC = () => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
     } else if (status === "authenticated" && session?.user) {
-      setUser(session.user as User);
+      setUser(session.user);
       console.log("Session User:", session.user); // Log session user
       // Fetch additional user details from the backend
       fetchUserDetails(session.user?.user_id);
@@ -44,7 +44,7 @@ const MyProfilePage: React.FC = () => {
     setError(null); // Reset error before starting the API call
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user/${userId}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/${userId}`
       );
       const userDetails = response.data;
       console.log("User Details from API:", userDetails); // Log API response
@@ -102,3 +102,4 @@ const MyProfilePage: React.FC = () => {
 };
 
 export default MyProfilePage;
+

@@ -45,6 +45,7 @@ export class UserController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put('/users/user')
   @UseInterceptors(FileInterceptor('avatar'))
   async updateUser(
@@ -55,7 +56,7 @@ export class UserController {
     console.log('Authenticated User:', req.user);
     const { email, username } = req.user;
 
-    if (!email || !username) {
+    if (!req.user || !req.user.email || !username) {
       throw new UnauthorizedException(
         'User not authenticated or missing required information.',
       );
