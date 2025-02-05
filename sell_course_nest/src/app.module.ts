@@ -1,3 +1,4 @@
+import { PaymentModule } from './modules/payment/payment.module';
 // app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -65,6 +66,7 @@ import { PermissionMiddleware } from './modules/permission/permission.middleware
 
 @Module({
   imports: [
+    PaymentModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
