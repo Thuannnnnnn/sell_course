@@ -1,15 +1,16 @@
 "use client";
 import { useState } from "react";
-import {useTranslations, useLocale } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
-import { useTheme } from "../../../../src/contexts/ThemeContext";
+import { useTheme } from "../../../../contexts/ThemeContext";
 import { useRouter } from "next/navigation";
 import "@/style/Login.css";
 import Banner from "@/components/Banner-ForgotPassword";
-
+import { sendMail } from "@/app/api/auth/forgot/forgot";
+import { send } from "process";
+import MailGun from "next-auth/providers/mailgun";
 export default function ForgotPassword() {
   const t = useTranslations("forgotPasswordPage"); // Tải bản dịch
-  const tl = useTranslations("signUpBanner"); // Tiêu đề banner
   const { theme } = useTheme();
   const localActive = useLocale();
   const [email, setEmail] = useState("");
@@ -24,20 +25,9 @@ export default function ForgotPassword() {
     setSuccessMessage("");
 
     try {
-      const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setSuccessMessage(t("successMessage"));
-        setTimeout(() => router.push("/login"), 3000);
-      } else {
-        setError(data.message || t("errorMessage"));
+      const response = await sendMail(email, localActive);
+      if (response && response.statusCode === 200) {
+        setSuccessMessage(t("emailSent"));
       }
     } catch (error) {
       console.error("Reset password error:", error);
