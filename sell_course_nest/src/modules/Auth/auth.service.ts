@@ -187,7 +187,7 @@ export class authService {
     const content = `
       <p>Dear User,</p>
       <p>Thank you for registering with us. Please click the link below to verify your email address:</p>
-      <p><a href="http://localhost:3000/${lang}/auth/forgot/info?token=${token}" target="_blank">Verify Email</a></p>
+      <p><a href="http://localhost:3000/${lang}/auth/forgot-password/info?token=${token}" target="_blank">Verify Email</a></p>
       <p>This link will expire in 1 hour.</p>
       <p>If you did not request this, please ignore this email.</p>
       <p>Best regards,</p>
@@ -195,7 +195,7 @@ export class authService {
     `;
 
     this.mailService.sendSimpleEmail(email, subject, content);
-    return { message: 'Send mail successfully' };
+    return { message: 'Send mail successfully', statusCode: HttpStatus.OK };
   }
 
   async forgotPw(email: string, password: string, token: string) {

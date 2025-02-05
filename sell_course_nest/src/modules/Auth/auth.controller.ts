@@ -59,6 +59,7 @@ export class authController {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
     this.authService.validateEmailForgot(body.email, body.lang);
+    return { message: 'OK', statusCode: HttpStatus.OK };
   }
   @Post('forgot-password-info')
   async forgotPasswordInfo(
@@ -68,5 +69,6 @@ export class authController {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
     this.authService.forgotPw(body.email, body.password, body.token);
+    return { message: 'OK', statusCode: HttpStatus.OK };
   }
 }
