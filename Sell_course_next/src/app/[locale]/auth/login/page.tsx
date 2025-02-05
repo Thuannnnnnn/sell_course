@@ -1,6 +1,6 @@
 "use client";
 import { signIn } from "next-auth/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useTheme } from "../../../../contexts/ThemeContext";
 import { useState } from "react";
@@ -12,6 +12,7 @@ import Banner from "@/components/Banner-SignUp";
 
 export default function SignIn() {
   const t = useTranslations("loginPage");
+  const localActive = useLocale();
   const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -100,7 +101,7 @@ export default function SignIn() {
           />
         </div>
         <div className="forgotPw">
-          <Link href="/forgot-password">{t("forgot")}</Link>
+          <Link href={`/${localActive}/forgot-password`}>{t("forgot")}</Link>
         </div>
         <div className="groupButton">
           <button

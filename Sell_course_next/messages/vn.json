@@ -210,8 +210,21 @@
   "product": "Sản phẩm",
   "thumbnail": "Hình ảnh",
   "removeConfirmation": "Bạn có chắc muốn xóa sản phẩm này không?"
+},
+"forgotPasswordPage": {
+  "title": "Quên Mật Khẩu",
+  "email": "Email",
+  "placeholderEmail": "Nhập email của bạn",
+  "resetPassword": "Gửi email",
+  "loading": "Đang xử lý...",
+  "rememberedPassword": "Nhớ mật khẩu?",
+  "login": "Đăng nhập",
+  "successMessage": "Kiểm tra email để đặt lại mật khẩu.",
+  "errorMessage": "Không thể gửi email. Vui lòng thử lại.",
+  "serverError": "Lỗi máy chủ. Vui lòng thử sau."
+},
+  "forgotPasswordBanner": {
+    "title-3": "Quên mật khẩu"
 }
-
-
 
 }

@@ -89,7 +89,7 @@
   "signUpBanner": {
     "title": "Student Registation",
     "title-1": "Hello",
-    "title-2": "login"
+    "title-2": "Login"
   },
   "signUpForm": {
     "placeholderEmail": "Enter your Email",
@@ -184,5 +184,21 @@
     "product": "Product",
     "thumbnail": "Image",
     "removeConfirmation": "Are you sure you want to remove this product?"
-  }
+  },
+    "forgotPasswordPage": {
+      "title": "Forgot Password",
+      "email": "Email",
+      "placeholderEmail": "Enter your email",
+      "resetPassword": "Send email",
+      "loading": "Processing...",
+      "rememberedPassword": "Remembered your password?",
+      "login": "Login",
+      "successMessage": "Check your email for password reset instructions.",
+      "errorMessage": "Failed to send reset email. Please try again.",
+      "serverError": "Server error. Please try later."
+    },
+      "forgotPasswordBanner": {
+    "title-3": "Forgot Password"
+}
+
 }
