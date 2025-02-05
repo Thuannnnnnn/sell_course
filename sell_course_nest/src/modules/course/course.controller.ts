@@ -6,16 +6,22 @@ import {
   Param,
   Post,
   Put,
-  UseGuards,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 // import { AuthGuard } from '@nestjs/passport';
-import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
-import { RolesGuard } from '../Auth/roles.guard';
+// import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { Roles } from '../Auth/roles.decorator';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 @Controller('api/courses')
 @ApiTags('Course')
 // @UseGuards(JwtAuthGuard, RolesGuard)
@@ -55,26 +61,41 @@ export class CourseController {
     return await this.courseService.getCourseById(courseId);
   }
 
-  @Post('createCourse')
-  @Roles('ADMIN')
+  @Post('create')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'videoInfo', maxCount: 1 },
+      { name: 'imageInfo', maxCount: 1 },
+    ]),
+  )
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new course' })
   @ApiResponse({
     status: 201,
     description: 'The course has been successfully created.',
     type: CourseResponseDTO,
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid course data provided.',
-  })
+  @ApiResponse({ status: 400, description: 'Invalid course data provided.' })
   async createCourse(
-    @Body() createCourseDTO: CourseRequestDTO,
+    @Body() course: CourseRequestDTO,
+    @UploadedFiles()
+    files?: {
+      videoInfo?: Express.Multer.File[];
+      imageInfo?: Express.Multer.File[];
+    },
   ): Promise<CourseResponseDTO> {
-    return await this.courseService.createCourse(createCourseDTO);
+    return await this.courseService.createCourse(course, files ?? {});
   }
 
-  @Put('updateCourse/:id')
-  @ApiOperation({ summary: 'Update a course by ID' })
+  @Put('update/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'videoInfo', maxCount: 1 },
+      { name: 'imageInfo', maxCount: 1 },
+    ]),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Update an existing course' })
   @ApiResponse({
     status: 200,
     description: 'The course has been successfully updated.',
@@ -84,15 +105,21 @@ export class CourseController {
     status: 404,
     description: 'Course not found with the given ID.',
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid course data provided.',
-  })
+  @ApiResponse({ status: 400, description: 'Invalid course data provided.' })
   async updateCourse(
     @Param('id') courseId: string,
-    @Body() createCourseDTO: CourseRequestDTO,
+    @Body() updateData: Partial<CourseRequestDTO>,
+    @UploadedFiles()
+    files?: {
+      videoInfo?: Express.Multer.File[];
+      imageInfo?: Express.Multer.File[];
+    },
   ): Promise<CourseResponseDTO> {
-    return await this.courseService.updateCourse(courseId, createCourseDTO);
+    return await this.courseService.updateCourse(
+      courseId,
+      updateData,
+      files ?? {},
+    );
   }
 
   @Delete('deleteCourse/:id')

@@ -8,6 +8,7 @@ import { User } from '../user/entities/user.entity';
 import { Category } from '../category/entities/category.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { azureUpload } from 'src/utilities/azure.service';
 
 @Injectable()
 export class CourseService {
@@ -76,7 +77,13 @@ export class CourseService {
     );
     return courseResponseDTO;
   }
-  async createCourse(course: CourseRequestDTO): Promise<CourseResponseDTO> {
+  async createCourse(
+    course: CourseRequestDTO,
+    files?: {
+      videoInfo?: Express.Multer.File[];
+      imageInfo?: Express.Multer.File[];
+    },
+  ): Promise<CourseResponseDTO> {
     const { userId, categoryId, title } = course;
 
     const userData = await this.userRepository.findOne({
@@ -88,6 +95,7 @@ export class CourseService {
         HttpStatus.NOT_FOUND,
       );
     }
+
     const categoryData = await this.categoryRepository.findOne({
       where: { categoryId },
     });
@@ -108,29 +116,52 @@ export class CourseService {
       );
     }
 
-    await this.CourseRepository.save({
+    let videoUrl = '';
+    let imageUrl = '';
+
+    if (files?.videoInfo?.[0]) {
+      videoUrl = await azureUpload(files.videoInfo[0]);
+    }
+
+    if (files?.imageInfo?.[0]) {
+      imageUrl = await azureUpload(files.imageInfo[0]);
+    }
+
+    const newCourse = await this.CourseRepository.save({
       courseId: uuidv4(),
       title: course.title,
       description: course.description,
       category: categoryData,
-      imageInfo: course.imageInfo,
+      imageInfo: imageUrl,
       price: course.price,
-      videoInfo: course.videoInfo,
+      videoInfo: videoUrl,
       user: userData,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    throw new HttpException('Created', HttpStatus.OK);
+
+    return {
+      ...newCourse,
+      userId: userData.user_id,
+      userName: userData.email,
+      categoryId: categoryData.categoryId,
+      categoryName: categoryData.name,
+    } as CourseResponseDTO;
   }
 
   async updateCourse(
     courseId: string,
-    updateData: Partial<Course>,
+    updateData: Partial<CourseRequestDTO>,
+    files?: {
+      videoInfo?: Express.Multer.File[];
+      imageInfo?: Express.Multer.File[];
+    },
   ): Promise<CourseResponseDTO> {
     const course = await this.CourseRepository.findOne({
       where: { courseId },
       relations: ['user', 'category'],
     });
+    const { userId, categoryId } = updateData;
 
     if (!course) {
       throw new HttpException(
@@ -138,12 +169,51 @@ export class CourseService {
         HttpStatus.NOT_FOUND,
       );
     }
+    const userData = await this.userRepository.findOne({
+      where: { user_id: userId },
+    });
+    if (!userData) {
+      throw new HttpException(
+        `User with ID ${userId} not found.`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-    Object.assign(course, updateData);
-    await this.CourseRepository.save(course);
-    throw new HttpException('Updated', HttpStatus.OK);
+    const categoryData = await this.categoryRepository.findOne({
+      where: { categoryId },
+    });
+    if (!categoryData) {
+      throw new HttpException(
+        `Category with ID ${categoryId} not found.`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    let videoUrl = course.videoInfo;
+    let imageUrl = course.imageInfo;
+
+    if (files?.videoInfo?.[0]) {
+      videoUrl = await azureUpload(files.videoInfo[0]);
+    }
+
+    if (files?.imageInfo?.[0]) {
+      imageUrl = await azureUpload(files.imageInfo[0]);
+    }
+    Object.assign(course, updateData, {
+      category: categoryData,
+      videoInfo: videoUrl,
+      imageInfo: imageUrl,
+      updatedAt: new Date(),
+    });
+
+    const updatedCourse = await this.CourseRepository.save(course);
+    return {
+      ...updatedCourse,
+      userId: userData.user_id,
+      userName: userData.email,
+      categoryId: categoryData?.categoryId || updateData.categoryId,
+      categoryName: categoryData.name,
+    } as CourseResponseDTO;
   }
-
   async deleteCourse(courseId: string): Promise<void> {
     const course = await this.CourseRepository.findOne({
       where: { courseId },

@@ -7,7 +7,7 @@ import { deleteCourse } from "@/app/api/course/CourseAPI";
 import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-
+import { useRouter } from "next/navigation";
 interface CourseListProps {
   courses: Course[];
   setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
@@ -16,7 +16,7 @@ interface CourseListProps {
 const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
   const t = useTranslations("courses");
   const token = "your_auth_token_here";
-
+  const router = useRouter();
   const handleDelete = async (courseId: string) => {
     try {
       await deleteCourse(courseId, token);
@@ -70,7 +70,9 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
               </td>
               <td>
                 <button
-                  onClick={() => console.log("Edit course:", course)}
+                  onClick={() =>
+                    router.push(`/vn/admin/courseAdmin/edit/${course.courseId}`)
+                  }
                   style={{ marginRight: "10px" }}
                 >
                   <svg

@@ -47,20 +47,34 @@ export const fetchCourseById = async (
 };
 
 export const createCourse = async (
-  courseData: Course,
+  courseData: Partial<Course>,
+  files: { videoInfo?: File; imageInfo?: File },
   token: string
 ): Promise<Course> => {
   try {
+    const formData = new FormData();
+    Object.entries(courseData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value as string);
+      }
+    });
+
+    if (files.videoInfo) formData.append("videoInfo", files.videoInfo);
+    if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
+
     const response = await axios.post<Course>(
-      `${API_BASE_URL}/createCourse`,
-      courseData,
-      getAuthHeaders(token)
+      `${API_BASE_URL}/create`,
+      formData,
+      {
+        ...getAuthHeaders(token),
+        headers: {
+          ...getAuthHeaders(token).headers,
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
-    return {
-      ...response.data,
-      updatedAt: new Date(response.data.updatedAt).toISOString(),
-      createdAt: new Date(response.data.createdAt).toISOString(),
-    };
+
+    return response.data;
   } catch (error) {
     handleAxiosError(error, "creating course");
     throw error;
@@ -69,15 +83,33 @@ export const createCourse = async (
 
 export const updateCourse = async (
   courseId: string,
-  courseData: Course,
+  updateData: Partial<Course>,
+  files: { videoInfo?: File; imageInfo?: File },
   token: string
 ): Promise<Course> => {
   try {
+    const formData = new FormData();
+    Object.entries(updateData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value as string);
+      }
+    });
+
+    if (files.videoInfo) formData.append("videoInfo", files.videoInfo);
+    if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
+
     const response = await axios.put<Course>(
-      `${API_BASE_URL}/updateCourse/${courseId}`,
-      courseData,
-      getAuthHeaders(token)
+      `${API_BASE_URL}/update/${courseId}`,
+      formData,
+      {
+        ...getAuthHeaders(token),
+        headers: {
+          ...getAuthHeaders(token).headers,
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
+
     return response.data;
   } catch (error) {
     handleAxiosError(error, `updating course with ID: ${courseId}`);
