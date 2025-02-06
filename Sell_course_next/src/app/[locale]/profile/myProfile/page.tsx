@@ -38,6 +38,12 @@ const MyProfilePage: React.FC = () => {
     }
   }, [session, status, router]);
 
+  useEffect(() => {
+    if (session?.user) {
+      setUser(session.user);
+    }
+  }, [session]);
+
   const fetchUserDetails = async (userId: string) => {
     if (!userId) return;
     setLoadingDetails(true);
