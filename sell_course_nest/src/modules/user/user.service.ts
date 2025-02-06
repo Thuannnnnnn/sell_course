@@ -8,9 +8,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { Permission } from '../permission/entities/permission.entity';
+import { azureUpload } from 'src/utilities/azure.service';
 import { UserDTO } from './dto/userData.dto';
+import { UserDto } from './dto/updateProfile.dto';
 
 @Injectable()
 export class UserService {
@@ -33,51 +34,51 @@ export class UserService {
     return new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() });
   }
 
-  async changePassword(
-    email: string,
-    currentPassword: string,
-    newPassword: string,
-    confirmPassword: string,
-  ): Promise<string> {
-    // Find the user by user_id (which matches the value from the token)
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    // Validate current password
-    const isCurrentPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.password,
-    );
-    if (!isCurrentPasswordValid) {
-      throw new UnauthorizedException('Current password is incorrect');
-    }
-    // Check if new password matches confirm password
-    if (newPassword !== confirmPassword) {
-      throw new BadRequestException(
-        'New password and confirm password do not match',
-      );
-    }
-    // Hash the new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    // Update the user's password
-    user.password = hashedNewPassword;
-    await this.userRepository.save(user); // Ensure that this saves the updated user in the database
-    return 'Password changed successfully';
-  }
-  async updateProfile(
-    email: string,
-    updateProfileDto: UpdateProfileDto,
-  ): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { email } });
+  // async changePassword(
+  //   email: string,
+  //   currentPassword: string,
+  //   newPassword: string,
+  //   confirmPassword: string,
+  // ): Promise<string> {
+  //   // Find the user by user_id (which matches the value from the token)
+  //   const user = await this.userRepository.findOne({ where: { email } });
+  //   if (!user) {
+  //     throw new NotFoundException('User not found');
+  //   }
+  //   // Validate current password
+  //   const isCurrentPasswordValid = await bcrypt.compare(
+  //     currentPassword,
+  //     user.password,
+  //   );
+  //   if (!isCurrentPasswordValid) {
+  //     throw new UnauthorizedException('Current password is incorrect');
+  //   }
+  //   // Check if new password matches confirm password
+  //   if (newPassword !== confirmPassword) {
+  //     throw new BadRequestException(
+  //       'New password and confirm password do not match',
+  //     );
+  //   }
+  //   // Hash the new password
+  //   const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+  //   // Update the user's password
+  //   user.password = hashedNewPassword;
+  //   await this.userRepository.save(user); // Ensure that this saves the updated user in the database
+  //   return 'Password changed successfully';
+  // }
+  // async updateProfile(
+  //   email: string,
+  //   updateProfileDto: UpdateProfileDto,
+  // ): Promise<User> {
+  //   const user = await this.userRepository.findOne({ where: { email } });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  //   if (!user) {
+  //     throw new NotFoundException('User not found');
+  //   }
 
-    Object.assign(user, updateProfileDto);
-    return this.userRepository.save(user);
-  }
+  //   Object.assign(user, updateProfileDto);
+  //   return this.userRepository.save(user);
+  // }
   async findAll(): Promise<UserDTO[]> {
     const users = await this.userRepository.find({
       relations: ['permissions'],
@@ -126,5 +127,100 @@ export class UserService {
     user.permissions.splice(permissionIndex, 1);
     await this.userRepository.save(user);
     return user;
+  }
+
+  async changePassword(
+    email: string,
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string,
+  ): Promise<string> {
+    try {
+      const user = await this.userRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      console.log('Tim user ne', user);
+
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+      if (!isCurrentPasswordValid) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+
+      if (newPassword !== confirmPassword) {
+        throw new BadRequestException(
+          'New password and confirm password do not match',
+        );
+      }
+      user.password = await bcrypt.hash(newPassword, 10);
+      await this.userRepository.save(user);
+      return 'Password changed successfully';
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          error.message || 'Failed to change password',
+        );
+      }
+      throw new BadRequestException('Failed to change password');
+    }
+  }
+
+  async getUserById(user_id: string): Promise<UserDto | null> {
+    const user = await this.userRepository.findOne({ where: { user_id } });
+    if (!user) {
+      return null;
+    }
+
+    return new UserDto(
+      user.user_id,
+      user.email,
+      user.username,
+      user.avatarImg,
+      user.gender,
+      user.birthDay,
+      user.phoneNumber,
+      user.role,
+    );
+  }
+
+  async updateUserById(
+    email: string,
+    updateData: Partial<UserDto>,
+    file?: Express.Multer.File,
+  ): Promise<UserDto | null> {
+    // Tìm user bằng email
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      return null;
+    }
+
+    // Nếu có file, upload avatar mới lên Azure Blob Storage
+    if (file) {
+      try {
+        const avatarUrl = await azureUpload(file); // Upload file lên Azure Blob
+        updateData.avatarImg = avatarUrl;
+      } catch {
+        throw new Error('Failed to upload avatar to Azure Blob Storage.');
+      }
+    }
+    console.log('Update data:', file, updateData);
+
+    Object.assign(user, updateData);
+    await this.userRepository.save(user);
+
+    // Trả về UserDto
+    return new UserDto(
+      user.user_id,
+      user.email,
+      user.username,
+      user.avatarImg,
+      user.gender,
+      user.birthDay,
+      user.phoneNumber,
+      user.role,
+    );
   }
 }

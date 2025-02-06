@@ -165,5 +165,30 @@
     "placeHodelName":"Enter name",
     "placeHodelDescription":"Enter decription",
     "TitleCreateSubCategory": "Sub Category"
-  }
+  },
+  "dashboardUser": {
+    "dashboard": "Dashborad",
+    "myProfile": "My profile",
+    "enrolledCourse": "Enrolled Coursese",
+    "wishList": "Wishlist",
+    "orderHistory": "Order History",
+    "setting": "Settings",
+    "logout": "Logout"
+  },
+  "changePassword": {
+      "title": "Settings",
+      "title-profile": "Profile",
+      "title-password": "Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "btnChange-1": "Change Password",
+      "btnChange-2": "Change...",
+      "errorPasswordsMatch": "New password cannot be the same as the current password.",
+      "errorPasswordsDontMatch": "New password and confirm password do not match.",
+      "passwordChangeSuccess": "Password changed successfully.",
+      "errorFillAllFields": "Please fill in all fields",
+      "errorTokenNotFound": "Token not found. Please try again.",
+      "errorPasswordTooShort": "Password must be at least 8 characters long."
+    }
 }

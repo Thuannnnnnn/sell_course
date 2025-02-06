@@ -39,6 +39,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               token: response.data.token, // Lưu token
               id: response.data.id,
               email: response.data.email,
+              gender: response.data.gender,
+              birthDay: response.data.birthDay,
+              phoneNumber: response.data.phoneNumber,
+              avatarImg: response.data.avatarImg || "/default-avatar.png",
               name: response.data.username,
               role: response.data.role,
             };
@@ -65,17 +69,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.name = user.name;
+        token.gender = user.gender;
+        token.birthDay = user.birthDay;
+        token.phoneNumber = user.phoneNumber;
+        token.avatarImg = user.avatarImg || "/default-avatar.png";
         token.role = user.role;
         token.token = user.token;
       }
       return token;
     },
 
+    // async session({ session, token }) {
+
+    //   session.user.id = token.id as string;
+    //   session.user.email = token.email as string;
+    //   session.user.role = token.role as string;
+    //   session.user.token = token.token as string;
+    //   session.user.name = token.name as string;
+    //   session.user.avatarImg = token.avatarImg || "/default-avatar.png";
+    //   session.gender = token.gender as string;
+    //   session.birthDay = token.birthDay as string;
+    //   session.phoneNumber = token.phoneNumber as number;
+    //   return session;
+    // },
     async session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.email = token.email as string;
-      session.user.role = token.role as string;
-      session.user.token = token.token as string;
+      session.user = {
+        ...session.user,
+        id: token.id as string,
+        email: token.email as string,
+        role: token.role as string,
+        token: token.token as string,
+        name: token.name as string,
+        avatarImg: token.avatarImg || "/default-avatar.png",
+        gender: token.gender as string,
+        birthDay: token.birthDay as string,
+        phoneNumber: token.phoneNumber as string,
+      };
       return session;
     },
     async signIn({ user, account }) {
@@ -95,6 +125,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       const payload = {
+        token: user.token,
+        id: user.id,
+        provider: account.provider,
+        avatarImg: user.avatarImg || "/default-avatar.png",
         email: user.email,
         name: user.name,
         picture: user.image,
