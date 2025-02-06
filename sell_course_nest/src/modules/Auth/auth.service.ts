@@ -183,35 +183,63 @@ export class authService {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
     const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
-    const subject = 'Verify your email';
+    const subject = 'Password Reset Request';
     const content = `
-      <p>Dear User,</p>
-      <p>Thank you for registering with us. Please click the link below to verify your email address:</p>
-      <p><a href="http://localhost:3000/${lang}/auth/forgot-password/info?token=${token}" target="_blank">Verify Email</a></p>
+      <p>Dear ${email},</p>
+      <p>We received a request to reset your password. Please click the link below to proceed:</p>
+      <p><a href="http://localhost:3000/${lang}/auth/reset-password?token=${token}&email=${email}" target="_blank">Reset Password</a></p>
       <p>This link will expire in 1 hour.</p>
       <p>If you did not request this, please ignore this email.</p>
       <p>Best regards,</p>
-      <p>Redflag GoldenStart</p>
+      <p>Redflag GoldenStart Team</p>
     `;
 
     this.mailService.sendSimpleEmail(email, subject, content);
-    return { message: 'Send mail successfully', statusCode: HttpStatus.OK };
+    return { message: 'Password reset email sent successfully', statusCode: HttpStatus.OK };
   }
 
-  async forgotPw(email: string, password: string, token: string) {
-    const decode = this.jwtService.decode(token);
-    if (decode.email != email) {
-      throw new HttpException('Token invalid', HttpStatus.BAD_REQUEST);
-    }
-    const newPassword = await bcrypt.hash(password, 10);
 
-    const result = await this.userRepository.update(
-      { email },
-      { password: newPassword },
-    );
-    if (result.affected === 0) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+  async forgotPw(email: string, password: string, token: string) {
+    try {
+      if (!token) {
+        throw new HttpException('No token provided', HttpStatus.BAD_REQUEST);
+      }
+      console.log('Received Token:', token);
+      let decoded;
+      try {
+        decoded = this.jwtService.verify(token);
+      } catch (error) {
+        throw new HttpException('Token invalid or expired', HttpStatus.BAD_REQUEST);
+      }
+      console.log('Decoded Token:', decoded);
+      console.log('Received email:', email);
+      console.log('Token email:', decoded.email);
+      // Normalize email comparison (trim + lowercase)
+      if (decoded.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
+        throw new HttpException('Token email does not match', HttpStatus.BAD_REQUEST);
+      }
+      // Check if user exists
+      const user = await this.userRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      // Hash new password
+      const newPassword = await bcrypt.hash(password, 10);
+      // Update user's password
+      const result = await this.userRepository.update({ email }, { password: newPassword });
+      if (result.affected === 0) {
+        throw new HttpException('Failed to update password', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      return { message: 'Password reset successfully' };
+    } catch (error) {
+      console.error('Error in forgotPw:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
-    return { message: 'reset password successfully' };
   }
 }

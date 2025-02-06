@@ -221,10 +221,36 @@
   "login": "Đăng nhập",
   "successMessage": "Kiểm tra email để đặt lại mật khẩu.",
   "errorMessage": "Không thể gửi email. Vui lòng thử lại.",
-  "serverError": "Lỗi máy chủ. Vui lòng thử sau."
+  "serverError": "Lỗi máy chủ. Vui lòng thử sau.",
+  "emailSent": "Đã gửi mail ",
+  "emailNotReceived": "Bạn đã nhận được email chưa? Nếu chưa, hãy thử lại."
+
 },
   "forgotPasswordBanner": {
     "title-3": "Quên mật khẩu"
-}
+},
+"resetPasswordPage": {
+  "title": "Đặt Lại Mật Khẩu",
+  "newPassword": "Mật khẩu mới",
+  "confirmPassword": "Xác nhận mật khẩu",
+  "placeholderPassword": "Nhập mật khẩu mới",
+  "placeholderConfirmPassword": "Xác nhận mật khẩu mới",
+  "passwordMismatch": "Mật khẩu không khớp.",
+  "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự.",
+  "passwordNoUppercase": "Mật khẩu phải có ít nhất một chữ cái viết hoa.",
+  "passwordNoLowercase": "Mật khẩu phải có ít nhất một chữ cái viết thường.",
+  "passwordNoNumber": "Mật khẩu phải có ít nhất một chữ số.",
+  "passwordNoSpecial": "Mật khẩu phải có ít nhất một ký tự đặc biệt.",
+  "passwordResetSuccess": "Mật khẩu của bạn đã được đặt lại thành công!",
+  "serverError": "Đã xảy ra lỗi. Vui lòng thử lại.",
+  "loading": "Đang xử lý...",
+  "resetPassword": "Đặt lại mật khẩu",
+  "rememberedPassword": "Bạn nhớ mật khẩu?",
+  "login": "Đăng nhập"
+},
+    "resetPasswordBanner": {
+      "title-reset": "Đặt lại mật khẩu"
+    }
+
 
 }

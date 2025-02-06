@@ -61,7 +61,7 @@ export class authController {
     this.authService.validateEmailForgot(body.email, body.lang);
     return { message: 'OK', statusCode: HttpStatus.OK };
   }
-  @Post('forgot-password-info')
+  @Post('reset-password')
   async forgotPasswordInfo(
     @Body() body: { token: string; email: string; password: string },
   ) {
