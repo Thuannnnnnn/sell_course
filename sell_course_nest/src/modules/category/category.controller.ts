@@ -22,9 +22,8 @@ import {
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @ApiBearerAuth()
-  @Post('admin/categories/createCategory')
-  @ApiBearerAuth()
+  @Post('categories/createCategory')
+  // @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
     status: 201,
@@ -41,7 +40,7 @@ export class CategoryController {
     return await this.categoryService.createCategory(createCategoryDto);
   }
 
-  @Get('getAll')
+  @Get('categories/getAll')
   @ApiOperation({ summary: 'Get all categories (tree structure)' })
   @ApiResponse({
     status: 200,
@@ -56,7 +55,7 @@ export class CategoryController {
     return await this.categoryService.getAllCategories();
   }
 
-  @Get('getById/:id')
+  @Get('categories/getById/:id')
   @ApiOperation({ summary: 'Get a category by ID' })
   @ApiResponse({
     status: 200,
@@ -73,9 +72,8 @@ export class CategoryController {
     return await this.categoryService.getCategoryById(id);
   }
 
-  @ApiBearerAuth()
-  @Put('admin/categories/updateCategory/:id')
-  @ApiBearerAuth()
+
+  @Put('categories/updateCategory/:id')
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
     status: 200,
@@ -97,9 +95,7 @@ export class CategoryController {
     return await this.categoryService.updateCategory(id, updateCategoryDto);
   }
 
-  @ApiBearerAuth()
-  @Delete('admin/categories/deleteCategory/:id')
-  @ApiBearerAuth()
+  @Delete('categories/deleteCategory/:id')
   @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiResponse({
     status: 200,

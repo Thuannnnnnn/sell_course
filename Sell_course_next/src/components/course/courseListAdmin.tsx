@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import "@/style/course/courseAdmin.css";
+import "@/style/courseAdmin.css";
 import { Course } from "@/app/type/course/Course";
 import { deleteCourse } from "@/app/api/course/CourseAPI";
 import { Container } from "react-bootstrap";

@@ -13,6 +13,7 @@ export class CourseResponseDTO {
     updatedAt: Date,
     userId: string,
     userName: string,
+    userAvata: string,
     categoryName: string,
     categoryId: string,
   ) {
@@ -26,6 +27,7 @@ export class CourseResponseDTO {
     this.updatedAt = updatedAt;
     this.userId = userId;
     this.userName = userName;
+    this.userAvata = userAvata;
     this.categoryName = categoryName;
     this.categoryId = categoryId;
   }
@@ -104,6 +106,13 @@ export class CourseResponseDTO {
   })
   @IsString()
   categoryName: string;
+
+  @ApiProperty({
+    description: 'The avata of user',
+    example: 'Web Development',
+  })
+  @IsString()
+  userAvata: string;
 
   @ApiProperty({
     description: 'The ID of the category to which the course belongs',
