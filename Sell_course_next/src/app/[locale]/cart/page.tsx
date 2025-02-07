@@ -8,8 +8,9 @@ import "../../../style/Cart.css";
 import Banner from "@/components/Banner-Card";
 import image from "../../image/banner_image.png";
 import { useSession } from "next-auth/react";
-import { fetchCart } from "@/app/api/cart/cart";
+import { deleteCart, fetchCart } from "@/app/api/cart/cart";
 import { CartResponse } from "@/app/type/cart/cart";
+import { Button } from "react-bootstrap";
 
 const defaultImage = image;
 
@@ -17,7 +18,6 @@ export default function CartPage() {
   const t = useTranslations("cart");
   const tl = useTranslations("cartBanner");
   const { data: session } = useSession();
-
   const [cartItems, setCartItems] = useState<CartResponse[]>([]);
 
   useEffect(() => {
@@ -26,8 +26,10 @@ export default function CartPage() {
         const token = session?.user?.token;
         if (!token || !session?.user?.id) return;
 
-        const response = await fetchCart(token, session.user.id);
-        setCartItems(response || []);
+        const email = session?.user?.email;
+        if (!email) return;
+        const response = await fetchCart(token, email);
+        setCartItems(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error("Error fetching cart:", error);
       }
@@ -37,71 +39,77 @@ export default function CartPage() {
       getCart();
     }
   }, [session]);
+  const subtotal = cartItems.reduce((acc, item) => acc + item.course_price, 0);
+  const handleRemoveItem = async (cart_id: string) => {
+    if (!session?.user?.token) return;
 
-  // ✅ Tính tổng giá trị giỏ hàng
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2);
-
-  // ✅ Xử lý xóa sản phẩm khỏi giỏ hàng
-  const handleRemoveItem = (id: string) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+    try {
+      const response = await deleteCart(session.user.token, cart_id);
+      if (response.statusCode === 200) {
+        setCartItems(cartItems.filter(item => item.cart_id !== cart_id));
+      } else {
+        console.error("Failed to remove item:", response.message);
+      }
+    } catch (error) {
+      console.error("Error removing item:", error);
+    }
   };
 
+  const handleCheckOut = async()
   return (
     <div>
       <Banner title={tl("title")} subtitle={tl("subtitle")} />
 
       <div className="cart-container">
-        {cartItems.length > 0 ? (
-          <div className="cart-wrapper">
-            <table className="cart-table">
-              <thead>
-                <tr>
-                  <th>{t("thumbnail")}</th>
-                  <th>{t("product")}</th>
-                  <th>{t("price")}</th>
-                  <th>{t("quantity")}</th>
-                  <th>{t("subtotal")}</th>
-                  <th>{t("remove")}</th>
+        <div className="cart-wrapper">
+          <table className="cart-table">
+            <thead>
+              <tr>
+                <th>{t("thumbnail")}</th>
+                <th>{t("product")}</th>
+                <th>{t("price")}</th>
+                <th>{t("remove")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cartItems.map(({ cart_id, course_img, course_title, course_price }) => (
+                <tr key={cart_id}>
+                  <td className="thumbnail">
+                    <Image
+                      src={course_img || defaultImage}
+                      alt={course_title}
+                      width={100}
+                      height={100}
+                      className="product-image rounded"
+                    />
+                  </td>
+                  <td className="product-title">{course_title}</td>
+                  <td className="product-price">${course_price}</td>
+                  <td className="remove-cell">
+                    <Button variant="outline-light" onClick={() => handleRemoveItem(cart_id)}>
+                      <RiDeleteBin6Line size={22} color="red" />
+                    </Button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {cartItems.map(({ }) => (
-                  <tr key={id}>
-                    <td className="thumbnail">
-                      <Image src={image || defaultImage} alt={title} width={80} height={80} className="product-image" />
-                    </td>
-                    <td className="product-title">{title}</td>
-                    <td className="product-price">${price.toFixed(2)}</td>
-                    <td className="product-quantity">{quantity}</td>
-                    <td className="subtotal">${(price * quantity).toFixed(2)}</td>
-                    <td className="remove-cell">
-                      <button className="remove-btn" onClick={() => handleRemoveItem(id)}>
-                        <RiDeleteBin6Line size={22} color="red" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </tbody>
+          </table>
 
-            <div className="cart-summary">
-              <h2>{t("title")}</h2>
-              <div className="cart-totals">
-                <div className="cart-total-row">
-                  <span>{t("subtotal")}</span>
-                  <span className="cart-price">${subtotal}</span>
-                </div>
-                <div className="cart-total-row">
-                  <span>{t("total")}</span>
-                  <span className="cart-price">${subtotal}</span>
-                </div>
+          <div className="cart-summary">
+            <h2>{t("title")}</h2>
+            <div className="cart-totals">
+              <div className="cart-total-row">
+                <span>{t("subtotal")}</span>
+                <span className="cart-price">${subtotal}</span>
               </div>
-              <button className="buy-btn">{t("checkout")}</button>
+              <div className="cart-total-row">
+                <span>{t("total")}</span>
+                <span className="cart-price">${subtotal}</span>
+              </div>
             </div>
+            <Button className="buy-btn">{t("checkout")}</Button>
           </div>
-        ) : (
-          <p className="empty-cart">{t("emptyMessage")}</p>
-        )}
+        </div>
       </div>
     </div>
   );

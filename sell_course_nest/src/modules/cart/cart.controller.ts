@@ -26,11 +26,9 @@ export class CartController {
     throw new HttpException('OK', 200);
   }
 
-  @Get(':userId')
-  async getUserCart(
-    @Param('userId') userId: string,
-  ): Promise<CartResponseDto[]> {
-    const response = this.cartService.getUserCart(userId);
+  @Get(':email')
+  async getUserCart(@Param('email') email: string): Promise<CartResponseDto[]> {
+    const response = this.cartService.getUserCart(email);
     if (!response) {
       throw new HttpException('server error', 500);
     }
@@ -39,7 +37,14 @@ export class CartController {
 
   @Delete(':cartId')
   async removeFromCart(@Param('cartId') cartId: string): Promise<void> {
-    await this.cartService.removeFromCart(cartId);
+    if (!cartId) {
+      throw new HttpException('Bad request', 400);
+    }
+    const response = await this.cartService.removeFromCart(cartId);
+    if (!response) {
+      throw new HttpException('server error', 500);
+    }
+    throw new HttpException('OK', 200);
   }
 
   @Delete('clear/:userId')

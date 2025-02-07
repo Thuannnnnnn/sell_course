@@ -141,6 +141,6 @@ import { PermissionMiddleware } from './modules/permission/permission.middleware
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/admin/*');
+    consumer.apply(PermissionMiddleware).forRoutes('/api/abc/*');
   }
 }

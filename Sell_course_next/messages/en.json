@@ -220,5 +220,19 @@
     "enterCourse": "Enter course title",
     "enterDescription": "Shortly describe this course",
     "enterURL": "nhập địa chỉ URL"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "thumbnail": "Thumbnail",
+    "product": "Product",
+    "price": "Price",
+    "remove": "Remove",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "Proceed to Checkout"
+  },
+  "cartBanner": {
+    "title": "Your Cart",
+    "subtitle": "Review your selected courses before checkout"
   }
 }

@@ -27,7 +27,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
-  @Get('course/getAll')
+  @Get('courses/getAll')
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,

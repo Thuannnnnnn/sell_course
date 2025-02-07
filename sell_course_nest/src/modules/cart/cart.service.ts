@@ -36,9 +36,9 @@ export class CartService {
     return true;
   }
 
-  async getUserCart(userId: string): Promise<CartResponseDto[]> {
+  async getUserCart(email: string): Promise<CartResponseDto[]> {
     const cartItems = await this.cartRepository.find({
-      where: { user: { user_id: userId } },
+      where: { user: { email: email } },
       relations: ['user', 'course'],
     });
 
@@ -57,11 +57,12 @@ export class CartService {
     }));
   }
 
-  async removeFromCart(cartId: string): Promise<void> {
+  async removeFromCart(cartId: string): Promise<boolean> {
     const result = await this.cartRepository.delete({ cartId });
     if (result.affected === 0) {
-      throw new NotFoundException(`Cart item with ID ${cartId} not found`);
+      return false;
     }
+    return true;
   }
 
   async clearCart(userId: string): Promise<void> {
