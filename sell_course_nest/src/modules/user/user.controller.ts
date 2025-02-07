@@ -176,4 +176,38 @@ export class UserController {
       );
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/users/profile')
+  async getMe(@Req() req: any) {
+    try {
+      console.log('Getting user profile for:', req.user);
+      if (!req.user || !req.user.user_id) {
+        throw new UnauthorizedException('User not authenticated');
+      }
+
+      const user = await this.userService.getUserById(req.user.user_id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return {
+        status: HttpStatus.OK,
+        message: 'Get user profile successfully',
+        data: user,
+      };
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to get user profile',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
