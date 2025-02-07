@@ -1,10 +1,10 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Course } from '../../course/entities/course.entity';
 
 @Entity('course_purchase')
 export class CoursePurchase {
-  @PrimaryColumn({ name: 'coursePurchase_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'coursePurchase_id' })
   coursePurchaseId: string;
 
   @ManyToOne(() => User)
