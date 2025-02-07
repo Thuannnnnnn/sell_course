@@ -21,7 +21,7 @@ import { Roles } from '../Auth/roles.decorator';
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
-  @Get('getAll')
+  @Get('/getAll')
   @Roles('ADMIN', 'CUSTOMER')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all courses' })
