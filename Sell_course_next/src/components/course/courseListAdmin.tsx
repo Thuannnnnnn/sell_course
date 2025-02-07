@@ -1,41 +1,32 @@
+"use client";
+
 import React from "react";
-import "../../style/Category.css";
-import { Category } from "@/app/type/category/Category";
-import { deleteCategory } from "@/app/api/category/CategoryAPT";
+import "@/style/course/courseAdmin.css";
+import { Course } from "@/app/type/course/Course";
+import { deleteCourse } from "@/app/api/course/CourseAPI";
 import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
-
-interface CategoryListProps {
-  categories: Category[];
-  setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+interface CourseListProps {
+  courses: Course[];
+  setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
 }
 
-const CategoryList: React.FC<CategoryListProps> = ({
-  categories,
-  setCategories,
-}) => {
-  const t = useTranslations("categoies");
+const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
+  const t = useTranslations("courses");
+  const token = "your_auth_token_here";
   const router = useRouter();
-
-  const handleDelete = async (categoryId: string) => {
+  const handleDelete = async (courseId: string) => {
     try {
-      await deleteCategory(categoryId);
-      setCategories((prev) =>
-        prev.filter((category) => category.categoryId !== categoryId)
+      await deleteCourse(courseId, token);
+      setCourses((prev) =>
+        prev.filter((course) => course.courseId !== courseId)
       );
     } catch (error) {
-      console.error("Failed to delete category: ", error);
-      alert("Failed to delete category.");
+      console.error("Failed to delete course: ", error);
+      alert("Failed to delete course.");
     }
-  };
-
-  const params = useParams();
-  
-
-  const handleEdit = (categoryId: string) => {
-    const locale = params.locale;
-    router.push(`/${locale}/admin/category/edit/${categoryId}`);
   };
 
   return (
@@ -44,26 +35,45 @@ const CategoryList: React.FC<CategoryListProps> = ({
         <thead>
           <tr>
             <th></th>
-            <th>{t("name")}</th>
-            <th>{t("description")}</th>
-            <th>{t("parentCategory")}</th>
+            <th>{t("thumbnail")}</th>
+            <th>{t("title")}</th>
+            <th>{t("category")}</th>
+            <th>{t("author")}</th>
+            <th>{t("dateCreated")}</th>
             <th>{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
-          {categories.map((category, index) => (
-            <tr key={category.categoryId}>
+          {courses.map((course, index) => (
+            <tr key={course.courseId}>
+              <td>{index + 1}</td>
               <td>
-                <div>#{index + 1}</div>
+                {course.imageInfo ? (
+                  <Image
+                    src={course.imageInfo}
+                    alt="Course Thumbnail"
+                    width={50}
+                    height={50}
+                    style={{ objectFit: "cover" }}
+                  />
+                ) : (
+                  "N/A"
+                )}
               </td>
-              <td>{category.name}</td>
-              <td>{category.description}</td>
-              <td>{category.parentId ? `Parent: ${category.parentId}` : ""}</td>
+              <td>{course.title}</td>
+              <td>{course.categoryName || "N/A"}</td>
+              <td>{course.userName || "N/A"}</td>
+              <td>
+                {course.createdAt
+                  ? new Date(course.createdAt).toLocaleDateString()
+                  : "N/A"}
+              </td>
               <td>
                 <button
-                  onClick={() => handleEdit(category.categoryId)}
+                  onClick={() =>
+                    router.push(`/vn/admin/courseAdmin/edit/${course.courseId}`)
+                  }
                   style={{ marginRight: "10px" }}
-                  className="edit-button"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -77,10 +87,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
                     <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
                   </svg>
                 </button>
-                <button
-                  onClick={() => handleDelete(category.categoryId)}
-                  className="delete-button"
-                >
+                <button onClick={() => handleDelete(course.courseId)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -102,4 +109,4 @@ const CategoryList: React.FC<CategoryListProps> = ({
   );
 };
 
-export default CategoryList;
+export default CourseList;

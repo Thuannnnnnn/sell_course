@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 export const metadata: Metadata = {
-  title: "Add Category",
-  description: "Admin Category",
+  title: 'Courses',
+  description: 'Admin Courses',
 };
 
 export default function RootLayout({
@@ -9,5 +9,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  return (
+    <>
+    {children}
+</>
+  );
 }
