@@ -2,15 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  updateCategory,
-  fetchCategories,
-} from "@/app/api/category/CategoryAPT";
+
 import { Category } from "@/app/type/category/Category";
 import { CategoryForm } from "./CategoryForm";
 import "@/style/Category.css";
 import { FormButtons } from "../FormButtons";
 import { useTranslations } from "next-intl";
+import { fetchCategories, updateCategory } from "@/app/api/category/CategoryAPI";
 
 interface UpdateCategoryPageProps {
   categoryId: string;

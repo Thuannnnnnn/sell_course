@@ -10,14 +10,21 @@ import {
 import { CategoryService } from './category.service';
 import { CategoryRequestDto } from './dto/categoryRequestData.dto';
 import { CategoryResponseDto } from './dto/categoryResponseData.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('Categories')
-@Controller('api/categories')
+@Controller('api/')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Post('createCategory')
+  @ApiBearerAuth()
+  @Post('admin/categories/createCategory')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
     status: 201,
@@ -66,7 +73,9 @@ export class CategoryController {
     return await this.categoryService.getCategoryById(id);
   }
 
-  @Put('updateCategory/:id')
+  @ApiBearerAuth()
+  @Put('admin/categories/updateCategory/:id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
     status: 200,
@@ -88,7 +97,9 @@ export class CategoryController {
     return await this.categoryService.updateCategory(id, updateCategoryDto);
   }
 
-  @Delete('deleteCategory/:id')
+  @ApiBearerAuth()
+  @Delete('admin/categories/deleteCategory/:id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiResponse({
     status: 200,

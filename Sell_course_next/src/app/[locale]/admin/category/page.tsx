@@ -2,8 +2,8 @@
 import Sidebar from "@/components/SideBar";
 import type { Category } from "@/app/type/category/Category";
 import { useEffect, useState } from "react";
-import { fetchCategories } from "@/app/api/category/CategoryAPT";
-import CategoryList from "@/components/category/CourseList";
+import { fetchCategories } from "@/app/api/category/CategoryAPI";
+import CategoryList from "@/components/category/CategoryList";
 import "../../../../style/Category.css";
 import { useTranslations } from "next-intl";
 

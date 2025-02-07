@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsDateString, IsUUID } from 'class-validator';
-
+import {
+  IsString,
+  IsNumber,
+  IsDateString,
+  IsUUID,
+  IsOptional,
+} from 'class-validator';
+import { Express } from 'express';
 export class CourseRequestDTO {
   @ApiProperty({
     description: 'Title of the course',
@@ -24,19 +30,13 @@ export class CourseRequestDTO {
   @IsString()
   description: string;
 
-  @ApiProperty({
-    description: 'Information related to the course video',
-    example: 'This course has 10 hours of content.',
-  })
-  @IsString()
-  videoInfo: string;
+  @ApiProperty({ type: 'string', format: 'binary', description: 'Video file' })
+  @IsOptional()
+  videoInfo?: Express.Multer.File;
 
-  @ApiProperty({
-    description: 'Information related to the course image',
-    example: 'https://example.com/course-image.jpg',
-  })
-  @IsString()
-  imageInfo: string;
+  @ApiProperty({ type: 'string', format: 'binary', description: 'Image file' })
+  @IsOptional()
+  imageInfo?: Express.Multer.File;
 
   @ApiProperty({
     description: 'The date when the course was created',

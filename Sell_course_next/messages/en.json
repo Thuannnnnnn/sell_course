@@ -191,38 +191,34 @@
     "errorTokenNotFound": "Token not found. Please try again.",
     "errorPasswordTooShort": "Password must be at least 8 characters long."
   },
-  "cartBanner": {
-    "title": "Cart",
-    "subtitle": "Cart"
+  "courses": {
+    "create": "Create Course",
+    "course": "Course",
+    "author": "author",
+    "title": "Title",
+    "thumbnail": "Thumbnail",
+    "description": "Description",
+    "category": "Category",
+    "dateCreated": "Date Created",
+    "actions": "Actions"
   },
-  "cart": {
-    "title": "Cart",
-    "description": "Selected products list",
-    "checkout": "Buy",
-    "subtotal": "Subtotal",
-    "total": "Total",
-    "buyNow": "Buy Now",
-    "emptyMessage": "Your cart is empty",
-    "remove": "Remove",
-    "quantity": "Quantity",
-    "price": "Price",
-    "product": "Product",
-    "thumbnail": "Image",
-    "removeConfirmation": "Are you sure you want to remove this product?"
-  },
-  "forgotPasswordPage": {
-    "title": "Forgot Password",
-    "email": "Email",
-    "placeholderEmail": "Enter your email",
-    "resetPassword": "Send email",
-    "loading": "Processing...",
-    "rememberedPassword": "Remembered your password?",
-    "login": "Login",
-    "successMessage": "Check your email for password reset instructions.",
-    "errorMessage": "Failed to send reset email. Please try again.",
-    "serverError": "Server error. Please try later."
-  },
-  "forgotPasswordBanner": {
-    "title-3": "Forgot Password"
+  "coursesForm": {
+    "editCourse": "EDIT COURSE",
+    "create": "Create Course",
+    "basicInfor": "BASIC INFORMATION",
+    "courseTitle": "COURSE TITLE",
+    "description": "DESCRIPTION",
+    "video": "VIDEO DEMO",
+    "url": "URL",
+    "image": "IMAGE",
+    "option": "OPTIONS",
+    "category": "Category",
+    "price": "The recommended price is between $20 and $100",
+    "videoNotify": "Your browser does not support the video tag.",
+    "imgNotify": "Drag & Drop or Click to Upload",
+    "back": "BACK",
+    "enterCourse": "Enter course title",
+    "enterDescription": "Shortly describe this course",
+    "enterURL": "nhập địa chỉ URL"
   }
 }

@@ -217,6 +217,36 @@
     "errorTokenNotFound": "Token không tồn tại. Vui lòng thử lại.",
     "errorPasswordTooShort": "Mật khẩu phải dài ít nhất 8 ký tự."
   },
+  "courses": {
+    "create": "Tạo Khóa Học",
+    "course": "Khóa Học",
+    "author": "Tác giả",
+    "title": "Tiêu đề",
+    "thumbnail": "Hình ảnh",
+    "description": "Mô tả",
+    "category": "Thể loại",
+    "dateCreated": "Ngày tải lên",
+    "actions": "Tính năng"
+  },
+  "coursesForm": {
+    "editCourse": "CHỈNH SỬA KHÓA HỌC",
+    "create": "TẠO KHÓA HỌC",
+    "basicInfor": "THÔNG TIN ĐƠN GIẢN",
+    "courseTitle": "TIỀU ĐỀ KHÓA HỌC",
+    "description": "MIÊU TẢ",
+    "video": "VIDEO GIỚI THIỆU",
+    "url": "ĐỊA CHỈ URL",
+    "image": "HÌNH ẢNH",
+    "option": "LỰA CHỌN",
+    "category": "THỂ LOẠI",
+    "price": "Giá đề xuất là từ 20 đến 100 đô la",
+    "videoNotify": "Trình duyệt của bạn không hỗ trợ thẻ video.",
+    "imgNotify": "Kéo & Thả hoặc Nhấp để Tải lên",
+    "back": "về trang trước",
+    "enterCourse": "nhập tiêu đề khóa học",
+    "enterDescription": "nhập tiêu đề ngắn",
+    "enterURL": "nhập địa chỉ URL"
+  },
   "cartBanner": {
     "title": "Giỏ hàng",
     "subtitle": "Giỏ hàng của bạn"
