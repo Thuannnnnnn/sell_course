@@ -1,50 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import "../../../style/Cart.css";
 import Banner from "@/components/Banner-Card";
 import image from "../../image/banner_image.png";
-import { StaticImageData } from "next/image";
+import { useSession } from "next-auth/react";
+import { fetchCart } from "@/app/api/cart/cart";
+import { CartResponse } from "@/app/type/cart/cart";
 
 const defaultImage = image;
 
-interface CartItem {
-  id: number;
-  image: string | StaticImageData;
-  title: string;
-  price: number;
-  quantity: number;
-}
-
 export default function CartPage() {
-  const t = useTranslations("cart"); // Lấy nội dung của "cart"
-  const tl = useTranslations("cartBanner"); // Lấy nội dung của "cartBanner"
+  const t = useTranslations("cart");
+  const tl = useTranslations("cartBanner");
+  const { data: session } = useSession();
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      image: defaultImage,
-      title: "Adobe Illustrator for Graphic Design",
-      price: 187.0,
-      quantity: 2,
-    },
-    {
-      id: 2,
-      image: defaultImage,
-      title: "Adobe Photoshop Essentials",
-      price: 150.0,
-      quantity: 1,
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartResponse[]>([]);
 
-  const handleRemoveItem = (id: number) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  useEffect(() => {
+    const getCart = async () => {
+      try {
+        const token = session?.user?.token;
+        if (!token || !session?.user?.id) return;
+
+        const response = await fetchCart(token, session.user.id);
+        setCartItems(response || []);
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+      }
+    };
+
+    if (session) {
+      getCart();
+    }
+  }, [session]);
+
+  // ✅ Tính tổng giá trị giỏ hàng
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2);
+
+  // ✅ Xử lý xóa sản phẩm khỏi giỏ hàng
+  const handleRemoveItem = (id: string) => {
+    setCartItems(cartItems.filter(item => item.id !== id));
   };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
 
   return (
     <div>
@@ -65,10 +65,10 @@ export default function CartPage() {
                 </tr>
               </thead>
               <tbody>
-                {cartItems.map(({ id, image, title, price, quantity }) => (
+                {cartItems.map(({ }) => (
                   <tr key={id}>
                     <td className="thumbnail">
-                      <Image src={image} alt={title} width={80} height={80} className="product-image" />
+                      <Image src={image || defaultImage} alt={title} width={80} height={80} className="product-image" />
                     </td>
                     <td className="product-title">{title}</td>
                     <td className="product-price">${price.toFixed(2)}</td>

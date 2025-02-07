@@ -19,9 +19,9 @@ export class CartService {
     private readonly courseRepository: Repository<Course>,
   ) {}
 
-  async addToCart(createCartDto: CreateCartDto): Promise<CartResponseDto> {
+  async addToCart(createCartDto: CreateCartDto) {
     const { userId, courseId } = createCartDto;
-
+    console.log(userId, courseId);
     const user = await this.userRepository.findOne({
       where: { user_id: userId },
     });
@@ -32,21 +32,29 @@ export class CartService {
 
     const cartId = uuidv4(); // Generate unique cart ID
     const cartItem = this.cartRepository.create({ cartId, user, course });
-
-    return {
-      cartId: cartItem.cartId,
-      user_id: user.user_id,
-      username: user.username,
-      course_id: course.courseId,
-      course_title: course.title,
-    };
+    await this.cartRepository.save(cartItem);
+    return true;
   }
 
-  async getUserCart(userId: string): Promise<Cart[]> {
-    return this.cartRepository.find({
+  async getUserCart(userId: string): Promise<CartResponseDto[]> {
+    const cartItems = await this.cartRepository.find({
       where: { user: { user_id: userId } },
       relations: ['user', 'course'],
     });
+
+    if (!cartItems.length) {
+      throw new NotFoundException('No cart items found for this user');
+    }
+
+    return cartItems.map((cart) => ({
+      cart_id: cart.cartId,
+      user_id: cart.user.user_id,
+      user_name: cart.user.username,
+      course_id: cart.course.courseId,
+      course_title: cart.course.title,
+      course_price: cart.course.price,
+      course_img: cart.course.imageInfo,
+    }));
   }
 
   async removeFromCart(cartId: string): Promise<void> {

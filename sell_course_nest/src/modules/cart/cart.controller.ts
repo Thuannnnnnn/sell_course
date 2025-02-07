@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
-import { Cart } from './entities/cart.entity';
+import { CartResponseDto } from './dto/cart-response.dto';
 @Controller('api/cart')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
@@ -19,15 +19,22 @@ export class CartController {
     if (!createCartDto) {
       throw new HttpException('Bad Request', 400);
     }
-    if (!this.cartService.addToCart(createCartDto)) {
+    const response = this.cartService.addToCart(createCartDto);
+    if (!response) {
       throw new HttpException('server error', 500);
     }
     throw new HttpException('OK', 200);
   }
 
   @Get(':userId')
-  async getUserCart(@Param('userId') userId: string): Promise<Cart[]> {
-    return this.cartService.getUserCart(userId);
+  async getUserCart(
+    @Param('userId') userId: string,
+  ): Promise<CartResponseDto[]> {
+    const response = this.cartService.getUserCart(userId);
+    if (!response) {
+      throw new HttpException('server error', 500);
+    }
+    return response;
   }
 
   @Delete(':cartId')
