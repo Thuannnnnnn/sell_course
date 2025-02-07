@@ -109,6 +109,7 @@ export class CourseService {
     const courseData = await this.CourseRepository.findOne({
       where: { title },
     });
+
     if (courseData) {
       throw new HttpException(
         `Course with title '${title}' already exists.`,
