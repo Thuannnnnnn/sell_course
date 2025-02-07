@@ -7,29 +7,27 @@ import {
   Post,
   Put,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
 import {
+  ApiBearerAuth,
   ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-// import { AuthGuard } from '@nestjs/passport';
-// import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
-import { Roles } from '../Auth/roles.decorator';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-@Controller('api/courses')
+@Controller('api/')
 @ApiTags('Course')
-// @UseGuards(JwtAuthGuard, RolesGuard)
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
-  @Get('getAll')
-  @Roles('ADMIN', 'CUSTOMER')
+  @Get('course/getAll')
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,
@@ -43,8 +41,8 @@ export class CourseController {
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     return await this.courseService.getAllCourses();
   }
+
   @Get('getByCourse/:id')
-  @Roles('ADMIN')
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiResponse({
     status: 200,
@@ -61,7 +59,9 @@ export class CourseController {
     return await this.courseService.getCourseById(courseId);
   }
 
-  @Post('create')
+  @ApiBearerAuth()
+  @Post('admin/course/create')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'videoInfo', maxCount: 1 },
@@ -87,7 +87,9 @@ export class CourseController {
     return await this.courseService.createCourse(course, files ?? {});
   }
 
-  @Put('update/:id')
+  @ApiBearerAuth()
+  @Put('admin/course/update/:id')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'videoInfo', maxCount: 1 },
@@ -122,7 +124,9 @@ export class CourseController {
     );
   }
 
-  @Delete('deleteCourse/:id')
+  @ApiBearerAuth()
+  @Delete('admin/course/deleteCourse/:id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a course by ID' })
   @ApiResponse({
     status: 200,
