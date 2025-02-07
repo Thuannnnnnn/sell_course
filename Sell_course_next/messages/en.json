@@ -220,5 +220,19 @@
     "enterCourse": "Enter course title",
     "enterDescription": "Shortly describe this course",
     "enterURL": "nhập địa chỉ URL"
-  }
+  },
+  "courseDetailForm": {
+    "teacher" : "Teacher",
+    "category" : "Category",
+    "lastUpdate" : "Last Update",
+    "rating" : "Rating",
+    "aboutCourse" : "About Course",
+    "courseCurriculum": "Course Curriculum",
+    "inTroToCourse": "Intro to course",
+    "exam": "Exam",
+    "addToCart" : "Add to cart",
+    "buyCourse" : "Buy course",
+    "readMore" : "Read More",
+    "collapse" : "Collapse"
+  } 
 }

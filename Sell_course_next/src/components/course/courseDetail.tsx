@@ -5,6 +5,7 @@ import { Course } from "@/app/type/course/Course";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 interface CourseCardProps {
   courseId: string;
 }
@@ -26,14 +27,13 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const router = useRouter();
   const params = useParams();
   const handleClick = () => {
-    
     const locale = params.locale;
     router.push(`/${locale}/showCourse/`);
   };
   const [courses, setCourses] = useState<Course | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const token = "your_auth_token_here";
-
+  const t = useTranslations("courseDetailForm");
   useEffect(() => {
     const loadCourses = async () => {
       try {
@@ -85,20 +85,20 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
             />
           </div>
           <div>
-            <p>Teacher</p>
+            <p>{t("teacher")}</p>
             <h3>{courses?.userName}</h3>
           </div>
           <div>
-            <p>Category</p>
+            <p>{t("category")}</p>
             <h3>{courses?.categoryName}</h3>
           </div>
           <div>
-            <p>Last Update</p>
+            <p>{t("lastUpdate")}</p>
             <h3>{formatDate(courses?.updatedAt || "")}</h3>
           </div>
           <div>
             <p>⭐⭐⭐⭐⭐</p>
-            <h3>Rating:5/5</h3>
+            <h3>{t("rating")}:5/5</h3>
           </div>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       <div className="content-detailCourse">
         <div className="content-left">
           <div className="course-description">
-            <h2>About Course</h2>
+            <h2>{t("aboutCourse")}</h2>
             <div
               className={`ql-editor ${isExpanded ? "expanded" : "collapsed"}`}
               dangerouslySetInnerHTML={{ __html: courses?.description ?? "" }}
@@ -115,19 +115,19 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               onClick={() => setIsExpanded(!isExpanded)}
               className="read-more-btn"
             >
-              {isExpanded ? "Thu gọn" : "Đọc thêm"}
+              {isExpanded ? t("collapse") : t("readMore")}
             </button>
           </div>
 
           <div className="course-curriculum">
-            <h2>Course Curriculum</h2>
+            <h2>{t("courseCurriculum")}</h2>
 
             <div className="curriculum-section">
               <h3
                 onClick={() => toggleSection("intro")}
                 className="section-title"
               >
-                Intro to course {expandedSections.intro ? "▼" : "▶"}
+                {t("inTroToCourse")} {expandedSections.intro ? "▼" : "▶"}
               </h3>
               {expandedSections.intro && (
                 <ul>
@@ -144,7 +144,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                 onClick={() => toggleSection("exam")}
                 className="section-title"
               >
-                Exam {expandedSections.exam ? "▼" : "▶"}
+                {t("exam")} {expandedSections.exam ? "▼" : "▶"}
               </h3>
               {expandedSections.exam && (
                 <ul>
@@ -165,8 +165,8 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
           <h2 className="course-price">${courses?.price}</h2>
 
-          <button className="btn add-to-cart">Add to cart</button>
-          <button className="btn buy-course">Buy course</button>
+          <button className="btn add-to-cart">{t("addToCart")}</button>
+          <button className="btn buy-course">{t("buyCourse")}</button>
 
           <div className="course-details">
             <div className="row"></div>
