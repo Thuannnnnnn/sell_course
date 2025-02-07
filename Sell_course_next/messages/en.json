@@ -176,5 +176,24 @@
     "category" : "Category",
     "dateCreated" : "Date Created",
     "actions": "Actions"
-    }
+    },
+  "coursesForm": {
+    "editCourse": "EDIT COURSE",
+    "create" : "Create Course",
+    "basicInfor": "BASIC INFORMATION",
+    "courseTitle": "COURSE TITLE",
+    "description":"DESCRIPTION",
+    "video" : "VIDEO DEMO",
+    "url" : "URL",
+    "image": "IMAGE",
+    "option": "OPTIONS",
+    "category": "Category",
+    "price" : "The recommended price is between $20 and $100",
+    "videoNotify": "Your browser does not support the video tag.",
+    "imgNotify": "Drag & Drop or Click to Upload",
+    "back" : "BACK",
+    "enterCourse": "Enter course title",
+    "enterDescription" : "Shortly describe this course",
+    "enterURL" : "nhập địa chỉ URL"
+  }
 }

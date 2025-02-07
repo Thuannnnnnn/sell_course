@@ -126,7 +126,7 @@ textarea {
   color: #555;
   font-weight: bold;
   text-align: center;
-  pointer-events: none; 
+  pointer-events: none;
 }
 .preview-container {
   display: flex;
@@ -212,4 +212,21 @@ textarea {
   outline: none;
   height: 100%;
   font-size: 14px;
+}
+
+[data-bs-theme="dark"] .course-table {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  border-spacing: 0;
+}
+
+@media (max-width: 768px) {
+  .main-form {
+    display: flex;
+    gap: 20px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
 }

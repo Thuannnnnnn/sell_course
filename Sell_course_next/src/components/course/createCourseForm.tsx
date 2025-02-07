@@ -14,6 +14,7 @@ import {
   updateCourse,
 } from "@/app/api/course/CourseAPI";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const CourseForm = () => {
   const [courseTitle, setCourseTitle] = useState("");
@@ -26,6 +27,7 @@ const CourseForm = () => {
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
 
+    const t = useTranslations("coursesForm");
   const router = useRouter();
   const { courseId } = useParams();
   useEffect(() => {
@@ -129,29 +131,29 @@ const CourseForm = () => {
   return (
     <div className="form-container">
       <h1 className="form-title">
-        {courseId ? "EDIT COURSE" : "CREATE COURSE"}
+        {courseId ? t("editCourse") : t("create") }
       </h1>
       <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="main-form">
           <div className="main-formLeft">
             <section>
-              <h2>BASIC INFORMATION</h2>
-              <label>COURSE TITLE</label>
+              <h2>{t("basicInfor")}</h2>
+              <label>{t("courseTitle")}</label>
               <input
                 type="text"
-                placeholder="Enter course title"
+                placeholder={t("enterCourse")}
                 value={courseTitle}
                 onChange={(e) => setCourseTitle(e.target.value)}
                 required
               />
 
               <div className="description-container">
-                <label>DESCRIPTION</label>
+                <label>{t("description")}</label>
                 <ReactQuill
                   value={description}
                   onChange={setDescription}
                   theme="snow"
-                  placeholder="Shortly describe this course"
+                  placeholder={t("enterDescription")}
                   className="quill"
                 />
               </div>
@@ -159,18 +161,18 @@ const CourseForm = () => {
 
             {/* Video */}
             <section>
-              <h2>VIDEO</h2>
+              <h2>{t("video")}</h2>
               <div className="video-main">
                 <video className="video" controls width="500">
                   {videoUrl && <source src={videoUrl} type="video/mp4" />}
-                  Your browser does not support the video tag.
+                  {t("videoNotify")}
                 </video>
                 <div className="input-videoURL">
-                  <p>URL</p>
+                  <p>{t("url")}</p>
                   <div style={{ marginTop: "10px" }}>
                     <input
                       type="url"
-                      placeholder="Enter a valid video URL"
+                      placeholder={t("enterURL")}
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
                     />
@@ -186,9 +188,8 @@ const CourseForm = () => {
               </div>
             </section>
 
-            {/* Image */}
             <section className="img-main">
-              <h2>IMAGE</h2>
+              <h2>{t("image")}</h2>
               <div
                 className="image-upload"
                 onDragOver={handleDragOver}
@@ -204,7 +205,7 @@ const CourseForm = () => {
                   />
                 ) : (
                   <label htmlFor="file-upload" className="upload-label">
-                    Drag & Drop or Click to Upload
+                    {t("imgNotify")}
                   </label>
                 )}
 
@@ -219,10 +220,10 @@ const CourseForm = () => {
           </div>
 
           <div className="main-formRight">
-            <h2>OPTIONS</h2>
+            <h2>{t("option")}</h2>
             <aside className="options">
               <div>
-                <h3>CATEGORY</h3>
+                <h3>{t("category")}</h3>
                 <select
                   value={category}
                   onChange={(e) => {
@@ -249,14 +250,14 @@ const CourseForm = () => {
                     className="price-field"
                   />
                 </InputGroup>
-                <p>The recommended price is between $20 and $100</p>
+                <p>{t("price")}</p>
               </div>
             </aside>
           </div>
         </div>
 
         <button type="submit" className="submit-btn">
-          {courseId ? "UPDATE COURSE" : "ADD COURSE"}
+          {courseId ? t("editCourse") : t("create")}
         </button>
 
         <button
@@ -264,7 +265,7 @@ const CourseForm = () => {
           className="back-btn"
           onClick={() => router.back()}
         >
-          BACK
+          {t("back")}
         </button>
       </form>
     </div>
