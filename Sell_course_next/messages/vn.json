@@ -179,52 +179,75 @@
     "parentCategory": "Nhánh cha",
     "actions": "Tính năng",
     "createNewCategory": "tạo thể loại mới",
-    "addSubCategory":"thêm thể loại nhỏ",
-    "subCategories":"cập nhật thể loại nhỏ",
-    "updateCategory":"cập nhật thể loại",
+    "addSubCategory": "thêm thể loại nhỏ",
+    "subCategories": "cập nhật thể loại nhỏ",
+    "updateCategory": "cập nhật thể loại",
     "categoryCancel": "thoát",
     "categorySummit": "xác nhận",
-    "placeHodelName":"nhập thể loại",
-    "placeHodelDescription":"nhập mô tả",
+    "placeHodelName": "nhập thể loại",
+    "placeHodelDescription": "nhập mô tả",
     "TitleCreateSubCategory": "thể loại nhỏ",
-    "error1":"Tên danh mục phải có ít nhất 3 ký tự",
-    "error2":"Mô tả phải có ít nhất 5 ký tự",
-    "successfully":"Cập nhật danh mục thành công!",
-    "Failed":"Lỗi khi cập nhật danh mục"
+    "error1": "Tên danh mục phải có ít nhất 3 ký tự",
+    "error2": "Mô tả phải có ít nhất 5 ký tự",
+    "successfully": "Cập nhật danh mục thành công!",
+    "Failed": "Lỗi khi cập nhật danh mục"
+  },
+  "dashboardUser": {
+    "dashboard": "Bảng điều khiển",
+    "myProfile": "Thông tin cá nhân",
+    "enrolledCourse": "Khóa học đã tham gia",
+    "wishList": "Danh sách mong muốn",
+    "orderHistory": "Lịch sử mua hàng",
+    "setting": "Cài đặt",
+    "logout": "Đăng xuất"
+  },
+  "changePassword": {
+    "title": "Cài Đặt",
+    "title-profile": "Thông tin",
+    "title-password": "Mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "btnChange-1": "Thay đổi mật khẩu",
+    "btnChange-2": "Thay đổi...",
+    "errorPasswordsMatch": "Mật khẩu mới không thể giống như mật khẩu hiện tại.",
+    "errorPasswordsDontMatch": "Mật khẩu mới và xác nhận mật khẩu không khớp.",
+    "passwordChangeSuccess": "Thay đổi mật khẩu thành công.",
+    "errorFillAllFields": "Vui lòng điền đầy đủ thông tin",
+    "errorTokenNotFound": "Token không tồn tại. Vui lòng thử lại.",
+    "errorPasswordTooShort": "Mật khẩu phải dài ít nhất 8 ký tự."
   },
   "cartBanner": {
-  "title": "Giỏ hàng",
-  "subtitle": "Giỏ hàng của bạn"
-},
-"cart": {
-  "title": "Giỏ hàng",
-  "description": "Danh sách sản phẩm đã chọn",
-  "checkout": "Thanh toán",
-  "subtotal": "Tạm tính",
-  "total": "Tổng cộng",
-  "buyNow": "Mua ngay",
-  "emptyMessage": "Giỏ hàng của bạn đang trống",
-  "remove": "Xóa",
-  "quantity": "Số lượng",
-  "price": "Giá",
-  "product": "Sản phẩm",
-  "thumbnail": "Hình ảnh",
-  "removeConfirmation": "Bạn có chắc muốn xóa sản phẩm này không?"
-},
-"forgotPasswordPage": {
-  "title": "Quên Mật Khẩu",
-  "email": "Email",
-  "placeholderEmail": "Nhập email của bạn",
-  "resetPassword": "Gửi email",
-  "loading": "Đang xử lý...",
-  "rememberedPassword": "Nhớ mật khẩu?",
-  "login": "Đăng nhập",
-  "successMessage": "Kiểm tra email để đặt lại mật khẩu.",
-  "errorMessage": "Không thể gửi email. Vui lòng thử lại.",
-  "serverError": "Lỗi máy chủ. Vui lòng thử sau."
-},
+    "title": "Giỏ hàng",
+    "subtitle": "Giỏ hàng của bạn"
+  },
+  "cart": {
+    "title": "Giỏ hàng",
+    "description": "Danh sách sản phẩm đã chọn",
+    "checkout": "Thanh toán",
+    "subtotal": "Tạm tính",
+    "total": "Tổng cộng",
+    "buyNow": "Mua ngay",
+    "emptyMessage": "Giỏ hàng của bạn đang trống",
+    "remove": "Xóa",
+    "quantity": "Số lượng",
+    "price": "Giá",
+    "product": "Sản phẩm",
+    "thumbnail": "Hình ảnh",
+    "removeConfirmation": "Bạn có chắc muốn xóa sản phẩm này không?"
+  },
+  "forgotPasswordPage": {
+    "title": "Quên Mật Khẩu",
+    "email": "Email",
+    "placeholderEmail": "Nhập email của bạn",
+    "resetPassword": "Gửi email",
+    "loading": "Đang xử lý...",
+    "rememberedPassword": "Nhớ mật khẩu?",
+    "login": "Đăng nhập",
+    "successMessage": "Kiểm tra email để đặt lại mật khẩu.",
+    "errorMessage": "Không thể gửi email. Vui lòng thử lại.",
+    "serverError": "Lỗi máy chủ. Vui lòng thử sau."
+  },
   "forgotPasswordBanner": {
     "title-3": "Quên mật khẩu"
-}
-
-}
+  }

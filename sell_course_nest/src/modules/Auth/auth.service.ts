@@ -41,7 +41,7 @@ export class authService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
+    const token = this.jwtService.sign({ email }, { expiresIn: '2d' });
     const emailVerify = this.emailVerifycationRepository.create({
       id: uuidv4(),
       email: email,
@@ -89,6 +89,7 @@ export class authService {
       user_id: uuidv4(),
       email: createUserDto.email,
       username: createUserDto.username,
+      avatarImg: createUserDto.avatarImg,
       password: hashedPassword,
       gender: createUserDto.gender,
       birthDay: createUserDto.birthDay,
@@ -105,6 +106,8 @@ export class authService {
       user_id: savedUser.user_id,
       email: savedUser.email,
       username: savedUser.username,
+      phoneNumber: savedUser.phoneNumber,
+      avatarImg: savedUser.avatarImg,
       gender: savedUser.gender,
       birthDay: savedUser.birthDay,
       role: savedUser.role,
@@ -139,6 +142,7 @@ export class authService {
     const loginResponse: LoginResponseDto = {
       token,
       email: user.email,
+      avatarImg: user.avatarImg,
       username: user.username,
       gender: user.gender,
       birthDay: user.birthDay,
