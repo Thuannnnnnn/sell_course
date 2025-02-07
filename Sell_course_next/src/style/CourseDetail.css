@@ -12,18 +12,18 @@
 
 .button-wrapper button {
 
-  color: black; /* Màu chữ */
-  border: none; /* Xóa viền */
+  color: black;
+  border: none;
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
-  border-radius: 5px; /* Bo góc */
+  border-radius: 5px;
   transition: background 0.3s;
 }
 
 .button-wrapper button:hover {
   background: #e04e2a;
-  background-color: #e04e2a; /* Màu khi hover */
+  background-color: #e04e2a;
 }
 
 body {
