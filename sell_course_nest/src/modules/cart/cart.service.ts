@@ -5,6 +5,7 @@ import { Cart } from './entities/cart.entity';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { CreateCartDto } from './dto/create-cart.dto';
+import { CartResponseDto } from './dto/cart-response.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -18,10 +19,12 @@ export class CartService {
     private readonly courseRepository: Repository<Course>,
   ) {}
 
-  async addToCart(createCartDto: CreateCartDto): Promise<Cart> {
+  async addToCart(createCartDto: CreateCartDto): Promise<CartResponseDto> {
     const { userId, courseId } = createCartDto;
 
-    const user = await this.userRepository.findOne({ where: { user_id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId },
+    });
     if (!user) throw new NotFoundException('User not found');
 
     const course = await this.courseRepository.findOne({ where: { courseId } });
@@ -30,7 +33,13 @@ export class CartService {
     const cartId = uuidv4(); // Generate unique cart ID
     const cartItem = this.cartRepository.create({ cartId, user, course });
 
-    return this.cartRepository.save(cartItem);
+    return {
+      cartId: cartItem.cartId,
+      user_id: user.user_id,
+      username: user.username,
+      course_id: course.courseId,
+      course_title: course.title,
+    };
   }
 
   async getUserCart(userId: string): Promise<Cart[]> {
@@ -48,7 +57,9 @@ export class CartService {
   }
 
   async clearCart(userId: string): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { user_id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId },
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
