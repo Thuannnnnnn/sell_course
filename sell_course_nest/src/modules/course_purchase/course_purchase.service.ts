@@ -1,6 +1,4 @@
-/*
-https://docs.nestjs.com/providers#services
-*/
+import { CoursePurchasedDTO } from './dto/courseResponseData.dto';
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Course } from '../course/entities/course.entity';
@@ -32,5 +30,33 @@ export class Course_purchaseService {
     });
 
     return await this.coursePurchasedRepository.save(coursePurchase);
+  }
+
+  async getAllCoursePurchase(user_id: string): Promise<CoursePurchasedDTO[]> {
+    try {
+      const user = await this.userRepository.findOne({ where: { user_id } });
+      if (!user) {
+        throw new HttpException('User not found', 404);
+      }
+      const coursePurchases = await this.coursePurchasedRepository.find({
+        where: { user: { user_id } },
+        relations: { course: { category: true }, user: true },
+      });
+      return coursePurchases.map(
+        (purchase) =>
+          new CoursePurchasedDTO(
+            user_id,
+            purchase.user.email,
+            purchase.coursePurchaseId,
+            purchase.course.courseId,
+            purchase.course.title,
+            purchase.course.category?.name || 'Unknown Category',
+            purchase.course.category?.categoryId || 'Unknown',
+            purchase.course.imageInfo || '', // Handle null imageInfo
+          ),
+      );
+    } catch {
+      throw new HttpException('Error retrieving course purchases', 500);
+    }
   }
 }

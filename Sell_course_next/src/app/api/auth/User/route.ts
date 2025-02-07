@@ -1,3 +1,4 @@
+import { UserGetAllCoursePurchase } from "@/app/type/user/User";
 import axios from "axios";
 
 export const changePassword = async (
@@ -57,3 +58,29 @@ export const fetchUserDetails = async (userId: string) => {
   }
 };
 
+export const fetchCoursePurchased = async (token: string, user_id: string): Promise<UserGetAllCoursePurchase[]> => {
+  try {
+    const response = await axios.get<UserGetAllCoursePurchase[]>(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/course_purchased/${user_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    handleAxiosError(error, `fetching course purchases for user ID: ${user_id}`);
+    throw error;
+  }
+};
+
+
+const handleAxiosError = (error: unknown, context: string) => {
+  if (axios.isAxiosError(error)) {
+    console.error(`Axios error in ${context}:`, error.response?.data || error.message);
+  } else {
+    console.error(`Unexpected error in ${context}:`, error);
+  }
+};
