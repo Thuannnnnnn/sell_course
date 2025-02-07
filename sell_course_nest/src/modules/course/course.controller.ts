@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { RolesGuard } from '../Auth/roles.guard';
 import { Roles } from '../Auth/roles.decorator';
 @Controller('api/courses')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
@@ -57,7 +57,7 @@ export class CourseController {
   }
 
   @Post('createCourse')
-  @Roles('ADMIN')
+  // @Roles('ADMIN')
   @ApiOperation({ summary: 'Create a new course' })
   @ApiResponse({
     status: 201,
