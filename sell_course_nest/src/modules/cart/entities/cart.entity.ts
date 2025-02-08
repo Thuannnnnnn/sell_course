@@ -8,7 +8,7 @@ export class Cart {
   cartId: string;
 
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
+  @JoinColumn({ name: 'email', referencedColumnName: 'email' })
   user: User;
 
   @ManyToOne(() => Course, { eager: true })

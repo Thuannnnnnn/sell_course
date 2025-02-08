@@ -56,16 +56,21 @@ export async function fetchCart(
 
 export async function deleteCart(
   token: string,
-  cart_id: string
+  email: string,
+  courseId: string
 ): Promise<response> {
   try {
     const res = await axios.delete(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart/${cart_id}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart/`,
       {
         headers: { Authorization: `Bearer ${token}` },
+        data: {
+          token,
+          email,
+          courseId,
+        },
       }
     );
-
     return {
       statusCode: res.status,
       message: res.data.message,

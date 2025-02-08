@@ -20,17 +20,17 @@ export class CartService {
   ) {}
 
   async addToCart(createCartDto: CreateCartDto) {
-    const { userId, courseId } = createCartDto;
-    console.log(userId, courseId);
+    const { email, courseId } = createCartDto;
+    console.log(email, courseId);
     const user = await this.userRepository.findOne({
-      where: { user_id: userId },
+      where: { email: email },
     });
     if (!user) throw new NotFoundException('User not found');
 
     const course = await this.courseRepository.findOne({ where: { courseId } });
     if (!course) throw new NotFoundException('Course not found');
 
-    const cartId = uuidv4(); // Generate unique cart ID
+    const cartId = uuidv4();
     const cartItem = this.cartRepository.create({ cartId, user, course });
     await this.cartRepository.save(cartItem);
     return true;
@@ -57,12 +57,14 @@ export class CartService {
     }));
   }
 
-  async removeFromCart(cartId: string): Promise<boolean> {
-    const result = await this.cartRepository.delete({ cartId });
-    if (result.affected === 0) {
-      return false;
-    }
-    return true;
+  async removeFromCart(email: string, courseId: string): Promise<boolean> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) throw new NotFoundException('User not found');
+    const result = await this.cartRepository.delete({
+      user,
+      course: { courseId },
+    });
+    return result.affected > 0;
   }
 
   async clearCart(userId: string): Promise<void> {

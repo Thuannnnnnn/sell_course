@@ -34,19 +34,17 @@ export class CartController {
     }
     return response;
   }
-
   @Delete(':cartId')
-  async removeFromCart(@Param('cartId') cartId: string): Promise<void> {
-    if (!cartId) {
+  async removeFromCart(@Body() email: string, courseId: string): Promise<void> {
+    if (!email || !courseId) {
       throw new HttpException('Bad request', 400);
     }
-    const response = await this.cartService.removeFromCart(cartId);
+    const response = await this.cartService.removeFromCart(email, courseId);
     if (!response) {
       throw new HttpException('server error', 500);
     }
     throw new HttpException('OK', 200);
   }
-
   @Delete('clear/:userId')
   async clearCart(@Param('userId') userId: string): Promise<void> {
     await this.cartService.clearCart(userId);

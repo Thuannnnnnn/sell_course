@@ -1,17 +1,12 @@
 import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
-/*
-https://docs.nestjs.com/modules
-*/
-
 import { Module } from '@nestjs/common';
 import { CoursePurchaseModule } from '../course_purchase/course_purchase.module';
-import { Payment, PaymentStatus } from './entities/payment.entity';
 import { OrderModule } from '../order/order.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
-  imports: [CoursePurchaseModule, OrderModule],
+  imports: [CoursePurchaseModule, OrderModule, CartModule],
   controllers: [PaymentController],
   providers: [PaymentService],
 })
