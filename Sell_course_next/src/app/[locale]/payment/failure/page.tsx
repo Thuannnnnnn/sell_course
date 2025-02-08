@@ -1,16 +1,20 @@
-"use client";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from 'next-intl';
+import { FaTimesCircle } from 'react-icons/fa';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Link from 'next/link';
+import { Button } from 'react-bootstrap';
 
-export default function FailurePage() {
-  const t = useTranslations("checkout");
-
+export default function Failure() {
+  const t = useTranslations('failure');
+  const locate = useLocale();
   return (
-    <div className="payment-container">
-      <h1>{t("payment_failed")}</h1>
-      <p>{t("please_try_again")}</p>
-      <Link href="/checkout" className="btn btn-danger">{t("retry_payment")}</Link>
-      <Link href="/" className="btn btn-secondary">{t("back_home")}</Link>
+    <div className="container text-center mt-5">
+      <FaTimesCircle className="text-danger" size={200} />
+      <h2 className="mt-3">{t('failureTitle')}</h2>
+      <p>{t('failureMessage')}</p>
+      <Link href={`/${locate}/`} passHref>
+        <Button variant="danger" className="btn mt-3">{t('home_button')}</Button>
+      </Link>
     </div>
   );
 }

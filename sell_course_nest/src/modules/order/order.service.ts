@@ -20,8 +20,6 @@ export class OrderService {
   async findByOrderCode(orderCode: number): Promise<Order | null> {
     return this.orderRepository.findOne({ where: { orderCode } });
   }
-
-  // 🔹 Cập nhật trạng thái thanh toán
   async updateOrderStatus(
     orderCode: number,
     updateData: Partial<Order>,

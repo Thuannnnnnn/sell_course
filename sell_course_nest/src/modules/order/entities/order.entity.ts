@@ -8,8 +8,8 @@ import {
 
 @Entity()
 export class Order {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   orderCode: number;
@@ -25,6 +25,9 @@ export class Order {
 
   @Column({ nullable: true })
   transactionId?: string;
+
+  @Column()
+  email: string;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -245,7 +245,12 @@
     "back_home": "Back to Home",
     "payment_failed": "Payment Failed!",
     "please_try_again": "Please try again.",
-    "retry_payment": "Retry Payment"
+    "retry_payment": "Retry Payment",
+    "successTitle": "Order Successful",
+    "successMessage": "Your order has been placed successfully!",
+    "failureTitle": "Payment Failed",
+    "failureMessage": "Unfortunately, your payment could not be processed. Please try again.",
+    "home_button": "Go Home"
   },
   "courseDetailForm": {
     "teacher": "Teacher",

@@ -39,10 +39,8 @@ export default function CheckoutPage() {
           courseId: item.course_id,
         })),
         lang: locate,
-        userId: session?.user.id,
-
+        email: session?.user.email,
       };
-
       const response = await payment(paymentData);
       if (response?.checkoutUrl) {
         window.location.href = response.checkoutUrl;
@@ -56,7 +54,6 @@ export default function CheckoutPage() {
   return (
     <div>
       <Banner title={t("title")} subtitle={t("title")} />
-
       <div className="cart-container">
         <div className="cart-wrapper">
           <Table striped bordered hover responsive className="cart-table">

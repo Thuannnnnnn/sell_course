@@ -141,6 +141,7 @@ import { Order } from './modules/order/entities/order.entity';
     CategoryModule,
     PermissionModule,
     OrderModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
