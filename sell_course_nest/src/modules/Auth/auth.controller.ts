@@ -5,6 +5,8 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { authService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -50,5 +52,23 @@ export class authController {
   ): Promise<{ url: string }> {
     const url = await this.authService.uploadFile(file);
     return { url };
+  }
+  @Post('forgot-verify-email')
+  async forgotVerifyEmail(@Body() body: { email: string; lang: string }) {
+    if (!body.email) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+    this.authService.validateEmailForgot(body.email, body.lang);
+    return { message: 'OK', statusCode: HttpStatus.OK };
+  }
+  @Post('forgot-password-info')
+  async forgotPasswordInfo(
+    @Body() body: { token: string; email: string; password: string },
+  ) {
+    if (!body.token || !body.email || !body.password) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+    this.authService.forgotPw(body.email, body.password, body.token);
+    return { message: 'OK', statusCode: HttpStatus.OK };
   }
 }

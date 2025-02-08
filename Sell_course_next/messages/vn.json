@@ -247,18 +247,69 @@
     "enterDescription": "nhập tiêu đề ngắn",
     "enterURL": "nhập địa chỉ URL"
   },
+  "cartBanner": {
+    "title": "Giỏ hàng",
+    "subtitle": "Giỏ hàng của bạn"
+  },
+  "cart": {
+    "title": "Giỏ hàng",
+    "description": "Danh sách sản phẩm đã chọn",
+    "checkout": "Thanh toán",
+    "subtotal": "Tạm tính",
+    "total": "Tổng cộng",
+    "buyNow": "Mua ngay",
+    "emptyMessage": "Giỏ hàng của bạn đang trống",
+    "remove": "Xóa",
+    "quantity": "Số lượng",
+    "price": "Giá",
+    "product": "Sản phẩm",
+    "thumbnail": "Hình ảnh",
+    "removeConfirmation": "Bạn có chắc muốn xóa sản phẩm này không?"
+  },
+  "forgotPasswordPage": {
+    "title": "Quên Mật Khẩu",
+    "email": "Email",
+    "placeholderEmail": "Nhập email của bạn",
+    "resetPassword": "Gửi email",
+    "loading": "Đang xử lý...",
+    "rememberedPassword": "Nhớ mật khẩu?",
+    "login": "Đăng nhập",
+    "successMessage": "Kiểm tra email để đặt lại mật khẩu.",
+    "errorMessage": "Không thể gửi email. Vui lòng thử lại.",
+    "serverError": "Lỗi máy chủ. Vui lòng thử sau."
+  },
+  "forgotPasswordBanner": {
+    "title-3": "Quên mật khẩu"
+  },
+  "checkout": {
+    "title": "Thanh toán",
+    "total": "Tổng cộng",
+    "pay_now": "Thanh toán ngay",
+    "payment_success": "Thanh toán thành công!",
+    "thank_you": "Cảm ơn bạn đã mua hàng.",
+    "order_code": "Mã đơn hàng",
+    "back_home": "Về trang chủ",
+    "payment_failed": "Thanh toán thất bại!",
+    "please_try_again": "Vui lòng thử lại.",
+    "retry_payment": "Thử lại thanh toán",
+    "success.title": "Đặt hàng thành công",
+    "success.message": "Đơn hàng của bạn đã được đặt thành công!",
+    "failureTitle": "Thanh toán thất bại",
+    "failureMessage": "Rất tiếc, thanh toán của bạn không thể thực hiện. Vui lòng thử lại.",
+    "home_button": "Quay về trang chủ"
+  },
   "courseDetailForm": {
-    "teacher" : "Giáo viên",
-    "category" : "Danh mục",
-    "lastUpdate" : "Cập nhật lần cuối",
-    "rating" : "Đánh giá",
-    "aboutCourse" : "Giới thiệu khóa học",
+    "teacher": "Giáo viên",
+    "category": "Danh mục",
+    "lastUpdate": "Cập nhật lần cuối",
+    "rating": "Đánh giá",
+    "aboutCourse": "Giới thiệu khóa học",
     "courseCurriculum": "Chương trình học",
     "inTroToCourse": "Giới thiệu khóa học",
     "exam": "Bài kiểm tra",
-    "addToCart" : "Thêm vào giỏ hàng",
-    "buyCourse" : "Mua khóa học",
-     "readMore" : "Đọc thêm",
-    "collapse" : "Thu gọn"
-}
+    "addToCart": "Thêm vào giỏ hàng",
+    "buyCourse": "Mua khóa học",
+    "readMore": "Đọc thêm",
+    "collapse": "Thu gọn"
+  }
 }

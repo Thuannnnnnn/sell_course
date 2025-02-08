@@ -89,7 +89,7 @@
   "signUpBanner": {
     "title": "Student Registation",
     "title-1": "Hello",
-    "title-2": "login"
+    "title-2": "Login"
   },
   "signUpForm": {
     "placeholderEmail": "Enter your Email",
@@ -221,18 +221,49 @@
     "enterDescription": "Shortly describe this course",
     "enterURL": "nhập địa chỉ URL"
   },
+  "cart": {
+    "title": "Shopping Cart",
+    "thumbnail": "Thumbnail",
+    "product": "Product",
+    "price": "Price",
+    "remove": "Remove",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "Proceed to Checkout"
+  },
+  "cartBanner": {
+    "title": "Your Cart",
+    "subtitle": "Review your selected courses before checkout"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "total": "Total",
+    "pay_now": "Pay Now",
+    "payment_success": "Payment Successful!",
+    "thank_you": "Thank you for your purchase.",
+    "order_code": "Order Code",
+    "back_home": "Back to Home",
+    "payment_failed": "Payment Failed!",
+    "please_try_again": "Please try again.",
+    "retry_payment": "Retry Payment",
+    "successTitle": "Order Successful",
+    "successMessage": "Your order has been placed successfully!",
+    "failureTitle": "Payment Failed",
+    "failureMessage": "Unfortunately, your payment could not be processed. Please try again.",
+    "home_button": "Go Home"
+  },
   "courseDetailForm": {
-    "teacher" : "Teacher",
-    "category" : "Category",
-    "lastUpdate" : "Last Update",
-    "rating" : "Rating",
-    "aboutCourse" : "About Course",
+    "teacher": "Teacher",
+    "category": "Category",
+    "lastUpdate": "Last Update",
+    "rating": "Rating",
+    "aboutCourse": "About Course",
     "courseCurriculum": "Course Curriculum",
     "inTroToCourse": "Intro to course",
     "exam": "Exam",
-    "addToCart" : "Add to cart",
-    "buyCourse" : "Buy course",
-    "readMore" : "Read More",
-    "collapse" : "Collapse"
-  } 
+    "addToCart": "Add to cart",
+    "buyCourse": "Buy course",
+    "readMore": "Read More",
+    "collapse": "Collapse"
+  }
 }
