@@ -78,11 +78,11 @@ export const getUserId = async (token: string) => {
 
 export const fetchCoursePurchased = async (
   token: string,
-  user_id: string
+  email: string
 ): Promise<UserGetAllCoursePurchase[]> => {
   try {
     const response = await axios.get<UserGetAllCoursePurchase[]>(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/course_purchased/${user_id}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/course_purchased`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -94,7 +94,7 @@ export const fetchCoursePurchased = async (
   } catch (error) {
     handleAxiosError(
       error,
-      `fetching course purchases for user ID: ${user_id}`
+      `fetching course purchases for user ID: ${email}`
     );
     throw error;
   }

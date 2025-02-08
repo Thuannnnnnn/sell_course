@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 export const metadata: Metadata = {
-  title: 'Dash Board',
-  description: 'DashBoard Page',
+  title: 'Enrolled Course',
+  description: 'Enrolled Course Page',
 };
 
 export default function RootLayout({
