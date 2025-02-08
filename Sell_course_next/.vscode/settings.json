@@ -3,5 +3,4 @@
         "messages",
         "src/i18n"
     ],
-    "zencoder.enableRepoIndexing": true
 }
