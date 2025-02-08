@@ -225,3 +225,41 @@ h6.active {
     background-color: #ddd;
     cursor: not-allowed;
   }
+
+
+  /* Enrolled Course */
+  .cardAll {
+    display: flex;
+  }
+
+  .cardEnrolled {
+    width: 25%;
+    border-radius: 20px;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid black;
+    padding: 20px 20px 60px 20px;
+  }
+
+  .cardContent .cardImg{
+    width: 100%;
+  }
+
+  .cardInfo {
+    width: 100%;
+  }
+  .cardCategory {
+    background-color: #DCF2F4;
+    border-radius: 40px;
+    margin-top: 10px;
+    width: max-content;
+    padding: 5px;
+    color: #1FA4B9;
+  }
+
+  .cardTitle  {
+    width: 100%;
+  }
+
+  .cardTitle h3{
+    font-size: 20px;
+  }

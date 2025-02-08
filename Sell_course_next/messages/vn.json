@@ -247,6 +247,35 @@
     "enterDescription": "nhập tiêu đề ngắn",
     "enterURL": "nhập địa chỉ URL"
   },
+  "updateProfile": {
+    "title": "Cài Đặt",
+    "title-profile": "Thông tin",
+    "title-password": "Mật khẩu",
+    "email": "Email",
+    "username": "Tên",
+    "gender": "Giới tính",
+    "birthDay": "Ngày sinhs",
+    "phoneNumber": "Số điện thoại",
+    "btnChange-1": "Cập nhật",
+    "btnChange-2": "Đang cập nhật",
+    "errorBirthDateAtLeast": "Bạn phải ít nhất 10 tuổi",
+    "errorBrithDate": "Ngày sinh không thể ngày tương lai",
+    "errorTokenNotFound": "Token không tồn tại. Vui lòng thử lại."
+  },
+  "myProfile": {
+    "title": "Thông tin của tôi",
+    "email": "Email",
+    "username": "Tên",
+    "gender": "Giới tính",
+    "birthDay": "Năm sinh",
+    "phoneNumber": "Số điện thoại"
+  },
+  "enrolledCourse": {
+    "title": "Khóa học đã tham gia",
+    "enrolledCourses": "Khóa học đã tham giagia",
+    "activeCourses": "Khóa học đang học",
+    "compeltedCourse": "Khóa học đã hoàn thành"
+  },
   "cartBanner": {
     "title": "Giỏ hàng",
     "subtitle": "Giỏ hàng của bạn"

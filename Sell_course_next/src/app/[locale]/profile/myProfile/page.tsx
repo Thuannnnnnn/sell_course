@@ -8,6 +8,7 @@ import SignIn from "../../auth/login/page";
 import DashBoardUser from "@/components/DashBoardUser";
 import "../../../../style/UserProfilePage.css";
 import { fetchUserDetails } from "@/app/api/auth/User/route";
+import { useTranslations } from "next-intl";
 
 interface User {
   id: string;
@@ -26,6 +27,7 @@ const MyProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);  // Allow null initially
   const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);  // Track errors
+  const t = useTranslations('myProfile')
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -63,28 +65,28 @@ const MyProfilePage: React.FC = () => {
           <DashBoardUser />
         </div>
         <div className="table-profile">
-          <h1>My Profile</h1>
+          <h1>{t('title')}</h1>
           {error && <div className="error-message">{error}</div>} {/* Show error message if available */}
           <div className="table-info">
             <div className="table-contain">
               <div className="tabel-content">
-                <div className="title-info">Email</div>
+                <div className="title-info">{t('email')}</div>
                 <div className="info">{user?.email || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">Username</div>
+                <div className="title-info">{t('username')}</div>
                 <div className="info">{user?.name || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">Gender</div>
+                <div className="title-info">{t('gender')}</div>
                 <div className="info">{user?.gender || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">Birthday</div>
+                <div className="title-info">{t('birthDay')}</div>
                 <div className="info">{user?.birthDay || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">Phone Number</div>
+                <div className="title-info">{t('phoneNumber')}</div>
                 <div className="info">{user?.phoneNumber || "N/A"}</div>
               </div>
             </div>

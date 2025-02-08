@@ -15,3 +15,13 @@ export interface User {
   role: string;
   permissions: Permission[];
 }
+
+export interface UserGetAllCoursePurchase {
+  user_id: string;
+  coursePurchaseId: string;
+  courseId: string;
+  title: string;
+  categoryName: string;
+  categoryId: string;
+  imageInfo: string;
+}
