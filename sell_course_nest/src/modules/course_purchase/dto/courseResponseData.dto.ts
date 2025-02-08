@@ -1,5 +1,4 @@
 export class CoursePurchasedDTO {
-  user_id: string;
   email: string;
   coursePurchaseId: string;
   courseId: string;
@@ -9,7 +8,6 @@ export class CoursePurchasedDTO {
   imageInfo: string;
 
   constructor(
-    user_id: string,
     email: string,
     coursePurchaseId: string,
     courseId: string,
@@ -18,7 +16,6 @@ export class CoursePurchasedDTO {
     categoryId: string = 'Unknown',
     imageInfo: string = '',
   ) {
-    this.user_id = user_id;
     this.email = email;
     this.coursePurchaseId = coursePurchaseId;
     this.courseId = courseId;

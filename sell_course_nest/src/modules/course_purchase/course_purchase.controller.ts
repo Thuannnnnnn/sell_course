@@ -3,8 +3,8 @@ import {
   Controller,
   Get,
   HttpException,
-  Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Course_purchaseService } from './course_purchase.service';
@@ -31,10 +31,9 @@ export class Course_purchaseController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('course_purchased/:user_id')
-  async getAllCoursePurchased(
-    @Param('user_id') user_id: string,
-  ): Promise<CoursePurchasedDTO[]> {
-    return this.coursePurchasedService.getAllCoursePurchase(user_id);
+  @Get('course_purchased')
+  async getAllCoursePurchased(@Req() req): Promise<CoursePurchasedDTO[]> {
+    const userEmail = req.user.email;
+    return this.coursePurchasedService.getAllCoursePurchase(userEmail);
   }
 }

@@ -32,31 +32,35 @@ export class Course_purchaseService {
     return await this.coursePurchasedRepository.save(coursePurchase);
   }
 
-  async getAllCoursePurchase(user_id: string): Promise<CoursePurchasedDTO[]> {
+  async getAllCoursePurchase(email: string): Promise<CoursePurchasedDTO[]> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
     try {
-      const user = await this.userRepository.findOne({ where: { user_id } });
-      if (!user) {
-        throw new HttpException('User not found', 404);
-      }
       const coursePurchases = await this.coursePurchasedRepository.find({
-        where: { user: { user_id } },
+        where: { user: { user_id: user.user_id } },
         relations: { course: { category: true }, user: true },
       });
+
       return coursePurchases.map(
         (purchase) =>
           new CoursePurchasedDTO(
-            user_id,
-            purchase.user.email,
+            email,
             purchase.coursePurchaseId,
             purchase.course.courseId,
             purchase.course.title,
             purchase.course.category?.name || 'Unknown Category',
             purchase.course.category?.categoryId || 'Unknown',
-            purchase.course.imageInfo || '', // Handle null imageInfo
+            purchase.course.imageInfo || '',
           ),
       );
-    } catch {
-      throw new HttpException('Error retrieving course purchases', 500);
+    } catch (error) {
+      throw new HttpException(
+        `Error retrieving course purchases: ${(error as Error).message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
