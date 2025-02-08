@@ -27,7 +27,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
-  @Get('course/getAll')
+  @Get('courses/getAll')
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,
@@ -42,7 +42,7 @@ export class CourseController {
     return await this.courseService.getAllCourses();
   }
 
-  @Get('getByCourse/:id')
+  @Get('courses/getByCourse/:id')
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiResponse({
     status: 200,
@@ -59,9 +59,9 @@ export class CourseController {
     return await this.courseService.getCourseById(courseId);
   }
 
-  @ApiBearerAuth()
-  @Post('admin/course/create')
-  @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  @Post('courses/create')
+  // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'videoInfo', maxCount: 1 },
@@ -87,9 +87,9 @@ export class CourseController {
     return await this.courseService.createCourse(course, files ?? {});
   }
 
-  @ApiBearerAuth()
-  @Put('admin/course/update/:id')
-  @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  @Put('courses/update/:id')
+  // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'videoInfo', maxCount: 1 },
@@ -124,9 +124,9 @@ export class CourseController {
     );
   }
 
-  @ApiBearerAuth()
-  @Delete('admin/course/deleteCourse/:id')
-  @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  @Delete('course/deleteCourse/:id')
+  // @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a course by ID' })
   @ApiResponse({
     status: 200,

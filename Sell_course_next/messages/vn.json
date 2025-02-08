@@ -246,5 +246,19 @@
     "enterCourse": "nhập tiêu đề khóa học",
     "enterDescription": "nhập tiêu đề ngắn",
     "enterURL": "nhập địa chỉ URL"
-  }
+  },
+  "courseDetailForm": {
+    "teacher" : "Giáo viên",
+    "category" : "Danh mục",
+    "lastUpdate" : "Cập nhật lần cuối",
+    "rating" : "Đánh giá",
+    "aboutCourse" : "Giới thiệu khóa học",
+    "courseCurriculum": "Chương trình học",
+    "inTroToCourse": "Giới thiệu khóa học",
+    "exam": "Bài kiểm tra",
+    "addToCart" : "Thêm vào giỏ hàng",
+    "buyCourse" : "Mua khóa học",
+     "readMore" : "Đọc thêm",
+    "collapse" : "Thu gọn"
+}
 }
