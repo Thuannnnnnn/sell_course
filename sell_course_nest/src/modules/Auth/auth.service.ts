@@ -95,6 +95,7 @@ export class authService {
       birthDay: createUserDto.birthDay,
       phoneNumber: createUserDto.phoneNumber,
       role: 'CUSTOMER',
+      isOAuth: false,
     });
 
     if (!newUser) {
@@ -153,15 +154,76 @@ export class authService {
     return loginResponse;
   }
 
-  async oauth(oAuthRequestDto: OAuthRequestDto) {
+  async oauth(oAuthRequestDto: OAuthRequestDto): Promise<LoginResponseDto> {
     const { email, name, picture } = oAuthRequestDto;
-    throw new HttpException(
-      {
-        message: 'OAuth data processed successfully',
-        data: { email, name, picture },
-      },
-      HttpStatus.OK,
-    );
+
+    // Check if user exists
+    const existingUser = await this.userRepository.findOne({
+      where: { email: email }
+    });
+
+    if (existingUser) {
+      // If user exists and was registered with password (not OAuth), prevent login
+      if (existingUser.isOAuth === false) {
+        throw new HttpException(
+          'This email is already registered with password. Please use password login.',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // If user exists and has OAuth flag, generate token and return login response
+      const payload = {
+        user_id: existingUser.user_id,
+        email: existingUser.email,
+        username: existingUser.username,
+        role: existingUser.role,
+      };
+      const token = this.jwtService.sign(payload);
+
+      return {
+        token,
+        email: existingUser.email,
+        avatarImg: existingUser.avatarImg,
+        username: existingUser.username,
+        gender: existingUser.gender,
+        birthDay: existingUser.birthDay,
+        phoneNumber: existingUser.phoneNumber,
+        role: existingUser.role,
+      };
+    }
+
+    // If user doesn't exist, create new user with OAuth
+    const newUser = this.userRepository.create({
+      user_id: uuidv4(),
+      email: email,
+      username: name,
+      avatarImg: picture,
+      password: null, // OAuth users don't need password
+      isOAuth: true,
+      role: 'CUSTOMER',
+    });
+
+    const savedUser = await this.userRepository.save(newUser);
+
+    // Generate token for new user
+    const payload = {
+      user_id: savedUser.user_id,
+      email: savedUser.email,
+      username: savedUser.username,
+      role: savedUser.role,
+    };
+    const token = this.jwtService.sign(payload);
+
+    return {
+      token,
+      email: savedUser.email,
+      avatarImg: savedUser.avatarImg,
+      username: savedUser.username,
+      gender: savedUser.gender,
+      birthDay: savedUser.birthDay,
+      phoneNumber: savedUser.phoneNumber,
+      role: savedUser.role,
+    };
   }
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userRepository.findOne({

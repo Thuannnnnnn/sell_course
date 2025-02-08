@@ -22,7 +22,7 @@ export class User {
   @Column()
   username: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column({ nullable: true })
@@ -46,6 +46,9 @@ export class User {
   permissions: Permission[];
   @Column()
   role: string;
+
+  @Column({ default: false })
+  isOAuth: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
