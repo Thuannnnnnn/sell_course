@@ -109,18 +109,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
     async signIn({ user, account }) {
-      console.log("SignIn callback initiated with user and account:", {
-        user,
-        account,
-      });
 
       if (!user || !account) {
-        console.error("Error: User or account is null");
         return false;
       }
 
       if (account.type === "credentials") {
-        console.log("Account type is credentials, sign-in successful");
         return true;
       }
 
@@ -133,11 +127,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: user.name,
         picture: user.image,
       };
-      console.log("Payload prepared for API call:", payload);
 
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/oauth`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/callback/oauth`,
           payload,
           {
             headers: {
@@ -145,17 +138,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           }
         );
-        console.log("API response received:", response.data);
 
         if (!response.data) {
           console.error("Error: API response data is null");
           return false;
         }
 
-        console.log(
-          "Sign-in successful, response from backend:",
-          response.data
-        );
         return true;
       } catch (error) {
         console.error("Error during API call in sign-in callback:", error);

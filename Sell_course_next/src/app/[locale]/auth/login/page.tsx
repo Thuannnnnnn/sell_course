@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useTheme } from "../../../../contexts/ThemeContext";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import loginUser from "@/app/api/auth/Login/route";
 import PageLoader from "@/components/PageLoader";
 import "@/style/Login.css";
 import Banner from "@/components/Banner-SignUp";
@@ -16,30 +15,108 @@ export default function SignIn() {
   const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    general: "",
+  });
   const router = useRouter();
   const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const tl = useTranslations("signUpBanner");
 
+  const validateEmail = (email: string) => {
+    if (!email) {
+      return "Email is required";
+    }
+    if (!email.includes("@")) {
+      return "Email must contain @";
+    }
+    if (!email.includes(".")) {
+      return "Email must contain domain (e.g., .com)";
+    }
+    if (email.indexOf("@") !== email.lastIndexOf("@")) {
+      return "Email cannot contain multiple @ symbols";
+    }
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      return "Invalid email format";
+    }
+    return "";
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) {
+      return "Password is required";
+    }
+    if (password.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+    if (password.length > 30) {
+      return "Password must not exceed 30 characters";
+    }
+    if (/[<>{}()']/.test(password)) {
+      return "Password contains invalid special characters";
+    }
+    return "";
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setErrors((prev) => ({
+      ...prev,
+      email: validateEmail(newEmail),
+    }));
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setErrors((prev) => ({
+      ...prev,
+      password: validatePassword(newPassword),
+    }));
+  };
+
   const handleGoogleSignIn = async () => {
+    setIsLoadingPage(true);
     try {
-      const response = await signIn("google", { redirect: false });
-      if (response?.ok) {
-        console.log("Login successful! User data:", response);
-        router.push("/dashboard");
-      } else {
-        console.error("Login failed:", response?.error);
-        setError("Google sign-in failed");
+      const response = await signIn("google", {
+        redirect: false,
+        callbackUrl: "/",
+      });
+
+      if (response?.error === "AccessDenied") {
+        return;
+      } else if (response?.ok) {
+        window.location.href = "/";
       }
     } catch (error) {
       console.error("Error during Google Sign-In:", error);
-      setError("Google sign-in error");
+      setErrors((prev) => ({
+        ...prev,
+        general: "Google sign-in error",
+      }));
+    } finally {
+      setIsLoadingPage(false);
     }
   };
 
   const handleSignIn = async () => {
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+
+    setErrors({
+      email: emailError,
+      password: passwordError,
+      general: "",
+    });
+
+    if (emailError || passwordError) {
+      return;
+    }
+
     setIsLoadingPage(true);
     try {
       const response = await signIn("credentials", {
@@ -51,12 +128,18 @@ export default function SignIn() {
       if (response?.ok && !response.error) {
         setIsLoggedIn(true);
       } else {
-        setError(response?.error || "Invalid email or password");
+        setErrors((prev) => ({
+          ...prev,
+          general: "Invalid email or password",
+        }));
         setIsLoggedIn(false);
       }
     } catch (error) {
       console.error("Error in handleSignIn:", error);
-      setError("Failed to connect to the server");
+      setErrors((prev) => ({
+        ...prev,
+        general: "Failed to connect to the server",
+      }));
       setIsLoggedIn(false);
     } finally {
       setIsLoadingPage(false);
@@ -73,7 +156,7 @@ export default function SignIn() {
       <Banner title={tl("title-2")} />
       <div className="login-box">
         <h2 className="title">{t("wellcome")}</h2>
-        {error && <p className="error-message">{error}</p>}
+        {errors.general && <p className="error-message">{errors.general}</p>}
         <div className="register">
           <span>{t("DontHaveAccount")}</span>
           <Link href="/register">{t("Register")}</Link>
@@ -84,10 +167,11 @@ export default function SignIn() {
             id="inputEmail"
             type="email"
             placeholder={t("placeholderEmail")}
-            className="input-field"
+            className={`input-field ${errors.email ? "error-input" : ""}`}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
           />
+          {errors.email && <p className="field-error">{errors.email}</p>}
         </div>
         <div className="input-container">
           <label htmlFor="inputPassword">{t("password")}</label>
@@ -95,10 +179,11 @@ export default function SignIn() {
             id="inputPassword"
             type="password"
             placeholder={t("placeholderPassword")}
-            className="input-field"
+            className={`input-field ${errors.password ? "error-input" : ""}`}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
           />
+          {errors.password && <p className="field-error">{errors.password}</p>}
         </div>
         <div className="forgotPw">
           <Link href={`/${localActive}/forgot-password`}>{t("forgot")}</Link>
@@ -120,119 +205,3 @@ export default function SignIn() {
     </div>
   );
 }
-
-// "use client"; // Ensure this is a client-side component
-// import { signIn } from "next-auth/react";
-// import { RiHomeLine } from "react-icons/ri";
-// import { useTranslations } from "next-intl";
-// import Link from "next/link";
-// import { useTheme } from "../../../../contexts/ThemeContext";
-// import { useState } from "react";
-// import { useRouter } from "next/navigation";
-// import loginUser from "@/app/api/auth/Login/route";
-
-// export default function SignIn() {
-//   const t = useTranslations("loginPage");
-//   const { theme } = useTheme();
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [error, setError] = useState("");
-//   const router = useRouter();
-//   const [isLoadingPage, setIsLoadingPage] = useState(false);
-
-//   const handleGoogleSignIn = async () => {
-//     try {
-//       const response = await signIn("google", { redirect: false });
-//       if (response?.ok) {
-//         console.log("Login successful! User data:", response);
-//         router.push("/dashboard");
-//       } else {
-//         console.error("Login failed:", response?.error);
-//         setError("Google sign-in failed");
-//       }
-//     } catch (error) {
-//       console.error("Error during Google Sign-In:", error);
-//       setError("Google sign-in error");
-//     }
-//   };
-
-//   const handleSignIn = async () => {
-//     setIsLoadingPage(true);
-//     try {
-//       const response = await loginUser(email, password);
-//       if (response) {
-//         router.push("/dashboard");
-//       }
-//     } catch (error) {
-//       console.error("Error in handleSignIn:", error);
-//       setError("Failed to connect to the server");
-//     } finally {
-//       setIsLoadingPage(false);
-//     }
-//   };
-
-//   return (
-//     <div className={`login ${theme}`}>
-//       <div className="banner-login">
-//         <span>
-//           <RiHomeLine className="banner-logo" />
-//           <span className="banner-text"> | {t("title")}</span>
-//         </span>
-//         <div>
-//           <h1 className="title">{t("title")}</h1>
-//         </div>
-//       </div>
-//       <div className="login-box">
-//         <h2>{t("wellcome")}</h2>
-//         {error && <p className="error-message">{error}</p>}
-//         <div className="register">
-//           <span>{t("DontHaveAccount")}</span>
-//           <Link href="/register" className="nav-link me-4">
-//             {t("Register")}
-//           </Link>
-//         </div>
-//         <div className="input-container">
-//           <label htmlFor="inputEmail">{t("email")}</label>
-//           <input
-//             id="inputEmail"
-//             type="email"
-//             placeholder={t("placeholderEmail")}
-//             className="input-field"
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//           />
-//         </div>
-//         <div className="input-container">
-//           <label htmlFor="inputPassword">{t("password")}</label>
-//           <input
-//             id="inputPassword"
-//             type="password"
-//             placeholder={t("placeholderPassword")}
-//             className="input-field"
-//             value={password}
-//             onChange={(e) => setPassword(e.target.value)}
-//           />
-//         </div>
-//         <div className="forgotPw">
-//           <Link href="/forgot-password" className="nav-link me-4">
-//             {t("forgot")}
-//           </Link>
-//         </div>
-//         <div className="groupButton">
-//           <button
-//             type="button"
-//             className="submit-button sign-in-button"
-//             onClick={handleSignIn}
-//             disabled={isLoadingPage}
-//           >
-//             {isLoadingPage ? "Loading..." : t("login")}
-//           </button>
-//         </div>
-//         <button onClick={handleGoogleSignIn} className="google-sign-in-button">
-//           Sign In with Google
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
-
