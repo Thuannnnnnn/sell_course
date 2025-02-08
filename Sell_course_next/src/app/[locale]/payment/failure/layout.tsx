@@ -1,9 +1,9 @@
-// components/Cart/CartLayout.tsx
+
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Check out",
-  description: "check out",
+  title: "Payment fail",
+  description: "Payment fail",
 };
 
 export default function CartLayout({

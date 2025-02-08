@@ -20,17 +20,28 @@ export class Course_purchaseService {
     private coursePurchasedRepository: Repository<CoursePurchase>,
   ) {}
 
-  async createCoursePurchased(user_id: string, courseId: string) {
-    const user = await this.userRepository.findOne({ where: { user_id } });
-    const course = await this.CourseRepository.findOne({ where: { courseId } });
-    if (!user_id || !courseId) {
-      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+  async createCoursePurchased(email: string, courseIds: string[]) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-    const coursePurchase = this.coursePurchasedRepository.create({
-      user,
-      course,
+    console.log(courseIds);
+    if (!Array.isArray(courseIds) || courseIds.length === 0) {
+      throw new HttpException('Invalid courseIds', HttpStatus.BAD_REQUEST);
+    }
+
+    const courses = await this.CourseRepository.find({
+      where: courseIds.map((courseId) => ({ courseId })),
     });
 
-    return await this.coursePurchasedRepository.save(coursePurchase);
+    if (courses.length !== courseIds.length) {
+      throw new HttpException('Some courses not found', HttpStatus.NOT_FOUND);
+    }
+
+    const coursePurchases = courses.map((course) =>
+      this.coursePurchasedRepository.create({ user, course }),
+    );
+
+    return await this.coursePurchasedRepository.save(coursePurchases);
   }
 }

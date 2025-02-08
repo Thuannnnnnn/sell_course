@@ -280,5 +280,17 @@
   },
   "forgotPasswordBanner": {
     "title-3": "Quên mật khẩu"
+  },
+  "checkout": {
+    "title": "Thanh toán",
+    "total": "Tổng cộng",
+    "pay_now": "Thanh toán ngay",
+    "payment_success": "Thanh toán thành công!",
+    "thank_you": "Cảm ơn bạn đã mua hàng.",
+    "order_code": "Mã đơn hàng",
+    "back_home": "Về trang chủ",
+    "payment_failed": "Thanh toán thất bại!",
+    "please_try_again": "Vui lòng thử lại.",
+    "retry_payment": "Thử lại thanh toán"
   }
 }

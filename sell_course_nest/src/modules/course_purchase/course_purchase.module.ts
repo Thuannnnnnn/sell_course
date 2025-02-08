@@ -11,5 +11,6 @@ import { Course } from '../course/entities/course.entity';
 
   providers: [Course_purchaseService],
   controllers: [Course_purchaseController],
+  exports: [Course_purchaseService],
 })
 export class CoursePurchaseModule {}

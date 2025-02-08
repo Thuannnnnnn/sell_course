@@ -2,8 +2,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Check out",
-  description: "check out",
+  title: "Payment success",
+  description: "Payment success",
 };
 
 export default function CartLayout({

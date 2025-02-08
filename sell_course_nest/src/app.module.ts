@@ -1,3 +1,4 @@
+import { OrderModule } from './modules/order/order.module';
 import { PaymentModule } from './modules/payment/payment.module';
 // app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
@@ -61,6 +62,7 @@ import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
 import { Permission } from './modules/permission/entities/permission.entity';
 import { PermissionModule } from './modules/permission/permission.module';
 import { PermissionMiddleware } from './modules/permission/permission.middleware';
+import { Order } from './modules/order/entities/order.entity';
 // import { APP_GUARD } from '@nestjs/core';
 // import { PermissionsGuard } from './modules/permission/permissions.guard';
 
@@ -105,6 +107,7 @@ import { PermissionMiddleware } from './modules/permission/permission.middleware
         Wishlist,
         Category,
         Permission,
+        Order,
       ],
       synchronize: true,
     }),
@@ -137,6 +140,7 @@ import { PermissionMiddleware } from './modules/permission/permission.middleware
     WishlistModule,
     CategoryModule,
     PermissionModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

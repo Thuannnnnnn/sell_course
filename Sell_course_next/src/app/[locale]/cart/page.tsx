@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // Import useRouter
 import { RiDeleteBin6Line } from "react-icons/ri";
 import "../../../style/Cart.css";
 import Banner from "@/components/Banner-Card";
@@ -18,8 +19,9 @@ export default function CartPage() {
   const t = useTranslations("cart");
   const tl = useTranslations("cartBanner");
   const { data: session } = useSession();
+  const router = useRouter(); // Khởi tạo useRouter
   const [cartItems, setCartItems] = useState<CartResponse[]>([]);
-
+  const locate = useLocale();
   useEffect(() => {
     const getCart = async () => {
       try {
@@ -39,14 +41,16 @@ export default function CartPage() {
       getCart();
     }
   }, [session]);
+
   const subtotal = cartItems.reduce((acc, item) => acc + item.course_price, 0);
+
   const handleRemoveItem = async (cart_id: string) => {
     if (!session?.user?.token) return;
 
     try {
       const response = await deleteCart(session.user.token, cart_id);
       if (response.statusCode === 200) {
-        setCartItems(cartItems.filter(item => item.cart_id !== cart_id));
+        setCartItems(cartItems.filter((item) => item.cart_id !== cart_id));
       } else {
         console.error("Failed to remove item:", response.message);
       }
@@ -55,7 +59,16 @@ export default function CartPage() {
     }
   };
 
-  const handleCheckOut = async()
+  // Xử lý thanh toán
+  const handleCheckOut = () => {
+    if (cartItems.length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+
+    router.push(`/${locate}/payment?data=${encodeURIComponent(JSON.stringify(cartItems))}`);
+  };
+
   return (
     <div>
       <Banner title={tl("title")} subtitle={tl("subtitle")} />
@@ -107,7 +120,9 @@ export default function CartPage() {
                 <span className="cart-price">${subtotal}</span>
               </div>
             </div>
-            <Button className="buy-btn">{t("checkout")}</Button>
+            <Button className="buy-btn" onClick={handleCheckOut}>
+              {t("checkout")}
+            </Button>
           </div>
         </div>
       </div>
