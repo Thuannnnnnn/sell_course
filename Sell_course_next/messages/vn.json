@@ -292,5 +292,19 @@
     "payment_failed": "Thanh toán thất bại!",
     "please_try_again": "Vui lòng thử lại.",
     "retry_payment": "Thử lại thanh toán"
+  },
+  "courseDetailForm": {
+    "teacher": "Giáo viên",
+    "category": "Danh mục",
+    "lastUpdate": "Cập nhật lần cuối",
+    "rating": "Đánh giá",
+    "aboutCourse": "Giới thiệu khóa học",
+    "courseCurriculum": "Chương trình học",
+    "inTroToCourse": "Giới thiệu khóa học",
+    "exam": "Bài kiểm tra",
+    "addToCart": "Thêm vào giỏ hàng",
+    "buyCourse": "Mua khóa học",
+    "readMore": "Đọc thêm",
+    "collapse": "Thu gọn"
   }
 }

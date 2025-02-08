@@ -246,5 +246,19 @@
     "payment_failed": "Payment Failed!",
     "please_try_again": "Please try again.",
     "retry_payment": "Retry Payment"
+  },
+  "courseDetailForm": {
+    "teacher": "Teacher",
+    "category": "Category",
+    "lastUpdate": "Last Update",
+    "rating": "Rating",
+    "aboutCourse": "About Course",
+    "courseCurriculum": "Course Curriculum",
+    "inTroToCourse": "Intro to course",
+    "exam": "Exam",
+    "addToCart": "Add to cart",
+    "buyCourse": "Buy course",
+    "readMore": "Read More",
+    "collapse": "Collapse"
   }
 }

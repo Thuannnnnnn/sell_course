@@ -7,7 +7,7 @@ import BannerUser from "@/components/BannerUser";
 import SignIn from "../../auth/login/page";
 import DashBoardUser from "@/components/DashBoardUser";
 import "../../../../style/UserProfilePage.css";
-import axios from "axios";
+import { fetchUserDetails } from "@/app/api/auth/User/route";
 
 interface User {
   id: string;
@@ -32,29 +32,17 @@ const MyProfilePage: React.FC = () => {
       router.push("/auth/login");
     } else if (status === "authenticated" && session?.user) {
       setUser(session.user);
-      console.log("Session User:", session.user); // Log session user
-      // Fetch additional user details from the backend
-      fetchUserDetails(session.user?.user_id);
+      console.log("Session User:", session.user);
+      fetchUserData(session.user?.user_id);
     }
   }, [session, status, router]);
-
-  useEffect(() => {
-    if (session?.user) {
-      setUser(session.user);
-    }
-  }, [session]);
-
-  const fetchUserDetails = async (userId: string) => {
+  const fetchUserData = async (userId: string) => {
     if (!userId) return;
     setLoadingDetails(true);
-    setError(null); // Reset error before starting the API call
+    setError(null);
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/${userId}`
-      );
-      const userDetails = response.data;
-      console.log("User Details from API:", userDetails); // Log API response
-      setUser(userDetails); // Directly update user state with API data
+      const userDetails = await fetchUserDetails(userId);
+      setUser(userDetails);
     } catch (error) {
       console.error("Error fetching user details:", error);
       setError("Failed to load user details. Please try again later.");

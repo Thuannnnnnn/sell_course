@@ -8,6 +8,7 @@ export interface Course {
   updatedAt: string;
   createdAt: string;
   userName: string;
+  userAvata: string;
   categoryName: string;
   categoryId: string;
   userId: string;

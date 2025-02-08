@@ -11,6 +11,7 @@ import BannerUser from "@/components/BannerUser";
 import axios from "axios";
 import Image from "next/image";
 import defaultAvatar from "../../../../image/defait-img.png";
+import { updateUserProfile } from "@/app/api/auth/User/route";
 
 interface User {
   id: string;
@@ -115,15 +116,7 @@ const UpdateMyProfilePage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user`, form, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      console.log("API Response:", response.data);
-
-      const updatedUser = response.data;
+      const updatedUser = await updateUserProfile(form, token);
       setUser(updatedUser);
 
       // Update session with new user data

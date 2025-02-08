@@ -40,7 +40,8 @@ export class CourseService {
         course.createdAt,
         course.updatedAt,
         course.user.user_id,
-        course.user.email,
+        course.user.username,
+        course.user.avatarImg,
         course.category.name,
         course.category.categoryId,
       );
@@ -71,8 +72,9 @@ export class CourseService {
       course.createdAt,
       course.updatedAt,
       course.user.user_id,
+      course.user.username,
+      course.user.avatarImg,
       course.category.name,
-      course.user.user_id,
       course.category.categoryId,
     );
     return courseResponseDTO;
@@ -109,6 +111,7 @@ export class CourseService {
     const courseData = await this.CourseRepository.findOne({
       where: { title },
     });
+
     if (courseData) {
       throw new HttpException(
         `Course with title '${title}' already exists.`,
@@ -144,6 +147,7 @@ export class CourseService {
       ...newCourse,
       userId: userData.user_id,
       userName: userData.email,
+      userAvata: userData.avatarImg,
       categoryId: categoryData.categoryId,
       categoryName: categoryData.name,
     } as CourseResponseDTO;
@@ -210,6 +214,7 @@ export class CourseService {
       ...updatedCourse,
       userId: userData.user_id,
       userName: userData.email,
+      userAvata: userData.avatarImg,
       categoryId: categoryData?.categoryId || updateData.categoryId,
       categoryName: categoryData.name,
     } as CourseResponseDTO;
