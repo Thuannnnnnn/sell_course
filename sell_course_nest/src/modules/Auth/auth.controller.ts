@@ -56,12 +56,19 @@ export class authController {
   @Post('forgot-verify-email')
   async forgotVerifyEmail(@Body() body: { email: string; lang: string }) {
     if (!body.email) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Bad Request: Email is required', HttpStatus.BAD_REQUEST);
     }
-    this.authService.validateEmailForgot(body.email, body.lang);
-    return { message: 'OK', statusCode: HttpStatus.OK };
+    try {
+      await this.authService.validateEmailForgot(body.email, body.lang);
+      return { message: 'Email sent successfully', statusCode: HttpStatus.OK };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
-  @Post('forgot-password-info')
+  @Post('reset-password')
   async forgotPasswordInfo(
     @Body() body: { token: string; email: string; password: string },
   ) {

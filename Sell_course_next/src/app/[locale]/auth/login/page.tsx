@@ -186,7 +186,7 @@ export default function SignIn() {
           {errors.password && <p className="field-error">{errors.password}</p>}
         </div>
         <div className="forgotPw">
-          <Link href={`/${localActive}/forgot-password`}>{t("forgot")}</Link>
+          <Link href={`/${localActive}/auth/forgot-password`}>{t("forgot")}</Link>
         </div>
         <div className="groupButton">
           <button
