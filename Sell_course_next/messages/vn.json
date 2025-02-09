@@ -87,9 +87,8 @@
     "google": "Google"
   },
   "signUpBanner": {
-    "title": "Đăng Ký Sinh Viên",
-    "title-1": "Xin chào",
-    "title-2": "Đăng nhập"
+    "title": "Đăng Ký",
+    "title-1": "Xin chào"
   },
   "signUpForm": {
     "placeholderEmail": "Nhập địa chỉ Email của bạn",
