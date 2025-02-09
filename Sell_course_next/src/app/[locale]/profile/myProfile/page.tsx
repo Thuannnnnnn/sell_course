@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import BannerUser from "@/components/BannerUser";
 import SignIn from "../../auth/login/page";
@@ -9,53 +8,45 @@ import DashBoardUser from "@/components/DashBoardUser";
 import "../../../../style/UserProfilePage.css";
 import { fetchUserDetails } from "@/app/api/auth/User/route";
 import { useTranslations } from "next-intl";
+import { GetUser } from "@/app/type/user/User";
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatarImg: string;
-  gender: string;
-  birthDay: string;
-  phoneNumber: string;
-  role: string;
-}
 
 const MyProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);  // Allow null initially
-  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);  // Track errors
-  const t = useTranslations('myProfile')
+  const [user, setUser] = useState<GetUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const t = useTranslations("myProfile");
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    } else if (status === "authenticated" && session?.user) {
-      setUser(session.user);
-      console.log("Session User:", session.user);
-      fetchUserData(session.user?.user_id);
-    }
-  }, [session, status, router]);
-  const fetchUserData = async (userId: string) => {
-    if (!userId) return;
-    setLoadingDetails(true);
-    setError(null);
-    try {
-      const userDetails = await fetchUserDetails(userId);
-      setUser(userDetails);
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-      setError("Failed to load user details. Please try again later.");
-    } finally {
-      setLoadingDetails(false);
-    }
-  };
+    if (status === "loading") return; // Đợi session load xong
 
-  if (status === "loading" || loadingDetails) {
-    return <div>Loading...</div>;
-  }
+    const token = session?.user?.token;
+    const email = session?.user?.email;
+    if (!session?.user || !session.user.email) {
+      setError("User not found or unauthorized.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchUser = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const userDetails = await fetchUserDetails(token as string, email as string);
+        setUser(userDetails);
+      } catch {
+        setError("Failed to load user details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [session, status]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <SignIn />;
 
   return (
     <>
@@ -65,28 +56,28 @@ const MyProfilePage: React.FC = () => {
           <DashBoardUser />
         </div>
         <div className="table-profile">
-          <h1>{t('title')}</h1>
-          {error && <div className="error-message">{error}</div>} {/* Show error message if available */}
+          <h1>{t("title")}</h1>
+          {error && <div className="error-message">{error}</div>}
           <div className="table-info">
             <div className="table-contain">
               <div className="tabel-content">
-                <div className="title-info">{t('email')}</div>
+                <div className="title-info">{t("email")}</div>
                 <div className="info">{user?.email || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">{t('username')}</div>
-                <div className="info">{user?.name || "N/A"}</div>
+                <div className="title-info">{t("username")}</div>
+                <div className="info">{user?.username || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">{t('gender')}</div>
+                <div className="title-info">{t("gender")}</div>
                 <div className="info">{user?.gender || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">{t('birthDay')}</div>
+                <div className="title-info">{t("birthDay")}</div>
                 <div className="info">{user?.birthDay || "N/A"}</div>
               </div>
               <div className="tabel-content">
-                <div className="title-info">{t('phoneNumber')}</div>
+                <div className="title-info">{t("phoneNumber")}</div>
                 <div className="info">{user?.phoneNumber || "N/A"}</div>
               </div>
             </div>
@@ -98,4 +89,3 @@ const MyProfilePage: React.FC = () => {
 };
 
 export default MyProfilePage;
-

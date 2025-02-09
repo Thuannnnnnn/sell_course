@@ -145,10 +145,10 @@ const CourseForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = session?.user.token;
-    const email = session?.user.;
+    const user_id = session?.user.user_id;
     if (!validateInputs()) return;
     const courseData = {
-      user_id: email,
+      user_id: user_id,
       title: courseTitle,
       description,
       price,

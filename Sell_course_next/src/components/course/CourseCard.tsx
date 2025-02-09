@@ -11,7 +11,6 @@ export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
   const params = useParams();
   const handleClick = () => {
-    
     const locale = params.locale;
     router.push(`/${locale}/courseDetail/${course.courseId}`);
   };
@@ -19,11 +18,11 @@ export default function CourseCard({ course }: CourseCardProps) {
     <div className="card" onClick={handleClick}>
       <div className="header">
         <Image
-          src="/avatar.png"
+          src={course.userAvata || ""}
           alt="Avatar"
           width={30}
           height={30}
-          className="avatar"
+          className="avatarImage"
         />
         <span className="name">{course.userName}</span>
       </div>
