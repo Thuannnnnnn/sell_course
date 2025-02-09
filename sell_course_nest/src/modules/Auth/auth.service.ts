@@ -178,7 +178,7 @@ export class authService {
   }
 
   async validateEmailForgot(email: string, lang: string) {
-    const user = this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({ where: { email } }); // Ensure await is used
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
@@ -193,8 +193,7 @@ export class authService {
       <p>Best regards,</p>
       <p>Redflag GoldenStart Team</p>
     `;
-
-    this.mailService.sendSimpleEmail(email, subject, content);
+    await this.mailService.sendSimpleEmail(email, subject, content); // Ensure email is only sent if user exists
     return { message: 'Password reset email sent successfully', statusCode: HttpStatus.OK };
   }
 

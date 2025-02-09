@@ -223,8 +223,8 @@
   "errorMessage": "Không thể gửi email. Vui lòng thử lại.",
   "serverError": "Lỗi máy chủ. Vui lòng thử sau.",
   "emailSent": "Đã gửi mail ",
-  "emailNotReceived": "Bạn đã nhận được email chưa? Nếu chưa, hãy thử lại."
-
+  "emailNotReceived": "Bạn đã nhận được email chưa? Nếu chưa, hãy thử lại.",
+  "emailNotFound": "Email không tồn tại, vui lòng kiểm tra lại."
 },
   "forgotPasswordBanner": {
     "title-3": "Quên mật khẩu"

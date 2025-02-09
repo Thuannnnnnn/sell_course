@@ -27,7 +27,7 @@ export default function ForgotPassword() {
 
   const handleResetPassword = async () => {
     if (!validateEmail(email)) {
-      setError(t("errorMessage"));
+      setError(t("errorMessage")); // Email không hợp lệ
       return;
     }
 
@@ -36,16 +36,22 @@ export default function ForgotPassword() {
     setSuccessMessage("");
     setCanResend(false);
     setShowRetryMessage(false);
-
     try {
       const response = await sendMail(email, localActive);
       if (response && response.statusCode === 200) {
         setSuccessMessage(t("emailSent"));
         setTimeout(() => setShowRetryMessage(true), 30000); // Hiển thị gợi ý sau 30s
+      } else {
+        setError(t("emailNotFound")); // Nếu API trả về lỗi
+        setCanResend(true);
       }
     } catch (error) {
       console.error("Reset password error:", error);
-      setError(t("serverError"));
+      if (error instanceof Error && error.message.includes("Email not found")) {
+        setError(t("emailNotFound")); // Hiển thị lỗi nếu email không tồn tại
+      } else {
+        setError(t("serverError")); // Lỗi hệ thống
+      }
       setCanResend(true);
     } finally {
       setIsLoading(false);
@@ -75,7 +81,6 @@ export default function ForgotPassword() {
         </div>
         {error && <p className="error-message">{error}</p>}
         {successMessage && <strong className="success-message">{successMessage}</strong>}
-        
         {/* Hiển thị gợi ý sau 30s */}
         {showRetryMessage && (
           <p className="info-message">{t("emailNotReceived")}</p>
