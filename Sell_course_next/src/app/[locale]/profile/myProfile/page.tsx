@@ -10,31 +10,45 @@ import "../../../../style/UserProfilePage.css";
 import { fetchUserDetails } from "@/app/api/auth/User/route";
 import { useTranslations } from "next-intl";
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
+export interface User {
+  id?: string;
+  user_id?: string; 
+  email: string | null | undefined;
+  username: string;
   avatarImg: string;
-  gender: string;
-  birthDay: string;
-  phoneNumber: string;
+  gender: string | null;
+  birthDay: string | null;
+  phoneNumber: string | null;
   role: string;
+  token?: string;
 }
+
 
 const MyProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);  // Allow null initially
+  const [user, setUser] = useState<User | null>(null);  
   const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);  // Track errors
+  const [error, setError] = useState<string | null>(null); 
   const t = useTranslations('myProfile')
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
     } else if (status === "authenticated" && session?.user) {
-      setUser(session.user);
-      console.log("Session User:", session.user);
+      const formattedUser: User = {
+        id: session.user.id ?? "",
+        user_id: session.user.user_id ?? "",
+        email: session.user.email ?? "", 
+        username: session.user.name ?? "Unknown",
+        avatarImg: session.user.avatarImg ?? "",
+        gender: session.user.gender ?? null,
+        birthDay: session.user.birthDay ?? null,
+        phoneNumber: session.user.phoneNumber ?? null,
+        role: session.user.role ?? "",
+        token: session.user.token ?? "",
+      };
+      setUser(formattedUser);
       fetchUserData(session.user?.user_id);
     }
   }, [session, status, router]);
@@ -75,7 +89,7 @@ const MyProfilePage: React.FC = () => {
               </div>
               <div className="tabel-content">
                 <div className="title-info">{t('username')}</div>
-                <div className="info">{user?.name || "N/A"}</div>
+                <div className="info">{user?.username || "N/A"}</div>
               </div>
               <div className="tabel-content">
                 <div className="title-info">{t('gender')}</div>

@@ -6,7 +6,7 @@ import defaultAvatar from "../app/image/defait-img.png";
 
 // Define the type for the user prop
 interface User {
-  avatarImg?: string;
+  avatarImg?: string; // Thống nhất tên trường với MyProfilePage.tsx
   name?: string;
 }
 
