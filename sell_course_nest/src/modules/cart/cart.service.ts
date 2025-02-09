@@ -58,13 +58,19 @@ export class CartService {
   }
 
   async removeFromCart(email: string, courseId: string): Promise<boolean> {
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) throw new NotFoundException('User not found');
-    const result = await this.cartRepository.delete({
-      user,
-      course: { courseId },
-    });
-    return result.affected > 0;
+    console.log(email, courseId);
+    const result = await this.cartRepository
+      .createQueryBuilder()
+      .delete()
+      .from('cart')
+      .where('email = :email', { email })
+      .andWhere('course_id = :courseId', { courseId })
+      .execute();
+
+    console.log('Delete Result:', result);
+
+    // Kiểm tra nếu affected không undefined và lớn hơn 0
+    return result.affected ? result.affected > 0 : false;
   }
 
   async clearCart(userId: string): Promise<void> {
