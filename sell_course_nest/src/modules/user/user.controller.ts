@@ -29,23 +29,26 @@ export class UserController {
   async getAllUsers() {
     return this.userService.findAll();
   }
-  @UseGuards(JwtAuthGuard)
-  @Get('/users/:id')
-  async getUserById(@Param('id') userId: string) {
-    return this.userService.findById(userId);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get('/users/:id')
+  // async getUserById(@Param('id') userId: string) {
+  //   return this.userService.findById(userId);
+  // }
 
-  @Get('/users/user/:user_id')
-  async findUserById(@Param('user_id') user_id: string): Promise<any> {
-    console.log('Fetching user with ID:', user_id); // Debug để xem user_id có chính xác không
-    const user = await this.userService.getUserById(user_id);
+  @UseGuards(JwtAuthGuard)
+  @Get('/users/user')
+  async findUserById(@Req() req): Promise<any> {
+    const email = req.user.email;
+    console.log('Fetching user with email:', email);
+
+    const user = await this.userService.getUserEmail(email);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return user;
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Put('/users/user')
   @UseInterceptors(FileInterceptor('avatar'))
   async updateUser(
@@ -182,11 +185,11 @@ export class UserController {
   async getMe(@Req() req: any) {
     try {
       console.log('Getting user profile for:', req.user);
-      if (!req.user || !req.user.user_id) {
+      if (!req.user || !req.user.email) {
         throw new UnauthorizedException('User not authenticated');
       }
 
-      const user = await this.userService.getUserById(req.user.user_id);
+      const user = await this.userService.getUserEmail(req.user.email);
       if (!user) {
         throw new NotFoundException('User not found');
       }
