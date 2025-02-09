@@ -298,6 +298,8 @@
     "success": "Success",
     "error": "Error",
     "addedToCartSuccess": "Course successfully added to cart!",
-    "addedToCartFail": "Failed to add course to cart."
+    "addedToCartFail": "Failed to add course to cart.",
+    "questionsAndAnswers": "Questions and Answers",
+    "reply": "Reply"
   }
 }
