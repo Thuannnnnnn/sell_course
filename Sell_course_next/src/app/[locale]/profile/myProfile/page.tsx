@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import BannerUser from "@/components/BannerUser";
 import SignIn from "../../auth/login/page";
@@ -34,9 +33,9 @@ const MyProfilePage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const userDetails = await fetchUserDetails(token, email);
+        const userDetails = await fetchUserDetails(token as string, email as string);
         setUser(userDetails);
-      } catch (err) {
+      } catch {
         setError("Failed to load user details.");
       } finally {
         setLoading(false);

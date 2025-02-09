@@ -16,10 +16,11 @@ import Banner from "@/components/Banner";
 import { useEffect, useState } from "react";
 import { Course } from "../type/course/Course";
 import { fetchCourses } from "../api/course/CourseAPI";
+import { useSession } from "next-auth/react";
 export default function HomePage() {
   const t = useTranslations("homePage");
   const tc = useTranslations("cardCourse");
-
+ const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
   const token = "your_auth_token_here";
 
@@ -36,6 +37,7 @@ export default function HomePage() {
     };
 
     loadCourses();
+    console.log("check data: " + session)
   }, [token]);
   return (
     <>

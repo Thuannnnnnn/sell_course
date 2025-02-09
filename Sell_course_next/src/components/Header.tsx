@@ -78,12 +78,16 @@ const Header: React.FC = () => {
             <span className="nav-link mx-4">Loading...</span>
           ) : session ? (
             <>
-              <Link href={`/${localActive}/profile/myProfile`} className="nav-link">
+              <Link
+                href={`/${localActive}/profile/myProfile`}
+                className="nav-link"
+              >
                 <Image
-                  src={`${session.user?.avatarImg}`}
+                  src={`${session.user.avatarImg}`}
                   alt="avatar"
                   className="border rounded-circle"
-                  width="50"
+                  width={50}
+                  height={50}
                 />
               </Link>
               <Button

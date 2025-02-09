@@ -6,7 +6,7 @@ import Image from "react-bootstrap/Image";
 
 // Define the type for the user
 interface User {
-  name?: string;
+  username?: string;
   email?: string;
   avatarImg?: string;
 }
@@ -41,7 +41,7 @@ const ProfilePage: React.FC = () => {
 
       {user ? (
         <>
-          <span className="nav-link m-4">Name: {user?.name}</span>
+          <span className="nav-link m-4">Name: {user?.username}</span>
           <span className="nav-link m-4">Email: {user?.email}</span>
           {user?.avatarImg && (
             <Image

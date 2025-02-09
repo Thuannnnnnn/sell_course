@@ -33,18 +33,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               },
             }
           );
-
+          console.log("Check session o day: " + response.data);
           if (response.data?.token) {
             return {
               token: response.data.token,
-              id: response.data.id,
-              user_id: response.data.user_id,
+              user_id: response.data.user_id || "",
               email: response.data.email,
               gender: response.data.gender,
               birthDay: response.data.birthDay,
               phoneNumber: response.data.phoneNumber,
-              avatarImg: response.data.avatarImg || "/default-avatar.png",
-              name: response.data.username,
+              avatarImg: response.data.avatarImg,
+              username: response.data.username,
               role: response.data.role,
             };
           } else {
@@ -68,14 +67,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
         token.email = user.email;
         token.user_id = user.user_id;
-        token.name = user.name;
+        token.username = user.username;
         token.gender = user.gender;
         token.birthDay = user.birthDay;
         token.phoneNumber = user.phoneNumber;
-        token.avatarImg = user.avatarImg || "/default-avatar.png";
+        token.avatarImg = user.avatarImg;
         token.role = user.role;
         token.token = user.token;
       }
@@ -98,13 +96,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       session.user = {
         ...session.user,
-        id: token.id as string,
         user_id: token.user_id as string,
         email: token.email as string,
         role: token.role as string,
         token: token.token as string,
-        name: token.name as string,
-        avatarImg: token.avatarImg || "/default-avatar.png",
+        username: token.username as string,
+        avatarImg: token.avatarImg as string,
         gender: token.gender as string,
         birthDay: token.birthDay as string,
         phoneNumber: token.phoneNumber as string,
@@ -122,11 +119,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       const payload = {
         token: user.token,
-        id: user.id,
+        user_id: user.user_id,
         provider: account.provider,
-        avatarImg: user.avatarImg || "/default-avatar.png",
+        avatarImg: user.avatarImg,
         email: user.email,
-        name: user.name,
+        username: user.username,
         picture: user.image,
       };
 
@@ -145,6 +142,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error("Error: API response data is null");
           return false;
         }
+        user.token = response.data.token;
+        user.user_id = response.data.user_id || "";
+        user.email = response.data.email || "";
+        user.gender = response.data.gender || null;
+        user.birthDay = response.data.birthDay || null;
+        user.phoneNumber = response.data.phoneNumber || null;
+        user.avatarImg = response.data.avatarImg || "";
+        user.username = response.data.username || "Unknown";
+        user.role = response.data.role || "user";
 
         return true;
       } catch (error) {
