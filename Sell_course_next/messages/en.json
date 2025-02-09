@@ -294,6 +294,10 @@
     "addToCart": "Add to cart",
     "buyCourse": "Buy course",
     "readMore": "Read More",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "success": "Success",
+    "error": "Error",
+    "addedToCartSuccess": "Course successfully added to cart!",
+    "addedToCartFail": "Failed to add course to cart."
   }
 }

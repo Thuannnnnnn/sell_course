@@ -44,13 +44,13 @@ export default function CartPage() {
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.course_price, 0);
 
-  const handleRemoveItem = async (cart_id: string) => {
-    if (!session?.user?.token) return;
+  const handleRemoveItem = async (courseId: string) => {
+    if (!session?.user?.token || !session?.user?.email) return;
 
     try {
-      const response = await deleteCart(session.user.token, cart_id);
+      const response = await deleteCart(session.user.token, session?.user?.email, courseId);
       if (response.statusCode === 200) {
-        setCartItems(cartItems.filter((item) => item.cart_id !== cart_id));
+        setCartItems(cartItems.filter((item) => item.course_id !== courseId));
       } else {
         console.error("Failed to remove item:", response.message);
       }
@@ -58,8 +58,6 @@ export default function CartPage() {
       console.error("Error removing item:", error);
     }
   };
-
-  // Xử lý thanh toán
   const handleCheckOut = () => {
     if (cartItems.length === 0) {
       alert("Your cart is empty!");
@@ -85,7 +83,7 @@ export default function CartPage() {
               </tr>
             </thead>
             <tbody>
-              {cartItems.map(({ cart_id, course_img, course_title, course_price }) => (
+              {cartItems.map(({ course_id, cart_id, course_img, course_title, course_price }) => (
                 <tr key={cart_id}>
                   <td className="thumbnail">
                     <Image
@@ -99,7 +97,7 @@ export default function CartPage() {
                   <td className="product-title">{course_title}</td>
                   <td className="product-price">${course_price}</td>
                   <td className="remove-cell">
-                    <Button variant="outline-light" onClick={() => handleRemoveItem(cart_id)}>
+                    <Button variant="outline-light" onClick={() => handleRemoveItem(course_id)}>
                       <RiDeleteBin6Line size={22} color="red" />
                     </Button>
                   </td>

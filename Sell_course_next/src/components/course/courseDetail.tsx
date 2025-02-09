@@ -8,6 +8,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { addToCart } from "@/app/api/cart/cart";
+import { NotificationContainer, NotificationManager } from 'react-notifications';
+import 'react-notifications/lib/notifications.css';
 interface CourseCardProps {
   courseId: string;
 }
@@ -59,21 +61,50 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     if (dateString) return format(new Date(dateString), "MMMM d, yyyy");
   };
 
-  // const handleAddToCart = async (courseId: string, email: string) => {
-  //   try {
-  //     const token = session?.user.token
-  //     if (!token || !courseId || !email) {
-  //       return
-  //     }
-  //     const response = await addToCart(token, email, courseId);
-  //   } catch {
+  const handleAddToCart = async (courseId: string) => {
+    try {
+      const token = session?.user.token;
+      const email = session?.user.email;
+      if (!token || !courseId || !email) {
+        NotificationManager.warning(t("loginRequired"), t("warning"), 2000);
+        return;
+      }
 
-  //   }
-  // }
+      const response = await addToCart(token, email, courseId);
+      if (response.statusCode === 200) {
+        NotificationManager.success(t("addedToCartSuccess"), t("success"), 2000);
+      } else {
+        NotificationManager.error(t("addedToCartFail"), t("error"), 2000);
+      }
+    } catch {
+      NotificationManager.error(t("addedToCartFail"), t("error"), 2000);
+    }
+  };
+  const handleCheckOut = () => {
+    if (!courses) return;
+
+    const locale = params.locale;
+    const checkoutData = [{
+      cart_id: courses.courseId,
+      course_id: courses.courseId,
+      user_id: session?.user?.id,
+      user_name: session?.user?.name,
+      course_title: courses.title,
+      course_price: courses.price,
+      course_img: courses.imageInfo || "",
+    }];
+
+    const encodedData = encodeURIComponent(JSON.stringify(checkoutData));
+
+    router.push(`/${locale}/payment?data=${encodedData}`);
+  };
+
+
+
   return (
     <div className="container">
       <div className="button-wrapper">
-        <button onClick={handleClick}>
+        <button onClick={handleClick} title="Go back">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -175,6 +206,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
         <div className="course-sidebar">
           <iframe
+            title="Course Video"
             width="100%"
             height="150"
             src={courses?.videoInfo}
@@ -183,8 +215,8 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
           <h2 className="course-price">${courses?.price}</h2>
 
-          <button className="btn add-to-cart">{t("addToCart")}</button>
-          <button className="btn buy-course">{t("buyCourse")}</button>
+          <button className="btn add-to-cart" onClick={() => handleAddToCart(courses?.courseId || "")}>{t("addToCart")}</button>
+          <button className="btn buy-course" onClick={() => handleCheckOut()}>{t("buyCourse")}</button>
 
           <div className="course-details">
             <div className="row"></div>
@@ -195,6 +227,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           </div>
         </div>
       </div>
+      <NotificationContainer />
     </div>
   );
 }
