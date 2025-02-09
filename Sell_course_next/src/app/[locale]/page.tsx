@@ -184,6 +184,68 @@ export default function HomePage() {
                   </div>
                 </SwiperSlide>
               ))}
+              {/* <SwiperSlide>
+                <div className="course-card">
+                  <Image src={logoJs} alt="JavaScript" />
+                  <h2>JavaScript</h2>
+                  <ul>
+                    <li>
+                      <div className="icon">
+                        <HiOutlineCheck className="icon-check" />
+                      </div>
+                      {tc("0")}
+                    </li>
+                    <li>
+                      <div className="icon">
+                        <HiOutlineCheck className="icon-check" />
+                      </div>
+                      {tc("1")}
+                    </li>
+                    <li>
+                      <div className="icon">
+                        <HiOutlineCheck className="icon-check" />
+                      </div>
+                      {tc("2")}
+                    </li>
+                  </ul>
+                  <p className="course-price">
+                    {" "}
+                    {tc("3")} <strong>$100.00</strong>
+                  </p>
+                  <button className="get-started-btn">{tc("4")}</button>
+                </div>
+              </SwiperSlide>
+              <SwiperSlide>
+                <div className="course-card">
+                  <Image src={logoJs} alt="JavaScript" />
+                  <h2>JavaScript</h2>
+                  <ul>
+                    <li>
+                      <div className="icon">
+                        <HiOutlineCheck className="icon-check" />
+                      </div>
+                      {tc("0")}
+                    </li>
+                    <li>
+                      <div className="icon">
+                        <HiOutlineCheck className="icon-check" />
+                      </div>
+                      {tc("1")}
+                    </li>
+                    <li>
+                      <div className="icon">
+                        <HiOutlineCheck className="icon-check" />
+                      </div>
+                      {tc("2")}
+                    </li>
+                  </ul>
+                  <p className="course-price">
+                    {" "}
+                    {tc("3")} <strong>$100.00</strong>
+                  </p>
+                  <button className="get-started-btn">{tc("4")}</button>
+                </div>
+              </SwiperSlide> */}
             </Swiper>
           </div>
         </div>

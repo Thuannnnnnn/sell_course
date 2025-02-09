@@ -25,3 +25,16 @@ export interface UserGetAllCoursePurchase {
   categoryId: string;
   imageInfo: string;
 }
+
+export interface GetUser {
+  user_id: string;
+  email: string;
+  username: string;
+  avatarImg: string | null;
+  gender: string;
+  birthDay: string | null;
+  phoneNumber: string;
+  role: string;
+}
+
+
