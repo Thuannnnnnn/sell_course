@@ -2,13 +2,13 @@ import axios from "axios";
 import { response, CartResponse } from "@/app/type/cart/cart";
 export function addToCart(
   token: string,
-  user_id: string,
+  email: string,
   course_id: string
 ): Promise<response> {
   return axios
     .post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart`, {
       token,
-      user_id,
+      email,
       course_id,
     })
     .then((res) => {

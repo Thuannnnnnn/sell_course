@@ -4,7 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+import { Course } from '../../course/entities/course.entity';
 
 @Entity()
 export class Order {
@@ -28,6 +32,14 @@ export class Order {
 
   @Column()
   email: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'email', referencedColumnName: 'email' })
+  user: User;
+
+  @ManyToOne(() => Course, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'courseId' })
+  course: Course;
 
   @CreateDateColumn()
   createdAt: Date;
