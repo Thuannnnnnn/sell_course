@@ -339,6 +339,10 @@
     "addToCart": "Thêm vào giỏ hàng",
     "buyCourse": "Mua khóa học",
     "readMore": "Đọc thêm",
-    "collapse": "Thu gọn"
+    "collapse": "Thu gọn",
+    "success": "Thành công",
+    "error": "Lỗi",
+    "addedToCartSuccess": "Khóa học đã được thêm vào giỏ hàng thành công!",
+    "addedToCartFail": "Không thể thêm khóa học vào giỏ hàng."
   }
 }

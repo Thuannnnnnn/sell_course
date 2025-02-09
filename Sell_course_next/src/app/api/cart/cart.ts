@@ -5,6 +5,7 @@ export function addToCart(
   email: string,
   course_id: string
 ): Promise<response> {
+  console.log(token, email, course_id);
   return axios
     .post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cart`, {
       token,
