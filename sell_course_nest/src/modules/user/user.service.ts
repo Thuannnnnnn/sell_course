@@ -186,6 +186,20 @@ export class UserService {
     );
   }
 
+  //get user
+  async getMe(user_id: string): Promise<UserDTO> {
+    const user = await this.userRepository.findOne({
+      where: { user_id },
+      relations: ['permissions'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() });
+  }
+
   async updateUserById(
     email: string,
     updateData: Partial<UserDto>,

@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Course_purchaseService } from './course_purchase.service';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { CoursePurchasedDTO } from './dto/courseResponseData.dto';
 @Controller('api')
 export class Course_purchaseController {
   constructor(
@@ -25,5 +28,12 @@ export class Course_purchaseController {
       throw new HttpException('OK', 200);
     }
     throw new HttpException('Server error', 500);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('course_purchased')
+  async getAllCoursePurchased(@Req() req): Promise<CoursePurchasedDTO[]> {
+    const userEmail = req.user.email;
+    return this.coursePurchasedService.getAllCoursePurchase(userEmail);
   }
 }

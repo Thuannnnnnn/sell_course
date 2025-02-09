@@ -8,6 +8,7 @@ import { User } from '../user/entities/user.entity';
 import { CoursePurchase } from './entities/course_purchase.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CoursePurchasedDTO } from './dto/courseResponseData.dto';
 
 @Injectable()
 export class Course_purchaseService {
@@ -43,5 +44,36 @@ export class Course_purchaseService {
     );
 
     return await this.coursePurchasedRepository.save(coursePurchases);
+  }
+  async getAllCoursePurchase(email: string): Promise<CoursePurchasedDTO[]> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    try {
+      const coursePurchases = await this.coursePurchasedRepository.find({
+        where: { user: { user_id: user.user_id } },
+        relations: { course: { category: true }, user: true },
+      });
+
+      return coursePurchases.map(
+        (purchase) =>
+          new CoursePurchasedDTO(
+            email,
+            purchase.coursePurchaseId,
+            purchase.course.courseId,
+            purchase.course.title,
+            purchase.course.category?.name || 'Unknown Category',
+            purchase.course.category?.categoryId || 'Unknown',
+            purchase.course.imageInfo || '',
+          ),
+      );
+    } catch (error) {
+      throw new HttpException(
+        `Error retrieving course purchases: ${(error as Error).message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

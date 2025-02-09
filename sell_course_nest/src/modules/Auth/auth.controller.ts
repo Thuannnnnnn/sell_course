@@ -41,7 +41,7 @@ export class authController {
     const user = await this.authService.login(loginRequest);
     return user;
   }
-  @Post('oauth')
+  @Post('callback/oauth')
   async oauth(@Body() oAuthRequestDto: OAuthRequestDto) {
     return await this.authService.oauth(oAuthRequestDto);
   }

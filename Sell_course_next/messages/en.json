@@ -221,6 +221,36 @@
     "enterDescription": "Shortly describe this course",
     "enterURL": "nhập địa chỉ URL"
   },
+  "updateProfile": {
+    "title": "Settings",
+    "title-profile": "Profile",
+    "title-password": "Password",
+    "email": "Email",
+    "username": "Username",
+    "gender": "Gender",
+    "birthDay": "Birthday",
+    "phoneNumber": "Phone Number",
+    "btnChange-1": "Update Profile",
+    "btnChange-2": "Upadting...",
+    "errorBirthDateAtLeast": "You must be at least 10 years old.",
+    "errorBrithDate": "Birthday cannot be in the future.",
+    "passwordChangeSuccess": "Password changed successfully.",
+    "errorTokenNotFound": "Authentication token not found. Please log in again."
+  },
+  "myProfile": {
+    "title": "My profile",
+    "email": "Email",
+    "username": "Username",
+    "gender": "Gender",
+    "birthDay": "Birthday",
+    "phoneNumber": "Phone Number"
+  },
+  "enrolledCourse": {
+    "title": "Enrollred Course",
+    "enrolledCourses": "Enrollerd Course",
+    "activeCourses": "Activity Course",
+    "compeltedCourse": "Completed Course"
+  },
   "cart": {
     "title": "Shopping Cart",
     "thumbnail": "Thumbnail",

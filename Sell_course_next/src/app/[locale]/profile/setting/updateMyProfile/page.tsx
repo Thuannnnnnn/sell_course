@@ -6,7 +6,7 @@ import SignIn from "@/app/[locale]/auth/login/page";
 import DashBoardUser from "@/components/DashBoardUser";
 import "../../../../../style/UserProfilePage.css";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import BannerUser from "@/components/BannerUser";
 import axios from "axios";
 import Image from "next/image";
@@ -39,6 +39,7 @@ const UpdateMyProfilePage: React.FC = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const t = useTranslations('updateProfile')
 
   useEffect(() => {
     console.log("Session Data:", session); // Kiểm tra session
@@ -86,19 +87,19 @@ const UpdateMyProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.birthDay && !isUserAtLeast10YearsOld(formData.birthDay)) {
-      setError("You must be at least 10 years old.");
+      setError(t('errorBirthDateAtLeast'));
       return;
     }
 
     if (formData.birthDay && new Date(formData.birthDay) > new Date()) {
-      setError("Birthday cannot be in the future.");
+      setError(t('errorBrithDate'));
       return;
     }
 
-    if (!formData.email && !formData.name && !formData.gender && !formData.birthDay && !formData.phoneNumber && !avatar) {
-      alert("Please update at least one field.");
-      return;
-    }
+    // if (!formData.email && !formData.name && !formData.gender && !formData.birthDay && !formData.phoneNumber && !avatar) {
+    //   alert("Please update at least one field.");
+    //   return;
+    // }
 
     const form = new FormData();
     form.append("email", formData.email || user?.email || "");
@@ -110,7 +111,7 @@ const UpdateMyProfilePage: React.FC = () => {
 
     const token = session?.user?.token;
     if (!token) {
-      setError("Authentication token not found. Please log in again.");
+      setError(t('errorTokenNotFound'));
       return;
     }
 
@@ -150,13 +151,13 @@ const UpdateMyProfilePage: React.FC = () => {
         </div>
         <div className="form-profile">
           <div className="form-header">
-            <h2>Settings</h2>
+            <h2>{t('title')}</h2>
             <div className="link">
               <Link className="link-profile" href={`/${localActive}/profile/setting/updateMyProfile`}>
-                <h6 className="active">Profile</h6>
+                <h6 className="active">{t('title-profile')}</h6>
               </Link>
               <Link className="link-profile" href={`/${localActive}/profile/setting/changePassword`}>
-                <h6>Password</h6>
+                <h6>{t('title-password')}</h6>
               </Link>
             </div>
           </div>
@@ -171,27 +172,27 @@ const UpdateMyProfilePage: React.FC = () => {
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit}>
               <div className="input-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">{t('email')}</label>
                 <input type="email" id="email" name="email" value={formData.email || ""} onChange={handleInputChange} required />
               </div>
               <div className="input-group">
-                <label htmlFor="username">Username</label>
+                <label htmlFor="username">{t('username')}</label>
                 <input type="text" id="username" name="name" value={formData.name || ""} onChange={handleInputChange} required />
               </div>
               <div className="input-group">
-                <label htmlFor="gender">Gender</label>
+                <label htmlFor="gender">{t('gender')}</label>
                 <input type="text" id="gender" name="gender" value={formData.gender || ""} onChange={handleInputChange} />
               </div>
               <div className="input-group">
-                <label htmlFor="birthDay">Birthday</label>
+                <label htmlFor="birthDay">{t('birthDay')}</label>
                 <input type="date" id="birthDay" name="birthDay" value={formData.birthDay || ""} onChange={handleInputChange} max={getMaxDate()} />
               </div>
               <div className="input-group">
-                <label htmlFor="phoneNumber">Phone Number</label>
+                <label htmlFor="phoneNumber">{t('phoneNumber')}</label>
                 <input type="text" id="phoneNumber" name="phoneNumber" value={formData.phoneNumber || ""} onChange={handleInputChange} />
               </div>
               <button className="btn-update" type="submit" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update Profile"}
+                {isLoading ? t('btnChange-2') : t('btnChange-1')}
               </button>
             </form>
           </div>
