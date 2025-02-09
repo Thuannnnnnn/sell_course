@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchCoursePurchased, getUserId } from "@/app/api/auth/User/route";
+import { fetchCoursePurchased } from "@/app/api/auth/User/route";
 import { UserGetAllCoursePurchase } from "@/app/type/user/User";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -11,7 +11,7 @@ import BannerUser from "@/components/BannerUser";
 import SignIn from "../../../auth/login/page";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import "../../../../../style/UserProfilePage.css";
+import { Container, Row, Col, Spinner, Nav } from "react-bootstrap";
 
 interface User {
   id: string;
@@ -32,16 +32,15 @@ const CoursePurchase: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const localActive = useLocale();
   const router = useRouter();
-  const t = useTranslations('enrolledCourse')
+  const t = useTranslations("enrolledCourse");
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
       return;
     }
-
     if (session?.user) {
-      setUser(session.user);
+      setUser(session?.user);
       if (session.user.token && session.user.email) {
         fetchCourseData(session.user.token, session.user.email);
       } else {
@@ -57,13 +56,11 @@ const CoursePurchase: React.FC = () => {
         setError("Bạn cần đăng nhập để xem khóa học đã mua.");
         return;
       }
-
       const courses = await fetchCoursePurchased(token, email);
       setCoursePurchased(courses ?? []);
       setError("");
-    } catch (error: any) {
-      console.error("Chi tiết lỗi:", error);
-      setError(error.message || "Có lỗi xảy ra khi tải dữ liệu.");
+    } catch {
+      setError("Có lỗi xảy ra khi tải dữ liệu.");
     } finally {
       setLoading(false);
     }
@@ -71,101 +68,74 @@ const CoursePurchase: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="d-flex justify-content-center align-items-center min-vh-100">
+        <Spinner animation="border" variant="primary" />
       </div>
     );
   }
 
   return (
-    <>
-      <div>{user ? <BannerUser user={user} /> : <SignIn />}</div>
+    <Container>
+      {user ? <BannerUser user={user} /> : <SignIn />}
       <div className="content-profile">
         <div className="dashboard">
           <DashBoardUser />
         </div>
         <div className="form-profile">
           <div className="form-header">
-            <h2>{t('title')}</h2>
-            <div className="link">
-              <Link className="link-profile" href={`/${localActive}/profile/dashborad/enrolledCourse`}>
-                <h6 className="active">{t('enrolledCourses')}</h6>
-              </Link>
-              <Link className="link-profile" href={`/${localActive}/profile/dashborad/activeCourse`}>
-                <h6>{t('activeCourses')}</h6>
-              </Link>
-              <Link className="link-profile" href={`/${localActive}/profile/dashborad/completeCourse`}>
-                <h6>{t('compeltedCourse')}</h6>
-              </Link>
-            </div>
+            <h2>{t("title")}</h2>
+            <Nav variant="tabs">
+              <Nav.Item>
+                <Nav.Link eventKey="enrolled">{t("enrolledCourses")}</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="active">{t("activeCourses")}</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="completed">{t("completedCourse")}</Nav.Link>
+              </Nav.Item>
+            </Nav>
           </div>
           <div>
-            <div className="p-4">
-                {loading ? (
-                  <div className="flex justify-center items-center min-h-[200px]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-8">
-                    <p className="text-red-500">{error}</p>
-                    {!session && (
-                      <button
-                        className="mt-4 bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300"
-                        onClick={() => (window.location.href = "/login")}
-                      >
-                        Đăng nhập
-                      </button>
-                    )}
-                  </div>
-                ) : coursePurchased.length > 0 ? (
-                  <div className="cardAll">
-                    <div className="cardEnrolled">
-                    {coursePurchased.map((course) => (
-                        <div onClick={() =>
-                          (window.location.href = `/course/${course.courseId}`)
-                        }
-                          key={course.courseId}
-                          className="cardContent"
-                        >
-                          {course.imageInfo && (
-                            <Image
-                              src={course.imageInfo}
-                              alt={course.title}
-                              className="cardImg"
-                              width={100}
-                              height={100}
-                            />
-                          )}
-                          <div className="cardInfo">
-                              <p className="cardCategory">
-                                {course.categoryName}
-                              </p>
-                            <div className="cardTitle">
-                              <h3 className="">
-                                {course.title}
-                              </h3>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-600">Bạn chưa mua khóa học nào.</p>
-                    {/* <button
-                      className="mt-4 bg-blue-600 text-black py-2 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300"
-                      onClick={() => (window.location.href = "/courses")}
-                    >
-                      Khám phá khóa học
-                    </button> */}
-                  </div>
+            {error ? (
+              <div className="text-center py-4">
+                <p className="text-danger">{error}</p>
+                {!session && (
+                  <button className="btn btn-primary mt-3" onClick={() => (window.location.href = "/login")}>
+                    Đăng nhập
+                  </button>
                 )}
               </div>
-            </div>
+            ) : coursePurchased.length > 0 ? (
+              <Row className="mt-4">
+                {coursePurchased.map((course) => (
+                  <Col key={course.courseId} xs={12} sm={6} md={4} className="mb-4">
+                    <div className="course-card" onClick={() => (window.location.href = `/course/${course.courseId}`)}>
+                      <Image src={course.imageInfo} alt={course.title} width={200} height={120} className="course-image" />
+                      <div className="course-content">
+                        <p className="text-muted small">{course.categoryName}</p>
+                        <div className="d-flex align-items-center mb-2">
+                          <small>{course.title}</small>
+                        </div>
+
+                        <p className="small">Lessons</p>
+                        <div className="d-flex align-items-center">
+                          <span className="me-2">⭐⭐⭐⭐⭐</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-muted">Bạn chưa mua khóa học nào.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </>
+    </Container>
   );
 };
 
