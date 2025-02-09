@@ -168,8 +168,8 @@ export class UserService {
     }
   }
 
-  async getUserById(user_id: string): Promise<UserDto | null> {
-    const user = await this.userRepository.findOne({ where: { user_id } });
+  async getUserEmail(email: string): Promise<UserDto | null> {
+    const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
       return null;
     }
@@ -187,9 +187,9 @@ export class UserService {
   }
 
   //get user
-  async getMe(user_id: string): Promise<UserDTO> {
+  async getMe(email: string): Promise<UserDTO> {
     const user = await this.userRepository.findOne({
-      where: { user_id },
+      where: { email },
       relations: ['permissions'],
     });
 
