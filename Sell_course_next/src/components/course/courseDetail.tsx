@@ -6,6 +6,8 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
+import { addToCart } from "@/app/api/cart/cart";
 interface CourseCardProps {
   courseId: string;
 }
@@ -32,11 +34,15 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   };
   const [courses, setCourses] = useState<Course | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const token = "your_auth_token_here";
+  const { data: session } = useSession();
   const t = useTranslations("courseDetailForm");
   useEffect(() => {
     const loadCourses = async () => {
       try {
+        const token = session?.user.token;
+        if (!token) {
+          return
+        }
         const data = await fetchCourseById(courseId, token);
         setCourses(data);
         console.log("Loaded courses:", data);
@@ -47,11 +53,23 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     };
 
     loadCourses();
-  }, [courseId]);
+  }, [courseId, session]);
 
   const formatDate = (dateString: string) => {
     if (dateString) return format(new Date(dateString), "MMMM d, yyyy");
   };
+
+  // const handleAddToCart = async (courseId: string, email: string) => {
+  //   try {
+  //     const token = session?.user.token
+  //     if (!token || !courseId || !email) {
+  //       return
+  //     }
+  //     const response = await addToCart(token, email, courseId);
+  //   } catch {
+
+  //   }
+  // }
   return (
     <div className="container">
       <div className="button-wrapper">
