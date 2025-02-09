@@ -3,11 +3,15 @@ import Sidebar from "@/components/SideBar";
 import { useEffect, useState } from "react";
 import { fetchCourses } from "@/app/api/course/CourseAPI";
 import CourseList from "@/components/course/courseListAdmin";
-import "../../../../style/course/courseAdmin.css";
+import "@/style/courseAdmin.css";
 import { useTranslations } from "next-intl";
 import { Course } from "@/app/type/course/Course";
 import { Button } from "react-bootstrap";
 import { useRouter } from "next/navigation";
+import {
+  NotificationContainer,
+  NotificationManager,
+} from "react-notifications";
 export default function CoursePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const t = useTranslations("courses");
@@ -28,6 +32,36 @@ export default function CoursePage() {
 
     loadCourses();
   }, [token]);
+  
+  useEffect(() => {
+    const successMessage = localStorage.getItem("courseSuccess");
+    if (successMessage) {
+      createNotification("success", "Thao tác thành công!")();
+      localStorage.removeItem("courseSuccess"); // Xóa để tránh hiển thị lại khi tải lại trang
+    }
+  }, []);
+
+  const createNotification = (
+    type: "info" | "success" | "warning" | "error",
+    message: string
+  ) => {
+    return () => {
+      switch (type) {
+        case "info":
+          NotificationManager.info(message || "Info message");
+          break;
+        case "success":
+          NotificationManager.success(message || "Success!");
+          break;
+        case "warning":
+          NotificationManager.warning(message || "Warning!", 3000);
+          break;
+        case "error":
+          NotificationManager.error(message || "Error occurred", 5000);
+          break;
+      }
+    };
+  };
 
   return (
     <div className="d-flex">
@@ -47,6 +81,7 @@ export default function CoursePage() {
         </div>
         <CourseList courses={courses} setCourses={setCourses} />
       </div>
+      <NotificationContainer />
     </div>
   );
 }

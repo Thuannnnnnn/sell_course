@@ -36,8 +36,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (response.data?.token) {
             return {
-              token: response.data.token, // Lưu token
+              token: response.data.token,
               id: response.data.id,
+              user_id: response.data.user_id,
               email: response.data.email,
               gender: response.data.gender,
               birthDay: response.data.birthDay,
@@ -69,6 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.user_id = user.user_id;
         token.name = user.name;
         token.gender = user.gender;
         token.birthDay = user.birthDay;
@@ -97,6 +99,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = {
         ...session.user,
         id: token.id as string,
+        user_id: token.user_id as string,
         email: token.email as string,
         role: token.role as string,
         token: token.token as string,
@@ -109,7 +112,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
     async signIn({ user, account }) {
-
       if (!user || !account) {
         return false;
       }

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import PermissionsTable from '@/components/Permission/PermissionTable';
 import { fetchPermissions } from '@/app/api/permission/Permission';
 import { useTranslations } from 'next-intl';
-import Sidebar from '@/components/SideBar'; // Assuming you have Sidebar imported
+import Sidebar from '@/components/SideBar';
 import '@/style/Permissions.css';
 import { useSession } from 'next-auth/react';
 

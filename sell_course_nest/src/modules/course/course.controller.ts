@@ -59,9 +59,9 @@ export class CourseController {
     return await this.courseService.getCourseById(courseId);
   }
 
-  @ApiBearerAuth()
-  @Post('course/create')
-  @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  @Post('courses/create')
+  // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'videoInfo', maxCount: 1 },

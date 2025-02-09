@@ -6,6 +6,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { FormControl, InputGroup } from "react-bootstrap";
 import Image from "next/image";
+import "react-notifications/lib/notifications.css";
 import { Category } from "@/app/type/category/Category";
 import { fetchCategories } from "@/app/api/category/CategoryAPI";
 import {
@@ -15,7 +16,11 @@ import {
 } from "@/app/api/course/CourseAPI";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-
+import {
+  NotificationContainer,
+  NotificationManager,
+} from "react-notifications";
+import { useSession } from "next-auth/react";
 const CourseForm = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -26,9 +31,12 @@ const CourseForm = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
-
-    const t = useTranslations("coursesForm");
+  const t = useTranslations("coursesForm");
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale;
+  const { data: session } = useSession();
+
   const { courseId } = useParams();
   useEffect(() => {
     const loadCategories = async () => {
@@ -56,6 +64,9 @@ const CourseForm = () => {
     };
 
     loadCategories();
+    if(session) {
+      console.log(session.user)
+    }
     if (courseId) loadCourse();
   }, [courseId]);
 
@@ -88,6 +99,40 @@ const CourseForm = () => {
     }
   };
 
+  const validateInputs = () => {
+    if (!courseTitle.trim()) {
+      createNotification("error", t("errorTitle"))();
+      return false;
+    }
+
+    if (!description.trim()) {
+      createNotification("error", t("errorDescription"))();
+      return false;
+    }
+
+    if (!category) {
+      createNotification("error", t("errorCategory"))();
+      return false;
+    }
+
+    if (!price || price <= 0) {
+      createNotification("error", t("errorPrice"))();
+      return false;
+    }
+
+    if (!image && !courseId) {
+      createNotification("error", t("errorImage"))();
+      return false;
+    }
+
+    if (!videoUrl && !courseId) {
+      createNotification("error", t("errorVideo"))();
+      return false;
+    }
+
+    return true;
+  };
+
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith("video/")) {
@@ -99,9 +144,11 @@ const CourseForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = "your-auth-token";
-    console.log(category)
+    const token = session?.user.token;
+    const email = session?.user.;
+    if (!validateInputs()) return;
     const courseData = {
+      user_id: email,
       title: courseTitle,
       description,
       price,
@@ -114,25 +161,48 @@ const CourseForm = () => {
     };
 
     try {
-      if (courseId) {
-        await updateCourse(courseId as string, courseData, files, token);
-        console.log("Course updated successfully");
-        console.log(category)
-      } else {
-        await createCourse(courseData, files, token);
-        console.log("Course created successfully");
+      if (token) {
+        if (courseId) {
+          await updateCourse(courseId as string, courseData, files, token);
+          localStorage.setItem("courseSuccess", "true");
+          router.push(`/${locale}/admin/courseAdmin/`);
+        } else {
+          await createCourse(courseData, files, token);
+          localStorage.setItem("courseUpdate", "true");
+          router.push(`/${locale}/admin/courseAdmin/`);
+        }
       }
-      router.back();
     } catch (error) {
+      createNotification("error", t("errorMessage"))();
       console.error("Error submitting course:", error);
     }
   };
 
+  const createNotification = (
+    type: "info" | "success" | "warning" | "error",
+    message: string
+  ) => {
+    return () => {
+      switch (type) {
+        case "info":
+          NotificationManager.info(message || "Info message");
+          break;
+        case "success":
+          NotificationManager.success(message || "Success!");
+          break;
+        case "warning":
+          NotificationManager.warning(message || "Warning!", 3000);
+          break;
+        case "error":
+          NotificationManager.error(message || "Error occurred", 5000);
+          break;
+      }
+    };
+  };
+
   return (
     <div className="form-container">
-      <h1 className="form-title">
-        {courseId ? t("editCourse") : t("create") }
-      </h1>
+      <h1 className="form-title">{courseId ? t("editCourse") : t("create")}</h1>
       <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="main-form">
           <div className="main-formLeft">
@@ -268,6 +338,7 @@ const CourseForm = () => {
           {t("back")}
         </button>
       </form>
+      <NotificationContainer />
     </div>
   );
 };
