@@ -8,8 +8,8 @@ import LocalSwitcher from "./local-switcher";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { IoIosLogOut } from "react-icons/io";
-import { MdDarkMode } from "react-icons/md";
-import { MdLightMode } from "react-icons/md";
+// import { MdDarkMode } from "react-icons/md";
+// import { MdLightMode } from "react-icons/md";
 import { useTheme } from "../contexts/ThemeContext";
 
 const Header: React.FC = () => {
@@ -18,10 +18,10 @@ const Header: React.FC = () => {
   const t = useTranslations("Header");
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-  };
+  // const toggleTheme = () => {
+  //   const newTheme = theme === "dark" ? "light" : "dark";
+  // };
+  setTheme("light");
   return (
     <Navbar
       expand="lg"
@@ -53,16 +53,16 @@ const Header: React.FC = () => {
           <Link href={`/${localActive}/`} className="nav-link me-4">
             {t("home")}
           </Link>
-          <Link href={`/${localActive}/course`} className="nav-link me-4">
+          <Link href={`/${localActive}/showCourse`} className="nav-link me-4">
             {t("course")}
           </Link>
           <Link href={`/${localActive}/cart`} className="nav-link me-4">
             {t("cart")}
           </Link>
-          <Link href={`/${localActive}/news`} className="nav-link me-4">
+          {/* <Link href={`/${localActive}/news`} className="nav-link me-4">
             {t("forum")}
-          </Link>
-          <Button
+          </Link> */}
+          {/* <Button
             onClick={toggleTheme}
             variant={`${theme}`}
             className="btn-signup mx-3"
@@ -72,7 +72,7 @@ const Header: React.FC = () => {
             ) : (
               <MdDarkMode color="black" />
             )}
-          </Button>
+          </Button> */}
           <LocalSwitcher />
           {status === "loading" ? (
             <span className="nav-link mx-4">Loading...</span>
