@@ -38,10 +38,10 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('/users/user')
   async findUserById(@Req() req): Promise<any> {
-    const email = req.user.email; // Lấy email từ token đã xác thực
+    const email = req.user.email;
     console.log('Fetching user with email:', email);
 
-    const user = await this.userService.getUser(email);
+    const user = await this.userService.getUserEmail(email);
     if (!user) {
       throw new NotFoundException('User not found');
     }
