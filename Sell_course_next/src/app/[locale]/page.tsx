@@ -45,7 +45,7 @@ export default function HomePage() {
         <div className="header-section">
           <Swiper
             spaceBetween={10}
-            slidesPerView={4}
+            slidesPerView={1}
             loop={true}
             breakpoints={{
               600: {
@@ -124,21 +124,21 @@ export default function HomePage() {
           <div className="course-carousel">
             <Swiper
               spaceBetween={50}
-              slidesPerView={4}
+              slidesPerView={1}
               loop={true}
               pagination={{ clickable: true }}
               breakpoints={{
-                600: {
-                  slidesPerView: 1,
-                },
-                740: {
-                  slidesPerView: 2,
-                },
-                840: {
-                  slidesPerView: 3,
-                },
+                // 600: {
+                //   slidesPerView: 1,
+                // },
+                // 740: {
+                //   slidesPerView: 2,
+                // },
+                // 840: {
+                //   slidesPerView: 3,
+                // },
                 1024: {
-                  slidesPerView: 4,
+                  slidesPerView: 1,
                 },
               }}
             >
@@ -185,7 +185,7 @@ export default function HomePage() {
                   </div>
                 </SwiperSlide>
               ))}
-              <SwiperSlide>
+              {/* <SwiperSlide>
                 <div className="course-card">
                   <Image src={logoJs} alt="JavaScript" />
                   <h2>JavaScript</h2>
@@ -246,9 +246,7 @@ export default function HomePage() {
                   </p>
                   <button className="get-started-btn">{tc("4")}</button>
                 </div>
-              </SwiperSlide>
-            
-             
+              </SwiperSlide> */}
             </Swiper>
           </div>
         </div>

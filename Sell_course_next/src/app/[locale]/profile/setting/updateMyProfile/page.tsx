@@ -1,61 +1,59 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import SignIn from "@/app/[locale]/auth/login/page";
 import DashBoardUser from "@/components/DashBoardUser";
 import "../../../../../style/UserProfilePage.css";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import BannerUser from "@/components/BannerUser";
-import axios from "axios";
 import Image from "next/image";
 import defaultAvatar from "../../../../image/defait-img.png";
-import { updateUserProfile } from "@/app/api/auth/User/route";
+import { fetchUserDetails, updateUserProfile } from "@/app/api/auth/User/route";
+import { GetUser } from "@/app/type/user/User";
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatarImg: string;
-  gender: string;
-  birthDay: string;
-  phoneNumber: string;
-  role: string;
-}
 
 const UpdateMyProfilePage: React.FC = () => {
-  const { data: session, status, update } = useSession(); // access the update function
-  const router = useRouter();
+  const { data: session, status } = useSession();
   const localActive = useLocale();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<GetUser | null>(null);
   const [avatar, setAvatar] = useState<File | null>(null);
-  const [formData, setFormData] = useState<Partial<User>>({
-    email: "",
-    name: "",
-    gender: "",
-    birthDay: "",
-    phoneNumber: "",
-  });
+  const [formData, setFormData] = useState<Partial<GetUser>>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const t = useTranslations('updateProfile')
+  const t = useTranslations('updateProfile');
+
+  const token = session?.user.token
+  const email = session?.user.email
 
   useEffect(() => {
-    console.log("Session Data:", session); // Kiểm tra session
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    } else if (status === "authenticated" && session?.user) {
-      setUser(session.user as User);
-      setFormData({
-        email: session.user.email,
-        name: session.user.name,
-        gender: session.user.gender,
-        birthDay: session.user.birthDay,
-        phoneNumber: session.user.phoneNumber,
-      });
+    if (status === "loading") return;
+    if (!email || !token) {
+      setError("User not found or unauthorized.");
+      return;
     }
-  }, [session, status, router]);
+
+    const fetchUser = async () => {
+      try {
+        const userDetails = await fetchUserDetails(token, email);
+        setUser(userDetails);
+        setFormData({
+          email: userDetails.email,
+          username: userDetails.username,
+          gender: userDetails.gender,
+          birthDay: userDetails.birthDay,
+          phoneNumber: userDetails.phoneNumber,
+        });
+      } catch {
+        setError("Failed to load user details.");
+      }
+    };
+    if (!user) fetchUser();
+  }, [session, status]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,14 +94,9 @@ const UpdateMyProfilePage: React.FC = () => {
       return;
     }
 
-    // if (!formData.email && !formData.name && !formData.gender && !formData.birthDay && !formData.phoneNumber && !avatar) {
-    //   alert("Please update at least one field.");
-    //   return;
-    // }
-
     const form = new FormData();
     form.append("email", formData.email || user?.email || "");
-    form.append("username", formData.name || user?.name || "");
+    if (formData.gender) form.append("username", formData.username || user?.username || "");
     if (formData.gender) form.append("gender", formData.gender);
     if (formData.birthDay) form.append("birthDay", formData.birthDay);
     if (formData.phoneNumber) form.append("phoneNumber", formData.phoneNumber);
@@ -119,13 +112,6 @@ const UpdateMyProfilePage: React.FC = () => {
       setIsLoading(true);
       const updatedUser = await updateUserProfile(form, token);
       setUser(updatedUser);
-
-      // Update session with new user data
-      update({
-        ...session,
-        user: updatedUser,
-      });
-
       alert("Profile updated successfully!");
     } catch (err: any) {
       setError(err.response?.data?.message || "Error updating profile.");
@@ -134,9 +120,6 @@ const UpdateMyProfilePage: React.FC = () => {
     }
   };
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
 
   if (!user) {
     return <SignIn />;
@@ -167,17 +150,17 @@ const UpdateMyProfilePage: React.FC = () => {
                 <Image src={user?.avatarImg || defaultAvatar} alt="User Avatar" className="avatar-img" layout="fixed" width={100} height={100} />
                 <input className="avatar-upload" type="file" id="avatar" onChange={handleFileChange} />
               </div>
-              <span className="name">{user?.name || "Unknown User"}</span>
+              <span className="name">{user?.username || "Unknown User"}</span>
             </div>
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit}>
               <div className="input-group">
                 <label htmlFor="email">{t('email')}</label>
-                <input type="email" id="email" name="email" value={formData.email || ""} onChange={handleInputChange} required />
+                <input disabled type="email" id="email" name="email" value={formData.email || ""} onChange={handleInputChange} required />
               </div>
               <div className="input-group">
                 <label htmlFor="username">{t('username')}</label>
-                <input type="text" id="username" name="name" value={formData.name || ""} onChange={handleInputChange} required />
+                <input type="text" id="username" name="username" value={formData.username || ""} onChange={handleInputChange} required />
               </div>
               <div className="input-group">
                 <label htmlFor="gender">{t('gender')}</label>

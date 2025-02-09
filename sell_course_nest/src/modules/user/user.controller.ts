@@ -29,11 +29,11 @@ export class UserController {
   async getAllUsers() {
     return this.userService.findAll();
   }
-  @UseGuards(JwtAuthGuard)
-  @Get('/users/:id')
-  async getUserById(@Param('id') userId: string) {
-    return this.userService.findById(userId);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get('/users/:id')
+  // async getUserById(@Param('id') userId: string) {
+  //   return this.userService.findById(userId);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Get('/users/user')
@@ -48,7 +48,7 @@ export class UserController {
     return user;
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Put('/users/user')
   @UseInterceptors(FileInterceptor('avatar'))
   async updateUser(

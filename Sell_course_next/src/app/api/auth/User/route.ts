@@ -36,19 +36,27 @@ export const updateUserProfile = async (formData: FormData, token: string) => {
         },
       }
     );
-    return response.data;
+    const user = response.data;
+    return user;
   } catch (err: any) {
     throw new Error(err.response?.data?.message || "Error updating profile.");
   }
 };
 
-export const fetchUserDetails = async (userId: string) => {
-  if (!userId) return null;
+export const fetchUserDetails = async (token: string, email: string) => {
+  if (!token || !email) return null;
   try {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/${userId}`
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     return response.data;
+
+
   } catch (error) {
     console.error("Error fetching user details:", error);
     throw new Error("Failed to load user details. Please try again later.");
