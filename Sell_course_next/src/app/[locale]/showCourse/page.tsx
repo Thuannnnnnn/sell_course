@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import CourseCard from "@/components/course/CourseCard";
-
+import "@/style/CourseCard.css";
 import { Course } from "@/app/type/course/Course";
 import { fetchCourses } from "@/app/api/course/CourseAPI";
 const AboutPage: React.FC = () => {
