@@ -19,11 +19,15 @@ export default function CourseCard({ course }: CourseCardProps) {
       course.courseId,
       email
     );
-    if(data) {
-      router.push(`/course/${course.courseId}/purchase/${data.id}`);
-    }
     const locale = params.locale;
-    router.push(`/${locale}/courseDetail/${course.courseId}`);
+    if(data) {
+      router.push(`/${locale}/course/${course.courseId}/purchase/${data.id}`);
+    }
+    else {
+
+      router.push(`/${locale}/courseDetail/${course.courseId}`);
+    }
+  
   };
   return (
     <div className="card" onClick={handleClick}>
