@@ -159,7 +159,7 @@ export class authService {
 
     // Check if user exists
     const existingUser = await this.userRepository.findOne({
-      where: { email: email }
+      where: { email: email },
     });
 
     if (existingUser) {
@@ -167,7 +167,7 @@ export class authService {
       if (existingUser.isOAuth === false) {
         throw new HttpException(
           'This email is already registered with password. Please use password login.',
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
