@@ -101,68 +101,68 @@ const CoursePurchase: React.FC = () => {
           </div>
           <div>
             <div>
-                {loading ? (
-                  <div className="flex justify-center items-center min-h-[200px]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-8">
-                    <p className="text-red-500">{error}</p>
-                    {!session && (
-                      <button
-                        className="mt-4 bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300"
-                        onClick={() => (window.location.href = "/login")}
-                      >
-                        Đăng nhập
-                      </button>
-                    )}
-                  </div>
-                ) : coursePurchased.length > 0 ? (
-                  <div className="cardAll">
-                     {coursePurchased.map((course) => (
+              {loading ? (
+                <div className="flex justify-center items-center min-h-[200px]">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : error ? (
+                <div className="text-center py-8">
+                  <p className="text-red-500">{error}</p>
+                  {!session && (
+                    <button
+                      className="mt-4 bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300"
+                      onClick={() => (window.location.href = "/login")}
+                    >
+                      Đăng nhập
+                    </button>
+                  )}
+                </div>
+              ) : coursePurchased.length > 0 ? (
+                <div className="cardAll">
+                  {coursePurchased.map((course) => (
                     <div className="cardEnrolled" key={course.courseId}>
-                        <div onClick={() =>
-                          (window.location.href = `/course/${course.courseId}`)
-                        }
-                          key={course.courseId}
-                          className="cardContent"
-                        >
-                          {course.imageInfo && (
-                            <Image
-                              src={course.imageInfo}
-                              alt={course.title}
-                              className="cardImg"
-                              width={100}
-                              height={100}
-                            />
-                          )}
-                          <div className="cardInfo">
-                              <p className="cardCategory">
-                                {course.categoryName}
-                              </p>
-                            <div className="cardTitle">
-                              <h3 className="">
-                                {course.title}
-                              </h3>
-                            </div>
+                      <div onClick={() =>
+                        (window.location.href = `/course/${course.courseId}`)
+                      }
+                        key={course.courseId}
+                        className="cardContent"
+                      >
+                        {course.imageInfo && (
+                          <Image
+                            src={course.imageInfo}
+                            alt={course.title}
+                            className="cardImg"
+                            width={100}
+                            height={100}
+                          />
+                        )}
+                        <div className="cardInfo">
+                          <p className="cardCategory">
+                            {course.categoryName}
+                          </p>
+                          <div className="cardTitle">
+                            <h3 className="">
+                              {course.title}
+                            </h3>
                           </div>
                         </div>
+                      </div>
                     </div>
-                     ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-600">Bạn chưa mua khóa học nào.</p>
-                    {/* <button
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">{t('noCourse')}</p>
+                  {/* <button
                       className="mt-4 bg-blue-600 text-black py-2 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300"
                       onClick={() => (window.location.href = "/courses")}
                     >
                       Khám phá khóa học
                     </button> */}
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
+          </div>
         </div>
       </div>
     </>

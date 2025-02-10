@@ -338,8 +338,8 @@ const CourseForm = () => {
         </button>
 
         <button
-          type=""
-          className=""
+          type="button"
+          className="back-btn"
           onClick={() => router.back()}
         >
           <IoMdArrowBack />

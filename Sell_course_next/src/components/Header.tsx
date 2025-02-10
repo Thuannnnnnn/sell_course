@@ -56,9 +56,9 @@ const Header: React.FC = () => {
               {t("manage")}
             </Link>
           ) : null}
-          <Link href={`/${localActive}/`} className="nav-link me-4">
+          {/* <Link href={`/${localActive}/`} className="nav-link me-4">
             {t("home")}
-          </Link>
+          </Link> */}
           <Link href={`/${localActive}/showCourse`} className="nav-link me-4">
             {t("course")}
           </Link>
@@ -88,7 +88,7 @@ const Header: React.FC = () => {
                 href={`/${localActive}/profile/myProfile`}
                 className="nav-link"
               >
-                <FaRegUser/>
+                <FaRegUser />
               </Link>
               <Button
                 variant={`${theme}`}

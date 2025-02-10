@@ -274,9 +274,10 @@
   },
   "enrolledCourse": {
     "title": "Khóa học đã tham gia",
-    "enrolledCourses": "Khóa học đã tham giagia",
+    "enrolledCourses": "Khóa học đã tham gia",
     "activeCourses": "Khóa học đang học",
-    "compeltedCourse": "Khóa học đã hoàn thành"
+    "compeltedCourse": "Khóa học đã hoàn thành",
+    "noCourse": "Bạn chưa sở hữu khóa học nào"
   },
   "cartBanner": {
     "title": "Giỏ hàng",

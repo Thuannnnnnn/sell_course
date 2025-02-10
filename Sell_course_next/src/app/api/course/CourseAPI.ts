@@ -12,8 +12,7 @@ const getAuthHeaders = (token: string) => ({
 export const fetchCourses = async (): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
-      `${API_BASE_URL}/courses/getAll`,
-      getAuthHeaders(token)
+      `${API_BASE_URL}/courses/getAll`
     );
     return response.data.map((course) => ({
       ...course,

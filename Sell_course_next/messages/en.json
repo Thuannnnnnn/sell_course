@@ -174,7 +174,7 @@
     "removing": "Removing..."
   },
   "categoies": {
-    "create" : "Create Category",
+    "create": "Create Category",
     "category": "Category",
     "name": "Name",
     "description": "Description",
@@ -273,7 +273,8 @@
     "title": "Enrollred Course",
     "enrolledCourses": "Enrollerd Course",
     "activeCourses": "Activity Course",
-    "compeltedCourse": "Completed Course"
+    "compeltedCourse": "Completed Course",
+    "noCourse": "You don't owned any course"
   },
   "cart": {
     "title": "Shopping Cart",
