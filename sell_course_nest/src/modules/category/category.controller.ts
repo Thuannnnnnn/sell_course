@@ -22,7 +22,7 @@ import {
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Post('categories/createCategory')
+  @Post('admin/categories/create_category')
   // @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
@@ -40,7 +40,7 @@ export class CategoryController {
     return await this.categoryService.createCategory(createCategoryDto);
   }
 
-  @Get('categories/getAll')
+  @Get('admin/categories/view_category')
   @ApiOperation({ summary: 'Get all categories (tree structure)' })
   @ApiResponse({
     status: 200,
@@ -72,8 +72,7 @@ export class CategoryController {
     return await this.categoryService.getCategoryById(id);
   }
 
-
-  @Put('categories/updateCategory/:id')
+  @Put('admin/categories/update_category/:id')
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
     status: 200,
@@ -95,7 +94,7 @@ export class CategoryController {
     return await this.categoryService.updateCategory(id, updateCategoryDto);
   }
 
-  @Delete('categories/deleteCategory/:id')
+  @Delete('admin/categories/delete_category/:id')
   @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiResponse({
     status: 200,

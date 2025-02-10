@@ -10,7 +10,8 @@
     "forum": "Forum",
     "login": "Sign In",
     "logout": "log out",
-    "signup": "Sign Up"
+    "signup": "Sign Up",
+    "manage": "Manage"
   },
   "sidebar": {
     "home": "Home"

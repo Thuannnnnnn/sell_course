@@ -10,7 +10,8 @@
     "forum": "diễn đàn",
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
-    "signup": "Đăng ký"
+    "signup": "Đăng ký",
+    "manage": "Quản lý"
   },
   "sidebar": {
     "home": "Trang Chủ"

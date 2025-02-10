@@ -8,6 +8,7 @@ import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 interface CourseListProps {
   courses: Course[];
   setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
@@ -15,11 +16,14 @@ interface CourseListProps {
 
 const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
   const t = useTranslations("courses");
-  const token = "your_auth_token_here";
+  const { data: session } = useSession();
   const router = useRouter();
   const handleDelete = async (courseId: string) => {
     try {
-      await deleteCourse(courseId, token);
+      if (!session?.user.token) {
+        return
+      }
+      await deleteCourse(courseId, session?.user.token);
       setCourses((prev) =>
         prev.filter((course) => course.courseId !== courseId)
       );

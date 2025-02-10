@@ -1,11 +1,13 @@
 import { Category } from "@/app/type/category/Category";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/api/categories";
+const API_BASE_URL = "http://localhost:8080/api";
 
 export const fetchCategories = async (): Promise<Category[]> => {
   try {
-    const response = await axios.get<Category[]>(`${API_BASE_URL}/getAll`);
+    const response = await axios.get<Category[]>(
+      `${API_BASE_URL}/admin/categories/view_category`
+    );
     console.log("data:" + JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
@@ -24,7 +26,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
 export const deleteCategory = async (categoryId: string): Promise<void> => {
   try {
     await axios.delete<Category[]>(
-      `${API_BASE_URL}/deleteCategory/` + categoryId
+      `${API_BASE_URL}admin/categories/delete_category/` + categoryId
     );
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -48,7 +50,7 @@ export const addCategory = async (category: Category): Promise<Category> => {
     };
 
     const response = await axios.post(
-      `${API_BASE_URL}/createCategory`,
+      `${API_BASE_URL}/admin/categories/create_category`,
       payload
     );
     return response.data;
@@ -67,7 +69,7 @@ export const updateCategory = async (category: Category): Promise<Category> => {
     };
 
     const response = await axios.put(
-      `${API_BASE_URL}/updateCategory/${category.categoryId}`,
+      `${API_BASE_URL}/admin/categories/update_category/${category.categoryId}`,
       payload
     );
     return response.data;

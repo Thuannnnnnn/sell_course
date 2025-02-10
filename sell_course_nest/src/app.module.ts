@@ -148,6 +148,6 @@ import { Order } from './modules/order/entities/order.entity';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/abc/*');
+    consumer.apply(PermissionMiddleware).forRoutes('/api/admin/*');
   }
 }

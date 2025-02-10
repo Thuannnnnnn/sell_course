@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Course } from "@/app/type/course/Course";
 
-const API_BASE_URL = "http://localhost:8080/api/courses";
+const API_BASE_URL = "http://localhost:8080/api";
 
 const getAuthHeaders = (token: string) => ({
   headers: {
@@ -13,6 +13,22 @@ export const fetchCourses = async (token: string): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
       `${API_BASE_URL}/getAll`,
+      getAuthHeaders(token)
+    );
+    return response.data.map((course) => ({
+      ...course,
+      updatedAt: new Date(course.updatedAt).toISOString(),
+      createdAt: new Date(course.createdAt).toISOString(),
+    }));
+  } catch (error) {
+    handleAxiosError(error, "fetching courses");
+    throw error;
+  }
+};
+export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
+  try {
+    const response = await axios.get<Course[]>(
+      `${API_BASE_URL}/admin/courses/view_course`,
       getAuthHeaders(token)
     );
     return response.data.map((course) => ({

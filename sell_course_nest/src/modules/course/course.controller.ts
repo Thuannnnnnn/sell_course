@@ -7,23 +7,19 @@ import {
   Post,
   Put,
   UploadedFiles,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
 import {
-  ApiBearerAuth,
   ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-@Controller('api/')
-@ApiTags('Course')
+@Controller('api')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
@@ -39,6 +35,21 @@ export class CourseController {
     description: 'No courses found.',
   })
   async getAllCourses(): Promise<CourseResponseDTO[]> {
+    return await this.courseService.getAllCourses();
+  }
+
+  @Get('admin/courses/view_course')
+  @ApiOperation({ summary: 'Get all courses' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved all courses.',
+    type: [CourseResponseDTO],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No courses found.',
+  })
+  async getAllCoursesAdmin(): Promise<CourseResponseDTO[]> {
     return await this.courseService.getAllCourses();
   }
 
@@ -60,7 +71,7 @@ export class CourseController {
   }
 
   // @ApiBearerAuth()
-  @Post('courses/create')
+  @Post('admin/courses/create_course')
   // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([

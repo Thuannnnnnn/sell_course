@@ -50,6 +50,11 @@ const Header: React.FC = () => {
         </div>
 
         <Nav className="d-flex align-items-center flex-nowrap">
+          {session?.user.role == "ADMIN" || session?.user.role == "STAFF" ? (
+            <Link href={`/${localActive}/admin/dashboard`} className="nav-link me-4">
+              {t("manage")}
+            </Link>
+          ) : null}
           <Link href={`/${localActive}/`} className="nav-link me-4">
             {t("home")}
           </Link>
