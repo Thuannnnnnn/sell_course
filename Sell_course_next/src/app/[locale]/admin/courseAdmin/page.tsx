@@ -1,7 +1,7 @@
 "use client";
 import Sidebar from "@/components/SideBar";
 import { useEffect, useState } from "react";
-import { fetchCourses } from "@/app/api/course/CourseAPI";
+import { fetchCoursesAdmin } from "@/app/api/course/CourseAPI";
 import CourseList from "@/components/course/courseListAdmin";
 import "@/style/courseAdmin.css";
 import { useTranslations } from "next-intl";
@@ -21,7 +21,7 @@ export default function CoursePage() {
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        const data = await fetchCourses(token);
+        const data = await fetchCoursesAdmin(token);
         setCourses(data);
         console.log("Loaded courses:", data);
       } catch (error) {
@@ -32,7 +32,7 @@ export default function CoursePage() {
 
     loadCourses();
   }, [token]);
-  
+
   useEffect(() => {
     const successMessage = localStorage.getItem("courseSuccess");
     if (successMessage) {

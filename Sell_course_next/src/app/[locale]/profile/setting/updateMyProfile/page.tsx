@@ -113,8 +113,12 @@ const UpdateMyProfilePage: React.FC = () => {
       const updatedUser = await updateUserProfile(form, token);
       setUser(updatedUser);
       alert("Profile updated successfully!");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Error updating profile.");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || "Error updating profile.");
+      } else {
+        setError("Error updating profile.");
+      }
     } finally {
       setIsLoading(false);
     }

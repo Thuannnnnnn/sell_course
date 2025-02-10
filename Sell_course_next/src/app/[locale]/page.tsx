@@ -17,10 +17,11 @@ import { useEffect, useState } from "react";
 import { Course } from "../type/course/Course";
 import { fetchCourses } from "../api/course/CourseAPI";
 import { useSession } from "next-auth/react";
+import { useParams, useRouter } from "next/navigation";
 export default function HomePage() {
   const t = useTranslations("homePage");
   const tc = useTranslations("cardCourse");
- const { data: session } = useSession();
+  const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
   const token = "your_auth_token_here";
 
@@ -37,8 +38,16 @@ export default function HomePage() {
     };
 
     loadCourses();
-    console.log("check data: " + session)
+    console.log("check data: " + session);
   }, [token]);
+
+  const router = useRouter();
+  const params = useParams();
+  const handleClick = (courseDetail: string) => {
+    const locale = params.locale;
+    router.push(`/${locale}/courseDetail/${courseDetail}`);
+  };
+
   return (
     <>
       <Banner />
@@ -129,30 +138,34 @@ export default function HomePage() {
               loop={true}
               pagination={{ clickable: true }}
               breakpoints={{
-                // 600: {
-                //   slidesPerView: 1,
-                // },
-                // 740: {
-                //   slidesPerView: 2,
-                // },
-                // 840: {
-                //   slidesPerView: 3,
-                // },
-                1024: {
+                600: {
                   slidesPerView: 1,
+                },
+                740: {
+                  slidesPerView: 2,
+                },
+                1024: {
+                  slidesPerView: 4,
                 },
               }}
             >
               {courses.map((course, index) => (
                 <SwiperSlide key={course.courseId}>
-                  <div className="course-card">
+                  <div
+                    className="course-card"
+                    style={{
+                      maxWidth: "400px",
+                      width: "100%",
+                      margin: "auto",
+                    }}
+                  >
                     {course.imageInfo ? (
                       <Image
                         src={course.imageInfo}
                         alt="Course Thumbnail"
                         width={50}
-                        height={50}
-                        style={{ objectFit: "cover" }}
+                        height={60}
+                        style={{ objectFit: "contain" }}
                       />
                     ) : (
                       "N/A"
@@ -182,7 +195,12 @@ export default function HomePage() {
                       {" "}
                       {tc("3")} <strong>${course.price}</strong>
                     </p>
-                    <button className="get-started-btn">{tc("4")}</button>
+                    <button
+                      className="get-started-btn"
+                      onClick={() => handleClick(course.courseId)}
+                    >
+                      {tc("4")}
+                    </button>
                   </div>
                 </SwiperSlide>
               ))}

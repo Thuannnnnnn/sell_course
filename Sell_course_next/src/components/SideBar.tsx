@@ -69,8 +69,8 @@ const Sidebar = () => {
               <div>{t('quizz')}</div>
             </Link>
           </li>
-          <li className={isActive(`/${locate}/admin/course`)}>
-            <Link href={`/${locate}/admin/course`} className="sidebar-link">
+          <li className={isActive(`/${locate}/admin/courseAdmin`)}>
+            <Link href={`/${locate}/admin/courseAdmin`} className="sidebar-link">
               <div className="icon-sidebar">
                 <SiCoursera />
               </div>

@@ -230,16 +230,19 @@ h6.active {
   /* Enrolled Course */
   .cardAll {
     display: flex;
+    flex-wrap: wrap;
+    gap: 4rem;
+    justify-content: flex-start;
+    margin-top: 2rem;
   }
-
   .cardEnrolled {
-    width: 25%;
+    width: calc(20%);
     border-radius: 20px;
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
     border: 1px solid black;
-    padding: 20px 20px 60px 20px;
+    padding: 20px 20px 50px 20px;
+    box-sizing: border-box;
   }
-
   .cardContent .cardImg{
     width: 100%;
   }

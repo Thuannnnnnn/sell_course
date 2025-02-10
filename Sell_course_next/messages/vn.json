@@ -10,7 +10,8 @@
     "forum": "diễn đàn",
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
-    "signup": "Đăng ký"
+    "signup": "Đăng ký",
+    "manage": "Quản lý"
   },
   "sidebar": {
     "home": "Trang Chủ"
@@ -343,6 +344,8 @@
     "success": "Thành công",
     "error": "Lỗi",
     "addedToCartSuccess": "Khóa học đã được thêm vào giỏ hàng thành công!",
-    "addedToCartFail": "Không thể thêm khóa học vào giỏ hàng."
+    "addedToCartFail": "Không thể thêm khóa học vào giỏ hàng.",
+    "questionsAndAnswers": "Questions and Answers",
+    "reply": "trả lời"
   }
 }

@@ -100,7 +100,7 @@ const CoursePurchase: React.FC = () => {
             </div>
           </div>
           <div>
-            <div className="p-4">
+            <div>
                 {loading ? (
                   <div className="flex justify-center items-center min-h-[200px]">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -119,8 +119,8 @@ const CoursePurchase: React.FC = () => {
                   </div>
                 ) : coursePurchased.length > 0 ? (
                   <div className="cardAll">
-                    <div className="cardEnrolled">
-                    {coursePurchased.map((course) => (
+                     {coursePurchased.map((course) => (
+                    <div className="cardEnrolled" key={course.courseId}>
                         <div onClick={() =>
                           (window.location.href = `/course/${course.courseId}`)
                         }
@@ -147,8 +147,8 @@ const CoursePurchase: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                      ))}
                     </div>
+                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">

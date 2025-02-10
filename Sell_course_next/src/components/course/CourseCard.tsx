@@ -1,5 +1,7 @@
+import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
 import { Course } from "@/app/type/course/Course";
 import "@/style/CourseCard.css";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
@@ -10,20 +12,32 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
   const params = useParams();
-  const handleClick = () => {
-    
+  const { data: session } = useSession();
+  const email = session?.user.email || "";
+  const handleClick = async () => {
+    const data = await CoursePurchaseAPI.getCoursePurchaseById(
+      course.courseId,
+      email
+    );
     const locale = params.locale;
-    router.push(`/${locale}/courseDetail/${course.courseId}`);
+    if(data) {
+      router.push(`/${locale}/course/${course.courseId}/purchase/${data.id}`);
+    }
+    else {
+
+      router.push(`/${locale}/courseDetail/${course.courseId}`);
+    }
+  
   };
   return (
     <div className="card" onClick={handleClick}>
       <div className="header">
         <Image
-          src="/avatar.png"
+          src={course.userAvata || ""}
           alt="Avatar"
           width={30}
           height={30}
-          className="avatar"
+          className="avatarImage"
         />
         <span className="name">{course.userName}</span>
       </div>

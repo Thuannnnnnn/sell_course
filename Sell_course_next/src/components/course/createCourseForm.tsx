@@ -52,7 +52,10 @@ const CourseForm = () => {
 
     const loadCourse = async () => {
       if (courseId) {
-        const token = "your-auth-token";
+        const token = session?.user.token;
+        if (!token) {
+          return
+        }
         const course = await fetchCourseById(courseId as string, token);
         setCourseTitle(course.title);
         setDescription(course.description);
@@ -64,11 +67,11 @@ const CourseForm = () => {
     };
 
     loadCategories();
-    if(session) {
+    if (session) {
       console.log(session.user)
     }
     if (courseId) loadCourse();
-  }, [courseId]);
+  }, [courseId, session, category]);
 
   useEffect(() => {
     if (image && typeof window !== "undefined") {
