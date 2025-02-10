@@ -9,6 +9,7 @@ import "@/style/Category.css";
 import { FormButtons } from "../FormButtons";
 import { useTranslations } from "next-intl";
 import { fetchCategories, updateCategory } from "@/app/api/category/CategoryAPI";
+import { useSession } from "next-auth/react";
 
 interface UpdateCategoryPageProps {
   categoryId: string;
@@ -30,11 +31,14 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
   const [subCategoryErrors, setSubCategoryErrors] = useState<{
     [key: string]: { name: string; description: string };
   }>({});
-
+  const { data: session } = useSession();
   useEffect(() => {
     const loadCategory = async () => {
       try {
-        const categories = await fetchCategories();
+        if (!session?.user.token) {
+          return
+        }
+        const categories = await fetchCategories(session?.user.token);
         const currentCategory = categories.find(
           (cat) => cat.categoryId === categoryId
         );
@@ -75,8 +79,8 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
 
   const validateForm = () => {
     let isValid = true;
-    let newErrors = { name: "", description: "" };
-    let newSubErrors = { ...subCategoryErrors };
+    const newErrors = { name: "", description: "" };
+    const newSubErrors = { ...subCategoryErrors };
 
     if (formData.name.trim().length < 3) {
       newErrors.name = "Tên danh mục phải có ít nhất 3 ký tự.";
@@ -132,28 +136,36 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
 
     setLoading(true);
     try {
-      await updateCategory({
-        ...category,
-        name: formData.name,
-        description: formData.description,
-      });
-
+      if (!session?.user.token) {
+        return
+      }
+      await updateCategory(
+        {
+          ...category,
+          name: formData.name,
+          description: formData.description,
+        },
+        session?.user.token
+      );
       if (subCategories.length > 0) {
         await Promise.all(
           subCategories.map((subCat) =>
-            updateCategory({
-              ...subCat,
-              name: subCat.name,
-              description: subCat.description,
-            })
+            updateCategory(
+              {
+                ...subCat,
+                name: subCat.name,
+                description: subCat.description,
+              },
+              session?.user.token
+            )
           )
         );
       }
 
       alert("Cập nhật danh mục thành công!");
       router.back();
-    } catch (error: any) {
-      alert(`Lỗi khi cập nhật danh mục: ${error.message}`);
+    } catch {
+      alert(`Lỗi khi cập nhật danh mục`);
     }
     setLoading(false);
   };
