@@ -29,7 +29,7 @@ export default function HomePage() {
     const loadCourses = async () => {
       try {
         if (!session?.user.token) {
-          return
+          return;
         }
         const data = await fetchCourses();
         setCourses(data);
@@ -48,10 +48,15 @@ export default function HomePage() {
   const params = useParams();
   const email = session?.user.email || "";
   const handleClick = async (courseDetaill: string) => {
-    const data = await CoursePurchaseAPI.getCoursePurchaseById(
-      courseDetaill,
-      email
-    );
+    let data;
+    if (email) {
+      data = await CoursePurchaseAPI.getCoursePurchaseById(
+        courseDetaill,
+        email
+      );
+    } else {
+      data = 404;
+    }
     const locale = params.locale;
     if (data === 200) {
       router.push(`/${locale}/course/${courseDetaill}`);

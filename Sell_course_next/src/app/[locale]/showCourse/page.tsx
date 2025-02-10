@@ -5,24 +5,22 @@ import "@/style/CourseCard.css";
 import { Course } from "@/app/type/course/Course";
 import { fetchCourses } from "@/app/api/course/CourseAPI";
 const AboutPage: React.FC = () => {
+  const [courses, setCourses] = useState<Course[]>([]);
 
-   const [courses, setCourses] = useState<Course[]>([]);
-    const token = "your_auth_token_here";
-  
-    useEffect(() => {
-      const loadCourses = async () => {
-        try {
-          const data = await fetchCourses(token);
-          setCourses(data);
-          console.log("Loaded courses:", data);
-        } catch (error) {
-          console.log("Loaded courses error:", error);
-        } finally {
-        }
-      };
-  
-      loadCourses();
-    }, [token]);
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const data = await fetchCourses();
+        setCourses(data);
+        console.log("Loaded courses:", data);
+      } catch (error) {
+        console.log("Loaded courses error:", error);
+      } finally {
+      }
+    };
+
+    loadCourses();
+  }, []);
   return (
     <div
       style={{
