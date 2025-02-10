@@ -196,7 +196,7 @@ export class authService {
     const newUser = this.userRepository.create({
       user_id: uuidv4(),
       email: email,
-      username: name,
+      username: name || email.split('@')[0],
       avatarImg: picture,
       password: null, // OAuth users don't need password
       isOAuth: true,
@@ -260,9 +260,11 @@ export class authService {
       <p>Redflag GoldenStart Team</p>
     `;
     await this.mailService.sendSimpleEmail(email, subject, content); // Ensure email is only sent if user exists
-    return { message: 'Password reset email sent successfully', statusCode: HttpStatus.OK };
+    return {
+      message: 'Password reset email sent successfully',
+      statusCode: HttpStatus.OK,
+    };
   }
-
 
   async forgotPw(email: string, password: string, token: string) {
     try {
@@ -273,15 +275,21 @@ export class authService {
       let decoded;
       try {
         decoded = this.jwtService.verify(token);
-      } catch (error) {
-        throw new HttpException('Token invalid or expired', HttpStatus.BAD_REQUEST);
+      } catch {
+        throw new HttpException(
+          'Token invalid or expired',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       console.log('Decoded Token:', decoded);
       console.log('Received email:', email);
       console.log('Token email:', decoded.email);
       // Normalize email comparison (trim + lowercase)
       if (decoded.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
-        throw new HttpException('Token email does not match', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Token email does not match',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       // Check if user exists
       const user = await this.userRepository.findOne({ where: { email } });
@@ -291,9 +299,15 @@ export class authService {
       // Hash new password
       const newPassword = await bcrypt.hash(password, 10);
       // Update user's password
-      const result = await this.userRepository.update({ email }, { password: newPassword });
+      const result = await this.userRepository.update(
+        { email },
+        { password: newPassword },
+      );
       if (result.affected === 0) {
-        throw new HttpException('Failed to update password', HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new HttpException(
+          'Failed to update password',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
       return { message: 'Password reset successfully' };
     } catch (error) {
@@ -303,7 +317,7 @@ export class authService {
       }
       throw new HttpException(
         error instanceof Error ? error.message : 'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
