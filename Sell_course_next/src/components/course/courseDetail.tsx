@@ -117,7 +117,11 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        const data = await fetchCourseById(courseId);
+        const token = session?.user.token;
+        if (!token) {
+          return
+        }
+        const data = await fetchCourseById(courseId, token);
         setCourses(data);
         console.log("Loaded courses:", data);
       } catch (error) {
@@ -127,7 +131,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     };
 
     loadCourses();
-  }, [courseId]);
+  }, [courseId, session]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -378,9 +382,8 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                               </h4>
                               <p className="textQuestion mt-2 text-gray-700">
                                 <div
-                                  className={`ql-editor ${
-                                    isExpanded ? "expanded" : "collapsed"
-                                  }`}
+                                  className={`ql-editor ${isExpanded ? "expanded" : "collapsed"
+                                    }`}
                                   dangerouslySetInnerHTML={{
                                     __html: question.text ?? "",
                                   }}

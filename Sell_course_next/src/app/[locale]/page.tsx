@@ -24,12 +24,14 @@ export default function HomePage() {
   const tc = useTranslations("cardCourse");
   const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
-  const token = "your_auth_token_here";
 
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        const data = await fetchCourses(token);
+        if (!session?.user.token) {
+          return
+        }
+        const data = await fetchCourses();
         setCourses(data);
         console.log("Loaded courses:", data);
       } catch (error) {
@@ -40,7 +42,7 @@ export default function HomePage() {
 
     loadCourses();
     console.log("check data: " + session);
-  }, [token]);
+  }, [session]);
 
   const router = useRouter();
   const params = useParams();
