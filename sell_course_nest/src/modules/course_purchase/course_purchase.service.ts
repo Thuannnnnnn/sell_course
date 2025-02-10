@@ -80,11 +80,15 @@ export class Course_purchaseService {
   async getCoursePurchaseByCourseId(
     email: string,
     courseId: string,
-  ): Promise<CoursePurchasedDTO> {
+  ): Promise<{
+    code: number;
+    data: CoursePurchasedDTO | null;
+    message: string;
+  }> {
     const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      return { code: 404, data: null, message: 'User not found' };
     }
 
     const purchase = await this.coursePurchasedRepository.findOne({
@@ -93,20 +97,21 @@ export class Course_purchaseService {
     });
 
     if (!purchase) {
-      throw new HttpException(
-        'Course purchase not found',
-        HttpStatus.NOT_FOUND,
-      );
+      return { code: 404, data: null, message: 'Course purchase not found' };
     }
 
-    return new CoursePurchasedDTO(
-      email,
-      purchase.coursePurchaseId,
-      purchase.course.courseId,
-      purchase.course.title,
-      purchase.course.category?.name || 'Unknown Category',
-      purchase.course.category?.categoryId || 'Unknown',
-      purchase.course.imageInfo || '',
-    );
+    return {
+      code: 200,
+      data: new CoursePurchasedDTO(
+        email,
+        purchase.coursePurchaseId,
+        purchase.course.courseId,
+        purchase.course.title,
+        purchase.course.category?.name || 'Unknown Category',
+        purchase.course.category?.categoryId || 'Unknown',
+        purchase.course.imageInfo || '',
+      ),
+      message: 'Success',
+    };
   }
 }
