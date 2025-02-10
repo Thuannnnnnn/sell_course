@@ -12,6 +12,7 @@ import {
   SubCategoryFormData,
 } from "@/app/type/category/CategoryFormTypes";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 
 export default function AddCategoryPage() {
   const [name, setName] = useState("");
@@ -21,29 +22,30 @@ export default function AddCategoryPage() {
     description: "",
   });
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategoryFormData[]>([]);
   const [subCategoryErrors, setSubCategoryErrors] = useState<
     CategoryFormErrors[]
   >([]);
   const t = useTranslations("categoies");
-
+  const { data: session } = useSession();
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const data = await fetchCategories();
+        if (!session?.user.token) return
+        const data = await fetchCategories(session?.user.token);
         setCategories(data);
       } catch (error) {
         console.error("Failed to load categories:", error);
       }
     };
     loadCategories();
-  }, []);
+  }, [session]);
 
   const validateForm = () => {
     let isValid = true;
-    let newErrors = { name: "", description: "" };
-    let newSubErrors = subCategories.map(() => ({ name: "", description: "" }));
+    const newErrors = { name: "", description: "" };
+    const newSubErrors = subCategories.map(() => ({ name: "", description: "" }));
 
     if (name.trim().length < 3) {
       newErrors.name = "Tên danh mục phải có ít nhất 3 ký tự.";
@@ -96,13 +98,16 @@ export default function AddCategoryPage() {
 
     setLoading(true);
     try {
+      if (!session?.user.token) return
+      console.log(session?.user.token)
       const parentCategory = await addCategory({
         categoryId: "",
         name,
         description,
         parentId: undefined,
         children: [],
-      });
+      },
+        session?.user.token);
 
       if (!parentCategory?.categoryId) {
         throw new Error("Không thể tạo danh mục cha.");
@@ -118,7 +123,8 @@ export default function AddCategoryPage() {
             description: subCat.description,
             parentId: parentId,
             children: [],
-          });
+          },
+            session?.user.token);
         })
       );
 
@@ -128,8 +134,8 @@ export default function AddCategoryPage() {
       setError({ name: "", description: "" });
       setSubCategories([]);
       setSubCategoryErrors([]);
-    } catch (error: any) {
-      alert(`Lỗi khi thêm danh mục: ${error.message}`);
+    } catch {
+      alert(`Lỗi khi thêm danh mục`);
     }
     setLoading(false);
   };

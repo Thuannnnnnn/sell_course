@@ -64,7 +64,7 @@ export const addCategory = async (
       parentId: category.parentId,
       children: category.children || [],
     };
-
+    console.log(token);
     const response = await axios.post(
       `${API_BASE_URL}/admin/categories/create_category`,
       payload,
