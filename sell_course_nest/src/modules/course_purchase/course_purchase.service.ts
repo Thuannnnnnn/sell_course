@@ -76,4 +76,37 @@ export class Course_purchaseService {
       );
     }
   }
+
+  async getCoursePurchaseByCourseId(
+    email: string,
+    courseId: string,
+  ): Promise<CoursePurchasedDTO> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const purchase = await this.coursePurchasedRepository.findOne({
+      where: { user: { user_id: user.user_id }, course: { courseId } },
+      relations: { course: { category: true }, user: true },
+    });
+
+    if (!purchase) {
+      throw new HttpException(
+        'Course purchase not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return new CoursePurchasedDTO(
+      email,
+      purchase.coursePurchaseId,
+      purchase.course.courseId,
+      purchase.course.title,
+      purchase.course.category?.name || 'Unknown Category',
+      purchase.course.category?.categoryId || 'Unknown',
+      purchase.course.imageInfo || '',
+    );
+  }
 }
