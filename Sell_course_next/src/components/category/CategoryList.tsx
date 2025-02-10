@@ -5,6 +5,7 @@ import { deleteCategory } from "@/app/api/category/CategoryAPI";
 import { Container } from "react-bootstrap";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface CategoryListProps {
   categories: Category[];
@@ -17,10 +18,13 @@ const CategoryList: React.FC<CategoryListProps> = ({
 }) => {
   const t = useTranslations("categoies");
   const router = useRouter();
-
+  const { data: session } = useSession()
   const handleDelete = async (categoryId: string) => {
     try {
-      await deleteCategory(categoryId);
+      if (!session?.user.token) {
+        return
+      }
+      await deleteCategory(categoryId, session?.user.token);
       setCategories((prev) =>
         prev.filter((category) => category.categoryId !== categoryId)
       );
@@ -31,7 +35,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
   };
 
   const params = useParams();
-  
+
 
   const handleEdit = (categoryId: string) => {
     const locale = params.locale;

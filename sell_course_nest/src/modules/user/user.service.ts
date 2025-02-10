@@ -79,16 +79,21 @@ export class UserService {
   //   Object.assign(user, updateProfileDto);
   //   return this.userRepository.save(user);
   // }
-  async findAll(): Promise<UserDTO[]> {
+  async findAll(): Promise<UserDTO[] | null> {
     const users = await this.userRepository.find({
       relations: ['permissions'],
     });
-    return users.map(
-      (user) =>
-        new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() }),
-    );
-  }
 
+    return users.length
+      ? users.map(
+          (user) =>
+            new UserDTO({
+              ...user,
+              phoneNumber: user.phoneNumber?.toString() ?? null,
+            }),
+        )
+      : null;
+  }
   async findById(userId: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { user_id: userId },

@@ -6,17 +6,22 @@ import { fetchCategories } from "@/app/api/category/CategoryAPI";
 import CategoryList from "@/components/category/CategoryList";
 import "../../../../style/Category.css";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 
 export default function Category() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession()
   const t = useTranslations('categoies')
   useEffect(() => {
     const loadCategories = async () => {
       try {
         setLoading(true);
-        const data = await fetchCategories();
+        if (!session?.user.token) {
+          return;
+        }
+        const data = await fetchCategories(session.user.token);
         setCategories(data);
         setLoading(false);
       } catch (error) {

@@ -8,7 +8,7 @@ import SignIn from "@/app/[locale]/auth/login/page";
 import Link from "next/link";
 import '../../../../../style/UserProfilePage.css'
 import { User } from "next-auth";
-import { changePassword } from "@/app/api/auth/User/route";
+import { changePassword, fetchUserDetails } from "@/app/api/auth/User/route";
 import BannerUser from "@/components/BannerUser";
 import DashBoardUser from "@/components/DashBoardUser";
 
@@ -26,17 +26,24 @@ const ChangePasswordPage: React.FC = () => {
   const localActive = useLocale();
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    } else if (status === "authenticated" && session?.user) {
-      setUser(session.user as User);
-    }
-  }, [session, status, router]);
-
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
+    const token = session?.user.token
+    const email = session?.user.email
+   useEffect(() => {
+     if (status === "loading") return;
+     if (!email || !token) {
+       setError("User not found or unauthorized.");
+       return;
+     }
+     const fetchUser = async () => {
+       try {
+         const userDetails = await fetchUserDetails(token, email);
+         setUser(userDetails)
+       } catch {
+         setError("Failed to load user details.");
+       }
+     };
+     if (!user) fetchUser();
+   }, [session, status]);
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -76,7 +83,7 @@ const ChangePasswordPage: React.FC = () => {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      router.push(`/${localActive}/profile`);
+      router.push(`/${localActive}/profile/myProfile`);
     } catch (err) {
       setError(err as string);
     } finally {

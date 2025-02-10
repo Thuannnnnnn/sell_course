@@ -29,6 +29,8 @@ const MyProfilePage: React.FC = () => {
       return;
     }
 
+    console.log("Session ne: ", session.user)
+
     const fetchUser = async () => {
       setLoading(true);
       setError(null);
