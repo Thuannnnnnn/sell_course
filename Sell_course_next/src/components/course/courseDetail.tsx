@@ -8,13 +8,15 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { addToCart } from "@/app/api/cart/cart";
+import "react-quill/dist/quill.snow.css";
 import {
   NotificationContainer,
   NotificationManager,
 } from "react-notifications";
 import "react-notifications/lib/notifications.css";
 import { ResponseQaDto } from "@/app/type/qa/Qa";
-import { getAllQa } from "@/app/api/qa/Qa";
+import { createQa, deleteQa, getAllQa } from "@/app/api/qa/Qa";
+import ReactQuill from "react-quill";
 
 const getRelativeTime = (dateString: string) => {
   const now = new Date();
@@ -71,13 +73,14 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: session } = useSession();
   const [qaData, setQaData] = useState<ResponseQaDto[]>([]);
+  const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showReplyPopup, setShowReplyPopup] = useState(false);
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
-    null
-  );
-  const [replyText, setReplyText] = useState("");
+  // const [showReplyPopup, setShowReplyPopup] = useState(false);
+  // const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
+  //   null
+  // );
+  // const [replyText, setReplyText] = useState("");
   const t = useTranslations("courseDetailForm");
 
   useEffect(() => {
@@ -102,15 +105,19 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
     fetchQaData();
   }, [courseId]);
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
 
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        const token = session?.user.token;
-        if (!token) {
-          return;
-        }
-        const data = await fetchCourseById(courseId, token);
+        const data = await fetchCourseById(courseId);
         setCourses(data);
         console.log("Loaded courses:", data);
       } catch (error) {
@@ -120,7 +127,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     };
 
     loadCourses();
-  }, [courseId, session]);
+  }, [courseId]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -169,7 +176,41 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
     router.push(`/${locale}/payment?data=${encodedData}`);
   };
+  const handleCreateQa = async () => {
+    if (!text.trim()) {
+      setError("Nội dung câu hỏi không được để trống!");
+      return;
+    }
 
+    setLoading(true);
+    try {
+      if (session?.user.email) {
+        const newQa = await createQa(session?.user.email, courseId, text);
+        setQaData((prevQa) => [newQa, ...prevQa]);
+        setText("");
+        setError(null);
+      } else {
+        setError("Bạn phải đăng kí để có thể Q&A");
+      }
+    } catch (error) {
+      setError("Không thể tạo câu hỏi. Vui lòng thử lại!" + error);
+    }
+    setLoading(false);
+  };
+
+  const handleDeleteQa = async (qaId: string, email: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xoá câu hỏi này?")) return;
+    try {
+      if (email?.toLowerCase() === session?.user?.email?.toLowerCase()) {
+        await deleteQa(qaId);
+        setQaData((prevQa) => prevQa.filter((qa) => qa.qaId !== qaId));
+      } else {
+        setError("Bạn không có quyền xoá câu hỏi này");
+      }
+    } catch (error) {
+      setError("Không thể xoá câu hỏi." + error);
+    }
+  };
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -284,11 +325,26 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
             <h2 className="text-2xl font-bold mb-6">
               {t("questionsAndAnswers")}
             </h2>
+            <ReactQuill
+              value={text}
+              onChange={setText}
+              theme="snow"
+              placeholder={t("enterDescription")}
+              className="quill"
+              style={{ margin: "10px" }}
+            />
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 {error}
               </div>
             )}
+            <button
+              onClick={handleCreateQa}
+              className="m-2 bg-primary text-white px-4 py-2 rounded"
+              disabled={loading}
+            >
+              {loading ? "Đang gửi..." : "Gửi câu hỏi"}
+            </button>
             {qaData.length > 0 ? (
               <div className="qa-list space-y-6">
                 {qaData
@@ -321,15 +377,33 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                                 </span>
                               </h4>
                               <p className="textQuestion mt-2 text-gray-700">
-                                {question.text}
+                                <div
+                                  className={`ql-editor ${
+                                    isExpanded ? "expanded" : "collapsed"
+                                  }`}
+                                  dangerouslySetInnerHTML={{
+                                    __html: question.text ?? "",
+                                  }}
+                                />
                               </p>
+                              <button
+                                onClick={() =>
+                                  handleDeleteQa(
+                                    question.qaId,
+                                    question.userEmail
+                                  )
+                                }
+                                className="mt-2 text-red-500 hover:text-red-700"
+                              >
+                                Xoá
+                              </button>
                             </div>
                           </div>
                           <button
-                            onClick={() => {
-                              setSelectedQuestionId(question.qaId);
-                              setShowReplyPopup(true);
-                            }}
+                            // onClick={() => {
+                            //   setSelectedQuestionId(question.qaId);
+                            //   setShowReplyPopup(true);
+                            // }}
                             className="mt-2 text-blue-600 hover:text-blue-800 font-medium buttonReply"
                           >
                             {t("reply")}
