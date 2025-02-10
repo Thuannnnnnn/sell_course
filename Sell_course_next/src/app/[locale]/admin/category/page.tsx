@@ -32,7 +32,7 @@ export default function Category() {
 
     loadCategories();
     console.log("load daa: " + JSON.stringify(categories, null, 2));
-  }, []);
+  }, [session, categories]);
 
   if (loading) return <p>Loading categories...</p>;
   if (error) return <p>{error}</p>;

@@ -99,7 +99,7 @@ export class CourseController {
   }
 
   // @ApiBearerAuth()
-  @Put('courses/update/:id')
+  @Put('/admin/courses/update_course/:id')
   // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -136,7 +136,7 @@ export class CourseController {
   }
 
   // @ApiBearerAuth()
-  @Delete('course/deleteCourse/:id')
+  @Delete('admin/courses/delete_course/:id')
   // @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a course by ID' })
   @ApiResponse({

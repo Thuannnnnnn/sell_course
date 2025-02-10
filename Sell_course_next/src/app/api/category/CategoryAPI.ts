@@ -34,7 +34,7 @@ export const deleteCategory = async (
 ): Promise<void> => {
   try {
     await axios.delete<Category[]>(
-      `${API_BASE_URL}admin/categories/delete_category/` + categoryId,
+      `${API_BASE_URL}/admin/categories/delete_category/` + categoryId,
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -9,12 +9,9 @@ const getAuthHeaders = (token: string) => ({
   },
 });
 
-export const fetchCourses = async (token: string): Promise<Course[]> => {
+export const fetchCourses = async (): Promise<Course[]> => {
   try {
-    const response = await axios.get<Course[]>(
-      `${API_BASE_URL}/getAll`,
-      getAuthHeaders(token)
-    );
+    const response = await axios.get<Course[]>(`${API_BASE_URL}/getAll`);
     return response.data.map((course) => ({
       ...course,
       updatedAt: new Date(course.updatedAt).toISOString(),
@@ -29,7 +26,11 @@ export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
       `${API_BASE_URL}/admin/courses/view_course`,
-      getAuthHeaders(token)
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     return response.data.map((course) => ({
       ...course,
@@ -42,11 +43,18 @@ export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
   }
 };
 
-export const fetchCourseById = async (courseId: string): Promise<Course> => {
+export const fetchCourseById = async (
+  courseId: string,
+  token: string
+): Promise<Course> => {
   try {
     const response = await axios.get<Course>(
-      `${API_BASE_URL}/getByCourse/${courseId}`
-      // getAuthHeaders(token)
+      `${API_BASE_URL}/courses/getByCourse/${courseId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     return {
       ...response.data,
@@ -76,7 +84,7 @@ export const createCourse = async (
     if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
 
     const response = await axios.post<Course>(
-      `${API_BASE_URL}/create`,
+      `${API_BASE_URL}/admin/courses/create_course`,
       formData,
       {
         ...getAuthHeaders(token),
@@ -112,7 +120,7 @@ export const updateCourse = async (
     if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
 
     const response = await axios.put<Course>(
-      `${API_BASE_URL}/update/${courseId}`,
+      `${API_BASE_URL}/admin/courses/update_course/${courseId}`,
       formData,
       {
         ...getAuthHeaders(token),
@@ -136,7 +144,7 @@ export const deleteCourse = async (
 ): Promise<void> => {
   try {
     await axios.delete(
-      `${API_BASE_URL}/deleteCourse/${courseId}`,
+      `${API_BASE_URL}/admin/courses/delete_course/${courseId}`,
       getAuthHeaders(token)
     );
   } catch (error) {

@@ -21,6 +21,7 @@ import {
   NotificationManager,
 } from "react-notifications";
 import { useSession } from "next-auth/react";
+import { IoMdArrowBack } from "react-icons/io";
 const CourseForm = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,7 +42,10 @@ const CourseForm = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const data = await fetchCategories();
+        if (!session?.user.token) {
+          return
+        }
+        const data = await fetchCategories(session?.user.token);
         setCategories(data);
         if (!category && !courseId && data.length)
           setCategory(data[0].categoryId);
@@ -334,11 +338,11 @@ const CourseForm = () => {
         </button>
 
         <button
-          type="button"
-          className="back-btn"
+          type=""
+          className=""
           onClick={() => router.back()}
         >
-          {t("back")}
+          <IoMdArrowBack />
         </button>
       </form>
       <NotificationContainer />
