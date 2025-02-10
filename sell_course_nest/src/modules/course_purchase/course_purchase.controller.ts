@@ -84,7 +84,7 @@ export class Course_purchaseController {
     return this.coursePurchasedService.getAllCoursePurchase(userEmail);
   }
 
-  @Get(':courseId')
+  @Get(':courseId/:email')
   @ApiOperation({
     summary: 'Get course purchase by courseId',
     description: 'Returns details of a specific purchased course',
@@ -103,11 +103,13 @@ export class Course_purchaseController {
     description: 'ID of the purchased course',
   })
   async getCoursePurchaseByCourseId(
-    @Req() req,
     @Param('courseId') courseId: string,
-  ): Promise<CoursePurchasedDTO> {
-    const email = req.user.email;
-
+    @Param('email') email: string,
+  ): Promise<{
+    code: number;
+    data: CoursePurchasedDTO | null;
+    message: string;
+  }> {
     if (!courseId) {
       throw new HttpException('Bad Request', 400);
     }

@@ -2,7 +2,7 @@ import axios from "axios";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3000/api/course_purchased";
+  "http://localhost:8080/api/course_purchased";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -20,13 +20,11 @@ export class CoursePurchaseAPI {
   }
 
   static async getCoursePurchaseById(courseId: string, email: string) {
-    try {
-      const response = await axiosInstance.post(`/${courseId}`, { email });
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching course purchase for ${courseId}:`, error);
-      throw error;
+    const response = await axiosInstance.get(`/${courseId}/${email}`);
+    if (response.data.code === 404) {
+      return 404;
     }
+    return 200;
   }
 
   static async createCoursePurchase(email: string, courseIds: string[]) {
