@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import CourseDetail from "@/components/course/courseDetail";
 export default function CourseDetailPage() {
   const params = useParams();
-  const categoryId = params.id as string;
+  const id = params.id as string;
   
-  return <CourseDetail courseId={categoryId} />;
+  return <CourseDetail courseId={id} />;
 }

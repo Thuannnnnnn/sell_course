@@ -45,13 +45,29 @@ export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
   }
 };
 
-export const fetchCourseById = async (
+export const fetchCourseById = async (courseId: string): Promise<Course> => {
+  try {
+    const response = await axios.get<Course>(
+      `${API_BASE_URL}/courses/getByCourse/${courseId}`
+    );
+    return {
+      ...response.data,
+      updatedAt: new Date(response.data.updatedAt).toISOString(),
+      createdAt: new Date(response.data.createdAt).toISOString(),
+    };
+  } catch (error) {
+    handleAxiosError(error, `fetching course with ID: ${courseId}`);
+    throw error;
+  }
+};
+
+export const fetchCourseByIdAdmin = async (
   courseId: string,
   token: string
 ): Promise<Course> => {
   try {
     const response = await axios.get<Course>(
-      `${API_BASE_URL}/courses/getByCourse/${courseId}`,
+      `${API_BASE_URL}/admin/courses/view_course/${courseId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
