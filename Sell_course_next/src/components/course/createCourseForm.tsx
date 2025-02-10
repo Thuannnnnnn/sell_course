@@ -12,6 +12,7 @@ import { fetchCategories } from "@/app/api/category/CategoryAPI";
 import {
   createCourse,
   fetchCourseById,
+  fetchCourseByIdAdmin,
   updateCourse,
 } from "@/app/api/course/CourseAPI";
 import { useParams, useRouter } from "next/navigation";
@@ -60,7 +61,7 @@ const CourseForm = () => {
         if (!token) {
           return
         }
-        const course = await fetchCourseById(courseId as string, token);
+        const course = await fetchCourseByIdAdmin(courseId as string, token);
         setCourseTitle(course.title);
         setDescription(course.description);
         setPrice(course.price);
