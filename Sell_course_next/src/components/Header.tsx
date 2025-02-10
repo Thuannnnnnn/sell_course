@@ -11,6 +11,7 @@ import { IoIosLogOut } from "react-icons/io";
 import { MdDarkMode } from "react-icons/md";
 import { MdLightMode } from "react-icons/md";
 import { useTheme } from "../contexts/ThemeContext";
+import { FaRegUser } from "react-icons/fa";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
@@ -82,13 +83,7 @@ const Header: React.FC = () => {
                 href={`/${localActive}/profile/myProfile`}
                 className="nav-link"
               >
-                <Image
-                  src={`${session.user.avatarImg}`}
-                  alt="avatar"
-                  className="border rounded-circle"
-                  width={50}
-                  height={50}
-                />
+                <FaRegUser/>
               </Link>
               <Button
                 variant={`${theme}`}
