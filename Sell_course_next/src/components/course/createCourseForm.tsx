@@ -11,7 +11,6 @@ import { Category } from "@/app/type/category/Category";
 import { fetchCategories } from "@/app/api/category/CategoryAPI";
 import {
   createCourse,
-  fetchCourseById,
   fetchCourseByIdAdmin,
   updateCourse,
 } from "@/app/api/course/CourseAPI";
@@ -26,7 +25,7 @@ import { IoMdArrowBack } from "react-icons/io";
 const CourseForm = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(30);
+  const [price, setPrice] = useState(0);
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
@@ -44,7 +43,7 @@ const CourseForm = () => {
     const loadCategories = async () => {
       try {
         if (!session?.user.token) {
-          return
+          return;
         }
         const data = await fetchCategories(session?.user.token);
         setCategories(data);
@@ -59,7 +58,7 @@ const CourseForm = () => {
       if (courseId) {
         const token = session?.user.token;
         if (!token) {
-          return
+          return;
         }
         const course = await fetchCourseByIdAdmin(courseId as string, token);
         setCourseTitle(course.title);
@@ -73,10 +72,19 @@ const CourseForm = () => {
 
     loadCategories();
     if (session) {
-      console.log(session.user)
+      console.log(session.user);
     }
     if (courseId) loadCourse();
   }, [courseId, session, category]);
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = Number(e.target.value);
+    if (newValue > 10000) {
+      setPrice(newValue);
+    } else {
+      NotificationManager.error("Giá phải lớn hơn 10000", "Lỗi nhập liệu", 2000);
+    }
+  };
 
   useEffect(() => {
     if (image && typeof window !== "undefined") {
@@ -320,11 +328,13 @@ const CourseForm = () => {
 
               <div>
                 <InputGroup className="custom-price-input">
-                  <InputGroup.Text className="price-symbol">$</InputGroup.Text>
-                  <FormControl
+                  <InputGroup.Text className="price-symbol">
+                    VND
+                  </InputGroup.Text>
+                  <input
                     type="number"
                     value={price}
-                    onChange={(e) => setPrice(Number(e.target.value))}
+                    onChange={handlePriceChange}
                     className="price-field"
                   />
                 </InputGroup>
@@ -338,11 +348,7 @@ const CourseForm = () => {
           {courseId ? t("editCourse") : t("create")}
         </button>
 
-        <button
-          type=""
-          className=""
-          onClick={() => router.back()}
-        >
+        <button className="" onClick={() => router.back()}>
           <IoMdArrowBack />
         </button>
       </form>
