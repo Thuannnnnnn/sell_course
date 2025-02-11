@@ -19,8 +19,8 @@ export const changePassword = async (
       }
     );
     return response.data;
-  } catch (err: any) {
-    throw err.response?.data?.message || "Failed to change password.";
+  } catch {
+    throw "Failed to change password.";
   }
 };
 
@@ -38,8 +38,8 @@ export const updateUserProfile = async (formData: FormData, token: string) => {
     );
     const user = response.data;
     return user;
-  } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error updating profile.");
+  } catch {
+    throw "Error updating profile.";
   }
 };
 
@@ -55,8 +55,6 @@ export const fetchUserDetails = async (token: string, email: string) => {
       }
     );
     return response.data;
-
-
   } catch (error) {
     console.error("Error fetching user details:", error);
     throw new Error("Failed to load user details. Please try again later.");
@@ -100,10 +98,7 @@ export const fetchCoursePurchased = async (
     );
     return response.data;
   } catch (error) {
-    handleAxiosError(
-      error,
-      `fetching course purchases for user ID: ${email}`
-    );
+    handleAxiosError(error, `fetching course purchases for user ID: ${email}`);
     throw error;
   }
 };

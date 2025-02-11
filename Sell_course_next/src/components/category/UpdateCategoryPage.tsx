@@ -75,7 +75,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
     if (categoryId) {
       loadCategory();
     }
-  }, [categoryId]);
+  }, [categoryId, session?.user.token]);
 
   const validateForm = () => {
     let isValid = true;

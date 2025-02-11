@@ -4,14 +4,13 @@ import { useEffect, useState } from "react";
 import "@/style/createCourseForm.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { FormControl, InputGroup } from "react-bootstrap";
+import { InputGroup } from "react-bootstrap";
 import Image from "next/image";
 import "react-notifications/lib/notifications.css";
 import { Category } from "@/app/type/category/Category";
 import { fetchCategories } from "@/app/api/category/CategoryAPI";
 import {
   createCourse,
-  fetchCourseById,
   fetchCourseByIdAdmin,
   updateCourse,
 } from "@/app/api/course/CourseAPI";
@@ -271,6 +270,7 @@ const CourseForm = () => {
                 </div>
 
                 <input
+                  title="video"
                   type="file"
                   accept="video/*"
                   onChange={handleVideoUpload}
@@ -316,6 +316,7 @@ const CourseForm = () => {
               <div>
                 <h3>{t("category")}</h3>
                 <select
+                  title="category"
                   value={category}
                   onChange={(e) => {
                     console.log("Selected category:", e.target.value);
@@ -337,6 +338,7 @@ const CourseForm = () => {
                     VND
                   </InputGroup.Text>
                   <input
+                    title="price"
                     type="number"
                     value={price}
                     onChange={handlePriceChange}
@@ -354,10 +356,9 @@ const CourseForm = () => {
         </button>
 
         <button
+          title="button"
           type="button"
           className="back-btn"
-
-
           onClick={() => router.back()}
         >
           <IoMdArrowBack />

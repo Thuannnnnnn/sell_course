@@ -1,5 +1,3 @@
-import { Category } from "./Category";
-
 export interface CategoryFormData {
   name: string;
   description: string;

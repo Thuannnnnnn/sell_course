@@ -162,7 +162,7 @@ export default function HomePage() {
                 },
               }}
             >
-              {courses.map((course, index) => (
+              {courses.map((course) => (
                 <SwiperSlide key={course.courseId}>
                   <div
                     className="course-card"

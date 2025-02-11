@@ -8,7 +8,7 @@ import SignIn from "@/app/[locale]/auth/login/page";
 import Link from "next/link";
 import '../../../../../style/UserProfilePage.css'
 import { User } from "next-auth";
-import { changePassword, fetchUserDetails } from "@/app/api/auth/User/route";
+import { changePassword, fetchUserDetails } from "@/app/api/auth/User/user";
 import BannerUser from "@/components/BannerUser";
 import DashBoardUser from "@/components/DashBoardUser";
 
@@ -26,24 +26,24 @@ const ChangePasswordPage: React.FC = () => {
   const localActive = useLocale();
   const [user, setUser] = useState<User | null>(null);
 
-    const token = session?.user.token
-    const email = session?.user.email
-   useEffect(() => {
-     if (status === "loading") return;
-     if (!email || !token) {
-       setError("User not found or unauthorized.");
-       return;
-     }
-     const fetchUser = async () => {
-       try {
-         const userDetails = await fetchUserDetails(token, email);
-         setUser(userDetails)
-       } catch {
-         setError("Failed to load user details.");
-       }
-     };
-     if (!user) fetchUser();
-   }, [session, status]);
+  const token = session?.user.token;
+  const email = session?.user.email || "";
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!email || !token) {
+      setError("User not found or unauthorized.");
+      return;
+    }
+    const fetchUser = async () => {
+      try {
+        const userDetails = await fetchUserDetails(token, email);
+        setUser(userDetails)
+      } catch {
+        setError("Failed to load user details.");
+      }
+    };
+    if (!user) fetchUser();
+  }, [email, session, status, token, user]);
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -94,7 +94,7 @@ const ChangePasswordPage: React.FC = () => {
   return (
     <>
       <div>
-        {user ? <BannerUser user={user} /> : <SignIn />}
+        {user ? <BannerUser user={{ ...user, email: user.email || "" }} /> : <SignIn />}
       </div>
       <div className="content-profile">
         <div className="dashboard"><DashBoardUser /></div>
@@ -112,48 +112,48 @@ const ChangePasswordPage: React.FC = () => {
 
           </div>
           <div className="change-password">
-              {error && <p className="error-message">{error}</p>}
-              <form onSubmit={(e) => e.preventDefault()}>
-                <div className="input-container">
-                  <label htmlFor="currentPassword">{t('currentPassword')}</label>
-                  <input
-                    id="currentPassword"
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="input-container">
-                  <label htmlFor="newPassword">{t('newPassword')}</label>
-                  <input
-                    id="newPassword"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="input-container">
-                  <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <button
-                  className="submit-button"
-                  type="submit"
-                  onClick={handleChangePassword}
-                  disabled={isLoading}
-                >
-                  {isLoading ? t('btnChange-2') : t('btnChange-1')}
-                </button>
-              </form>
-            </div>
+            {error && <p className="error-message">{error}</p>}
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="input-container">
+                <label htmlFor="currentPassword">{t('currentPassword')}</label>
+                <input
+                  id="currentPassword"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="input-container">
+                <label htmlFor="newPassword">{t('newPassword')}</label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="input-container">
+                <label htmlFor="confirmPassword">{t('confirmPassword')}</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <button
+                className="submit-button"
+                type="submit"
+                onClick={handleChangePassword}
+                disabled={isLoading}
+              >
+                {isLoading ? t('btnChange-2') : t('btnChange-1')}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </>

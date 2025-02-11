@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { useTheme } from "../../../../contexts/ThemeContext";
-import { useRouter } from "next/navigation";
 import "@/style/Login.css";
 import Banner from "@/components/Banner-ForgotPassword";
 import { sendMail } from "@/app/api/auth/forgot/forgot";
@@ -18,7 +17,6 @@ export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [canResend, setCanResend] = useState(true);
   const [showRetryMessage, setShowRetryMessage] = useState(false);
-  const router = useRouter();
 
   // Hàm kiểm tra email hợp lệ
   const validateEmail = (email: string): boolean => {

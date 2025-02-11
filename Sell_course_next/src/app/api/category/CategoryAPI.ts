@@ -75,8 +75,8 @@ export const addCategory = async (
       }
     );
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -102,7 +102,7 @@ export const updateCategory = async (
       }
     );
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error) {
+    throw error;
   }
 };
