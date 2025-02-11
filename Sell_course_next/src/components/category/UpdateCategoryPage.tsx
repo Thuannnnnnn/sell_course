@@ -19,7 +19,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
   categoryId,
 }) => {
   const router = useRouter();
-  const t = useTranslations("categoies");
+  const t = useTranslations("categories");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
