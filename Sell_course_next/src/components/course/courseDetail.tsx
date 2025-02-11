@@ -372,9 +372,9 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                             <div>
                               <h4 className="font-semibold text-lg flex items-center gap-2 flex items-center gap-2">
                                 {question.username}
-                                <span className="dateTime text-sm text-gray-500 font-normal">
+                                {/* <span className="dateTime text-sm text-gray-500 font-normal">
                                   {getRelativeTime(question.createdAt)}
-                                </span>
+                                </span> */}
                               </h4>
                               <p className="textQuestion mt-2 text-gray-700">
                                 <div

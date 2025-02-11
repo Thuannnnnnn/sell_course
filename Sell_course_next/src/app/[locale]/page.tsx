@@ -28,9 +28,6 @@ export default function HomePage() {
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        if (!session?.user.token) {
-          return;
-        }
         const data = await fetchCourses();
         setCourses(data);
         console.log("Loaded courses:", data);

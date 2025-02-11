@@ -16,7 +16,7 @@ export default function Category() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
-  const t = useTranslations("categoies");
+  const t = useTranslations("categories");
   const router = useRouter();
   useEffect(() => {
     const loadCategories = async () => {
@@ -36,7 +36,7 @@ export default function Category() {
 
     loadCategories();
     console.log("load daa: " + JSON.stringify(categories, null, 2));
-  }, [session, categories]);
+  }, [session]);
 
   if (loading) return <p>Loading categories...</p>;
   if (error) return <p>{error}</p>;

@@ -26,7 +26,7 @@ export default function CartPage() {
     const getCart = async () => {
       try {
         const token = session?.user?.token;
-        if (!token || !session?.user?.id) return;
+        if (!token) return;
 
         const email = session?.user?.email;
         if (!email) return;
