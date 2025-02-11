@@ -1,11 +1,11 @@
 "use client";
 import { useTranslations } from "next-intl";
-import logoJava from "../image/logoJava_img.jpg";
-import logoJs from "../image/logoJS_img.jpg";
-import logoCPlusPlus from "../image/logoC++_img.png";
-import logoCSharp from "../image/logoC_img.jpg";
-import logoNodeJs from "../image/logoNodeJs_img.png";
-import logoSQL from "../image/logoSQL_img.jpg";
+import logoJava from "../.../../../../public/logoJava_img.jpg";
+import logoJs from "../.../../../../public/logoJS_img.jpg";
+import logoCPlusPlus from "../.../../../../public/logoC++_img.png";
+import logoCSharp from "../.../../../../public/logoC_img.jpg";
+import logoNodeJs from "../.../../../../public/logoSQL_img.jpg";
+import logoSQL from "../.../../../../public/logoSQL_img.jpg";
 import { HiOutlineCheck } from "react-icons/hi";
 import "swiper/css";
 import "swiper/css/navigation";

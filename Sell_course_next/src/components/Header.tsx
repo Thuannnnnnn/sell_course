@@ -2,7 +2,7 @@
 import React from "react";
 import { Navbar, Container, Nav, Image, Button } from "react-bootstrap";
 import { useSession, signOut } from "next-auth/react";
-import "../style/Header.css";
+import "../style/header.css";
 import Link from "next/link";
 import LocalSwitcher from "./local-switcher";
 import { useLocale, useTranslations } from "next-intl";

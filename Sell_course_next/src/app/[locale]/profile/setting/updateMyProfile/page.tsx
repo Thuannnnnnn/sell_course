@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import BannerUser from "@/components/BannerUser";
 import Image from "next/image";
-import defaultAvatar from "../../../../image/defait-img.png";
+import defaultAvatar from "../../../../../../public/defait-img.png";
 import { fetchUserDetails, updateUserProfile } from "@/app/api/auth/User/user";
 import { GetUser } from "@/app/type/user/User";
 

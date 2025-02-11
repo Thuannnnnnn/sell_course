@@ -1,7 +1,7 @@
 import { useLocale } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import React, { ChangeEvent, useTransition } from 'react';
-import '../style/Header.css';
+import '../style/header.css';
 export default function LocalSwitcher() {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();

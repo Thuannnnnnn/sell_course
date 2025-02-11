@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import "@/style/createCourseForm.css";
+import "../../style/CreateCourseForm.css"
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { InputGroup } from "react-bootstrap";

@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import "../style/BannerUser.css";
-import defaultAvatar from "../app/image/defait-img.png";
+import defaultAvatar from "../../public/defait-img.png";
 import { GetUser } from "@/app/type/user/User";
 // Define the type for the user prop
 // interface User {
