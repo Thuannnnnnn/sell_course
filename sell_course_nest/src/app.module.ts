@@ -23,6 +23,8 @@ import { Qa } from './modules/qa/entities/qa.entity';
 import { QuestionsExam } from './modules/questions_exam/entities/questions_exam.entity';
 import { QuestionsQuizz } from './modules/questions_quizz/entities/questions_quizz.entity';
 import { Quizz } from './modules/quizz/entities/quizz.entity';
+import { Questionentity } from './modules/quizz/entities/question.entity';
+import { AnswerEntity } from './modules/quizz/entities/answer.entity';
 import { Reply } from './modules/reply/entities/reply.entity';
 import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
 import { ResultQuizz } from './modules/result_quizz/entities/result_quizz.entity';
@@ -99,6 +101,8 @@ import { Order } from './modules/order/entities/order.entity';
         QuestionsExam,
         QuestionsQuizz,
         Quizz,
+        Questionentity,
+        AnswerEntity,
         Reply,
         ResultExam,
         ResultQuizz,
