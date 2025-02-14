@@ -19,12 +19,10 @@ export class QuizzService {
   ) {}
 
   async createQuizz(createQuizzDto: CreateQuizzDto) {
-    // Create new quiz
     const quiz = new Quizz();
     quiz.quizzId = uuidv4();
     const savedQuiz = await this.quizzRepository.save(quiz);
 
-    // Create questions and answers
     for (const questionDto of createQuizzDto.questions) {
       const question = new Questionentity();
       question.questionId = uuidv4();
@@ -32,7 +30,6 @@ export class QuizzService {
       question.quizz = savedQuiz;
       const savedQuestion = await this.questionRepository.save(question);
 
-      // Create answers for the question
       for (const answerDto of questionDto.answers) {
         const answer = new AnswerEntity();
         answer.anwserId = uuidv4();
@@ -43,7 +40,6 @@ export class QuizzService {
       }
     }
 
-    // Return the created quiz with its questions and answers
     return this.getQuizById(quiz.quizzId);
   }
 
