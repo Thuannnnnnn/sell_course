@@ -3,9 +3,9 @@ import Image from "next/image";
 import "../style/BannerUser.css";
 import defaultAvatar from "../app/image/defait-img.png";
 
-// Define the type for the user prop
+
 interface User {
-  avatarImg?: string; // Thống nhất tên trường với MyProfilePage.tsx
+  avatarImg?: string;
   username?: string;
 }
 
