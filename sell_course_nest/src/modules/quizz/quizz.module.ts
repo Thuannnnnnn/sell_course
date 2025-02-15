@@ -12,4 +12,6 @@ import { QuizzService } from './quizz.service';
   providers: [QuizzService],
   exports: [QuizzService],
 })
-export class QuizzModule {}
+export class QuizzModule {
+  public constructor() {}
+}
