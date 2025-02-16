@@ -1,8 +1,6 @@
 import axios from "axios";
 import { Course } from "@/app/type/course/Course";
 
-const API_BASE_URL = "http://localhost:8080/api";
-
 const getAuthHeaders = (token: string) => ({
   headers: {
     Authorization: `Bearer ${token}`,
@@ -12,7 +10,7 @@ const getAuthHeaders = (token: string) => ({
 export const fetchCourses = async (): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
-      `${API_BASE_URL}/courses/getAll`
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/courses/getAll`
     );
     return response.data.map((course) => ({
       ...course,
@@ -27,7 +25,7 @@ export const fetchCourses = async (): Promise<Course[]> => {
 export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
-      `${API_BASE_URL}/admin/courses/view_course`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/courses/view_course`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -48,7 +46,7 @@ export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
 export const fetchCourseById = async (courseId: string): Promise<Course> => {
   try {
     const response = await axios.get<Course>(
-      `${API_BASE_URL}/courses/getByCourse/${courseId}`
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/courses/getByCourse/${courseId}`
     );
     return {
       ...response.data,
@@ -67,7 +65,7 @@ export const fetchCourseByIdAdmin = async (
 ): Promise<Course> => {
   try {
     const response = await axios.get<Course>(
-      `${API_BASE_URL}/admin/courses/view_course/${courseId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/courses/view_course/${courseId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -102,7 +100,7 @@ export const createCourse = async (
     if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
 
     const response = await axios.post<Course>(
-      `${API_BASE_URL}/admin/courses/create_course`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/courses/create_course`,
       formData,
       {
         ...getAuthHeaders(token),
@@ -138,7 +136,7 @@ export const updateCourse = async (
     if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
 
     const response = await axios.put<Course>(
-      `${API_BASE_URL}/admin/courses/update_course/${courseId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/courses/update_course/${courseId}`,
       formData,
       {
         ...getAuthHeaders(token),
@@ -162,7 +160,7 @@ export const deleteCourse = async (
 ): Promise<void> => {
   try {
     await axios.delete(
-      `${API_BASE_URL}/admin/courses/delete_course/${courseId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/courses/delete_course/${courseId}`,
       getAuthHeaders(token)
     );
   } catch (error) {
