@@ -35,9 +35,6 @@ export class ExamQuestionService {
     });
 
     if (!exam) {
-      console.log(
-        `Exam with courseId=${dto.courseId} not found. Creating a new exam.`,
-      );
       exam = new Exam();
       exam.examId = uuidv4();
       exam.courseId = dto.courseId;

@@ -16,13 +16,11 @@ import { UpdateQuestionDto } from './dto/updateQuestionData.dto';
 @Controller('api')
 export class ExamQuestionController {
   constructor(private readonly examQuestionService: ExamQuestionService) {}
-
-  @Post('/exam')
+  @Post('/admin/exam/create_exam')
   async createExamQuestions(@Body() dto: CreateExamDto) {
     return this.examQuestionService.createExam(dto);
   }
-
-  @Get('/exam/:id')
+  @Get('/admin/exam/view_exam/:id')
   async getAllExamById(@Param('id') examId: string) {
     const exam = await this.examQuestionService.getExamById(examId);
     if (!exam) {
@@ -30,31 +28,19 @@ export class ExamQuestionController {
     }
     return exam;
   }
-
-  // @Put('/exam/:id')
-  // async updateExam(@Param('id') examId: string, @Body() dto: UpdateExamDto) {
-  //   return this.examQuestionService.updateExam(examId, dto);
-  // }
-
-  @Delete('/question/:id')
+  @Delete('/admin/exam/delete_question/:id')
   async deleteQuestion(@Param('id') questionId: string) {
     return this.examQuestionService.deleteQuestion(questionId);
   }
-
-  // Xóa bài kiểm tra theo ID
-  @Delete('/exam/:id')
+  @Delete('/admin/exam/delete_exam/:id')
   async deleteExam(@Param('id') examId: string) {
     return this.examQuestionService.deleteExam(examId);
   }
-
-  // ✅ Lấy câu hỏi theo ID
-  @Get('/question/:id')
+  @Get('/admin/exam/view_question/:id')
   async getQuestionById(@Param('id') questionId: string) {
     return this.examQuestionService.getQuestionById(questionId);
   }
-
-  // Update theo từng question ID
-  @Put('/question/:id')
+  @Put('/admin/exam/update_question/:id')
   async updateQuestion(
     @Param('id') questionId: string,
     @Body() dto: UpdateQuestionDto,
