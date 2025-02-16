@@ -6,7 +6,7 @@ import BannerUser from "@/components/BannerUser";
 import SignIn from "../../auth/login/page";
 import DashBoardUser from "@/components/DashBoardUser";
 import "../../../../style/UserProfilePage.css";
-import { fetchUserDetails } from "@/app/api/auth/User/route";
+import { fetchUserDetails } from "@/app/api/auth/User/user";
 import { useTranslations } from "next-intl";
 import { GetUser } from "@/app/type/user/User";
 

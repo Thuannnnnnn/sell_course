@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import "@/style/createCourseForm.css";
+import "../../style/CreateCourseForm.css"
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { FormControl, InputGroup } from "react-bootstrap";
+import { InputGroup } from "react-bootstrap";
 import Image from "next/image";
 import "react-notifications/lib/notifications.css";
 import { Category } from "@/app/type/category/Category";
@@ -149,6 +149,19 @@ const CourseForm = () => {
     return true;
   };
 
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = Number(e.target.value);
+    if (newValue > 10000) {
+      setPrice(newValue);
+    } else {
+      NotificationManager.error(
+        "Giá phải lớn hơn 10000",
+        "Lỗi nhập liệu",
+        2000
+      );
+    }
+  };
+
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith("video/")) {
@@ -266,6 +279,7 @@ const CourseForm = () => {
                 </div>
 
                 <input
+                  title="video"
                   type="file"
                   accept="video/*"
                   onChange={handleVideoUpload}
@@ -311,6 +325,7 @@ const CourseForm = () => {
               <div>
                 <h3>{t("category")}</h3>
                 <select
+                  title="category"
                   value={category}
                   onChange={(e) => {
                     console.log("Selected category:", e.target.value);

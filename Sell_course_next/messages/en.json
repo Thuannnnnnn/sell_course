@@ -305,7 +305,9 @@
     "successMessage": "Your order has been placed successfully!",
     "failureTitle": "Payment Failed",
     "failureMessage": "Unfortunately, your payment could not be processed. Please try again.",
-    "home_button": "Go Home"
+    "home_button": "Go Home",
+    "subtotal": "Subtotal",
+    "checkout": "Proceed to Checkout"
   },
   "courseDetailForm": {
     "teacher": "Teacher",
@@ -325,7 +327,9 @@
     "addedToCartSuccess": "Course successfully added to cart!",
     "addedToCartFail": "Failed to add course to cart.",
     "questionsAndAnswers": "Questions and Answers",
-    "reply": "Reply"
+    "reply": "Reply",
+    "noQuestionsYet": "No Question",
+    "enterDescription": "Enter your question"
   },
   "forgotPasswordPage": {
     "title": "Forgot Password",

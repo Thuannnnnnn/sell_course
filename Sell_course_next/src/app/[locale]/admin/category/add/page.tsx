@@ -27,7 +27,7 @@ export default function AddCategoryPage() {
   const [subCategoryErrors, setSubCategoryErrors] = useState<
     CategoryFormErrors[]
   >([]);
-  const t = useTranslations("categoies");
+  const t = useTranslations("categories");
   const { data: session } = useSession();
   useEffect(() => {
     const loadCategories = async () => {

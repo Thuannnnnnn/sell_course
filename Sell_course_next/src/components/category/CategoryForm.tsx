@@ -8,7 +8,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
   error,
   onChange,
 }) => {
-  const t = useTranslations("categoies");
+  const t = useTranslations("categories");
   return (
     <div className="form-section">
       <div className="form-group">

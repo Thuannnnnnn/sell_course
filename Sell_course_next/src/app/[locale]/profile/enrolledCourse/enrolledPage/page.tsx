@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchCoursePurchased, getUserId } from "@/app/api/auth/User/route";
+import { fetchCoursePurchased } from "@/app/api/auth/User/user";
 import { UserGetAllCoursePurchase } from "@/app/type/user/User";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -22,6 +22,8 @@ interface User {
   birthDay: string;
   phoneNumber: string;
   role: string;
+  user_id: string;
+  username: string;
 }
 
 const CoursePurchase: React.FC = () => {
@@ -41,14 +43,26 @@ const CoursePurchase: React.FC = () => {
     }
 
     if (session?.user) {
-      setUser(session.user);
+      const user: User = {
+        id: session.user.id || "",
+        email: session.user.email || "",
+        name: session.user.name || "",
+        avatarImg: session.user.avatarImg || "",
+        gender: session.user.gender || "",
+        birthDay: session.user.birthDay || "",
+        phoneNumber: session.user.phoneNumber || "",
+        role: session.user.role || "",
+        user_id: "",
+        username: ""
+      };
+      setUser(user);
       if (session.user.token && session.user.email) {
         fetchCourseData(session.user.token, session.user.email);
       } else {
         setError("Token or email is missing.");
       }
     }
-  }, [session, status]);
+  }, [router, session, status]);
 
   const fetchCourseData = async (token: string, email: string) => {
     setLoading(true);
@@ -61,9 +75,9 @@ const CoursePurchase: React.FC = () => {
       const courses = await fetchCoursePurchased(token, email);
       setCoursePurchased(courses ?? []);
       setError("");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Chi tiết lỗi:", error);
-      setError(error.message || "Có lỗi xảy ra khi tải dữ liệu.");
+      setError(String(error))
     } finally {
       setLoading(false);
     }

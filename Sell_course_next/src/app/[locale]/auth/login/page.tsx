@@ -4,7 +4,6 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useTheme } from "../../../../contexts/ThemeContext";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import PageLoader from "@/components/PageLoader";
 import "@/style/Login.css";
 import Banner from "@/components/Banner-SignUp";
@@ -20,7 +19,6 @@ export default function SignIn() {
     password: "",
     general: "",
   });
-  const router = useRouter();
   const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 

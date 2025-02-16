@@ -3,7 +3,7 @@ import { useState } from "react";
 import Banner from "@/components/Banner-SignUp";
 import '../../../../style/SignUp.css';
 import { useTranslations } from "next-intl";
-import { verifyEmail } from "@/app/api/auth/SignUp/route";
+import { verifyEmail } from "@/app/api/auth/SignUp/signUp";
 import { Modal, Button } from "react-bootstrap";
 import { useLocale } from 'next-intl';
 export default function SignUp() {

@@ -9,7 +9,7 @@ export const SubCategoryForm: React.FC<SubCategoryFormProps> = ({
   onUpdate,
   onRemove,
 }) => {
-  const t = useTranslations("categoies");
+  const t = useTranslations("categories");
   return (
     <div className="sub-category-form">
       <div className="sub-category-header">

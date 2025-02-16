@@ -1,11 +1,7 @@
 import axios from "axios";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:8080/api/course_purchased";
-
 const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 export class CoursePurchaseAPI {

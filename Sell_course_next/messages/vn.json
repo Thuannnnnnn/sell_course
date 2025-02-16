@@ -68,7 +68,7 @@
   },
   "cardCourse": {
     "0": "Cơ bản (lý thuyết và cú pháp)",
-    "1": "Nâng cao (cấu trúctrúc, logic, OOP)",
+    "1": "Nâng cao (cấu trúc, logic, OOP)",
     "2": "Dự án (chứng nhậnnhận)",
     "3": "Bắt đầu từ:",
     "4": "Bắt đầu"
@@ -309,11 +309,13 @@
     "payment_failed": "Thanh toán thất bại!",
     "please_try_again": "Vui lòng thử lại.",
     "retry_payment": "Thử lại thanh toán",
-    "success.title": "Đặt hàng thành công",
-    "success.message": "Đơn hàng của bạn đã được đặt thành công!",
+    "successTitle": "Đặt hàng thành công",
+    "successMessage": "Đơn hàng của bạn đã được đặt thành công!",
     "failureTitle": "Thanh toán thất bại",
     "failureMessage": "Rất tiếc, thanh toán của bạn không thể thực hiện. Vui lòng thử lại.",
-    "home_button": "Quay về trang chủ"
+    "home_button": "Quay về trang chủ",
+    "checkout": "Thanh toán",
+    "subtotal": "Tạm tính"
   },
   "courseDetailForm": {
     "teacher": "Giáo viên",
@@ -333,7 +335,9 @@
     "addedToCartSuccess": "Khóa học đã được thêm vào giỏ hàng thành công!",
     "addedToCartFail": "Không thể thêm khóa học vào giỏ hàng.",
     "questionsAndAnswers": "Questions and Answers",
-    "reply": "trả lời"
+    "reply": "trả lời",
+    "noQuestionsYet": "Chưa có câu hỏi",
+    "enterDescription": "Nhập câu hỏi"
   },
   "forgotPasswordPage": {
     "title": "Quên Mật Khẩu",
