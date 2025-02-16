@@ -18,32 +18,32 @@ import { ResponseQaDto } from "@/app/type/qa/Qa";
 import { createQa, deleteQa, getAllQa } from "@/app/api/qa/Qa";
 import ReactQuill from "react-quill";
 
-const getRelativeTime = (dateString: string) => {
-  const now = new Date();
-  const past = new Date(dateString);
+// const getRelativeTime = (dateString: string) => {
+//   const now = new Date();
+//   const past = new Date(dateString);
 
-  const diffInMilliseconds = now.getTime() - past.getTime();
-  const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
-  const diffInMonths = Math.floor(diffInDays / 30);
-  const diffInYears = Math.floor(diffInDays / 365);
+//   const diffInMilliseconds = now.getTime() - past.getTime();
+//   const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
+//   const diffInMinutes = Math.floor(diffInSeconds / 60);
+//   const diffInHours = Math.floor(diffInMinutes / 60);
+//   const diffInDays = Math.floor(diffInHours / 24);
+//   const diffInMonths = Math.floor(diffInDays / 30);
+//   const diffInYears = Math.floor(diffInDays / 365);
 
-  if (diffInSeconds < 30) return "Just now";
-  if (diffInSeconds < 60)
-    return `${diffInSeconds} second${diffInSeconds > 1 ? "s" : ""} ago`;
-  if (diffInMinutes < 60)
-    return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
-  if (diffInHours < 24)
-    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-  if (diffInDays === 1) return "Yesterday";
-  if (diffInDays < 30)
-    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-  if (diffInMonths < 12)
-    return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
-  return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
-};
+//   if (diffInSeconds < 30) return "Just now";
+//   if (diffInSeconds < 60)
+//     return `${diffInSeconds} second${diffInSeconds > 1 ? "s" : ""} ago`;
+//   if (diffInMinutes < 60)
+//     return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+//   if (diffInHours < 24)
+//     return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+//   if (diffInDays === 1) return "Yesterday";
+//   if (diffInDays < 30)
+//     return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+//   if (diffInMonths < 12)
+//     return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
+//   return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
+// };
 
 interface CourseCardProps {
   courseId: string;
@@ -372,15 +372,14 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                             <div>
                               <h4 className="font-semibold text-lg flex items-center gap-2 flex items-center gap-2">
                                 {question.username}
-                                <span className="dateTime text-sm text-gray-500 font-normal">
+                                {/* <span className="dateTime text-sm text-gray-500 font-normal">
                                   {getRelativeTime(question.createdAt)}
-                                </span>
+                                </span> */}
                               </h4>
                               <p className="textQuestion mt-2 text-gray-700">
                                 <div
-                                  className={`ql-editor ${
-                                    isExpanded ? "expanded" : "collapsed"
-                                  }`}
+                                  className={`ql-editor ${isExpanded ? "expanded" : "collapsed"
+                                    }`}
                                   dangerouslySetInnerHTML={{
                                     __html: question.text ?? "",
                                   }}

@@ -2,7 +2,7 @@
 import React from "react";
 import { Navbar, Container, Nav, Image, Button } from "react-bootstrap";
 import { useSession, signOut } from "next-auth/react";
-import "../style/Header.css";
+import "../style/header.css";
 import Link from "next/link";
 import LocalSwitcher from "./local-switcher";
 import { useLocale, useTranslations } from "next-intl";
@@ -10,8 +10,9 @@ import { useRouter } from "next/navigation";
 import { IoIosLogOut } from "react-icons/io";
 // import { MdDarkMode } from "react-icons/md";
 // import { MdLightMode } from "react-icons/md";
-import { useTheme } from "../contexts/ThemeContext";
+// import { useTheme } from "../contexts/ThemeContext";
 import { FaRegUser } from "react-icons/fa";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
@@ -56,9 +57,9 @@ const Header: React.FC = () => {
               {t("manage")}
             </Link>
           ) : null}
-          <Link href={`/${localActive}/`} className="nav-link me-4">
+          {/* <Link href={`/${localActive}/`} className="nav-link me-4">
             {t("home")}
-          </Link>
+          </Link> */}
           <Link href={`/${localActive}/showCourse`} className="nav-link me-4">
             {t("course")}
           </Link>
@@ -88,7 +89,7 @@ const Header: React.FC = () => {
                 href={`/${localActive}/profile/myProfile`}
                 className="nav-link"
               >
-                <FaRegUser/>
+                <FaRegUser />
               </Link>
               <Button
                 variant={`${theme}`}

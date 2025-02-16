@@ -10,7 +10,7 @@ export const SubCategoryList: React.FC<SubCategoryListProps> = ({
   onAdd,
   onRemove,
 }) => {
-  const t = useTranslations("categoies");
+  const t = useTranslations("categories");
   return (
     <div className="sub-categories-section">
       <div className="sub-categories-header">

@@ -15,19 +15,21 @@ export default function CourseCard({ course }: CourseCardProps) {
   const { data: session } = useSession();
   const email = session?.user.email || "";
   const handleClick = async () => {
-    const data = await CoursePurchaseAPI.getCoursePurchaseById(
-      course.courseId,
-      email
-    );
-    const locale = params.locale;
-    if(data) {
-      router.push(`/${locale}/course/${course.courseId}/purchase/${data.id}`);
+    let data;
+    if (email) {
+      data = await CoursePurchaseAPI.getCoursePurchaseById(
+        course.courseId,
+        email
+      );
+    } else {
+      data = 404;
     }
-    else {
-
+    const locale = params.locale;
+    if (data === 200) {
+      router.push(`/${locale}/course/${course.courseId}`);
+    } else {
       router.push(`/${locale}/courseDetail/${course.courseId}`);
     }
-  
   };
   return (
     <div className="card" onClick={handleClick}>

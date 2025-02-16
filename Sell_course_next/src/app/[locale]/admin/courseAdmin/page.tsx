@@ -12,15 +12,20 @@ import {
   NotificationContainer,
   NotificationManager,
 } from "react-notifications";
+import { useSession } from "next-auth/react";
 export default function CoursePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const t = useTranslations("courses");
-  const token = "your_auth_token_here";
+  const { data: session } = useSession()
 
   const router = useRouter();
   useEffect(() => {
     const loadCourses = async () => {
       try {
+        const token = session?.user.token;
+        if (!token) {
+          return;
+        }
         const data = await fetchCoursesAdmin(token);
         setCourses(data);
         console.log("Loaded courses:", data);
@@ -31,7 +36,7 @@ export default function CoursePage() {
     };
 
     loadCourses();
-  }, [token]);
+  }, [session]);
 
   useEffect(() => {
     const successMessage = localStorage.getItem("courseSuccess");

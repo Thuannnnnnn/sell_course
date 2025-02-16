@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Banner from "@/components/Banner-SignUp";
 import '../../../../../style/SignUp.css';
 import { useTranslations } from "next-intl";
-import { register } from "@/app/api/auth/SignUp/route";
+import { register } from "@/app/api/auth/SignUp/signUp";
 import { Modal, Button } from "react-bootstrap";
 import { SignUpRequest } from "@/app/interface/SignUpInterface";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ export default function SignUp() {
     const [phoneNumber, setPhoneNumber] = useState<string>("");
     const [showModal, setShowModal] = useState<boolean>(false);
     const [token, setToken] = useState<string | null>(null);
-    const [status, setStatus]  = useState<number>(500);
+    const [status, setStatus] = useState<number>(500);
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!email || !username || !password || !rePassword || !gender || !birthDay || !phoneNumber) {
@@ -33,7 +33,7 @@ export default function SignUp() {
             alert(t('passwordMismatch'));
             return;
         }
-        if (!token){
+        if (!token) {
             return;
         }
         const payload: SignUpRequest = {
@@ -68,7 +68,7 @@ export default function SignUp() {
         console.log("Token from URL:", tokenFromUrl);
     }, []);
 
-    const handleRedirect = () =>{
+    const handleRedirect = () => {
         router.push(`/${currentLocale}/auth/login`);
     }
     const handleClose = () => setShowModal(false);

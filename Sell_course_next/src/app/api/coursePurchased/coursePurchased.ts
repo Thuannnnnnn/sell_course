@@ -1,17 +1,13 @@
 import axios from "axios";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3000/api/course_purchased";
-
 const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 export class CoursePurchaseAPI {
   static async getAllCoursePurchases() {
     try {
-      const response = await axiosInstance.get("/");
+      const response = await axiosInstance.get("/api/course_purchased/");
       return response.data;
     } catch (error) {
       console.error("Error fetching purchased courses:", error);
@@ -20,21 +16,24 @@ export class CoursePurchaseAPI {
   }
 
   static async getCoursePurchaseById(courseId: string, email: string) {
-    try {
-      const response = await axiosInstance.post(`/${courseId}`, { email });
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching course purchase for ${courseId}:`, error);
-      throw error;
+    const response = await axiosInstance.get(
+      `/api/course_purchased/${courseId}/${email}`
+    );
+    if (response.data.code === 404) {
+      return 404;
     }
+    return 200;
   }
 
   static async createCoursePurchase(email: string, courseIds: string[]) {
     try {
-      const response = await axiosInstance.post("/create", {
-        email,
-        courseIds,
-      });
+      const response = await axiosInstance.post(
+        "/api/course_purchased/create",
+        {
+          email,
+          courseIds,
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("Error creating course purchase:", error);

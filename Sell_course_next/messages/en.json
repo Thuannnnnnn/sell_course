@@ -173,7 +173,8 @@
     "remove": "Remove",
     "removing": "Removing..."
   },
-  "categoies": {
+  "categories": {
+    "create": "Create Category",
     "category": "Category",
     "name": "Name",
     "description": "Description",
@@ -272,7 +273,8 @@
     "title": "Enrollred Course",
     "enrolledCourses": "Enrollerd Course",
     "activeCourses": "Activity Course",
-    "compeltedCourse": "Completed Course"
+    "compeltedCourse": "Completed Course",
+    "noCourse": "You don't owned any course"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -303,7 +305,9 @@
     "successMessage": "Your order has been placed successfully!",
     "failureTitle": "Payment Failed",
     "failureMessage": "Unfortunately, your payment could not be processed. Please try again.",
-    "home_button": "Go Home"
+    "home_button": "Go Home",
+    "subtotal": "Subtotal",
+    "checkout": "Proceed to Checkout"
   },
   "courseDetailForm": {
     "teacher": "Teacher",
@@ -323,6 +327,48 @@
     "addedToCartSuccess": "Course successfully added to cart!",
     "addedToCartFail": "Failed to add course to cart.",
     "questionsAndAnswers": "Questions and Answers",
-    "reply": "Reply"
+    "reply": "Reply",
+    "noQuestionsYet": "No Question",
+    "enterDescription": "Enter your question"
+  },
+  "forgotPasswordPage": {
+    "title": "Forgot Password",
+    "email": "Email",
+    "placeholderEmail": "Enter your email",
+    "resetPassword": "Send email",
+    "loading": "Processing...",
+    "rememberedPassword": "Remembered your password?",
+    "login": "Login",
+    "successMessage": "Check your email for password reset instructions.",
+    "errorMessage": "Failed to send reset email. Please try again.",
+    "serverError": "Server error. Please try later.",
+    "emailSent": "Sent Email",
+    "emailNotReceived": "Did not receive the email? Try again.",
+    "emailNotFound": "Email does not exist, please check again."
+  },
+  "forgotPasswordBanner": {
+    "title-3": "Forgot Password"
+  },
+  "resetPasswordBanner": {
+    "title-reset": "Reset Password"
+  },
+  "resetPasswordPage": {
+    "title": "Reset Your Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "placeholderPassword": "Enter your new password",
+    "placeholderConfirmPassword": "Confirm your new password",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordTooShort": "Password must be at least 8 characters long.",
+    "passwordNoUppercase": "Password must contain at least one uppercase letter.",
+    "passwordNoLowercase": "Password must contain at least one lowercase letter.",
+    "passwordNoNumber": "Password must contain at least one number.",
+    "passwordNoSpecial": "Password must contain at least one special character.",
+    "passwordResetSuccess": "Your password has been reset successfully!",
+    "serverError": "An error occurred. Please try again.",
+    "loading": "Processing...",
+    "resetPassword": "Reset Password",
+    "rememberedPassword": "Remembered your password?",
+    "login": "Login"
   }
 }

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"; // Import useRouter
 import { RiDeleteBin6Line } from "react-icons/ri";
 import "../../../style/Cart.css";
 import Banner from "@/components/Banner-Card";
-import image from "../../image/banner_image.png";
+import image from "../../../../public/banner_image.png";
 import { useSession } from "next-auth/react";
 import { deleteCart, fetchCart } from "@/app/api/cart/cart";
 import { CartResponse } from "@/app/type/cart/cart";
@@ -26,7 +26,7 @@ export default function CartPage() {
     const getCart = async () => {
       try {
         const token = session?.user?.token;
-        if (!token || !session?.user?.id) return;
+        if (!token) return;
 
         const email = session?.user?.email;
         if (!email) return;

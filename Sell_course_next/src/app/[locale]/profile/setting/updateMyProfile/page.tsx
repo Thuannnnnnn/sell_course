@@ -8,8 +8,8 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import BannerUser from "@/components/BannerUser";
 import Image from "next/image";
-import defaultAvatar from "../../../../image/defait-img.png";
-import { fetchUserDetails, updateUserProfile } from "@/app/api/auth/User/route";
+import defaultAvatar from "../../../../../../public/defait-img.png";
+import { fetchUserDetails, updateUserProfile } from "@/app/api/auth/User/user";
 import { GetUser } from "@/app/type/user/User";
 
 
@@ -49,7 +49,7 @@ const UpdateMyProfilePage: React.FC = () => {
       }
     };
     if (!user) fetchUser();
-  }, [session, status]);
+  }, [email, session, status, token, user]);
 
   if (status === "loading") {
     return <div>Loading...</div>;
@@ -152,7 +152,7 @@ const UpdateMyProfilePage: React.FC = () => {
             <div className="card-user">
               <div className="avatar">
                 <Image src={user?.avatarImg || defaultAvatar} alt="User Avatar" className="avatar-img" layout="fixed" width={100} height={100} />
-                <input className="avatar-upload" type="file" id="avatar" onChange={handleFileChange} />
+                <input title="avatar" className="avatar-upload" type="file" id="avatar" onChange={handleFileChange} />
               </div>
               <span className="name">{user?.username || "Unknown User"}</span>
             </div>

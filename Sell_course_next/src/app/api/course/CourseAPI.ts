@@ -1,19 +1,16 @@
 import axios from "axios";
 import { Course } from "@/app/type/course/Course";
 
-const API_BASE_URL = "http://localhost:8080/api";
-
 const getAuthHeaders = (token: string) => ({
   headers: {
     Authorization: `Bearer ${token}`,
   },
 });
 
-export const fetchCourses = async (token: string): Promise<Course[]> => {
+export const fetchCourses = async (): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
-      `${API_BASE_URL}/getAll`,
-      getAuthHeaders(token)
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/courses/getAll`
     );
     return response.data.map((course) => ({
       ...course,
@@ -28,8 +25,12 @@ export const fetchCourses = async (token: string): Promise<Course[]> => {
 export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
-      `${API_BASE_URL}/admin/courses/view_course`,
-      getAuthHeaders(token)
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/courses/view_course`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     return response.data.map((course) => ({
       ...course,
@@ -45,8 +46,31 @@ export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
 export const fetchCourseById = async (courseId: string): Promise<Course> => {
   try {
     const response = await axios.get<Course>(
-      `${API_BASE_URL}/getByCourse/${courseId}`
-      // getAuthHeaders(token)
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/courses/getByCourse/${courseId}`
+    );
+    return {
+      ...response.data,
+      updatedAt: new Date(response.data.updatedAt).toISOString(),
+      createdAt: new Date(response.data.createdAt).toISOString(),
+    };
+  } catch (error) {
+    handleAxiosError(error, `fetching course with ID: ${courseId}`);
+    throw error;
+  }
+};
+
+export const fetchCourseByIdAdmin = async (
+  courseId: string,
+  token: string
+): Promise<Course> => {
+  try {
+    const response = await axios.get<Course>(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/courses/view_course/${courseId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     return {
       ...response.data,
@@ -76,7 +100,7 @@ export const createCourse = async (
     if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
 
     const response = await axios.post<Course>(
-      `${API_BASE_URL}/create`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/courses/create_course`,
       formData,
       {
         ...getAuthHeaders(token),
@@ -112,7 +136,7 @@ export const updateCourse = async (
     if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
 
     const response = await axios.put<Course>(
-      `${API_BASE_URL}/update/${courseId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/courses/update_course/${courseId}`,
       formData,
       {
         ...getAuthHeaders(token),
@@ -136,7 +160,7 @@ export const deleteCourse = async (
 ): Promise<void> => {
   try {
     await axios.delete(
-      `${API_BASE_URL}/deleteCourse/${courseId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/courses/delete_course/${courseId}`,
       getAuthHeaders(token)
     );
   } catch (error) {

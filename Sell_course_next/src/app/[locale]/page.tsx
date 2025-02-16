@@ -1,11 +1,11 @@
 "use client";
 import { useTranslations } from "next-intl";
-import logoJava from "../image/logoJava_img.jpg";
-import logoJs from "../image/logoJS_img.jpg";
-import logoCPlusPlus from "../image/logoC++_img.png";
-import logoCSharp from "../image/logoC_img.jpg";
-import logoNodeJs from "../image/logoNodeJs_img.png";
-import logoSQL from "../image/logoSQL_img.jpg";
+import logoJava from "../.../../../../public/logoJava_img.jpg";
+import logoJs from "../.../../../../public/logoJS_img.jpg";
+import logoCPlusPlus from "../.../../../../public/logoC++_img.png";
+import logoCSharp from "../.../../../../public/logoC_img.jpg";
+import logoNodeJs from "../.../../../../public/logoSQL_img.jpg";
+import logoSQL from "../.../../../../public/logoSQL_img.jpg";
 import { HiOutlineCheck } from "react-icons/hi";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -18,17 +18,17 @@ import { Course } from "../type/course/Course";
 import { fetchCourses } from "../api/course/CourseAPI";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
+import { CoursePurchaseAPI } from "../api/coursePurchased/coursePurchased";
 export default function HomePage() {
   const t = useTranslations("homePage");
   const tc = useTranslations("cardCourse");
   const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
-  const token = "your_auth_token_here";
 
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        const data = await fetchCourses(token);
+        const data = await fetchCourses();
         setCourses(data);
         console.log("Loaded courses:", data);
       } catch (error) {
@@ -39,15 +39,28 @@ export default function HomePage() {
 
     loadCourses();
     console.log("check data: " + session);
-  }, [token]);
+  }, [session]);
 
   const router = useRouter();
   const params = useParams();
-  const handleClick = (courseDetail: string) => {
+  const email = session?.user.email || "";
+  const handleClick = async (courseDetaill: string) => {
+    let data;
+    if (email) {
+      data = await CoursePurchaseAPI.getCoursePurchaseById(
+        courseDetaill,
+        email
+      );
+    } else {
+      data = 404;
+    }
     const locale = params.locale;
-    router.push(`/${locale}/courseDetail/${courseDetail}`);
+    if (data === 200) {
+      router.push(`/${locale}/course/${courseDetaill}`);
+    } else {
+      router.push(`/${locale}/courseDetail/${courseDetaill}`);
+    }
   };
-
   return (
     <>
       <Banner />
@@ -149,7 +162,7 @@ export default function HomePage() {
                 },
               }}
             >
-              {courses.map((course, index) => (
+              {courses.map((course) => (
                 <SwiperSlide key={course.courseId}>
                   <div
                     className="course-card"

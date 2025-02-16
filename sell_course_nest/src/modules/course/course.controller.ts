@@ -12,12 +12,7 @@ import {
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
-import {
-  ApiConsumes,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 @Controller('api')
 export class CourseController {
@@ -51,6 +46,23 @@ export class CourseController {
   })
   async getAllCoursesAdmin(): Promise<CourseResponseDTO[]> {
     return await this.courseService.getAllCourses();
+  }
+
+  @Get('admin/courses/view_course/:id')
+  @ApiOperation({ summary: 'Get course by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the course.',
+    type: CourseResponseDTO,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Course not found with the given ID.',
+  })
+  async getCourseByIdAmin(
+    @Param('id') courseId: string,
+  ): Promise<CourseResponseDTO> {
+    return await this.courseService.getCourseById(courseId);
   }
 
   @Get('courses/getByCourse/:id')
@@ -99,7 +111,7 @@ export class CourseController {
   }
 
   // @ApiBearerAuth()
-  @Put('courses/update/:id')
+  @Put('/admin/courses/update_course/:id')
   // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -136,7 +148,7 @@ export class CourseController {
   }
 
   // @ApiBearerAuth()
-  @Delete('course/deleteCourse/:id')
+  @Delete('admin/courses/delete_course/:id')
   // @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a course by ID' })
   @ApiResponse({

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from 'react-bootstrap';
 
 export default function Failure() {
-  const t = useTranslations('failure');
+  const t = useTranslations('checkout');
   const locate = useLocale();
   return (
     <div className="container text-center mt-5">

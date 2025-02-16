@@ -1,13 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSession, getSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "react-bootstrap/Image";
 
 // Define the type for the user
 interface User {
   username?: string;
-  email?: string;
+  email?: string | null;
   avatarImg?: string;
 }
 
@@ -15,7 +15,7 @@ const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [user, setUser] = useState<User | undefined>(session?.user);
+  const [user] = useState<User | undefined>(session?.user);
 
   // Update the session in case of changes
   useEffect(() => {
@@ -25,10 +25,10 @@ const ProfilePage: React.FC = () => {
   }, [status, router]);
 
   // Fetch updated session if user details are updated
-  const updateSession = async () => {
-    const updatedSession = await getSession();
-    setUser(updatedSession?.user);
-  };
+  // const updateSession = async () => {
+  //   const updatedSession = await getSession();
+  //   setUser(updatedSession?.user);
+  // };
 
   if (status === "loading") {
     return <div>Loading...</div>;

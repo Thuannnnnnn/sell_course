@@ -129,7 +129,7 @@ export class authService {
       user.password,
     );
     if (!passwordMatch) {
-      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid password22', HttpStatus.UNAUTHORIZED);
     }
 
     const payload = {
@@ -196,7 +196,7 @@ export class authService {
     const newUser = this.userRepository.create({
       user_id: uuidv4(),
       email: email,
-      username: name,
+      username: name || email.split('@')[0],
       avatarImg: picture,
       password: null, // OAuth users don't need password
       isOAuth: true,
@@ -227,18 +227,35 @@ export class authService {
   }
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userRepository.findOne({
-      where: { email: email },
+      where: { email },
     });
 
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
-    const passwordMatch = await bcrypt.compare(pass, user.password);
+
+    // Log mật khẩu người dùng nhập vào
+    console.log('Plain password:', pass);
+
+    // Băm mật khẩu vừa nhập để so sánh với DB (chỉ để debug)
+    const hashedInputPassword = await bcrypt.hash(pass, 10);
+    console.log('Hashed input password (new hash):', hashedInputPassword);
+
+    // Log mật khẩu đã băm trong DB
+    console.log('Hashed password from DB:', user.password);
+
+    // So sánh mật khẩu nhập với mật khẩu trong DB
+    const passwordMatch = await bcrypt
+      .compare(pass, user.password)
+      .catch(() => false);
+
     if (!passwordMatch) {
-      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
+
     return user;
   }
+
   async uploadFile(file: Express.Multer.File): Promise<string> {
     return await azureUpload(file);
   }
@@ -248,6 +265,7 @@ export class authService {
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
+    console.log(email);
     const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
     const subject = 'Password Reset Request';
     const content = `
@@ -260,9 +278,11 @@ export class authService {
       <p>Redflag GoldenStart Team</p>
     `;
     await this.mailService.sendSimpleEmail(email, subject, content); // Ensure email is only sent if user exists
-    return { message: 'Password reset email sent successfully', statusCode: HttpStatus.OK };
+    return {
+      message: 'Password reset email sent successfully',
+      statusCode: HttpStatus.OK,
+    };
   }
-
 
   async forgotPw(email: string, password: string, token: string) {
     try {
@@ -273,15 +293,21 @@ export class authService {
       let decoded;
       try {
         decoded = this.jwtService.verify(token);
-      } catch (error) {
-        throw new HttpException('Token invalid or expired', HttpStatus.BAD_REQUEST);
+      } catch {
+        throw new HttpException(
+          'Token invalid or expired',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       console.log('Decoded Token:', decoded);
       console.log('Received email:', email);
       console.log('Token email:', decoded.email);
       // Normalize email comparison (trim + lowercase)
       if (decoded.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
-        throw new HttpException('Token email does not match', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Token email does not match',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       // Check if user exists
       const user = await this.userRepository.findOne({ where: { email } });
@@ -291,9 +317,15 @@ export class authService {
       // Hash new password
       const newPassword = await bcrypt.hash(password, 10);
       // Update user's password
-      const result = await this.userRepository.update({ email }, { password: newPassword });
+      const result = await this.userRepository.update(
+        { email },
+        { password: newPassword },
+      );
       if (result.affected === 0) {
-        throw new HttpException('Failed to update password', HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new HttpException(
+          'Failed to update password',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
       return { message: 'Password reset successfully' };
     } catch (error) {
@@ -303,7 +335,7 @@ export class authService {
       }
       throw new HttpException(
         error instanceof Error ? error.message : 'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

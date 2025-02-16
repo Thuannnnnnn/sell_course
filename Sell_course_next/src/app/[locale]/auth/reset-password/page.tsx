@@ -70,7 +70,7 @@ export default function ResetPassword() {
 
   return (
     <div className={`login ${theme === "dark" ? "dark-bg" : ""}`}>
-      <Banner titleKey="title-reset" />
+      <Banner />
       <div className="login-box">
         <h2 className="title">{t("title")}</h2>
 

@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import "@/style/createCourseForm.css";
+import "../../style/CreateCourseForm.css"
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { FormControl, InputGroup } from "react-bootstrap";
+import { InputGroup } from "react-bootstrap";
 import Image from "next/image";
 import "react-notifications/lib/notifications.css";
 import { Category } from "@/app/type/category/Category";
 import { fetchCategories } from "@/app/api/category/CategoryAPI";
 import {
   createCourse,
-  fetchCourseById,
+  fetchCourseByIdAdmin,
   updateCourse,
 } from "@/app/api/course/CourseAPI";
 import { useParams, useRouter } from "next/navigation";
@@ -21,10 +21,11 @@ import {
   NotificationManager,
 } from "react-notifications";
 import { useSession } from "next-auth/react";
+import { IoMdArrowBack } from "react-icons/io";
 const CourseForm = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(30);
+  const [price, setPrice] = useState(0);
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
@@ -41,7 +42,10 @@ const CourseForm = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const data = await fetchCategories();
+        if (!session?.user.token) {
+          return;
+        }
+        const data = await fetchCategories(session?.user.token);
         setCategories(data);
         if (!category && !courseId && data.length)
           setCategory(data[0].categoryId);
@@ -54,9 +58,9 @@ const CourseForm = () => {
       if (courseId) {
         const token = session?.user.token;
         if (!token) {
-          return
+          return;
         }
-        const course = await fetchCourseById(courseId as string, token);
+        const course = await fetchCourseByIdAdmin(courseId as string, token);
         setCourseTitle(course.title);
         setDescription(course.description);
         setPrice(course.price);
@@ -68,10 +72,11 @@ const CourseForm = () => {
 
     loadCategories();
     if (session) {
-      console.log(session.user)
+      console.log(session.user);
     }
     if (courseId) loadCourse();
   }, [courseId, session, category]);
+
 
   useEffect(() => {
     if (image && typeof window !== "undefined") {
@@ -134,6 +139,19 @@ const CourseForm = () => {
     }
 
     return true;
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = Number(e.target.value);
+    if (newValue > 10000) {
+      setPrice(newValue);
+    } else {
+      NotificationManager.error(
+        "Giá phải lớn hơn 10000",
+        "Lỗi nhập liệu",
+        2000
+      );
+    }
   };
 
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,6 +271,7 @@ const CourseForm = () => {
                 </div>
 
                 <input
+                  title="video"
                   type="file"
                   accept="video/*"
                   onChange={handleVideoUpload}
@@ -298,6 +317,7 @@ const CourseForm = () => {
               <div>
                 <h3>{t("category")}</h3>
                 <select
+                  title="category"
                   value={category}
                   onChange={(e) => {
                     console.log("Selected category:", e.target.value);
@@ -315,12 +335,16 @@ const CourseForm = () => {
 
               <div>
                 <InputGroup className="custom-price-input">
-                  <InputGroup.Text className="price-symbol">$</InputGroup.Text>
-                  <FormControl
+                  <InputGroup.Text className="price-symbol">
+                    VND
+                  </InputGroup.Text>
+                  <input
                     type="number"
                     value={price}
-                    onChange={(e) => setPrice(Number(e.target.value))}
+                    onChange={handlePriceChange}
                     className="price-field"
+                    title="Price"
+                    placeholder="Enter price"
                   />
                 </InputGroup>
                 <p>{t("price")}</p>
@@ -333,12 +357,8 @@ const CourseForm = () => {
           {courseId ? t("editCourse") : t("create")}
         </button>
 
-        <button
-          type="button"
-          className="back-btn"
-          onClick={() => router.back()}
-        >
-          {t("back")}
+        <button className="" onClick={() => router.back()}>
+          <IoMdArrowBack />
         </button>
       </form>
       <NotificationContainer />
