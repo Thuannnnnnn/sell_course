@@ -77,14 +77,6 @@ const CourseForm = () => {
     if (courseId) loadCourse();
   }, [courseId, session, category]);
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(e.target.value);
-    if (newValue > 10000) {
-      setPrice(newValue);
-    } else {
-      NotificationManager.error("Giá phải lớn hơn 10000", "Lỗi nhập liệu", 2000);
-    }
-  };
 
   useEffect(() => {
     if (image && typeof window !== "undefined") {
@@ -351,6 +343,8 @@ const CourseForm = () => {
                     value={price}
                     onChange={handlePriceChange}
                     className="price-field"
+                    title="Price"
+                    placeholder="Enter price"
                   />
                 </InputGroup>
                 <p>{t("price")}</p>

@@ -3,7 +3,7 @@ import axios from "axios";
 export const fetchCategories = async (token: string): Promise<Category[]> => {
   try {
     const response = await axios.get<Category[]>(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/categories/view_category`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/categories/view_category`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -31,7 +31,7 @@ export const deleteCategory = async (
 ): Promise<void> => {
   try {
     await axios.delete<Category[]>(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/categories/delete_category/` +
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/categories/delete_category/` +
         categoryId,
       {
         headers: {
@@ -64,7 +64,7 @@ export const addCategory = async (
     };
     console.log(token);
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/categories/create_category`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/categories/create_category`,
       payload,
       {
         headers: {
@@ -91,7 +91,7 @@ export const updateCategory = async (
     };
 
     const response = await axios.put(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/categories/update_category/${category.categoryId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/categories/update_category/${category.categoryId}`,
       payload,
       {
         headers: {
