@@ -63,6 +63,8 @@ import { Permission } from './modules/permission/entities/permission.entity';
 import { PermissionModule } from './modules/permission/permission.module';
 import { PermissionMiddleware } from './modules/permission/permission.middleware';
 import { Order } from './modules/order/entities/order.entity';
+import { ExamQuestion } from './modules/exam/entities/examQuestion.entity';
+import { Answer } from './modules/exam/entities/answerExam.entity';
 // import { APP_GUARD } from '@nestjs/core';
 // import { PermissionsGuard } from './modules/permission/permissions.guard';
 
@@ -94,6 +96,8 @@ import { Order } from './modules/order/entities/order.entity';
         Docs,
         EmailVerification,
         Exam,
+        ExamQuestion,
+        Answer,
         FeedbackRatting,
         Forum,
         Lesson,
@@ -127,6 +131,8 @@ import { Order } from './modules/order/entities/order.entity';
     DocsModule,
     EmailVerificationsModule,
     ExamModule,
+    ExamQuestion,
+    Answer,
     FeedbackRattingModule,
     ForumModule,
     LessonModule,
