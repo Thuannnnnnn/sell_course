@@ -129,7 +129,7 @@ export class authService {
       user.password,
     );
     if (!passwordMatch) {
-      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid password22', HttpStatus.UNAUTHORIZED);
     }
 
     const payload = {
@@ -227,18 +227,35 @@ export class authService {
   }
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userRepository.findOne({
-      where: { email: email },
+      where: { email },
     });
 
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
-    const passwordMatch = await bcrypt.compare(pass, user.password);
+
+    // Log mật khẩu người dùng nhập vào
+    console.log('Plain password:', pass);
+
+    // Băm mật khẩu vừa nhập để so sánh với DB (chỉ để debug)
+    const hashedInputPassword = await bcrypt.hash(pass, 10);
+    console.log('Hashed input password (new hash):', hashedInputPassword);
+
+    // Log mật khẩu đã băm trong DB
+    console.log('Hashed password from DB:', user.password);
+
+    // So sánh mật khẩu nhập với mật khẩu trong DB
+    const passwordMatch = await bcrypt
+      .compare(pass, user.password)
+      .catch(() => false);
+
     if (!passwordMatch) {
-      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
+
     return user;
   }
+
   async uploadFile(file: Express.Multer.File): Promise<string> {
     return await azureUpload(file);
   }
@@ -248,6 +265,7 @@ export class authService {
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
+    console.log(email);
     const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
     const subject = 'Password Reset Request';
     const content = `

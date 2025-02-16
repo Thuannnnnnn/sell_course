@@ -25,7 +25,7 @@ import { IoMdArrowBack } from "react-icons/io";
 const CourseForm = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(10000);
+  const [price, setPrice] = useState(0);
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
@@ -76,6 +76,15 @@ const CourseForm = () => {
     }
     if (courseId) loadCourse();
   }, [courseId, session, category]);
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = Number(e.target.value);
+    if (newValue > 10000) {
+      setPrice(newValue);
+    } else {
+      NotificationManager.error("Giá phải lớn hơn 10000", "Lỗi nhập liệu", 2000);
+    }
+  };
 
   useEffect(() => {
     if (image && typeof window !== "undefined") {
@@ -338,7 +347,6 @@ const CourseForm = () => {
                     VND
                   </InputGroup.Text>
                   <input
-                    title="price"
                     type="number"
                     value={price}
                     onChange={handlePriceChange}
@@ -355,12 +363,7 @@ const CourseForm = () => {
           {courseId ? t("editCourse") : t("create")}
         </button>
 
-        <button
-          title="button"
-          type="button"
-          className="back-btn"
-          onClick={() => router.back()}
-        >
+        <button className="" onClick={() => router.back()}>
           <IoMdArrowBack />
         </button>
       </form>
