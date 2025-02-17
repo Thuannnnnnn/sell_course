@@ -10,6 +10,9 @@ export class LoginResponseDto {
    */
 
   @IsString()
+  user_id: string;
+
+  @IsString()
   email: string;
 
   @IsString()
