@@ -91,7 +91,9 @@ export class QuizzService {
     }
 
     for (const question of quiz.questions) {
-      await this.answerRepository.delete({ question: { questionId: question.questionId } });
+      await this.answerRepository.delete({
+        question: { questionId: question.questionId },
+      });
     }
     await this.questionRepository.delete({ quizz: { quizzId } });
 
@@ -115,7 +117,7 @@ export class QuizzService {
     return this.getQuizById(quizzId);
   }
 
-  async getRandomQuiz(quizzId: string, numberOfQuestions: number = 10) {
+  async getRandomQuiz(quizzId: string, numberOfQuestions = 10) {
     const quiz = await this.quizzRepository.findOne({
       where: { quizzId },
       relations: ['contents', 'questions', 'questions.answers'],

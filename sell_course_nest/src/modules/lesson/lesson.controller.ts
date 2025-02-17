@@ -28,35 +28,41 @@ export class LessonController {
     }
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Get all lessons' })
-  // @ApiResponse({ status: 200, description: 'List of lessons' })
-  // async getLessons() {
-  //   return this.lessonService.getLessons();
-  // }
-  // @Get(':lessonId')
-  // @ApiOperation({ summary: 'Get lesson by ID' })
-  // @ApiResponse({ status: 200, description: 'Lesson details' })
-  // async getLessonById(@Param('lessonId') lessonId: string) {
-  //   return this.lessonService.getLessonById(lessonId);
-  // }
+  /*
+   * @Get()
+   * @ApiOperation({ summary: 'Get all lessons' })
+   * @ApiResponse({ status: 200, description: 'List of lessons' })
+   * async getLessons() {
+   *   return this.lessonService.getLessons();
+   * }
+   * @Get(':lessonId')
+   * @ApiOperation({ summary: 'Get lesson by ID' })
+   * @ApiResponse({ status: 200, description: 'Lesson details' })
+   * async getLessonById(@Param('lessonId') lessonId: string) {
+   *   return this.lessonService.getLessonById(lessonId);
+   * }
+   */
 
-  // @UseGuards(JwtAuthGuard)
-  // @Put(':lessonId')
-  // @ApiOperation({ summary: 'Update lesson details' })
-  // @ApiResponse({ status: 200, description: 'Lesson updated successfully' })
-  // async updateLesson(
-  //   @Param('lessonId') lessonId: string,
-  //   @Body() updateLessonDto: UpdateLessonDTO,
-  // ) {
-  //   return this.lessonService.updateLesson(lessonId, updateLessonDto);
-  // }
+  /*
+   * @UseGuards(JwtAuthGuard)
+   * @Put(':lessonId')
+   * @ApiOperation({ summary: 'Update lesson details' })
+   * @ApiResponse({ status: 200, description: 'Lesson updated successfully' })
+   * async updateLesson(
+   *   @Param('lessonId') lessonId: string,
+   *   @Body() updateLessonDto: UpdateLessonDTO,
+   * ) {
+   *   return this.lessonService.updateLesson(lessonId, updateLessonDto);
+   * }
+   */
 
-  // @UseGuards(JwtAuthGuard)
-  // @Delete(':lessonId')
-  // @ApiOperation({ summary: 'Delete a lesson' })
-  // @ApiResponse({ status: 200, description: 'Lesson deleted successfully' })
-  // async deleteLesson(@Param('lessonId') lessonId: string) {
-  //   return this.lessonService.deleteLesson(lessonId);
-  // }
+  /*
+   * @UseGuards(JwtAuthGuard)
+   * @Delete(':lessonId')
+   * @ApiOperation({ summary: 'Delete a lesson' })
+   * @ApiResponse({ status: 200, description: 'Lesson deleted successfully' })
+   * async deleteLesson(@Param('lessonId') lessonId: string) {
+   *   return this.lessonService.deleteLesson(lessonId);
+   * }
+   */
 }

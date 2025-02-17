@@ -4,8 +4,10 @@ export class LoginResponseDto {
   @IsString()
   token: string;
 
-  // @IsString()
-  // refreshToken: string;
+  /*
+   * @IsString()
+   * refreshToken: string;
+   */
 
   @IsString()
   email: string;

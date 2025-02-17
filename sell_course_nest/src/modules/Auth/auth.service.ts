@@ -67,9 +67,7 @@ export class authService {
   }
 
   async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    const decoded = this.jwtService.decode(createUserDto.token) as {
-      email: string;
-    };
+    const decoded = this.jwtService.decode(createUserDto.token);
     if (decoded.email !== createUserDto.email) {
       throw new HttpException(
         'Token email does not match',
