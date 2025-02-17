@@ -120,6 +120,7 @@ export class LessonService {
         order: lesson.order,
         contents: lesson.contents.map((content) => ({
           contentId: content.contentId,
+          contentName: content.contentName,
           contentType: content.contentType,
           order: content.order,
         })),
