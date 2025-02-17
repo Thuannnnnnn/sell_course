@@ -1,21 +1,21 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
-import { Exam } from '../../exam/entities/exam.entity';
-import { User } from '../../user/entities/user.entity';
+import { Quizz } from '../../quizz/entities/quizz.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 
-@Entity('result_exam')
-export class ResultExam {
-  @PrimaryColumn({ name: 'resultExam_id', type: 'uuid' })
-  resultExamId: string;
-
-  @ManyToOne(() => Exam)
-  @JoinColumn({ name: 'exam_id' })
-  exam: Exam;
+@Entity('quizz_store')
+export class QuizzStore {
+  @PrimaryColumn({ name: 'store_id', type: 'uuid' })
+  storeId: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column()
+  @ManyToOne(() => Quizz)
+  @JoinColumn({ name: 'quizz_id' })
+  quizz: Quizz;
+
+  @Column({ type: 'int' })
   score: number;
 
   @Column({ type: 'jsonb' })
