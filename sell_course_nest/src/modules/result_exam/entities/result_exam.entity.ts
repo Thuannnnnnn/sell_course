@@ -4,7 +4,7 @@ import { User } from '../../user/entities/user.entity';
 
 @Entity('result_exam')
 export class ResultExam {
-  @PrimaryColumn({ name: 'resultExam_id' })
+  @PrimaryColumn({ name: 'resultExam_id', type: 'uuid' })
   resultExamId: string;
 
   @ManyToOne(() => Exam)
@@ -18,6 +18,17 @@ export class ResultExam {
   @Column()
   score: number;
 
-  @Column({ type: 'timestamp', name: 'submitted_at' })
-  submittedAt: Date;
+  @Column({ type: 'jsonb' })
+  answers: {
+    questionId: string;
+    selectedAnswerId: string;
+    isCorrect: boolean;
+  }[];
+
+  @Column({
+    type: 'timestamp',
+    name: 'created_at',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
 }
