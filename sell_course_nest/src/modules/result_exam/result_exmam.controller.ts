@@ -4,16 +4,16 @@ import {
   Body,
   Get,
   Param,
-//   UseGuards,
+  UseGuards,
   Request,
 } from '@nestjs/common';
-// import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { SubmitExamDto } from './dto/submit-exam.dto';
 import { ResultExamService } from './result_exam.service';
 
 @Controller('api')
-// @UseGuards(JwtAuthGuard)
-export class QuizzStoreController {
+@UseGuards(JwtAuthGuard)
+export class ResultExamController {
   constructor(private readonly resultExamService: ResultExamService) {}
 
   @Post('users/user/submit')

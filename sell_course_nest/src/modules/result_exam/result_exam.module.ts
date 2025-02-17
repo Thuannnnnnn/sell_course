@@ -5,18 +5,15 @@ import { ResultExam } from './entities/result_exam.entity';
 import { User } from '../user/entities/user.entity';
 import { ExamQuestion } from '../exam/entities/examQuestion.entity';
 import { Answer } from '../exam/entities/answerExam.entity';
+import { ResultExamController } from './result_exmam.controller';
+import { ResultExamService } from './result_exam.service';
 
 @Module({
-    imports:[
-        TypeOrmModule.forFeature([
-            ResultExam,
-            Exam,
-            User,
-            ExamQuestion,
-            Answer,
-        ]),
-    ],
-    controllers: []
+  imports: [
+    TypeOrmModule.forFeature([ResultExam, Exam, User, ExamQuestion, Answer]),
+  ],
+  controllers: [ResultExamController],
+  providers: [ResultExamService],
+  exports: [ResultExamService],
 })
 export class ResultExamModule {}
-
