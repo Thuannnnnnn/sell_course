@@ -27,9 +27,10 @@ export class ContentService {
         throw new HttpException('Lesson not found', HttpStatus.NOT_FOUND);
       }
       const contentCount = await this.contentRepository.count({
-        where: { lesson },
+        where: { lesson: { lessonId } },
       });
 
+      console.log(contentCount);
       const content = this.contentRepository.create({
         lesson,
         contentName,

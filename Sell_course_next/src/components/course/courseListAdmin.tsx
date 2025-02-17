@@ -5,7 +5,7 @@ import "@/style/courseAdmin.css";
 import { Course } from "@/app/type/course/Course";
 import { deleteCourse } from "@/app/api/course/CourseAPI";
 import { Container } from "react-bootstrap";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -16,6 +16,7 @@ interface CourseListProps {
 
 const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
   const t = useTranslations("courses");
+  const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
   const handleDelete = async (courseId: string) => {
@@ -49,7 +50,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
         </thead>
         <tbody>
           {courses.map((course, index) => (
-            <tr key={course.courseId}>
+            <tr key={course.courseId} onClick={() => router.push(`/${locale}/admin/courseAdmin/lesson?courseId=${course.courseId}`)}>
               <td>{index + 1}</td>
               <td>
                 {course.imageInfo ? (
@@ -75,7 +76,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
               <td>
                 <button
                   onClick={() =>
-                    router.push(`/vn/admin/courseAdmin/edit/${course.courseId}`)
+                    router.push(`/${locale}/admin/courseAdmin/edit/${course.courseId}`)
                   }
                   style={{ marginRight: "10px" }}
                 >

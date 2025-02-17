@@ -10,7 +10,7 @@ export async function fetchLesson(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/lesson/view_lesson/${courseId}`,
       {
         headers: {
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
