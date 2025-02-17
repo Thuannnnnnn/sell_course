@@ -6,6 +6,7 @@ import {
   Param,
   UseGuards,
   Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { SubmitExamDto } from './dto/submit-exam.dto';
@@ -18,16 +19,27 @@ export class ResultExamController {
 
   @Post('users/user/submit')
   async submitQuiz(@Request() req, @Body() submitExamDto: SubmitExamDto) {
-    return this.resultExamService.submitExam(req.user.userId, submitExamDto);
+    return this.resultExamService.submitExam(req.user.email, submitExamDto);
   }
 
   @Get('users/user/results/:examId')
-  async getQuizResults(@Request() req, @Param('examId') examId: string) {
-    return this.resultExamService.getUserExamResults(req.user.userId, examId);
+  async getExamResults(@Request() req, @Param('examId') examId: string) {
+    return this.resultExamService.getUserExamResults(req.user.email, examId);
   }
 
   @Get('users/user/results')
   async getAllResults(@Request() req) {
-    return this.resultExamService.getAllUserExamResults(req.user.userId);
+    return this.resultExamService.getAllUserExamResults(req.user.email);
+  }
+
+  @Get('users/user/questions/:examId')
+  async getQuestionsForUser(@Param('examId') examId: string) {
+    try {
+      const questions =
+        await this.resultExamService.getQuestionsForUser(examId);
+      return questions;
+    } catch {
+      throw new NotFoundException('Exam not found');
+    }
   }
 }

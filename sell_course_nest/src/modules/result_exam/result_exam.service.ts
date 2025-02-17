@@ -18,9 +18,9 @@ export class ResultExamService {
     private userRepository: Repository<User>,
   ) {}
 
-  async submitExam(user_id: string, submitExamDto: SubmitExamDto) {
+  async submitExam(email: string, submitExamDto: SubmitExamDto) {
     const user = await this.userRepository.findOne({
-      where: { user_id },
+      where: { email },
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -34,9 +34,21 @@ export class ResultExamService {
       throw new NotFoundException('Exam not found');
     }
 
+    // Use getQuestionsForUser to get a random subset of questions (10 in this case)
+    const questionsForUser = await this.getQuestionsForUser(
+      submitExamDto.examId,
+    );
+    const questionsMap = new Map(
+      questionsForUser.map((q) => [q.questionId, q]),
+    );
+    const answersMap = new Map(
+      questionsForUser.flatMap((q) => q.answers.map((a) => [a.answerId, a])),
+    );
+
+    // Check if the user has already submitted an exam for the given examId
     const existingResult = await this.resultExamRepository.findOne({
       where: {
-        user: { user_id },
+        user: { email },
         exam: { examId: submitExamDto.examId },
       },
     });
@@ -48,21 +60,13 @@ export class ResultExamService {
     let score = 0;
     const answersResult = [];
 
+    // Iterate over the answers submitted by the user
     for (const submission of submitExamDto.answers) {
-      console.log('Processing submission:', submission);
+      const question = questionsMap.get(submission.questionId);
+      const selectedAnswer = answersMap.get(submission.answerId);
 
-      const question = exam.questions.find(
-        (q) => q.questionId === submission.questionId,
-      );
-      if (!question) {
-        continue;
-      }
-
-      const selectedAnswer = question.answers.find(
-        (a) => a.answerId === submission.answerId,
-      );
-      if (!selectedAnswer) {
-        continue;
+      if (!question || !selectedAnswer) {
+        continue; // Skip invalid submissions
       }
 
       const isCorrect = selectedAnswer.isCorrect;
@@ -77,13 +81,15 @@ export class ResultExamService {
       });
     }
 
-    const totalQuestions = exam.questions.length;
+    // Calculate the score as a percentage based on the selected questions
+    const totalQuestions = questionsForUser.length;
     const percentageScore = (score / totalQuestions) * 100;
 
     const resultExam = this.resultExamRepository.create({
       resultExamId: uuidv4(),
       user,
-      exam: exam,
+      email: user.email,
+      exam,
       score: percentageScore,
       answers: answersResult,
     });
@@ -91,10 +97,10 @@ export class ResultExamService {
     return this.resultExamRepository.save(resultExam);
   }
 
-  async getUserExamResults(user_id: string, examId: string) {
+  async getUserExamResults(email: string, examId: string) {
     const results = await this.resultExamRepository.findOne({
       where: {
-        user: { user_id },
+        user: { email },
         exam: { examId },
       },
       relations: ['exam', 'user'],
@@ -107,10 +113,10 @@ export class ResultExamService {
     return results;
   }
 
-  async getAllUserExamResults(user_id: string) {
+  async getAllUserExamResults(email: string) {
     const results = await this.resultExamRepository.find({
       where: {
-        user: { user_id },
+        user: { email },
       },
       relations: ['exam', 'user'],
       order: {
@@ -119,5 +125,19 @@ export class ResultExamService {
     });
 
     return results;
+  }
+
+  async getQuestionsForUser(examId: string) {
+    const exam = await this.examRepository.findOne({
+      where: { examId },
+      relations: ['questions', 'questions.answers'],
+    });
+    if (!exam) {
+      throw new NotFoundException('Exam not found');
+    }
+
+    const shuffledQuestions = exam.questions.sort(() => Math.random() - 0.5);
+    const totalQuestionsToReturn = Math.min(10, shuffledQuestions.length);
+    return shuffledQuestions.slice(0, totalQuestionsToReturn);
   }
 }

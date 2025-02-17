@@ -15,7 +15,10 @@ export class ResultExam {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column()
+  @Column({ unique: true })
+  email: string;
+
+  @Column('decimal', { precision: 5, scale: 2 })
   score: number;
 
   @Column({ type: 'jsonb' })
