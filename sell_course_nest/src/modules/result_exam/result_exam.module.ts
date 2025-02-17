@@ -1,4 +1,22 @@
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
+import { Exam } from '../exam/entities/exam.entity';
+import { ResultExam } from './entities/result_exam.entity';
+import { User } from '../user/entities/user.entity';
+import { ExamQuestion } from '../exam/entities/examQuestion.entity';
+import { Answer } from '../exam/entities/answerExam.entity';
 
-@Module({})
+@Module({
+    imports:[
+        TypeOrmModule.forFeature([
+            ResultExam,
+            Exam,
+            User,
+            ExamQuestion,
+            Answer,
+        ]),
+    ],
+    controllers: []
+})
 export class ResultExamModule {}
+
