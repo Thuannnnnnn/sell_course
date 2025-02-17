@@ -9,9 +9,9 @@ import { Type } from 'class-transformer';
 import { CreateQuestionDto } from './createQuestion.dto';
 
 export class CreateQuizzDto {
-  // @IsString()
-  // @IsNotEmpty()
-  // contentId: string;
+  @IsString()
+  @IsNotEmpty()
+  contentId: string;
 
   @IsArray()
   @ValidateNested({ each: true })

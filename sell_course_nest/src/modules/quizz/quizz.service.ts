@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,6 +6,7 @@ import { Quizz } from './entities/quizz.entity';
 import { Questionentity } from './entities/question.entity';
 import { AnswerEntity } from './entities/answer.entity';
 import { CreateQuizzDto } from './dto/createQuizz.dto';
+import { Contents } from '../contents/entities/contents.entity';
 
 @Injectable()
 export class QuizzService {
@@ -16,11 +17,24 @@ export class QuizzService {
     private readonly questionRepository: Repository<Questionentity>,
     @InjectRepository(AnswerEntity)
     private readonly answerRepository: Repository<AnswerEntity>,
+    @InjectRepository(Contents)
+    private readonly contentsRepository: Repository<Contents>,
   ) {}
 
   async createQuizz(createQuizzDto: CreateQuizzDto) {
+    const content = await this.contentsRepository.findOne({
+      where: { contentId: createQuizzDto.contentId },
+    });
+
+    if (!content) {
+      throw new NotFoundException(
+        `Content with ID ${createQuizzDto.contentId} not found`,
+      );
+    }
     const quiz = new Quizz();
     quiz.quizzId = uuidv4();
+    quiz.contents = content;
+
     const savedQuiz = await this.quizzRepository.save(quiz);
 
     for (const questionDto of createQuizzDto.questions) {
@@ -44,9 +58,24 @@ export class QuizzService {
   }
 
   async getQuizById(quizzId: string) {
-    return this.quizzRepository.findOne({
+    const quiz = await this.quizzRepository.findOne({
       where: { quizzId },
-      relations: ['questions', 'questions.answers'],
+      relations: ['contents', 'questions', 'questions.answers'],
     });
+
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+
+    return quiz;
+  }
+
+  async getQuizzesByContentId(contentId: string) {
+    const quizzes = await this.quizzRepository.find({
+      where: { contents: { contentId: contentId } },
+      relations: ['contents', 'questions', 'questions.answers'],
+    });
+
+    return quizzes;
   }
 }

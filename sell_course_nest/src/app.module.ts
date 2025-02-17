@@ -23,7 +23,6 @@ import { Qa } from './modules/qa/entities/qa.entity';
 import { QuestionsExam } from './modules/questions_exam/entities/questions_exam.entity';
 import { Quizz } from './modules/quizz/entities/quizz.entity';
 import { Reply } from './modules/reply/entities/reply.entity';
-import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
 import { Video } from './modules/video/entities/video.entity';
 import { Waitlist } from './modules/waitlist/entities/waitlist.entity';
 import { Wishlist } from './modules/wishlist/entities/wishlist.entity';
@@ -45,7 +44,6 @@ import { QaModule } from './modules/qa/qa.module';
 import { QuestionsExamModule } from './modules/questions_exam/questions_exam.module';
 import { QuizzModule } from './modules/quizz/quizz.module';
 import { ReplyModule } from './modules/reply/reply.module';
-import { ResultExamModule } from './modules/result_exam/result_exam.module';
 import { VideoModule } from './modules/video/video.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
@@ -110,7 +108,6 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
         AnswerEntity,
         QuizzStore,
         Reply,
-        ResultExam,
         Video,
         Waitlist,
         Wishlist,
@@ -144,7 +141,6 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
     QuizzStoreModule,
     QuizzModule,
     ReplyModule,
-    ResultExamModule,
     VideoModule,
     WaitlistModule,
     WishlistModule,
