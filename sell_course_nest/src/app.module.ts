@@ -31,7 +31,7 @@ import { UserModule } from './modules/user/user.module';
 import { authModule } from './modules/Auth/auth.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CertificateModule } from './modules/certificate/certificate.module';
-import { ContentsModule } from './modules/contents/contents.module';
+import { ContentModule } from './modules/contents/contents.module';
 import { CourseModule } from './modules/course/course.module';
 import { CoursePurchaseModule } from './modules/course_purchase/course_purchase.module';
 import { DocsModule } from './modules/docs/docs.module';
@@ -66,6 +66,7 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
 
 @Module({
   imports: [
+    ContentModule,
     PaymentModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -119,7 +120,7 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
     authModule,
     CartModule,
     CertificateModule,
-    ContentsModule,
+    ContentModule,
     CourseModule,
     CoursePurchaseModule,
     DocsModule,
