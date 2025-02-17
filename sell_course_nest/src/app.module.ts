@@ -61,6 +61,10 @@ import { PermissionMiddleware } from './modules/permission/permission.middleware
 import { Order } from './modules/order/entities/order.entity';
 import { ExamQuestion } from './modules/exam/entities/examQuestion.entity';
 import { Answer } from './modules/exam/entities/answerExam.entity';
+import { Questionentity } from './modules/quizz/entities/question.entity';
+import { AnswerEntity } from './modules/quizz/entities/answer.entity';
+import { QuizzStore } from './modules/quizz_store/entities/quizz_store.entity';
+import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
 // import { APP_GUARD } from '@nestjs/core';
 // import { PermissionsGuard } from './modules/permission/permissions.guard';
 
@@ -102,6 +106,9 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
         Qa,
         QuestionsExam,
         Quizz,
+        Questionentity,
+        AnswerEntity,
+        QuizzStore,
         Reply,
         ResultExam,
         Video,
@@ -134,6 +141,7 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
     OrderHistoriesModule,
     QaModule,
     QuestionsExamModule,
+    QuizzStoreModule,
     QuizzModule,
     ReplyModule,
     ResultExamModule,
