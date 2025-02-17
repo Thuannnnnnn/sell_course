@@ -80,9 +80,9 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
       entities: [
         Notify,
         UserNotify,

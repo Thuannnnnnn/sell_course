@@ -6,6 +6,7 @@ import { Quizz } from './entities/quizz.entity';
 import { Questionentity } from './entities/question.entity';
 import { AnswerEntity } from './entities/answer.entity';
 import { CreateQuizzDto } from './dto/createQuizz.dto';
+import { UpdateQuizzDto } from './dto/updateQuizz.dto';
 import { Contents } from '../contents/entities/contents.entity';
 
 @Injectable()
@@ -77,5 +78,74 @@ export class QuizzService {
     });
 
     return quizzes;
+  }
+
+  async updateQuizz(quizzId: string, updateQuizzDto: UpdateQuizzDto) {
+    const quiz = await this.quizzRepository.findOne({
+      where: { quizzId },
+      relations: ['questions', 'questions.answers'],
+    });
+
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+
+    for (const question of quiz.questions) {
+      await this.answerRepository.delete({ question: { questionId: question.questionId } });
+    }
+    await this.questionRepository.delete({ quizz: { quizzId } });
+
+    for (const questionDto of updateQuizzDto.questions) {
+      const question = new Questionentity();
+      question.questionId = questionDto.questionId || uuidv4();
+      question.question = questionDto.question;
+      question.quizz = quiz;
+      const savedQuestion = await this.questionRepository.save(question);
+
+      for (const answerDto of questionDto.answers) {
+        const answer = new AnswerEntity();
+        answer.anwserId = answerDto.anwserId || uuidv4();
+        answer.answer = answerDto.answer;
+        answer.iscorrect = answerDto.isCorrect;
+        answer.question = savedQuestion;
+        await this.answerRepository.save(answer);
+      }
+    }
+
+    return this.getQuizById(quizzId);
+  }
+
+  async getRandomQuiz(quizzId: string, numberOfQuestions: number = 10) {
+    const quiz = await this.quizzRepository.findOne({
+      where: { quizzId },
+      relations: ['contents', 'questions', 'questions.answers'],
+    });
+
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+
+    if (quiz.questions.length < numberOfQuestions) {
+      throw new NotFoundException(
+        `Quiz only has ${quiz.questions.length} questions, cannot get ${numberOfQuestions} random questions`,
+      );
+    }
+
+    // Shuffle questions array using Fisher-Yates algorithm
+    const shuffledQuestions = [...quiz.questions];
+    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledQuestions[i], shuffledQuestions[j]] = [
+        shuffledQuestions[j],
+        shuffledQuestions[i],
+      ];
+    }
+
+    // Take first N questions
+    const randomQuestions = shuffledQuestions.slice(0, numberOfQuestions);
+
+    // Create new quiz object with random questions
+    const randomQuiz = { ...quiz, questions: randomQuestions };
+    return randomQuiz;
   }
 }

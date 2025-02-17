@@ -2,9 +2,10 @@ import {
   Entity,
   PrimaryColumn,
   ManyToOne,
-  JoinColumn,
-  Column,
   OneToMany,
+  Column,
+  JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { Contents } from '../../contents/entities/contents.entity';
 import { Questionentity } from './question.entity';
@@ -14,8 +15,8 @@ export class Quizz {
   @PrimaryColumn({ name: 'quizz_id', type: 'uuid' })
   quizzId: string;
 
-  @ManyToOne(() => Contents)
-  @JoinColumn({ name: 'content_id' })
+  @OneToOne(() => Contents, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'content_id', referencedColumnName: 'contentId' })
   contents: Contents;
 
   @OneToMany(() => Questionentity, (question) => question.quizz)

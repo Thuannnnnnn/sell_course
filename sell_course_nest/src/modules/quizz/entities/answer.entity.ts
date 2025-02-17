@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Questionentity } from './question.entity';
 
-@Entity('answers')
+@Entity('answersQuizz')
 export class AnswerEntity {
   @PrimaryColumn({ name: 'answer_id', type: 'uuid' })
   anwserId: string;
