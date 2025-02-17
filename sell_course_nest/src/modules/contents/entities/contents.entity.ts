@@ -1,32 +1,30 @@
 import {
   Entity,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
+  Column,
   ManyToOne,
-  JoinColumn,
-  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Lesson } from '../../lesson/entities/lesson.entity';
-import { Video } from '../../video/entities/video.entity';
-import { Docs } from '../../docs/entities/docs.entity';
 
 @Entity('contents')
 export class Contents {
-  @PrimaryColumn({ name: 'content_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'content_id' })
   contentId: string;
 
-  @ManyToOne(() => Lesson)
-  @JoinColumn({ name: 'lesson_id' })
+  @ManyToOne(() => Lesson, (lesson) => lesson.contents, { onDelete: 'CASCADE' })
   lesson: Lesson;
 
-  @OneToMany(() => Video, (video) => video.contents, {
-    cascade: true,
-    eager: true,
-  })
-  video: Video[];
+  @Column({ name: 'content_type', type: 'varchar' })
+  contentType: string;
 
-  @OneToMany(() => Docs, (docs) => docs.contents, {
-    cascade: true,
-    eager: true,
-  })
-  docs: Docs[];
+  @Column({ name: 'order', type: 'int', default: 0 })
+  order: number;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updatedAt: Date;
 }
