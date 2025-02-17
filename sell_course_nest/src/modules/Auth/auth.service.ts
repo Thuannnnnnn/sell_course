@@ -142,6 +142,7 @@ export class authService {
 
     const loginResponse: LoginResponseDto = {
       token,
+      user_id: user.user_id,
       email: user.email,
       avatarImg: user.avatarImg,
       username: user.username,
@@ -182,6 +183,7 @@ export class authService {
 
       return {
         token,
+        user_id: existingUser.user_id,
         email: existingUser.email,
         avatarImg: existingUser.avatarImg,
         username: existingUser.username,
@@ -198,14 +200,12 @@ export class authService {
       email: email,
       username: name || email.split('@')[0],
       avatarImg: picture,
-      password: null, // OAuth users don't need password
+      password: null,
       isOAuth: true,
       role: 'CUSTOMER',
     });
 
     const savedUser = await this.userRepository.save(newUser);
-
-    // Generate token for new user
     const payload = {
       user_id: savedUser.user_id,
       email: savedUser.email,
@@ -216,6 +216,7 @@ export class authService {
 
     return {
       token,
+      user_id: savedUser.user_id,
       email: savedUser.email,
       avatarImg: savedUser.avatarImg,
       username: savedUser.username,
@@ -229,22 +230,15 @@ export class authService {
     const user = await this.userRepository.findOne({
       where: { email },
     });
-
     if (!user) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
-
-    // Log mật khẩu người dùng nhập vào
     console.log('Plain password:', pass);
-
-    // Băm mật khẩu vừa nhập để so sánh với DB (chỉ để debug)
     const hashedInputPassword = await bcrypt.hash(pass, 10);
     console.log('Hashed input password (new hash):', hashedInputPassword);
 
-    // Log mật khẩu đã băm trong DB
     console.log('Hashed password from DB:', user.password);
 
-    // So sánh mật khẩu nhập với mật khẩu trong DB
     const passwordMatch = await bcrypt
       .compare(pass, user.password)
       .catch(() => false);

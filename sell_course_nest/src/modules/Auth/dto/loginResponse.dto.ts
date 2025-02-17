@@ -8,6 +8,9 @@ export class LoginResponseDto {
   // refreshToken: string;
 
   @IsString()
+  user_id: string;
+
+  @IsString()
   email: string;
 
   @IsString()
