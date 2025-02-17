@@ -14,6 +14,9 @@ class ContentDto {
   contentType: string;
 
   @Expose()
+  contentName: string;
+
+  @Expose()
   order: number;
 }
 

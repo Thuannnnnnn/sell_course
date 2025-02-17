@@ -18,12 +18,14 @@ export class ContentController {
     @Body()
     body: {
       lessonId: string;
+      contentName: string;
       contentType: string;
     },
   ) {
     try {
       return await this.contentService.createContent(
         body.lessonId,
+        body.contentName,
         body.contentType,
       );
     } catch (error) {

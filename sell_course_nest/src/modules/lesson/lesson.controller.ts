@@ -49,6 +49,12 @@ export class LessonController {
   async getLessonById(@Param('lessonId') lessonId: string) {
     return this.lessonService.getLessonById(lessonId);
   }
+  @Get('/course/:courseId')
+  @ApiOperation({ summary: 'Get course by ID with contents' })
+  @ApiResponse({ status: 200, description: 'Lesson details' })
+  async getLessonByCourseId(@Param('courseId') courseId: string) {
+    return this.lessonService.getLessonsByCourseId(courseId);
+  }
 
   @Put(':lessonId')
   @ApiOperation({ summary: 'Update lesson details' })
