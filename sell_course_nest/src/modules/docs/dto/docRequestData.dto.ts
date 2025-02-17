@@ -4,13 +4,6 @@ import { Express } from 'express';
 
 export class DocsRequestDTO {
   @ApiProperty({
-    description: 'Unique identifier for the document',
-    example: '1234-5678-91011',
-  })
-  @IsUUID()
-  docsId: string;
-
-  @ApiProperty({
     description: 'Title of the document',
     example: 'API Documentation',
   })
@@ -31,6 +24,4 @@ export class DocsRequestDTO {
   })
   @IsUUID()
   contentsId: string;
-
-  createdAt: Date;
 }
