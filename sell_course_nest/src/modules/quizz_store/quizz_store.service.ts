@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, Delete } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { QuizzStore } from './entities/quizz_store.entity';
 import { Quizz } from '../quizz/entities/quizz.entity';
 import { User } from '../user/entities/user.entity';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class QuizzStoreService {
@@ -77,8 +77,9 @@ export class QuizzStoreService {
       });
     }
 
-    const totalQuestions = quiz.questions.length;
-    const percentageScore = (score / totalQuestions) * 100;
+    // Calculate score based on submitted answers count instead of total quiz questions
+    const totalSubmittedQuestions = submitQuizDto.answers.length;
+    const percentageScore = (score / totalSubmittedQuestions) * 100;
 
     const quizStore = this.quizzStoreRepository.create({
       storeId: uuidv4(),
