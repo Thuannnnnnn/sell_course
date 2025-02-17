@@ -13,11 +13,11 @@ import { UpdateLessonDTO } from './dto/lesson.dto';
 import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiBearerAuth('Authorization')
-@Controller('api/lesson')
+@Controller('api')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
-  @Post('create_lesson')
+  @Post('admin/lesson/create_lesson')
   @ApiOperation({ summary: 'Create a new lesson' })
   @ApiResponse({ status: 201, description: 'Lesson created successfully' })
   async createLesson(@Body() body: { lessonName: string; courseId: string }) {
@@ -43,20 +43,20 @@ export class LessonController {
     return this.lessonService.getLessons();
   }
 
-  @Get(':lessonId')
-  @ApiOperation({ summary: 'Get lesson by ID with contents' })
+  @Get('admin/lesson/view_lesson/:courseId')
+  @ApiOperation({ summary: 'Get course by ID with contents' })
   @ApiResponse({ status: 200, description: 'Lesson details' })
-  async getLessonById(@Param('lessonId') lessonId: string) {
-    return this.lessonService.getLessonById(lessonId);
+  async getLessonByCourseIdAdmin(@Param('courseId') courseId: string) {
+    return this.lessonService.getLessonsByCourseId(courseId);
   }
-  @Get('/course/:courseId')
+  @Get('/view_lesson/:courseId')
   @ApiOperation({ summary: 'Get course by ID with contents' })
   @ApiResponse({ status: 200, description: 'Lesson details' })
   async getLessonByCourseId(@Param('courseId') courseId: string) {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
 
-  @Put(':lessonId')
+  @Put('admin/update_lesson/:lessonId')
   @ApiOperation({ summary: 'Update lesson details' })
   @ApiResponse({ status: 200, description: 'Lesson updated successfully' })
   async updateLesson(
@@ -66,7 +66,7 @@ export class LessonController {
     return this.lessonService.updateLesson(lessonId, updateLessonDto);
   }
 
-  @Delete(':lessonId')
+  @Delete('admin/delete_lesson/:lessonId')
   @ApiOperation({ summary: 'Delete a lesson' })
   @ApiResponse({ status: 200, description: 'Lesson deleted successfully' })
   async deleteLesson(@Param('lessonId') lessonId: string) {

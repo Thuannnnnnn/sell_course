@@ -9,11 +9,11 @@ import {
 } from '@nestjs/common';
 import { ContentService } from './contents.service';
 
-@Controller('api/content')
+@Controller('api')
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
-  @Post('create')
+  @Post('admin/content/create_content')
   async createContent(
     @Body()
     body: {
@@ -33,7 +33,7 @@ export class ContentController {
     }
   }
 
-  @Get('lesson/:lessonId')
+  @Get('admin/content/view_content/:lessonId')
   async getContentsByLesson(@Param('lessonId') lessonId: string) {
     return await this.contentService.getContentsByLesson(lessonId);
   }
