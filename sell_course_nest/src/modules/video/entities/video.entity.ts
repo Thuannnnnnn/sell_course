@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import { Entity, PrimaryColumn, OneToOne, JoinColumn, Column } from 'typeorm';
 import { Contents } from '../../contents/entities/contents.entity';
 
 @Entity('video')
@@ -6,7 +6,7 @@ export class Video {
   @PrimaryColumn({ name: 'video_id' })
   videoId: string;
 
-  @ManyToOne(() => Contents)
+  @OneToOne(() => Contents)
   @JoinColumn({ name: 'content_id' })
   contents: Contents;
 

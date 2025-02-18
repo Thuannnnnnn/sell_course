@@ -68,6 +68,7 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
 
 @Module({
   imports: [
+    VideoModule,
     ContentModule,
     PaymentModule,
     ConfigModule.forRoot({
@@ -154,6 +155,6 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/admin/*');
+    consumer.apply(PermissionMiddleware).forRoutes('/api/xyz/*');
   }
 }
