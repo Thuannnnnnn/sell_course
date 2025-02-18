@@ -157,7 +157,7 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
   providers: [AppService],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
+  configure(consumer: MiddlewareConsumer): void {
     consumer.apply(PermissionMiddleware).forRoutes('/api/a/*');
   }
 }

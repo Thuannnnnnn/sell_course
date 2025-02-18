@@ -1,20 +1,21 @@
 'use client'; // Đảm bảo rằng component này chạy trên client
 
-import { useEffect, useState } from 'react';
-import '../style/AdminSideBar.css';
-import { MdDashboard } from 'react-icons/md';
-import { HiUserGroup } from 'react-icons/hi2';
-import { FaCircleQuestion } from 'react-icons/fa6';
-import { SiCoursera } from 'react-icons/si';
-import { BiSolidCategory } from 'react-icons/bi';
-import { TbMessageReportFilled } from 'react-icons/tb';
-import { FaWallet } from 'react-icons/fa';
-import { IoSettingsSharp } from 'react-icons/io5';
-import { FaSignOutAlt } from 'react-icons/fa';
-import { useLocale, useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { SiWebauthn } from 'react-icons/si';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from "react";
+import "../style/AdminSideBar.css";
+import { MdDashboard } from "react-icons/md";
+import { HiUserGroup } from "react-icons/hi2";
+import { FaCircleQuestion } from "react-icons/fa6";
+import { MdQuiz } from "react-icons/md";
+import { SiCoursera } from "react-icons/si";
+import { BiSolidCategory } from "react-icons/bi";
+import { TbMessageReportFilled } from "react-icons/tb";
+import { FaWallet } from "react-icons/fa";
+import { IoSettingsSharp } from "react-icons/io5";
+import { FaSignOutAlt } from "react-icons/fa";
+import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
+import { SiWebauthn } from "react-icons/si";
+import { usePathname } from "next/navigation";
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const t = useTranslations('dashBoard');
@@ -67,6 +68,14 @@ const Sidebar = () => {
                 <FaCircleQuestion />
               </div>
               <div>{t('quizz')}</div>
+            </Link>
+          </li>
+          <li className={isActive(`/${locate}/admin/exam`)}>
+            <Link href={`/${locate}/admin/exam`} className="sidebar-link">
+              <div className="icon-sidebar">
+                <MdQuiz />
+              </div>
+              <div>{t('exam')}</div>
             </Link>
           </li>
           <li className={isActive(`/${locate}/admin/courseAdmin`)}>
