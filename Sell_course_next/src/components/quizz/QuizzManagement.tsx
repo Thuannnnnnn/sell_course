@@ -11,6 +11,9 @@ import {
 } from "@/app/api/quizz/quizz";
 import { useSearchParams } from "next/navigation";
 import { Answer, CreateQuizzDto, Question, Quiz } from "@/app/type/quizz/quizz";
+import CreateQuizModal from "./CreateQuizModal";
+import EditQuestionModal from "./EditQuestionModal";
+import QuizList from "./QuizList";
 
 const QuizzesManagement = () => {
   const searchParams = useSearchParams();
@@ -60,7 +63,7 @@ const QuizzesManagement = () => {
         setQuizzes(Array.isArray(data) ? data : []);
       }
     } catch (error) {
-      alert("Failed to delete question. Please try again.");
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -140,7 +143,7 @@ const QuizzesManagement = () => {
 
       setShowEditModal(true);
     } catch (error) {
-      alert("Failed to load question details. Please try again.");
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -179,9 +182,7 @@ const QuizzesManagement = () => {
       setShowEditModal(false);
       setEditingQuestion(null);
     } catch (error) {
-      alert(
-        "Failed to update question. Please ensure all fields are filled correctly."
-      );
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -192,11 +193,9 @@ const QuizzesManagement = () => {
     try {
       setLoading(true);
       await createQuizz(newQuizData);
-      // Refresh quizzes list
       const data = await getQuizzesByContentId(contentId);
       setQuizzes(Array.isArray(data) ? data : []);
       setShowCreateModal(false);
-      // Reset form
       setNewQuizData({
         contentId: contentId,
         questions: [
@@ -250,240 +249,85 @@ const QuizzesManagement = () => {
           </button>
         </div>
 
-        {showCreateModal && (
-          <div className={styles.modal}>
-            <div className={styles.modalContent}>
-              <h2>Create New Quiz</h2>
-              <button className={styles.addButton} onClick={handleAddQuestion}>
-                Add New Question
-              </button>
-              {newQuizData.questions.map((question, qIndex) => (
-                <div key={qIndex} className={styles.questionSection}>
-                  <div className={styles.questionHeader}>
-                    <h3>Question {qIndex + 1}</h3>
-                    <button
-                      className={`${styles.button} ${styles.secondary}`}
-                      onClick={() => handleDeleteNewQuestion(qIndex)}
-                    >
-                      Delete Question
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    className={styles.inputText}
-                    placeholder="Enter question"
-                    value={question.question}
-                    onChange={(e) => {
-                      const updatedQuestions = [...newQuizData.questions];
-                      updatedQuestions[qIndex].question = e.target.value;
-                      setNewQuizData({
-                        ...newQuizData,
-                        questions: updatedQuestions,
-                      });
-                    }}
-                  />
-                  {question.answers.map((answer, aIndex) => (
-                    <div key={aIndex} className={styles.answerRow}>
-                      <input
-                        type="text"
-                        className={styles.inputText}
-                        placeholder={`Answer ${aIndex + 1}`}
-                        value={answer.answer}
-                        onChange={(e) => {
-                          const updatedQuestions = [...newQuizData.questions];
-                          updatedQuestions[qIndex].answers[aIndex].answer =
-                            e.target.value;
-                          setNewQuizData({
-                            ...newQuizData,
-                            questions: updatedQuestions,
-                          });
-                        }}
-                      />
-                      <input
-                        type="checkbox"
-                        className={styles.inputCheckbox}
-                        checked={answer.isCorrect}
-                        onChange={(e) => {
-                          const updatedQuestions = [...newQuizData.questions];
-                          updatedQuestions[qIndex].answers[aIndex].isCorrect =
-                            e.target.checked;
-                          setNewQuizData({
-                            ...newQuizData,
-                            questions: updatedQuestions,
-                          });
-                        }}
-                      />
-                      <label>Correct</label>
-                    </div>
-                  ))}
-                </div>
-              ))}
-              <div className={styles.modalButtons}>
-                <button
-                  className={`${styles.button} ${styles.primary}`}
-                  onClick={handleCreateQuiz}
-                >
-                  Create Quiz
-                </button>
-                <button
-                  className={`${styles.button} ${styles.secondary}`}
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <CreateQuizModal
+          showCreateModal={showCreateModal}
+          newQuizData={newQuizData}
+          onAddQuestion={handleAddQuestion}
+          onDeleteQuestion={handleDeleteNewQuestion}
+          onQuestionChange={(qIndex, value) => {
+            const updatedQuestions = [...newQuizData.questions];
+            updatedQuestions[qIndex].question = value;
+            setNewQuizData({
+              ...newQuizData,
+              questions: updatedQuestions,
+            });
+          }}
+          onAnswerChange={(qIndex, aIndex, value) => {
+            const updatedQuestions = [...newQuizData.questions];
+            updatedQuestions[qIndex].answers[aIndex].answer = value;
+            setNewQuizData({
+              ...newQuizData,
+              questions: updatedQuestions,
+            });
+          }}
+          onCorrectAnswerChange={(qIndex, aIndex, checked) => {
+            const updatedQuestions = [...newQuizData.questions];
+            updatedQuestions[qIndex].answers[aIndex].isCorrect = checked;
+            setNewQuizData({
+              ...newQuizData,
+              questions: updatedQuestions,
+            });
+          }}
+          onCreateQuiz={handleCreateQuiz}
+          onClose={() => setShowCreateModal(false)}
+        />
 
-        {showEditModal && editingQuestion && (
-          <div className={styles.modal}>
-            <div className={styles.modalContent}>
-              <h2>Edit Question</h2>
-              <div className={styles.questionSection}>
-                <input
-                  type="text"
-                  className={styles.inputText}
-                  placeholder="Enter question"
-                  value={editingQuestion.question}
-                  onChange={(e) => {
-                    setEditingQuestion({
-                      ...editingQuestion,
-                      question: e.target.value,
-                    });
-                  }}
-                />
-                {editingQuestion.answers.map((answer, aIndex) => (
-                  <div key={aIndex} className={styles.answerRow}>
-                    <input
-                      type="text"
-                      className={styles.inputText}
-                      placeholder={`Answer ${aIndex + 1}`}
-                      value={answer.answer}
-                      onChange={(e) => {
-                        const updatedAnswers = [...editingQuestion.answers];
-                        updatedAnswers[aIndex].answer = e.target.value;
-                        setEditingQuestion({
-                          ...editingQuestion,
-                          answers: updatedAnswers,
-                        });
-                      }}
-                    />
-                    <input
-                      type="checkbox"
-                      className={styles.inputCheckbox}
-                      checked={answer.isCorrect}
-                      onChange={(e) => {
-                        const updatedAnswers = [...editingQuestion.answers];
-                        updatedAnswers[aIndex].isCorrect = e.target.checked;
-                        setEditingQuestion({
-                          ...editingQuestion,
-                          answers: updatedAnswers,
-                        });
-                      }}
-                    />
-                    <label>Correct</label>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.modalButtons}>
-                <button
-                  className={`${styles.button} ${styles.primary}`}
-                  onClick={handleUpdateQuestion}
-                >
-                  Update Question
-                </button>
-                <button
-                  className={`${styles.button} ${styles.secondary}`}
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingQuestion(null);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Hiển thị loading */}
-        {loading ? (
-          <p className={styles.loading}>Đang tải dữ liệu...</p>
-        ) : quizzes.length === 0 ? (
-          <p className={styles.noData}>Không có quiz nào!</p>
-        ) : (
-          quizzes.map((quiz) => {
-            if (!quiz?.quizzId) {
-              return null;
-            }
-            return (
-              <div key={quiz.quizzId}>
-                {quiz.questions.map((question, idx) => (
-                  <QuizCard
-                    key={`${quiz.quizzId}-question-${
-                      question.questionId || idx
-                    }`}
-                    title={`Câu hỏi ${idx + 1}`}
-                    question={question}
-                    onEdit={() => handleEditQuestion(quiz.quizzId, question)}
-                    onDelete={() =>
-                      handleDeleteQuestion(quiz.quizzId, question.questionId)
-                    }
-                  />
-                ))}
-              </div>
+        <EditQuestionModal
+          showEditModal={showEditModal}
+          editingQuestion={editingQuestion}
+          onQuestionChange={(value) => {
+            setEditingQuestion(
+              editingQuestion
+                ? {
+                    ...editingQuestion,
+                    question: value,
+                  }
+                : null
             );
-          })
-        )}
-      </div>
-    </div>
-  );
-};
+          }}
+          onAnswerChange={(aIndex, value) => {
+            if (editingQuestion) {
+              const updatedAnswers = [...editingQuestion.answers];
+              updatedAnswers[aIndex].answer = value;
+              setEditingQuestion({
+                ...editingQuestion,
+                answers: updatedAnswers,
+              });
+            }
+          }}
+          onCorrectAnswerChange={(aIndex, checked) => {
+            if (editingQuestion) {
+              const updatedAnswers = [...editingQuestion.answers];
+              updatedAnswers[aIndex].isCorrect = checked;
+              setEditingQuestion({
+                ...editingQuestion,
+                answers: updatedAnswers,
+              });
+            }
+          }}
+          onUpdate={handleUpdateQuestion}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingQuestion(null);
+          }}
+        />
 
-// Component hiển thị câu hỏi của quiz
-interface QuizQuestion {
-  questionId: string;
-  question: string;
-  answers: Array<{
-    answerId: string;
-    answer: string;
-    isCorrect: boolean;
-  }>;
-}
-
-const QuizCard = ({
-  title,
-  question,
-  onEdit,
-  onDelete,
-}: {
-  title: string;
-  question: QuizQuestion;
-  onEdit: () => void;
-  onDelete: () => void;
-}) => {
-  return (
-    <div className={styles.card}>
-      <h2 className={styles.cardTitle}>{title}</h2>
-      {question.question ? (
-        <h5 className={styles.cardQuestion}>{question.question}</h5>
-      ) : (
-        <p className={styles.noQuestion}>Không có câu hỏi!</p>
-      )}
-      <div className={styles.buttonContainer}>
-        <button
-          className={`${styles.button} ${styles.primary}`}
-          onClick={onEdit}
-        >
-          Edit Quiz
-        </button>
-        <button
-          className={`${styles.button} ${styles.secondary}`}
-          onClick={onDelete}
-        >
-          Delete Quiz
-        </button>
+        <QuizList
+          loading={loading}
+          quizzes={quizzes}
+          onEditQuestion={handleEditQuestion}
+          onDeleteQuestion={handleDeleteQuestion}
+        />
       </div>
     </div>
   );

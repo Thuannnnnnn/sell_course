@@ -14,7 +14,6 @@ import { UpdateQuizzDto } from './dto/updateQuizz.dto';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 @Controller('api/admin/quizz')
-@UseGuards(JwtAuthGuard)
 export class QuizzController {
   constructor(private readonly quizzService: QuizzService) {}
 
