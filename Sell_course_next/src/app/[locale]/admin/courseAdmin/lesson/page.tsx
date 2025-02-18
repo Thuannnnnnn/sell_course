@@ -1,5 +1,5 @@
-'use client';
-import { useState, useEffect } from 'react';
+"use client";
+import { useState, useEffect } from "react";
 import {
   Container,
   Card,
@@ -7,22 +7,27 @@ import {
   Button,
   Modal,
   Form,
-} from 'react-bootstrap';
-import { CourseData } from '@/app/type/course/Lesson';
-import { fetchLesson } from '@/app/api/course/LessonAPI';
-import { useSession } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
-import { addContent } from '@/app/api/course/ContentAPI';
-import { FaPlus } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
+} from "react-bootstrap";
+import { CourseData } from "@/app/type/course/Lesson";
+import { fetchLesson } from "@/app/api/course/LessonAPI";
+import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { addContent } from "@/app/api/course/ContentAPI";
+import { FaPlus } from "react-icons/fa";
+import {
+  NotificationContainer,
+  NotificationManager,
+} from "react-notifications";
+import "react-notifications/lib/notifications.css";
+
 const LessonPage = () => {
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [newContent, setNewContent] = useState({
-    contentName: '',
-    contentType: 'video',
-    order: '',
+    contentName: "",
+    contentType: "video",
+    order: "",
   });
   const router = useRouter();
   const { data: session } = useSession();
@@ -49,14 +54,14 @@ const LessonPage = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedLessonId(null);
-    setNewContent({ contentName: '', contentType: 'video', order: '' });
+    setNewContent({ contentName: "", contentType: "video", order: "" });
   };
 
   const handleAddContent = async () => {
     if (!selectedLessonId || !session?.user.token) return;
 
     try {
-      console.log('ABCD');
+      console.log("ABCD");
       const response = await addContent(
         selectedLessonId,
         newContent.contentName,
@@ -77,6 +82,50 @@ const LessonPage = () => {
 
     handleCloseModal();
   };
+
+  const createNotification = (
+    type: "info" | "success" | "warning" | "error",
+    message: string
+  ) => {
+    return () => {
+      switch (type) {
+        case "info":
+          NotificationManager.info(message || "Info message");
+          break;
+        case "success":
+          NotificationManager.success(message || "Success!");
+          break;
+        case "warning":
+          NotificationManager.warning(message || "Warning!", 3000);
+          break;
+        case "error":
+          NotificationManager.error(message || "Error occurred", 5000);
+          break;
+      }
+    };
+  };
+
+  useEffect(() => {
+    const successMessage = localStorage.getItem("documentSuccessFull");
+    const successMessageUpdate = localStorage.getItem(
+      "documentUpdateSuccessFull"
+    );
+    if (successMessage) {
+      createNotification("success", "thêm document cho content thành công!")();
+      setTimeout(() => {
+        localStorage.removeItem("documentSuccessFull");
+      }, 5000);
+    } else if (successMessageUpdate) {
+      createNotification(
+        "success",
+        "chỉnh sửa document cho content thành công!"
+      )();
+      setTimeout(() => {
+        localStorage.removeItem("documentUpdateSuccessFull");
+      }, 5000);
+    }
+  }, []);
+
   const handleContentClick = (content: {
     contentType: string;
     contentId: string;
@@ -84,17 +133,19 @@ const LessonPage = () => {
     const { contentType, contentId } = content;
     console.log(contentType);
     switch (contentType) {
-    case 'video':
-      router.push(`lesson/content/video?contentId=${contentId}`);
-      break;
-    case 'document':
-      router.push(`content/document/${contentId}`);
-      break;
-    case 'quiz':
-      router.push(`lesson/content/quizz?contentId=${contentId}`);
-      break;
-    default:
-      break;
+      case "video":
+        router.push(`lesson/content/video?contentId=${contentId}?${courseId}`);
+        break;
+      case "document":
+        router.push(
+          `lesson/content/document?contentId=${contentId}?${courseId}`
+        );
+        break;
+      case "quiz":
+        // router.push(`content/quiz/${contentId}`);
+        break;
+      default:
+        break;
     }
   };
   if (!courseData) return <p>Loading...</p>;
@@ -113,7 +164,7 @@ const LessonPage = () => {
                   key={content.contentId}
                   onClick={() => handleContentClick(content)}
                 >
-                  {content.order}. [{content.contentType.toUpperCase()}]{' '}
+                  {content.order}. [{content.contentType.toUpperCase()}]{" "}
                   {content.contentName}
                 </ListGroup.Item>
               ))}
@@ -173,6 +224,7 @@ const LessonPage = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      <NotificationContainer />
     </Container>
   );
 };

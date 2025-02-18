@@ -41,8 +41,8 @@ export default function CoursePage() {
   useEffect(() => {
     const successMessage = localStorage.getItem('courseSuccess');
     if (successMessage) {
-      createNotification('success', 'Thao tác thành công!')();
-      localStorage.removeItem('courseSuccess'); // Xóa để tránh hiển thị lại khi tải lại trang
+      createNotification("success", "Thao tác thành công!")();
+      localStorage.removeItem("courseSuccess");
     }
   }, []);
 
@@ -52,18 +52,18 @@ export default function CoursePage() {
   ) => {
     return () => {
       switch (type) {
-      case 'info':
-        NotificationManager.info(message || 'Info message');
-        break;
-      case 'success':
-        NotificationManager.success(message || 'Success!');
-        break;
-      case 'warning':
-        NotificationManager.warning(message || 'Warning!', 3000);
-        break;
-      case 'error':
-        NotificationManager.error(message || 'Error occurred', 5000);
-        break;
+        case 'info':
+          NotificationManager.info(message || 'Info message');
+          break;
+        case 'success':
+          NotificationManager.success(message || 'Success!');
+          break;
+        case 'warning':
+          NotificationManager.warning(message || 'Warning!', 3000);
+          break;
+        case 'error':
+          NotificationManager.error(message || 'Error occurred', 5000);
+          break;
       }
     };
   };

@@ -12,7 +12,12 @@ import {
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseService } from './course.service';
-import { ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 @Controller('api')
 export class CourseController {
@@ -34,6 +39,7 @@ export class CourseController {
   }
 
   @Get('admin/courses/view_course')
+  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,
@@ -49,6 +55,7 @@ export class CourseController {
   }
 
   @Get('admin/courses/view_course/:id')
+  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiResponse({
     status: 200,
@@ -82,9 +89,8 @@ export class CourseController {
     return await this.courseService.getCourseById(courseId);
   }
 
-  // @ApiBearerAuth()
+  @ApiBearerAuth('Authorization')
   @Post('admin/courses/create_course')
-  // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'videoInfo', maxCount: 1 },
@@ -110,9 +116,8 @@ export class CourseController {
     return await this.courseService.createCourse(course, files ?? {});
   }
 
-  // @ApiBearerAuth()
+  @ApiBearerAuth('Authorization')
   @Put('/admin/courses/update_course/:id')
-  // @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'videoInfo', maxCount: 1 },
@@ -133,7 +138,7 @@ export class CourseController {
   @ApiResponse({ status: 400, description: 'Invalid course data provided.' })
   async updateCourse(
     @Param('id') courseId: string,
-    @Body() updateData: Partial<CourseRequestDTO>,
+    @Body() updateData: CourseRequestDTO,
     @UploadedFiles()
     files?: {
       videoInfo?: Express.Multer.File[];
@@ -147,9 +152,8 @@ export class CourseController {
     );
   }
 
-  // @ApiBearerAuth()
+  @ApiBearerAuth('Authorization')
   @Delete('admin/courses/delete_course/:id')
-  // @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a course by ID' })
   @ApiResponse({
     status: 200,

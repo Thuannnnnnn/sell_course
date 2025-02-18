@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Course Purchase')
-@ApiBearerAuth()
+@ApiBearerAuth('Authorization')
 @Controller('api/course_purchased')
 export class Course_purchaseController {
   constructor(

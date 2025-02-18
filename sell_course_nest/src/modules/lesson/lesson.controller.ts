@@ -12,7 +12,7 @@ import { LessonService } from './lesson.service';
 import { UpdateLessonDTO } from './dto/lesson.dto';
 import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiBearerAuth()
+@ApiBearerAuth('Authorization')
 @Controller('api')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
