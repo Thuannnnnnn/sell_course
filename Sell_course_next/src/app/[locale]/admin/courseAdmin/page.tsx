@@ -42,7 +42,7 @@ export default function CoursePage() {
     const successMessage = localStorage.getItem("courseSuccess");
     if (successMessage) {
       createNotification("success", "Thao tác thành công!")();
-      localStorage.removeItem("courseSuccess"); // Xóa để tránh hiển thị lại khi tải lại trang
+      localStorage.removeItem("courseSuccess");
     }
   }, []);
 
