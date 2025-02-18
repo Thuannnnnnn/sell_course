@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { QuizzService } from './quizz.service';
 import { CreateQuizzDto } from './dto/createQuizz.dto';
 import { UpdateQuizzDto } from './dto/updateQuizz.dto';
@@ -30,9 +38,17 @@ export class QuizzController {
     return this.quizzService.updateQuizz(id, updateQuizzDto);
   }
 
-  @Get(':id/random')
+  @Get('/:id/random')
   async getRandomQuiz(@Param('id') id: string) {
     const numberOfQuestions = 10;
     return this.quizzService.getRandomQuiz(id, numberOfQuestions);
+  }
+
+  @Delete(':quizzId/question/:questionId')
+  async deleteQuestion(
+    @Param('quizzId') quizzId: string,
+    @Param('questionId') questionId: string,
+  ) {
+    return this.quizzService.deleteQuestion(quizzId, questionId);
   }
 }

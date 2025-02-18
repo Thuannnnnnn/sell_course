@@ -8,6 +8,7 @@ import {
   CreateQuizzDto,
   updateQuizz,
   getQuizzById,
+  deleteQuizzByQuestionId,
 } from "@/app/api/quizz/quizz";
 import { useSearchParams } from "next/navigation";
 
@@ -57,13 +58,41 @@ const QuizzesManagement = () => {
     ],
   });
 
-  const handleDeleteQuestion = (qIndex: number) => {
-    if (newQuizData.questions.length <= 1) {
-      alert("Quiz must have at least one question!");
+  const handleDeleteQuestion = async (quizzId: string, questionId: string) => {
+    if (!quizzId || !questionId) {
+      alert("Cannot delete question: Missing required IDs");
       return;
     }
+
+    if (!window.confirm("Are you sure you want to delete this question?")) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteQuizzByQuestionId(quizzId, questionId);
+
+      if (contentId) {
+        const data = await getQuizzesByContentId(contentId);
+        setQuizzes(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      alert("Failed to delete question. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteNewQuestion = (questionIndex: number) => {
+    if (newQuizData.questions.length <= 1) {
+      alert(
+        "Cannot delete the last question. At least one question is required."
+      );
+      return;
+    }
+
     const updatedQuestions = newQuizData.questions.filter(
-      (_, index) => index !== qIndex
+      (_, index) => index !== questionIndex
     );
     setNewQuizData({
       ...newQuizData,
@@ -251,7 +280,7 @@ const QuizzesManagement = () => {
                     <h3>Question {qIndex + 1}</h3>
                     <button
                       className={`${styles.button} ${styles.secondary}`}
-                      onClick={() => handleDeleteQuestion(qIndex)}
+                      onClick={() => handleDeleteNewQuestion(qIndex)}
                     >
                       Delete Question
                     </button>
@@ -407,9 +436,6 @@ const QuizzesManagement = () => {
             }
             return (
               <div key={quiz.quizzId}>
-                <h2 className={styles.quizTitle}>
-                  Quiz {quiz.quizzId.slice(0, 8)}
-                </h2>
                 {quiz.questions.map((question, idx) => (
                   <QuizCard
                     key={`${quiz.quizzId}-question-${
@@ -418,6 +444,9 @@ const QuizzesManagement = () => {
                     title={`Câu hỏi ${idx + 1}`}
                     question={question}
                     onEdit={() => handleEditQuestion(quiz.quizzId, question)}
+                    onDelete={() =>
+                      handleDeleteQuestion(quiz.quizzId, question.questionId)
+                    }
                   />
                 ))}
               </div>
@@ -444,10 +473,12 @@ const QuizCard = ({
   title,
   question,
   onEdit,
+  onDelete,
 }: {
   title: string;
   question: QuizQuestion;
   onEdit: () => void;
+  onDelete: () => void;
 }) => {
   return (
     <div className={styles.card}>
@@ -464,7 +495,10 @@ const QuizCard = ({
         >
           Edit Quiz
         </button>
-        <button className={`${styles.button} ${styles.secondary}`}>
+        <button
+          className={`${styles.button} ${styles.secondary}`}
+          onClick={onDelete}
+        >
           Delete Quiz
         </button>
       </div>

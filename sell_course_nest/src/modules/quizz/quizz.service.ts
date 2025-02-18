@@ -214,4 +214,37 @@ export class QuizzService {
     const randomQuiz = { ...quiz, questions: randomQuestions };
     return randomQuiz;
   }
+
+  async deleteQuestion(quizzId: string, questionId: string) {
+    const quiz = await this.quizzRepository.findOne({
+      where: { quizzId },
+      relations: ['questions'],
+    });
+  
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+  
+    const question = await this.questionRepository.findOne({
+      where: { 
+        questionId,
+        quizz: { quizzId }
+      },
+      relations: ['answers'],
+    });
+  
+    if (!question) {
+      throw new NotFoundException(
+        `Question with ID ${questionId} not found in Quiz ${quizzId}`
+      );
+    }
+  
+    await this.answerRepository.delete({ question: { questionId } });
+  
+    await this.questionRepository.delete({ questionId });
+  
+    return { 
+      message: `Question with ID ${questionId} has been deleted from Quiz ${quizzId}` 
+    };
+  }
 }
