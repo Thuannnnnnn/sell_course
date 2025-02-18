@@ -35,7 +35,7 @@ const DocsPage = () => {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale;
-  const [checkUpdate, setCheckUpdate] = useState<boolean | false>(false);
+  const [checkUpdate, setCheckUpdate] = useState<boolean>();
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, title: e.target.value }));
   };

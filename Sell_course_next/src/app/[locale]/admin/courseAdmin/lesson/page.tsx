@@ -107,14 +107,22 @@ const LessonPage = () => {
 
   useEffect(() => {
     const successMessage = localStorage.getItem("documentSuccessFull");
-    const successMessageUpdate = localStorage.getItem("documentUpdatedSuccessFull");
+    const successMessageUpdate = localStorage.getItem(
+      "documentUpdateSuccessFull"
+    );
     if (successMessage) {
       createNotification("success", "thêm document cho content thành công!")();
-      localStorage.removeItem("documentSuccessFull");
-    }
-    else if (successMessageUpdate) {
-      createNotification("success", "chỉnh sửa document cho content thành công!")();
-      localStorage.removeItem("documentUpdatedSuccessFull");
+      setTimeout(() => {
+        localStorage.removeItem("documentSuccessFull");
+      }, 5000);
+    } else if (successMessageUpdate) {
+      createNotification(
+        "success",
+        "chỉnh sửa document cho content thành công!"
+      )();
+      setTimeout(() => {
+        localStorage.removeItem("documentUpdateSuccessFull");
+      }, 5000);
     }
   }, []);
 
@@ -129,7 +137,9 @@ const LessonPage = () => {
         router.push(`lesson/content/video?contentId=${contentId}?${courseId}`);
         break;
       case "document":
-        router.push(`lesson/content/document?contentId=${contentId}?${courseId}`);
+        router.push(
+          `lesson/content/document?contentId=${contentId}?${courseId}`
+        );
         break;
       case "quiz":
         // router.push(`content/quiz/${contentId}`);
