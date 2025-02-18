@@ -1,34 +1,12 @@
+import { CreateQuizzDto, UpdateQuizzDto } from "@/app/type/quizz/quizz";
 import axios from "axios";
 
-export interface CreateQuizzDto {
-  contentId: string;
-  questions: {
-    question: string;
-    answers: {
-      answer: string;
-      isCorrect: boolean;
-    }[];
-  }[];
-}
-
-export interface UpdateQuizzDto {
-  quizzId: string;
-  questions: {
-    questionId: string;
-    question: string;
-    answers: {
-      answerId: string;
-      answer: string;
-      isCorrect: boolean;
-    }[];
-  }[];
-}
 
 export const createQuizz = async (createQuizzDto: CreateQuizzDto) => {
   try {
     console.log("Creating quiz with data:", createQuizzDto);
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/create`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/quizz/create`,
       createQuizzDto
     );
     console.log("Quiz created successfully:", response.data);
@@ -43,16 +21,11 @@ export const getQuizzesByContentId = async (contentId: string) => {
   try {
     console.log("Fetching quizzes for contentId:", contentId);
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/content/${contentId}`
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/quizz/content/${contentId}`
     );
     console.log("Quizzes data received:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error fetching quizzes:", error);
-    console.log(
-      "API URL used:",
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/content/${contentId}`
-    );
     throw error;
   }
 };
@@ -62,7 +35,7 @@ export const updateQuizz = async (updateQuizzDto: UpdateQuizzDto) => {
     const { quizzId, ...quizzData } = updateQuizzDto;
     console.log("Updating quiz with ID:", quizzId, "Data:", quizzData);
     const response = await axios.put(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/update/${quizzId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/quizz/update/${quizzId}`,
       quizzData
     );
     console.log("Quiz updated successfully:", response.data);
@@ -77,7 +50,7 @@ export const getQuizzById = async (quizzId: string) => {
   try {
     console.log("Fetching quiz with ID:", quizzId);
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/${quizzId}`
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/quizz/${quizzId}`
     );
     console.log("Quiz data received:", response.data);
     return response.data;
@@ -93,7 +66,7 @@ export const deleteQuizzByQuestionId = async (
   try {
     console.log("Deleting question", questionId, "from quiz", quizzId);
     const response = await axios.delete(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/${quizzId}/question/${questionId}`
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/quizz/${quizzId}/question/${questionId}`
     );
     console.log("Question deleted successfully:", response.data);
     return response.data;

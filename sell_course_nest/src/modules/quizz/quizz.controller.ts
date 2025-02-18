@@ -6,12 +6,15 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { QuizzService } from './quizz.service';
 import { CreateQuizzDto } from './dto/createQuizz.dto';
 import { UpdateQuizzDto } from './dto/updateQuizz.dto';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
-@Controller('api/quizz')
+@Controller('api/admin/quizz')
+@UseGuards(JwtAuthGuard)
 export class QuizzController {
   constructor(private readonly quizzService: QuizzService) {}
 

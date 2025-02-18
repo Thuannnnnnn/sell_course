@@ -5,33 +5,16 @@ import styles from "@/style/Quizz/QuizzesManagement.module.css";
 import {
   getQuizzesByContentId,
   createQuizz,
-  CreateQuizzDto,
   updateQuizz,
   getQuizzById,
   deleteQuizzByQuestionId,
 } from "@/app/api/quizz/quizz";
 import { useSearchParams } from "next/navigation";
+import { Answer, CreateQuizzDto, Question, Quiz } from "@/app/type/quizz/quizz";
 
 const QuizzesManagement = () => {
   const searchParams = useSearchParams();
   const contentId = searchParams.get("contentId");
-  interface Answer {
-    answerId: string;
-    answer: string;
-    isCorrect: boolean;
-  }
-
-  interface Question {
-    questionId: string;
-    question: string;
-    answers: Answer[];
-  }
-
-  interface Quiz {
-    quizzId: string;
-    contentId: string;
-    questions: Question[];
-  }
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
