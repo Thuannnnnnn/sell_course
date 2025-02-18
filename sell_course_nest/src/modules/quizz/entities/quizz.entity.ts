@@ -1,7 +1,6 @@
 import {
   Entity,
   PrimaryColumn,
-  ManyToOne,
   OneToMany,
   Column,
   JoinColumn,
@@ -15,8 +14,11 @@ export class Quizz {
   @PrimaryColumn({ name: 'quizz_id', type: 'uuid' })
   quizzId: string;
 
-  @OneToOne(() => Contents, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'content_id', referencedColumnName: 'contentId' })
+  @Column({ name: 'content_id', type: 'uuid' })
+  contentId: string;
+
+  @OneToOne(() => Contents)
+  @JoinColumn({ name: 'content_id' })
   contents: Contents;
 
   @OneToMany(() => Questionentity, (question) => question.quizz)

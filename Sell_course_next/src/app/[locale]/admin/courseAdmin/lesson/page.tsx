@@ -1,11 +1,18 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { Container, Card, ListGroup, Button, Modal, Form } from 'react-bootstrap';
-import { CourseData } from '@/app/type/course/Lesson';
-import { fetchLesson } from '@/app/api/course/LessonAPI';
-import { useSession } from 'next-auth/react';
+"use client";
+import { useState, useEffect } from "react";
+import {
+  Container,
+  Card,
+  ListGroup,
+  Button,
+  Modal,
+  Form,
+} from "react-bootstrap";
+import { CourseData } from "@/app/type/course/Lesson";
+import { fetchLesson } from "@/app/api/course/LessonAPI";
+import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { addContent } from '@/app/api/course/ContentAPI';
+import { addContent } from "@/app/api/course/ContentAPI";
 import { FaPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 const LessonPage = () => {
@@ -13,9 +20,9 @@ const LessonPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [newContent, setNewContent] = useState({
-    contentName: '',
-    contentType: 'video',
-    order: '',
+    contentName: "",
+    contentType: "video",
+    order: "",
   });
   const router = useRouter();
   const { data: session } = useSession();
@@ -42,14 +49,14 @@ const LessonPage = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedLessonId(null);
-    setNewContent({ contentName: '', contentType: 'video', order: '' });
+    setNewContent({ contentName: "", contentType: "video", order: "" });
   };
 
   const handleAddContent = async () => {
     if (!selectedLessonId || !session?.user.token) return;
 
     try {
-      console.log("ABCD")
+      console.log("ABCD");
       const response = await addContent(
         selectedLessonId,
         newContent.contentName,
@@ -70,18 +77,21 @@ const LessonPage = () => {
 
     handleCloseModal();
   };
-  const handleContentClick = (content: { contentType: string; contentId: string }) => {
+  const handleContentClick = (content: {
+    contentType: string;
+    contentId: string;
+  }) => {
     const { contentType, contentId } = content;
     console.log(contentType);
     switch (contentType) {
-      case 'video':
+      case "video":
         router.push(`lesson/content/video?contentId=${contentId}`);
         break;
-      case 'document':
+      case "document":
         router.push(`content/document/${contentId}`);
         break;
-      case 'quiz':
-        // router.push(`content/quiz/${contentId}`);
+      case "quiz":
+        router.push(`lesson/content/quizz?contentId=${contentId}`);
         break;
       default:
         break;
@@ -94,15 +104,25 @@ const LessonPage = () => {
       {courseData.lessons.map((lesson) => (
         <Card key={lesson.lessonId} className="mb-3">
           <Card.Body>
-            <Card.Title>{lesson.order}. {lesson.lessonName}</Card.Title>
+            <Card.Title>
+              {lesson.order}. {lesson.lessonName}
+            </Card.Title>
             <ListGroup>
               {lesson.contents.map((content) => (
-                <ListGroup.Item key={content.contentId} onClick={() => handleContentClick(content)}>
-                  {content.order}. [{content.contentType.toUpperCase()}] {content.contentName}
+                <ListGroup.Item
+                  key={content.contentId}
+                  onClick={() => handleContentClick(content)}
+                >
+                  {content.order}. [{content.contentType.toUpperCase()}]{" "}
+                  {content.contentName}
                 </ListGroup.Item>
               ))}
             </ListGroup>
-            <Button variant="outline-seccondary" className="mt-2" onClick={() => handleShowModal(lesson.lessonId)}>
+            <Button
+              variant="outline-seccondary"
+              className="mt-2"
+              onClick={() => handleShowModal(lesson.lessonId)}
+            >
               <FaPlus />
             </Button>
           </Card.Body>
@@ -122,7 +142,9 @@ const LessonPage = () => {
                 type="text"
                 placeholder="Enter content name"
                 value={newContent.contentName}
-                onChange={(e) => setNewContent({ ...newContent, contentName: e.target.value })}
+                onChange={(e) =>
+                  setNewContent({ ...newContent, contentName: e.target.value })
+                }
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -131,7 +153,9 @@ const LessonPage = () => {
                 id="contentType"
                 title="Content Type"
                 value={newContent.contentType}
-                onChange={(e) => setNewContent({ ...newContent, contentType: e.target.value })}
+                onChange={(e) =>
+                  setNewContent({ ...newContent, contentType: e.target.value })
+                }
               >
                 <option value="video">Video</option>
                 <option value="document">Document</option>

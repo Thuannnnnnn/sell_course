@@ -59,13 +59,13 @@ export class QuizzStoreService {
       }
 
       const selectedAnswer = question.answers.find(
-        (a) => a.anwserId === submission.anwserId,
+        (a) => a.answerId === submission.anwserId,
       );
       if (!selectedAnswer) {
         continue;
       }
 
-      const isCorrect = selectedAnswer.iscorrect;
+      const isCorrect = selectedAnswer.isCorrect;
       if (isCorrect) {
         score++;
       }

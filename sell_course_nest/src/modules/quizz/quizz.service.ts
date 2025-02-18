@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,24 +36,48 @@ export class QuizzService {
         `Content with ID ${createQuizzDto.contentId} not found`,
       );
     }
-    const quiz = new Quizz();
-    quiz.quizzId = uuidv4();
-    quiz.contents = content;
 
-    const savedQuiz = await this.quizzRepository.save(quiz);
+    let quiz = await this.quizzRepository.findOne({
+      where: { contentId: createQuizzDto.contentId },
+      relations: ['questions', 'questions.answers'],
+    });
+
+    if (!quiz) {
+      quiz = new Quizz();
+      quiz.quizzId = uuidv4();
+      quiz.contentId = createQuizzDto.contentId;
+      quiz.contents = content;
+      quiz = await this.quizzRepository.save(quiz);
+    }
 
     for (const questionDto of createQuizzDto.questions) {
+      if (!questionDto.question || questionDto.question.trim() === '') {
+        throw new BadRequestException(
+          `Invalid question: "${questionDto.question}"`,
+        );
+      }
+
       const question = new Questionentity();
       question.questionId = uuidv4();
-      question.question = questionDto.question;
-      question.quizz = savedQuiz;
+      question.question = questionDto.question.trim();
+      question.quizz = quiz;
       const savedQuestion = await this.questionRepository.save(question);
 
+      if (!questionDto.answers || questionDto.answers.length === 0) {
+        throw new BadRequestException(
+          `No answers provided for question: "${questionDto.question}"`,
+        );
+      }
+
       for (const answerDto of questionDto.answers) {
+        if (!answerDto.answer || answerDto.answer.trim() === '') {
+          throw new BadRequestException('Invalid answer text');
+        }
+
         const answer = new AnswerEntity();
-        answer.anwserId = uuidv4();
-        answer.answer = answerDto.answer;
-        answer.iscorrect = answerDto.isCorrect;
+        answer.answerId = uuidv4();
+        answer.answer = answerDto.answer.trim();
+        answer.isCorrect = answerDto.isCorrect;
         answer.question = savedQuestion;
         await this.answerRepository.save(answer);
       }
@@ -81,6 +109,10 @@ export class QuizzService {
   }
 
   async updateQuizz(quizzId: string, updateQuizzDto: UpdateQuizzDto) {
+    if (!quizzId || typeof quizzId !== 'string') {
+      throw new BadRequestException('Quiz ID must be a valid string');
+    }
+
     const quiz = await this.quizzRepository.findOne({
       where: { quizzId },
       relations: ['questions', 'questions.answers'],
@@ -90,27 +122,64 @@ export class QuizzService {
       throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
     }
 
-    for (const question of quiz.questions) {
-      await this.answerRepository.delete({
-        question: { questionId: question.questionId },
-      });
-    }
-    await this.questionRepository.delete({ quizz: { quizzId } });
-
     for (const questionDto of updateQuizzDto.questions) {
-      const question = new Questionentity();
-      question.questionId = questionDto.questionId || uuidv4();
-      question.question = questionDto.question;
-      question.quizz = quiz;
-      const savedQuestion = await this.questionRepository.save(question);
+      let question: Questionentity;
+
+      if (questionDto.questionId) {
+        if (typeof questionDto.questionId !== 'string') {
+          throw new BadRequestException('Question ID must be a valid string');
+        }
+
+        question = await this.questionRepository.findOne({
+          where: { questionId: questionDto.questionId },
+          relations: ['answers'],
+        });
+
+        if (!question) {
+          throw new NotFoundException(
+            `Question with ID ${questionDto.questionId} not found`,
+          );
+        }
+
+        question.question = questionDto.question;
+        await this.questionRepository.save(question);
+      } else {
+        question = new Questionentity();
+        question.questionId = uuidv4();
+        question.question = questionDto.question;
+        question.quizz = quiz;
+        await this.questionRepository.save(question);
+      }
 
       for (const answerDto of questionDto.answers) {
-        const answer = new AnswerEntity();
-        answer.anwserId = answerDto.anwserId || uuidv4();
-        answer.answer = answerDto.answer;
-        answer.iscorrect = answerDto.isCorrect;
-        answer.question = savedQuestion;
-        await this.answerRepository.save(answer);
+        let answer: AnswerEntity;
+
+        if (answerDto.answerId) {
+          if (typeof answerDto.answerId !== 'string') {
+            throw new BadRequestException('Answer ID must be a valid string');
+          }
+
+          answer = await this.answerRepository.findOne({
+            where: { answerId: answerDto.answerId },
+          });
+
+          if (!answer) {
+            throw new NotFoundException(
+              `Answer with ID ${answerDto.answerId} not found`,
+            );
+          }
+
+          answer.answer = answerDto.answer;
+          answer.isCorrect = answerDto.isCorrect;
+          await this.answerRepository.save(answer);
+        } else {
+          answer = new AnswerEntity();
+          answer.answerId = uuidv4();
+          answer.answer = answerDto.answer;
+          answer.isCorrect = answerDto.isCorrect;
+          answer.question = question;
+          await this.answerRepository.save(answer);
+        }
       }
     }
 
@@ -133,7 +202,6 @@ export class QuizzService {
       );
     }
 
-    // Shuffle questions array using Fisher-Yates algorithm
     const shuffledQuestions = [...quiz.questions];
     for (let i = shuffledQuestions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -142,11 +210,7 @@ export class QuizzService {
         shuffledQuestions[i],
       ];
     }
-
-    // Take first N questions
     const randomQuestions = shuffledQuestions.slice(0, numberOfQuestions);
-
-    // Create new quiz object with random questions
     const randomQuiz = { ...quiz, questions: randomQuestions };
     return randomQuiz;
   }

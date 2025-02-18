@@ -7,7 +7,7 @@ import { UpdateQuizzDto } from './dto/updateQuizz.dto';
 export class QuizzController {
   constructor(private readonly quizzService: QuizzService) {}
 
-  @Post()
+  @Post('create')
   async createQuizz(@Body() createQuizzDto: CreateQuizzDto) {
     return this.quizzService.createQuizz(createQuizzDto);
   }
@@ -22,7 +22,7 @@ export class QuizzController {
     return this.quizzService.getQuizzesByContentId(id);
   }
 
-  @Put(':id')
+  @Put('/update/:id')
   async updateQuizz(
     @Param('id') id: string,
     @Body() updateQuizzDto: UpdateQuizzDto,
