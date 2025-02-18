@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 export const metadata: Metadata = {
-  title: 'Courses',
+  title: 'Quizz',
   description: 'Admin Courses',
 };
 
