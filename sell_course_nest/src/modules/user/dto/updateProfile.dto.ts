@@ -1,36 +1,50 @@
-// import {
-//   IsDateString,
-//   IsEmail,
-//   IsOptional,
-//   IsPhoneNumber,
-//   IsString,
-// } from 'class-validator';
+/*
+ * import {
+ *   IsDateString,
+ *   IsEmail,
+ *   IsOptional,
+ *   IsPhoneNumber,
+ *   IsString,
+ * } from 'class-validator';
+ */
 
-// export class UserDto {
-//   @IsOptional()
-//   @IsEmail()
-//   email?: string;
+/*
+ * export class UserDto {
+ *   @IsOptional()
+ *   @IsEmail()
+ *   email?: string;
+ */
 
-//   @IsOptional()
-//   @IsString()
-//   username?: string;
+/*
+ *   @IsOptional()
+ *   @IsString()
+ *   username?: string;
+ */
 
-//   @IsOptional()
-//   @IsString()
-//   gender?: string;
+/*
+ *   @IsOptional()
+ *   @IsString()
+ *   gender?: string;
+ */
 
-//   @IsOptional()
-//   @IsString()
-//   avatarImg?: string;
+/*
+ *   @IsOptional()
+ *   @IsString()
+ *   avatarImg?: string;
+ */
 
-//   @IsOptional()
-//   @IsDateString() // Validates an ISO 8601 date string
-//   birthDay?: string;
+/*
+ *   @IsOptional()
+ *   @IsDateString() // Validates an ISO 8601 date string
+ *   birthDay?: string;
+ */
 
-//   @IsOptional()
-//   @IsPhoneNumber(null) // Validates a phone number
-//   phoneNumber?: string;
-// }
+/*
+ *   @IsOptional()
+ *   @IsPhoneNumber(null) // Validates a phone number
+ *   phoneNumber?: string;
+ * }
+ */
 
 export class UserDto {
   user_id: string;

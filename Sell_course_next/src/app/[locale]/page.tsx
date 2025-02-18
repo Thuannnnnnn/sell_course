@@ -1,27 +1,27 @@
-"use client";
-import { useTranslations } from "next-intl";
-import logoJava from "../.../../../../public/logoJava_img.jpg";
-import logoJs from "../.../../../../public/logoJS_img.jpg";
-import logoCPlusPlus from "../.../../../../public/logoC++_img.png";
-import logoCSharp from "../.../../../../public/logoC_img.jpg";
-import logoNodeJs from "../.../../../../public/logoSQL_img.jpg";
-import logoSQL from "../.../../../../public/logoSQL_img.jpg";
-import { HiOutlineCheck } from "react-icons/hi";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
-import Banner from "@/components/Banner";
-import { useEffect, useState } from "react";
-import { Course } from "../type/course/Course";
-import { fetchCourses } from "../api/course/CourseAPI";
-import { useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
-import { CoursePurchaseAPI } from "../api/coursePurchased/coursePurchased";
+'use client';
+import { useTranslations } from 'next-intl';
+import logoJava from '../.../../../../public/logoJava_img.jpg';
+import logoJs from '../.../../../../public/logoJS_img.jpg';
+import logoCPlusPlus from '../.../../../../public/logoC++_img.png';
+import logoCSharp from '../.../../../../public/logoC_img.jpg';
+import logoNodeJs from '../.../../../../public/logoSQL_img.jpg';
+import logoSQL from '../.../../../../public/logoSQL_img.jpg';
+import { HiOutlineCheck } from 'react-icons/hi';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import Image from 'next/image';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import Banner from '@/components/Banner';
+import { useEffect, useState } from 'react';
+import { Course } from '../type/course/Course';
+import { fetchCourses } from '../api/course/CourseAPI';
+import { useSession } from 'next-auth/react';
+import { useParams, useRouter } from 'next/navigation';
+import { CoursePurchaseAPI } from '../api/coursePurchased/coursePurchased';
 export default function HomePage() {
-  const t = useTranslations("homePage");
-  const tc = useTranslations("cardCourse");
+  const t = useTranslations('homePage');
+  const tc = useTranslations('cardCourse');
   const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
 
@@ -30,20 +30,20 @@ export default function HomePage() {
       try {
         const data = await fetchCourses();
         setCourses(data);
-        console.log("Loaded courses:", data);
+        console.log('Loaded courses:', data);
       } catch (error) {
-        console.log("Loaded courses error:", error);
+        console.log('Loaded courses error:', error);
       } finally {
       }
     };
 
     loadCourses();
-    console.log("check data: " + session);
+    console.log('check data: ' + session);
   }, [session]);
 
   const router = useRouter();
   const params = useParams();
-  const email = session?.user.email || "";
+  const email = session?.user.email || '';
   const handleClick = async (courseDetaill: string) => {
     let data;
     if (email) {
@@ -142,8 +142,8 @@ export default function HomePage() {
           </Swiper>
         </div>
         <div className="content-container">
-          <h1 className="course-title">{t("homePageTitle")}</h1>
-          <p className="course-description">{t("homePageContent")}</p>
+          <h1 className="course-title">{t('homePageTitle')}</h1>
+          <p className="course-description">{t('homePageContent')}</p>
           <div className="course-carousel">
             <Swiper
               spaceBetween={50}
@@ -167,9 +167,9 @@ export default function HomePage() {
                   <div
                     className="course-card"
                     style={{
-                      maxWidth: "400px",
-                      width: "100%",
-                      margin: "auto",
+                      maxWidth: '400px',
+                      width: '100%',
+                      margin: 'auto',
                     }}
                   >
                     {course.imageInfo ? (
@@ -178,10 +178,10 @@ export default function HomePage() {
                         alt="Course Thumbnail"
                         width={50}
                         height={60}
-                        style={{ objectFit: "contain" }}
+                        style={{ objectFit: 'contain' }}
                       />
                     ) : (
-                      "N/A"
+                      'N/A'
                     )}
                     <h2>{course.title}</h2>
                     <ul>
@@ -189,30 +189,30 @@ export default function HomePage() {
                         <div className="icon">
                           <HiOutlineCheck className="icon-check" />
                         </div>
-                        {tc("0")}
+                        {tc('0')}
                       </li>
                       <li>
                         <div className="icon">
                           <HiOutlineCheck className="icon-check" />
                         </div>
-                        {tc("1")}
+                        {tc('1')}
                       </li>
                       <li>
                         <div className="icon">
                           <HiOutlineCheck className="icon-check" />
                         </div>
-                        {tc("2")}
+                        {tc('2')}
                       </li>
                     </ul>
                     <p className="course-price">
-                      {" "}
-                      {tc("3")} <strong>${course.price}</strong>
+                      {' '}
+                      {tc('3')} <strong>${course.price}</strong>
                     </p>
                     <button
                       className="get-started-btn"
                       onClick={() => handleClick(course.courseId)}
                     >
-                      {tc("4")}
+                      {tc('4')}
                     </button>
                   </div>
                 </SwiperSlide>

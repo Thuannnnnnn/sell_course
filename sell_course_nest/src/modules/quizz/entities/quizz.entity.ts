@@ -1,10 +1,10 @@
 import {
   Entity,
   PrimaryColumn,
-  ManyToOne,
-  JoinColumn,
-  Column,
   OneToMany,
+  Column,
+  JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { Contents } from '../../contents/entities/contents.entity';
 import { Questionentity } from './question.entity';
@@ -14,7 +14,10 @@ export class Quizz {
   @PrimaryColumn({ name: 'quizz_id', type: 'uuid' })
   quizzId: string;
 
-  @ManyToOne(() => Contents)
+  @Column({ name: 'content_id', type: 'uuid' })
+  contentId: string;
+
+  @OneToOne(() => Contents)
   @JoinColumn({ name: 'content_id' })
   contents: Contents;
 

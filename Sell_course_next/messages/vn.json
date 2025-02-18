@@ -378,22 +378,5 @@
   },
   "resetPasswordBanner": {
     "title-reset": "Đặt lại mật khẩu"
-  },
-  "lesson": {
-    "loading": "Đang tải...",
-    "addContent": "Thêm nội dung",
-    "contentName": "Tên nội dung",
-    "contentType": "Loại nội dung",
-    "video": "Video",
-    "document": "Tài liệu",
-    "quiz": "Câu hỏi",
-    "addLesson": "Thêm bài học",
-    "lessonName": "Tên bài học",
-    "contentAdded": "Nội dung đã được thêm thành công",
-    "contentFailed": "Thêm nội dung thất bại",
-    "lessonAdded": "Bài học đã được thêm thành công",
-    "lessonFailed": "Thêm bài học thất bại",
-    "success": "Thành công",
-    "error": "Lỗi"
   }
 }
