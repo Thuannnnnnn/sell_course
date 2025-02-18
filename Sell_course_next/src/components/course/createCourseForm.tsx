@@ -151,6 +151,7 @@ const CourseForm = () => {
         "Lỗi nhập liệu",
         2000
       );
+      setPrice(100000);
     }
   };
 
@@ -339,7 +340,7 @@ const CourseForm = () => {
                     VND
                   </InputGroup.Text>
                   <input
-                    type="number"
+                    type="text"
                     value={price}
                     onChange={handlePriceChange}
                     className="price-field"

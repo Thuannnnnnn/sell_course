@@ -5,6 +5,7 @@ import "../style/AdminSideBar.css";
 import { MdDashboard } from "react-icons/md";
 import { HiUserGroup } from "react-icons/hi2";
 import { FaCircleQuestion } from "react-icons/fa6";
+import { MdQuiz } from "react-icons/md";
 import { SiCoursera } from "react-icons/si";
 import { BiSolidCategory } from "react-icons/bi";
 import { TbMessageReportFilled } from "react-icons/tb";
@@ -67,6 +68,14 @@ const Sidebar = () => {
                 <FaCircleQuestion />
               </div>
               <div>{t('quizz')}</div>
+            </Link>
+          </li>
+          <li className={isActive(`/${locate}/admin/exam`)}>
+            <Link href={`/${locate}/admin/exam`} className="sidebar-link">
+              <div className="icon-sidebar">
+                <MdQuiz />
+              </div>
+              <div>{t('exam')}</div>
             </Link>
           </li>
           <li className={isActive(`/${locate}/admin/courseAdmin`)}>

@@ -74,16 +74,17 @@ export class ExamQuestionService {
       }
     }
 
-    return this.getExamById(exam.examId);
+    return this.getExamById(exam.courseId);
   }
 
-  async getExamById(examId: string) {
+  async getExamById(courseId: string) {
     const exam = await this.examRepository.findOne({
-      where: { examId },
+      where: { courseId },
       relations: ['questions', 'questions.answers'],
     });
+    console.log('Id', courseId);
     if (!exam) {
-      throw new NotFoundException(`Exam with id ${examId} not found`);
+      throw new NotFoundException(`Exam with id ${courseId} not found`);
     }
     return exam;
   }

@@ -150,6 +150,6 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/admin/*');
+    consumer.apply(PermissionMiddleware).forRoutes('/api/adad/*');
   }
 }
