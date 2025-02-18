@@ -158,9 +158,6 @@ const LessonPage = () => {
             <Card.Title>
               {lesson.order}. {lesson.lessonName}
             </Card.Title>
-            <Card.Title>
-              {lesson.order}. {lesson.lessonName}
-            </Card.Title>
             <ListGroup>
               {lesson.contents.map((content) => (
                 <ListGroup.Item
@@ -177,13 +174,8 @@ const LessonPage = () => {
               className="mt-2"
               onClick={() => handleShowModal(lesson.lessonId)}
             >
-              <Button
-                variant="outline-seccondary"
-                className="mt-2"
-                onClick={() => handleShowModal(lesson.lessonId)}
-              >
-                <FaPlus />
-              </Button>
+              <FaPlus />
+            </Button>
           </Card.Body>
         </Card>
       ))}
@@ -204,9 +196,6 @@ const LessonPage = () => {
                 onChange={(e) =>
                   setNewContent({ ...newContent, contentName: e.target.value })
                 }
-                onChange={(e) =>
-                  setNewContent({ ...newContent, contentName: e.target.value })
-                }
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -215,9 +204,6 @@ const LessonPage = () => {
                 id="contentType"
                 title="Content Type"
                 value={newContent.contentType}
-                onChange={(e) =>
-                  setNewContent({ ...newContent, contentType: e.target.value })
-                }
                 onChange={(e) =>
                   setNewContent({ ...newContent, contentType: e.target.value })
                 }

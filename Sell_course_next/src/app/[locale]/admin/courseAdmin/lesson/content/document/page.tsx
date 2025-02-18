@@ -185,6 +185,7 @@ const DocsPage = () => {
           <div className="mb-3">
             <label className="form-label">Tên tài liệu</label>
             <input
+              title="text"
               type="text"
               className={`form-control ${errors.title ? "is-invalid" : ""}`}
               value={formData.title}
@@ -198,6 +199,7 @@ const DocsPage = () => {
           <div className="mb-3">
             <label className="form-label">Chọn tệp tin (Word / PDF)</label>
             <input
+              title="file"
               type="file"
               className={`form-control ${errors.file ? "is-invalid" : ""}`}
               onChange={handleFileChange}
@@ -228,7 +230,7 @@ const DocsPage = () => {
 
           {formData.file &&
             formData.file.type ===
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
               <div className="mb-3">
                 <p>
                   <strong>Tên tệp:</strong> {formData.file.name}
