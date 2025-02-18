@@ -370,5 +370,22 @@
     "resetPassword": "Reset Password",
     "rememberedPassword": "Remembered your password?",
     "login": "Login"
+  },
+  "lesson": {
+    "loading": "Loading...",
+    "addContent": "Add Content",
+    "contentName": "Content Name",
+    "contentType": "Content Type",
+    "video": "Video",
+    "document": "Document",
+    "quiz": "Quiz",
+    "addLesson": "Add Lesson",
+    "lessonName": "Lesson Name",
+    "contentAdded": "Content has been added successfully",
+    "contentFailed": "Failed to add content",
+    "lessonAdded": "Lesson has been added successfully",
+    "lessonFailed": "Failed to add lesson",
+    "success": "Success",
+    "error": "Error"
   }
 }
