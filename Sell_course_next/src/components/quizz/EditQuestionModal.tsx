@@ -51,6 +51,7 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                 onChange={(e) => onAnswerChange(aIndex, e.target.value)}
               />
               <input
+                title="checkbox"
                 type="checkbox"
                 className={styles.inputCheckbox}
                 checked={answer.isCorrect}

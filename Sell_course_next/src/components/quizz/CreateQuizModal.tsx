@@ -62,6 +62,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                   onChange={(e) => onAnswerChange(qIndex, aIndex, e.target.value)}
                 />
                 <input
+                  title="checkbox"
                   type="checkbox"
                   className={styles.inputCheckbox}
                   checked={answer.isCorrect}

@@ -226,7 +226,7 @@ const QuizzesManagement = () => {
         const data = await getQuizzesByContentId(contentId);
 
         setQuizzes(Array.isArray(data) ? data : []);
-      } catch (error) {
+      } catch {
         setQuizzes([]);
       } finally {
         setLoading(false);
@@ -289,9 +289,9 @@ const QuizzesManagement = () => {
             setEditingQuestion(
               editingQuestion
                 ? {
-                    ...editingQuestion,
-                    question: value,
-                  }
+                  ...editingQuestion,
+                  question: value,
+                }
                 : null
             );
           }}
