@@ -16,10 +16,12 @@ export class QaController {
     return this.qaService.findByCourseId(courseId);
   }
 
-  //   @Get(':id')
-  //   findOne(@Param('id') id: string) {
-  //     return this.qaService.findOne(id);
-  //   }
+  /*
+   *   @Get(':id')
+   *   findOne(@Param('id') id: string) {
+   *     return this.qaService.findOne(id);
+   *   }
+   */
 
   @Delete(':id')
   remove(@Param('id') id: string) {

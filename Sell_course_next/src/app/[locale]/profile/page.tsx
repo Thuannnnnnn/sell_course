@@ -1,8 +1,8 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Image from "react-bootstrap/Image";
+'use client';
+import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Image from 'react-bootstrap/Image';
 
 // Define the type for the user
 interface User {
@@ -19,8 +19,8 @@ const ProfilePage: React.FC = () => {
 
   // Update the session in case of changes
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
+    if (status === 'unauthenticated') {
+      router.push('/auth/login');
     }
   }, [status, router]);
 
@@ -30,7 +30,7 @@ const ProfilePage: React.FC = () => {
   //   setUser(updatedSession?.user);
   // };
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return <div>Loading...</div>;
   }
 

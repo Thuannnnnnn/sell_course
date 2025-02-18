@@ -1,25 +1,23 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useLocale, useTranslations } from "next-intl";
-import SignIn from "@/app/[locale]/auth/login/page";
-import Link from "next/link";
-import '../../../../../style/UserProfilePage.css'
-import { User } from "next-auth";
-import { changePassword, fetchUserDetails } from "@/app/api/auth/User/user";
-import BannerUser from "@/components/BannerUser";
-import DashBoardUser from "@/components/DashBoardUser";
-
-
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useLocale, useTranslations } from 'next-intl';
+import SignIn from '@/app/[locale]/auth/login/page';
+import Link from 'next/link';
+import '../../../../../style/UserProfilePage.css';
+import { User } from 'next-auth';
+import { changePassword, fetchUserDetails } from '@/app/api/auth/User/user';
+import BannerUser from '@/components/BannerUser';
+import DashBoardUser from '@/components/DashBoardUser';
 
 const ChangePasswordPage: React.FC = () => {
-  const t = useTranslations('changePassword')
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const t = useTranslations('changePassword');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -27,19 +25,19 @@ const ChangePasswordPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
 
   const token = session?.user.token;
-  const email = session?.user.email || "";
+  const email = session?.user.email || '';
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === 'loading') return;
     if (!email || !token) {
-      setError("User not found or unauthorized.");
+      setError('User not found or unauthorized.');
       return;
     }
     const fetchUser = async () => {
       try {
         const userDetails = await fetchUserDetails(token, email);
-        setUser(userDetails)
+        setUser(userDetails);
       } catch {
-        setError("Failed to load user details.");
+        setError('Failed to load user details.');
       }
     };
     if (!user) fetchUser();
@@ -67,7 +65,7 @@ const ChangePasswordPage: React.FC = () => {
     }
 
     setIsLoading(true);
-    setError("");
+    setError('');
 
     try {
       const token = session?.user?.token;
@@ -80,9 +78,9 @@ const ChangePasswordPage: React.FC = () => {
       const data = await changePassword(token, currentPassword, newPassword, confirmPassword);
       alert(data.message || t('passwordChangeSuccess'));
 
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
       router.push(`/${localActive}/profile/myProfile`);
     } catch (err) {
       setError(err as string);
@@ -94,7 +92,7 @@ const ChangePasswordPage: React.FC = () => {
   return (
     <>
       <div>
-        {user ? <BannerUser user={{ ...user, email: user.email || "" }} /> : <SignIn />}
+        {user ? <BannerUser user={{ ...user, email: user.email || '' }} /> : <SignIn />}
       </div>
       <div className="content-profile">
         <div className="dashboard"><DashBoardUser /></div>

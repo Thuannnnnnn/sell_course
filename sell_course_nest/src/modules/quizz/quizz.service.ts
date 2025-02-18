@@ -1,0 +1,250 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { Quizz } from './entities/quizz.entity';
+import { Questionentity } from './entities/question.entity';
+import { AnswerEntity } from './entities/answer.entity';
+import { CreateQuizzDto } from './dto/createQuizz.dto';
+import { UpdateQuizzDto } from './dto/updateQuizz.dto';
+import { Contents } from '../contents/entities/contents.entity';
+
+@Injectable()
+export class QuizzService {
+  constructor(
+    @InjectRepository(Quizz)
+    private readonly quizzRepository: Repository<Quizz>,
+    @InjectRepository(Questionentity)
+    private readonly questionRepository: Repository<Questionentity>,
+    @InjectRepository(AnswerEntity)
+    private readonly answerRepository: Repository<AnswerEntity>,
+    @InjectRepository(Contents)
+    private readonly contentsRepository: Repository<Contents>,
+  ) {}
+
+  async createQuizz(createQuizzDto: CreateQuizzDto) {
+    const content = await this.contentsRepository.findOne({
+      where: { contentId: createQuizzDto.contentId },
+    });
+
+    if (!content) {
+      throw new NotFoundException(
+        `Content with ID ${createQuizzDto.contentId} not found`,
+      );
+    }
+
+    let quiz = await this.quizzRepository.findOne({
+      where: { contentId: createQuizzDto.contentId },
+      relations: ['questions', 'questions.answers'],
+    });
+
+    if (!quiz) {
+      quiz = new Quizz();
+      quiz.quizzId = uuidv4();
+      quiz.contentId = createQuizzDto.contentId;
+      quiz.contents = content;
+      quiz = await this.quizzRepository.save(quiz);
+    }
+
+    for (const questionDto of createQuizzDto.questions) {
+      if (!questionDto.question || questionDto.question.trim() === '') {
+        throw new BadRequestException(
+          `Invalid question: "${questionDto.question}"`,
+        );
+      }
+
+      const question = new Questionentity();
+      question.questionId = uuidv4();
+      question.question = questionDto.question.trim();
+      question.quizz = quiz;
+      const savedQuestion = await this.questionRepository.save(question);
+
+      if (!questionDto.answers || questionDto.answers.length === 0) {
+        throw new BadRequestException(
+          `No answers provided for question: "${questionDto.question}"`,
+        );
+      }
+
+      for (const answerDto of questionDto.answers) {
+        if (!answerDto.answer || answerDto.answer.trim() === '') {
+          throw new BadRequestException('Invalid answer text');
+        }
+
+        const answer = new AnswerEntity();
+        answer.answerId = uuidv4();
+        answer.answer = answerDto.answer.trim();
+        answer.isCorrect = answerDto.isCorrect;
+        answer.question = savedQuestion;
+        await this.answerRepository.save(answer);
+      }
+    }
+
+    return this.getQuizById(quiz.quizzId);
+  }
+
+  async getQuizById(quizzId: string) {
+    const quiz = await this.quizzRepository.findOne({
+      where: { quizzId },
+      relations: ['contents', 'questions', 'questions.answers'],
+    });
+
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+
+    return quiz;
+  }
+
+  async getQuizzesByContentId(contentId: string) {
+    const quizzes = await this.quizzRepository.find({
+      where: { contents: { contentId: contentId } },
+      relations: ['contents', 'questions', 'questions.answers'],
+    });
+
+    return quizzes;
+  }
+
+  async updateQuizz(quizzId: string, updateQuizzDto: UpdateQuizzDto) {
+    if (!quizzId || typeof quizzId !== 'string') {
+      throw new BadRequestException('Quiz ID must be a valid string');
+    }
+
+    const quiz = await this.quizzRepository.findOne({
+      where: { quizzId },
+      relations: ['questions', 'questions.answers'],
+    });
+
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+
+    for (const questionDto of updateQuizzDto.questions) {
+      let question: Questionentity;
+
+      if (questionDto.questionId) {
+        if (typeof questionDto.questionId !== 'string') {
+          throw new BadRequestException('Question ID must be a valid string');
+        }
+
+        question = await this.questionRepository.findOne({
+          where: { questionId: questionDto.questionId },
+          relations: ['answers'],
+        });
+
+        if (!question) {
+          throw new NotFoundException(
+            `Question with ID ${questionDto.questionId} not found`,
+          );
+        }
+
+        question.question = questionDto.question;
+        await this.questionRepository.save(question);
+      } else {
+        question = new Questionentity();
+        question.questionId = uuidv4();
+        question.question = questionDto.question;
+        question.quizz = quiz;
+        await this.questionRepository.save(question);
+      }
+
+      for (const answerDto of questionDto.answers) {
+        let answer: AnswerEntity;
+
+        if (answerDto.answerId) {
+          if (typeof answerDto.answerId !== 'string') {
+            throw new BadRequestException('Answer ID must be a valid string');
+          }
+
+          answer = await this.answerRepository.findOne({
+            where: { answerId: answerDto.answerId },
+          });
+
+          if (!answer) {
+            throw new NotFoundException(
+              `Answer with ID ${answerDto.answerId} not found`,
+            );
+          }
+
+          answer.answer = answerDto.answer;
+          answer.isCorrect = answerDto.isCorrect;
+          await this.answerRepository.save(answer);
+        } else {
+          answer = new AnswerEntity();
+          answer.answerId = uuidv4();
+          answer.answer = answerDto.answer;
+          answer.isCorrect = answerDto.isCorrect;
+          answer.question = question;
+          await this.answerRepository.save(answer);
+        }
+      }
+    }
+
+    return this.getQuizById(quizzId);
+  }
+
+  async getRandomQuiz(quizzId: string, numberOfQuestions = 10) {
+    const quiz = await this.quizzRepository.findOne({
+      where: { quizzId },
+      relations: ['contents', 'questions', 'questions.answers'],
+    });
+
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+
+    if (quiz.questions.length < numberOfQuestions) {
+      throw new NotFoundException(
+        `Quiz only has ${quiz.questions.length} questions, cannot get ${numberOfQuestions} random questions`,
+      );
+    }
+
+    const shuffledQuestions = [...quiz.questions];
+    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledQuestions[i], shuffledQuestions[j]] = [
+        shuffledQuestions[j],
+        shuffledQuestions[i],
+      ];
+    }
+    const randomQuestions = shuffledQuestions.slice(0, numberOfQuestions);
+    const randomQuiz = { ...quiz, questions: randomQuestions };
+    return randomQuiz;
+  }
+
+  async deleteQuestion(quizzId: string, questionId: string) {
+    const quiz = await this.quizzRepository.findOne({
+      where: { quizzId },
+      relations: ['questions'],
+    });
+  
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+    }
+  
+    const question = await this.questionRepository.findOne({
+      where: { 
+        questionId,
+        quizz: { quizzId }
+      },
+      relations: ['answers'],
+    });
+  
+    if (!question) {
+      throw new NotFoundException(
+        `Question with ID ${questionId} not found in Quiz ${quizzId}`
+      );
+    }
+  
+    await this.answerRepository.delete({ question: { questionId } });
+  
+    await this.questionRepository.delete({ questionId });
+  
+    return { 
+      message: `Question with ID ${questionId} has been deleted from Quiz ${quizzId}` 
+    };
+  }
+}

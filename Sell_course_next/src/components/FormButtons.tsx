@@ -1,5 +1,5 @@
-import React from "react";
-import { FormButtonsProps } from "@/app/type/category/CategoryFormTypes";
+import React from 'react';
+import { FormButtonsProps } from '@/app/type/category/CategoryFormTypes';
 
 export const FormButtons: React.FC<FormButtonsProps> = ({
   loading,

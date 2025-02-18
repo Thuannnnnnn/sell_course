@@ -1,19 +1,19 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsString, IsUUID, ValidateNested } from 'class-validator';
 
-class AnswerSubmitDto {
+class AnsweSubmitDto {
   @IsString()
   questionId: string;
 
   @IsString()
-  answerId: string;
+  anwserId: string;
 }
 
-export class SubmitExamDto {
+export class SubmitQuizDto {
   @IsUUID()
-  examId: string;
+  quizzId: string;
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => AnswerSubmitDto)
-  answers: AnswerSubmitDto[];
+  @Type(() => AnsweSubmitDto)
+  answers: AnsweSubmitDto[];
 }
