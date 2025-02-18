@@ -1,20 +1,20 @@
-'use client'
-import React, { useState } from "react";
+'use client';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { Container, Card, Form, Button, Table } from "react-bootstrap";
-import { FaBagShopping, FaMoneyBills } from "react-icons/fa6";
-import { useSession } from "next-auth/react";
+import { Container, Card, Form, Button, Table } from 'react-bootstrap';
+import { FaBagShopping, FaMoneyBills } from 'react-icons/fa6';
+import { useSession } from 'next-auth/react';
 
 const ConfirmOrder = () => {
   const { data: session } = useSession();
   const [order, setOrder] = useState({
-    buyerName: "",
+    buyerName: '',
     products: [
-      { id: 1, name: "Loaded Pizza", price: 129900, imageUrl: "/images/loaded-pizza.jpg" },
-      { id: 2, name: "Not Quite Loaded Pizza", price: 109900, imageUrl: "/images/not-quite-loaded-pizza.jpg" },
+      { id: 1, name: 'Loaded Pizza', price: 129900, imageUrl: '/images/loaded-pizza.jpg' },
+      { id: 2, name: 'Not Quite Loaded Pizza', price: 109900, imageUrl: '/images/not-quite-loaded-pizza.jpg' },
     ],
-    paymentMethod: "",
-    note: "",
+    paymentMethod: '',
+    note: '',
   });
 
   const totalAmount = order.products.reduce((sum, product) => sum + product.price, 0);
@@ -25,7 +25,7 @@ const ConfirmOrder = () => {
   };
 
   const handleConfirm = () => {
-    alert("Đơn hàng đã được xác nhận!");
+    alert('Đơn hàng đã được xác nhận!');
   };
 
   return (
@@ -40,7 +40,7 @@ const ConfirmOrder = () => {
                 type="text"
                 placeholder="Nhập tên người mua"
                 name="buyerName"
-                value={session?.user.name || ""}
+                value={session?.user.name || ''}
                 onChange={handleChange}
                 className="shadow-sm"
                 disabled

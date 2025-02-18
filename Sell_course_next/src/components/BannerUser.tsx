@@ -1,14 +1,13 @@
-import React from "react";
-import Image from "next/image";
-import "../style/BannerUser.css";
-import defaultAvatar from "../../public/defait-img.png";
-import { GetUser } from "@/app/type/user/User";
+import React from 'react';
+import Image from 'next/image';
+import '../style/BannerUser.css';
+import defaultAvatar from '../../public/defait-img.png';
+import { GetUser } from '@/app/type/user/User';
 // Define the type for the user prop
 // interface User {
 //   avatarImg?: string; // Thống nhất tên trường với MyProfilePage.tsx
 //   username?: string;
 // }
-
 
 interface BannerUserProps {
   user: GetUser;
@@ -26,7 +25,7 @@ export default function BannerUser({ user }: BannerUserProps) {
           height={100}
         />
       </div>
-      <span className="name">{user?.username || "Unknown User"}</span>
+      <span className="name">{user?.username || 'Unknown User'}</span>
     </div>
   );
 }

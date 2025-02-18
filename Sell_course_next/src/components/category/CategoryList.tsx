@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import "../../style/Category.css";
-import { Category } from "@/app/type/category/Category";
-import { deleteCategory } from "@/app/api/category/CategoryAPI";
-import { Container } from "react-bootstrap";
-import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import React, { useState } from 'react';
+import '../../style/Category.css';
+import { Category } from '@/app/type/category/Category';
+import { deleteCategory } from '@/app/api/category/CategoryAPI';
+import { Container } from 'react-bootstrap';
+import { useTranslations } from 'next-intl';
+import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface CategoryListProps {
   categories: Category[];
@@ -13,7 +13,7 @@ interface CategoryListProps {
 }
 
 const CategoryList: React.FC<CategoryListProps> = ({ categories, setCategories }) => {
-  const t = useTranslations("categories");
+  const t = useTranslations('categories');
   const router = useRouter();
   const { data: session } = useSession();
   const params = useParams();
@@ -33,8 +33,8 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, setCategories }
       await deleteCategory(categoryId, session?.user.token);
       setCategories((prev) => prev.filter((category) => category.categoryId !== categoryId));
     } catch (error) {
-      console.error("Failed to delete category: ", error);
-      alert("Failed to delete category.");
+      console.error('Failed to delete category: ', error);
+      alert('Failed to delete category.');
     }
   };
 
@@ -51,7 +51,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, setCategories }
           <tr>
             <td>
               <button onClick={() => toggleExpand(category.categoryId)}>
-                {expandedCategories.includes(category.categoryId) ? "➖" : "➕"}
+                {expandedCategories.includes(category.categoryId) ? '➖' : '➕'}
               </button>
             </td>
             <td>{category.name}</td>
@@ -59,7 +59,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, setCategories }
             <td>
               <button
                 onClick={() => handleEdit(category.categoryId)}
-                style={{ marginRight: "10px" }}
+                style={{ marginRight: '10px' }}
                 className="edit-button"
               >
                 <svg
@@ -103,9 +103,9 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, setCategories }
         <thead>
           <tr>
             <th>#</th>
-            <th>{t("name")}</th>
-            <th>{t("description")}</th>
-            <th>{t("actions")}</th>
+            <th>{t('name')}</th>
+            <th>{t('description')}</th>
+            <th>{t('actions')}</th>
           </tr>
         </thead>
         <tbody>{renderCategories(null)}</tbody>

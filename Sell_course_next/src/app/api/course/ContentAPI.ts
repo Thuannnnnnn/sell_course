@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 export async function addContent(
   lessonId: string,
   contentName: string,
@@ -16,13 +16,13 @@ export async function addContent(
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
     return response.data;
   } catch (error) {
-    console.error("Error adding content:", error);
+    console.error('Error adding content:', error);
     return null;
   }
 }

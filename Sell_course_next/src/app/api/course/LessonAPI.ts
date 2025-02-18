@@ -1,5 +1,5 @@
-import axios from "axios";
-import { CourseData } from "@/app/type/course/Lesson";
+import axios from 'axios';
+import { CourseData } from '@/app/type/course/Lesson';
 
 export async function fetchLesson(
   courseId: string,
@@ -16,7 +16,7 @@ export async function fetchLesson(
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching lesson:", error);
+    console.error('Error fetching lesson:', error);
     return null;
   }
 }

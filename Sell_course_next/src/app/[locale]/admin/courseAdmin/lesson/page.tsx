@@ -1,5 +1,5 @@
-"use client";
-import { useState, useEffect } from "react";
+'use client';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Card,
@@ -7,27 +7,27 @@ import {
   Button,
   Modal,
   Form,
-} from "react-bootstrap";
-import { CourseData } from "@/app/type/course/Lesson";
-import { fetchLesson } from "@/app/api/course/LessonAPI";
-import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { addContent } from "@/app/api/course/ContentAPI";
-import { FaPlus } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+} from 'react-bootstrap';
+import { CourseData } from '@/app/type/course/Lesson';
+import { fetchLesson } from '@/app/api/course/LessonAPI';
+import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
+import { addContent } from '@/app/api/course/ContentAPI';
+import { FaPlus } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 const LessonPage = () => {
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [newContent, setNewContent] = useState({
-    contentName: "",
-    contentType: "video",
-    order: "",
+    contentName: '',
+    contentType: 'video',
+    order: '',
   });
   const router = useRouter();
   const { data: session } = useSession();
   const searchParams = useSearchParams();
-  const courseId = searchParams.get("courseId");
+  const courseId = searchParams.get('courseId');
   useEffect(() => {
     const fetchData = async () => {
       const token = session?.user.token;
@@ -49,14 +49,14 @@ const LessonPage = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedLessonId(null);
-    setNewContent({ contentName: "", contentType: "video", order: "" });
+    setNewContent({ contentName: '', contentType: 'video', order: '' });
   };
 
   const handleAddContent = async () => {
     if (!selectedLessonId || !session?.user.token) return;
 
     try {
-      console.log("ABCD");
+      console.log('ABCD');
       const response = await addContent(
         selectedLessonId,
         newContent.contentName,
@@ -65,14 +65,14 @@ const LessonPage = () => {
       );
 
       if (response) {
-        console.log("Content added successfully:", response);
+        console.log('Content added successfully:', response);
         const updatedData = await fetchLesson(courseId!, session.user.token);
         setCourseData(updatedData);
       } else {
-        console.error("Failed to add content.");
+        console.error('Failed to add content.');
       }
     } catch (error) {
-      console.error("Error adding content:", error);
+      console.error('Error adding content:', error);
     }
 
     handleCloseModal();
@@ -84,17 +84,17 @@ const LessonPage = () => {
     const { contentType, contentId } = content;
     console.log(contentType);
     switch (contentType) {
-      case "video":
-        router.push(`lesson/content/video?contentId=${contentId}`);
-        break;
-      case "document":
-        router.push(`content/document/${contentId}`);
-        break;
-      case "quiz":
-        router.push(`lesson/content/quizz?contentId=${contentId}`);
-        break;
-      default:
-        break;
+    case 'video':
+      router.push(`lesson/content/video?contentId=${contentId}`);
+      break;
+    case 'document':
+      router.push(`content/document/${contentId}`);
+      break;
+    case 'quiz':
+      router.push(`lesson/content/quizz?contentId=${contentId}`);
+      break;
+    default:
+      break;
     }
   };
   if (!courseData) return <p>Loading...</p>;
@@ -113,7 +113,7 @@ const LessonPage = () => {
                   key={content.contentId}
                   onClick={() => handleContentClick(content)}
                 >
-                  {content.order}. [{content.contentType.toUpperCase()}]{" "}
+                  {content.order}. [{content.contentType.toUpperCase()}]{' '}
                   {content.contentName}
                 </ListGroup.Item>
               ))}

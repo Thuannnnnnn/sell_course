@@ -1,5 +1,5 @@
-import axios from "axios";
-import { response, CartResponse } from "@/app/type/cart/cart";
+import axios from 'axios';
+import { response, CartResponse } from '@/app/type/cart/cart';
 export function addToCart(
   token: string,
   email: string,
@@ -38,7 +38,7 @@ export async function fetchCart(
     );
 
     if (!Array.isArray(response.data)) {
-      throw new Error("Invalid cart response format");
+      throw new Error('Invalid cart response format');
     }
 
     return response.data.map((item) => ({
@@ -51,7 +51,7 @@ export async function fetchCart(
       course_img: item.course_img,
     }));
   } catch {
-    throw new Error(`Failed to fetch cart`);
+    throw new Error('Failed to fetch cart');
   }
 }
 
@@ -79,7 +79,7 @@ export async function deleteCart(
   } catch {
     return {
       statusCode: 500,
-      message: "fail to load",
+      message: 'fail to load',
     };
   }
 }

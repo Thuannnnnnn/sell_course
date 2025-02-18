@@ -1,14 +1,14 @@
-"use client";
-import { RiHomeLine } from "react-icons/ri";
-import { useTranslations } from "next-intl";
-import "../style/BannerSignUp.css";
+'use client';
+import { RiHomeLine } from 'react-icons/ri';
+import { useTranslations } from 'next-intl';
+import '../style/BannerSignUp.css';
 
 interface BannerProps {
   titleKey: string; // Nhận key thay vì text trực tiếp
 }
 
 export default function Banner({ titleKey }: BannerProps) {
-  const t = useTranslations("forgotPasswordBanner"); // Đổi sang đúng namespace
+  const t = useTranslations('forgotPasswordBanner'); // Đổi sang đúng namespace
 
   return (
     <div className="banner">

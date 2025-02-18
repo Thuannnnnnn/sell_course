@@ -1,5 +1,5 @@
-import { ResponseQaDto } from "@/app/type/qa/Qa";
-import QAItem from "./QAItem";
+import { ResponseQaDto } from '@/app/type/qa/Qa';
+import QAItem from './QAItem';
 
 interface QAListProps {
   qaData: ResponseQaDto[];

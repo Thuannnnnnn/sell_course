@@ -1,17 +1,17 @@
-import React from 'react'
-import '../style/DashBoardUser.css'
-import { BsFillCartCheckFill } from "react-icons/bs";
-import { FaSignOutAlt } from 'react-icons/fa'
-import { BsMortarboardFill } from "react-icons/bs";
-import { FaUser } from "react-icons/fa";
-import { IoSettingsSharp } from 'react-icons/io5'
-import { MdDashboard } from 'react-icons/md'
-import { PiListStarFill } from "react-icons/pi";
-import { useLocale, useTranslations } from 'next-intl'
+import React from 'react';
+import '../style/DashBoardUser.css';
+import { BsFillCartCheckFill } from 'react-icons/bs';
+import { FaSignOutAlt } from 'react-icons/fa';
+import { BsMortarboardFill } from 'react-icons/bs';
+import { FaUser } from 'react-icons/fa';
+import { IoSettingsSharp } from 'react-icons/io5';
+import { MdDashboard } from 'react-icons/md';
+import { PiListStarFill } from 'react-icons/pi';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 export default function DashBoardUser() {
-  const t = useTranslations("dashboardUser")
+  const t = useTranslations('dashboardUser');
   const localActive = useLocale();
   return (
     <div className="sidebar">
@@ -72,5 +72,5 @@ export default function DashBoardUser() {
         </li>
       </ul>
     </div>
-  )
+  );
 }

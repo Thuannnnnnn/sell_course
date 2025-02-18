@@ -1,9 +1,9 @@
 // components/Cart/CartLayout.tsx
-import { Metadata } from "next";
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Shopping Cart",
-  description: "View items in your cart",
+  title: 'Shopping Cart',
+  description: 'View items in your cart',
 };
 
 export default function CartLayout({

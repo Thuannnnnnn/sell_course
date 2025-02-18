@@ -1,5 +1,5 @@
-import { ResponseQaDto } from "@/app/type/qa/Qa";
-import Image from "next/image";
+import { ResponseQaDto } from '@/app/type/qa/Qa';
+import Image from 'next/image';
 
 interface QAItemProps {
   qa: ResponseQaDto;
@@ -9,20 +9,20 @@ export default function QAItem({ qa }: QAItemProps) {
   return (
     <div
       className={`bg-white rounded-lg shadow-md p-6 ${
-        qa.parentId ? "ml-12 bg-gray-50" : ""
+        qa.parentId ? 'ml-12 bg-gray-50' : ''
       }`}
     >
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0">
           <Image
-            src={qa.avatarImg || "/default-avatar.png"}
+            src={qa.avatarImg || '/default-avatar.png'}
             alt={qa.username}
             width={40}
             height={40}
             className="rounded-full"
             onError={(e) => {
               const img = e.target as HTMLImageElement;
-              img.src = "/default-avatar.png";
+              img.src = '/default-avatar.png';
             }}
           />
         </div>

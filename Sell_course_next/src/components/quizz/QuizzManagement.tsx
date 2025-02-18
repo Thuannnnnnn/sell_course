@@ -14,9 +14,25 @@ import { useSearchParams } from "next/navigation";
 const QuizzesManagement = () => {
   const searchParams = useSearchParams();
   const contentId = searchParams.get("contentId");
-  const [quizzes, setQuizzes] = useState<
-    { quizzId: string; contentId: string; questions: any[] }[]
-  >([]);
+  interface Answer {
+    answerId: string;
+    answer: string;
+    isCorrect: boolean;
+  }
+
+  interface Question {
+    questionId: string;
+    question: string;
+    answers: Answer[];
+  }
+
+  interface Quiz {
+    quizzId: string;
+    contentId: string;
+    questions: Question[];
+  }
+
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -75,31 +91,24 @@ const QuizzesManagement = () => {
 
   const handleEditQuestion = async (
     quizzId: string | undefined,
-    question: any
+    question: Question
   ) => {
-    console.log("quizzId:", quizzId);
-    console.log("question:", question);
-
     if (!quizzId) {
-      console.error("Quiz ID is undefined");
       alert("Cannot edit question: Quiz ID is missing");
       return;
     }
 
     if (!question?.questionId) {
-      console.error("Question ID is missing");
       alert("Cannot edit question: Question ID is missing");
       return;
     }
 
     try {
       setLoading(true);
-      // Lấy thông tin chi tiết của quiz
       const quizData = await getQuizzById(quizzId);
 
-      // Tìm câu hỏi cụ thể trong quiz
       const targetQuestion = quizData.questions.find(
-        (q: any) => q.questionId === question.questionId
+        (q: Question) => q.questionId === question.questionId
       );
 
       if (!targetQuestion) {
@@ -110,7 +119,7 @@ const QuizzesManagement = () => {
         quizzId: quizzId,
         questionId: question.questionId,
         question: targetQuestion.question || "",
-        answers: targetQuestion.answers.map((a: any) => ({
+        answers: targetQuestion.answers.map((a: Answer) => ({
           anwserId: a.answerId,
           answer: a.answer || "",
           isCorrect: Boolean(a.isCorrect),
@@ -119,7 +128,6 @@ const QuizzesManagement = () => {
 
       setShowEditModal(true);
     } catch (error) {
-      console.error("Error fetching quiz details:", error);
       alert("Failed to load question details. Please try again.");
     } finally {
       setLoading(false);
@@ -127,11 +135,9 @@ const QuizzesManagement = () => {
   };
 
   const handleUpdateQuestion = async () => {
-    console.log("Editing question:", editingQuestion);
     if (!editingQuestion) return;
 
     if (!editingQuestion.quizzId || !editingQuestion.questionId) {
-      console.error("Missing required IDs for update", editingQuestion);
       alert("Missing required IDs for update");
       return;
     }
@@ -161,7 +167,6 @@ const QuizzesManagement = () => {
       setShowEditModal(false);
       setEditingQuestion(null);
     } catch (error) {
-      console.error("Error updating question:", error);
       alert(
         "Failed to update question. Please ensure all fields are filled correctly."
       );
@@ -195,7 +200,7 @@ const QuizzesManagement = () => {
         ],
       });
     } catch (error) {
-      console.error("Error creating quiz:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -211,7 +216,6 @@ const QuizzesManagement = () => {
 
         setQuizzes(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error("Error fetching quizzes:", error);
         setQuizzes([]);
       } finally {
         setLoading(false);
@@ -399,7 +403,6 @@ const QuizzesManagement = () => {
         ) : (
           quizzes.map((quiz) => {
             if (!quiz?.quizzId) {
-              console.error("Quiz is missing quizzId:", quiz);
               return null;
             }
             return (
@@ -409,7 +412,9 @@ const QuizzesManagement = () => {
                 </h2>
                 {quiz.questions.map((question, idx) => (
                   <QuizCard
-                    key={`${quiz.quizzId}-question-${question.questionId || idx}`}
+                    key={`${quiz.quizzId}-question-${
+                      question.questionId || idx
+                    }`}
                     title={`Câu hỏi ${idx + 1}`}
                     question={question}
                     onEdit={() => handleEditQuestion(quiz.quizzId, question)}
