@@ -1,5 +1,5 @@
-import axios from "axios";
-import { PaymentResponse } from "@/app/type/payment/payment";
+import axios from 'axios';
+import { PaymentResponse } from '@/app/type/payment/payment';
 export interface PaymentItem {
   name: string;
   quantity: number;
@@ -22,14 +22,14 @@ export async function payment(
       paymentData,
       {
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
 
     return response.data;
   } catch (error) {
-    console.error("Payment API error:", error);
+    console.error('Payment API error:', error);
     throw error;
   }
 }
@@ -47,7 +47,7 @@ export async function addCoursePurchased(
       },
       {
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       }
@@ -55,7 +55,7 @@ export async function addCoursePurchased(
 
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi thêm khóa học đã mua:", error);
+    console.error('Lỗi khi thêm khóa học đã mua:', error);
     throw error;
   }
 }

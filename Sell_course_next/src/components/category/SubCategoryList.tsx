@@ -1,7 +1,7 @@
-import React from "react";
-import { SubCategoryListProps } from "@/app/type/category/CategoryFormTypes";
-import { SubCategoryForm } from "./SubCategoryForm";
-import { useTranslations } from "next-intl";
+import React from 'react';
+import { SubCategoryListProps } from '@/app/type/category/CategoryFormTypes';
+import { SubCategoryForm } from './SubCategoryForm';
+import { useTranslations } from 'next-intl';
 
 export const SubCategoryList: React.FC<SubCategoryListProps> = ({
   subCategories,
@@ -10,11 +10,11 @@ export const SubCategoryList: React.FC<SubCategoryListProps> = ({
   onAdd,
   onRemove,
 }) => {
-  const t = useTranslations("categories");
+  const t = useTranslations('categories');
   return (
     <div className="sub-categories-section">
       <div className="sub-categories-header">
-        <h3 className="sub-categories-title">{t("subCategories")}</h3>
+        <h3 className="sub-categories-title">{t('subCategories')}</h3>
         <button type="button" onClick={onAdd} className="btn btn-add">
           <svg
             width="20"
@@ -30,7 +30,7 @@ export const SubCategoryList: React.FC<SubCategoryListProps> = ({
               strokeLinecap="round"
             />
           </svg>
-          {t("addSubCategory")}
+          {t('addSubCategory')}
         </button>
       </div>
 

@@ -56,7 +56,10 @@ export class authController {
   @Post('forgot-verify-email')
   async forgotVerifyEmail(@Body() body: { email: string; lang: string }) {
     if (!body.email) {
-      throw new HttpException('Bad Request: Email is required', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Bad Request: Email is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
     try {
       await this.authService.validateEmailForgot(body.email, body.lang);
@@ -65,7 +68,10 @@ export class authController {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
   @Post('reset-password')

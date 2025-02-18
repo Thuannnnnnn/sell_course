@@ -37,4 +37,3 @@ export interface GetUser {
   role: string;
 }
 
-

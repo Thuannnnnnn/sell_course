@@ -50,17 +50,19 @@ export class UserDTO {
   }
 }
 
-// export class UserDto {
-//   constructor(
-//     public user_id: string,
-//     public email: string,
-//     public username: string,
-//     public gender: string,
-//     public avatarImg: string,
-//     public birthDay: string,
-//     public phoneNumber: number,
-//     public role: string,
-//   ) {
-//     this.user_id = user_id;
-//   }
-// }
+/*
+ * export class UserDto {
+ *   constructor(
+ *     public user_id: string,
+ *     public email: string,
+ *     public username: string,
+ *     public gender: string,
+ *     public avatarImg: string,
+ *     public birthDay: string,
+ *     public phoneNumber: number,
+ *     public role: string,
+ *   ) {
+ *     this.user_id = user_id;
+ *   }
+ * }
+ */

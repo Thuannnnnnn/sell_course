@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { Category } from "@/app/type/category/Category";
-import { CategoryForm } from "./CategoryForm";
-import "@/style/Category.css";
-import { FormButtons } from "../FormButtons";
-import { useTranslations } from "next-intl";
-import { fetchCategories, updateCategory } from "@/app/api/category/CategoryAPI";
-import { useSession } from "next-auth/react";
+import { Category } from '@/app/type/category/Category';
+import { CategoryForm } from './CategoryForm';
+import '@/style/Category.css';
+import { FormButtons } from '../FormButtons';
+import { useTranslations } from 'next-intl';
+import { fetchCategories, updateCategory } from '@/app/api/category/CategoryAPI';
+import { useSession } from 'next-auth/react';
 
 interface UpdateCategoryPageProps {
   categoryId: string;
@@ -19,13 +19,13 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
   categoryId,
 }) => {
   const router = useRouter();
-  const t = useTranslations("categories");
+  const t = useTranslations('categories');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
+    name: '',
+    description: '',
   });
-  const [error, setError] = useState({ name: "", description: "" });
+  const [error, setError] = useState({ name: '', description: '' });
   const [category, setCategory] = useState<Category | null>(null);
   const [subCategories, setSubCategories] = useState<Category[]>([]);
   const [subCategoryErrors, setSubCategoryErrors] = useState<{
@@ -36,7 +36,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
     const loadCategory = async () => {
       try {
         if (!session?.user.token) {
-          return
+          return;
         }
         const categories = await fetchCategories(session?.user.token);
         const currentCategory = categories.find(
@@ -47,7 +47,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
           setCategory(currentCategory);
           setFormData({
             name: currentCategory.name,
-            description: currentCategory.description || "",
+            description: currentCategory.description || '',
           });
 
           if (!currentCategory.parentId) {
@@ -58,17 +58,17 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
             const initialSubErrors = subs.reduce(
               (acc, sub) => ({
                 ...acc,
-                [sub.categoryId]: { name: "", description: "" },
+                [sub.categoryId]: { name: '', description: '' },
               }),
               {}
             );
             setSubCategoryErrors(initialSubErrors);
           }
         } else {
-          console.error("Category not found");
+          console.error('Category not found');
         }
       } catch (error) {
-        console.error("Failed to load category:", error);
+        console.error('Failed to load category:', error);
       }
     };
 
@@ -79,29 +79,29 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { name: "", description: "" };
+    const newErrors = { name: '', description: '' };
     const newSubErrors = { ...subCategoryErrors };
 
     if (formData.name.trim().length < 3) {
-      newErrors.name = "Tên danh mục phải có ít nhất 3 ký tự.";
+      newErrors.name = 'Tên danh mục phải có ít nhất 3 ký tự.';
       isValid = false;
     }
     if (formData.description.trim().length < 5) {
-      newErrors.description = "Mô tả phải có ít nhất 5 ký tự.";
+      newErrors.description = 'Mô tả phải có ít nhất 5 ký tự.';
       isValid = false;
     }
 
     subCategories.forEach((subCat) => {
-      newSubErrors[subCat.categoryId] = { name: "", description: "" };
+      newSubErrors[subCat.categoryId] = { name: '', description: '' };
 
       if (subCat.name.trim().length < 3) {
         newSubErrors[subCat.categoryId].name =
-          "Tên danh mục phải có ít nhất 3 ký tự.";
+          'Tên danh mục phải có ít nhất 3 ký tự.';
         isValid = false;
       }
       if (subCat.description.trim().length < 5) {
         newSubErrors[subCat.categoryId].description =
-          "Mô tả phải có ít nhất 5 ký tự.";
+          'Mô tả phải có ít nhất 5 ký tự.';
         isValid = false;
       }
     });
@@ -111,7 +111,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
     return isValid;
   };
 
-  const handleFormChange = (field: "name" | "description", value: string) => {
+  const handleFormChange = (field: 'name' | 'description', value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -120,7 +120,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
 
   const handleSubCategoryChange = (
     categoryId: string,
-    field: "name" | "description",
+    field: 'name' | 'description',
     value: string
   ) => {
     setSubCategories((prev) =>
@@ -137,7 +137,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
     setLoading(true);
     try {
       if (!session?.user.token) {
-        return
+        return;
       }
       await updateCategory(
         {
@@ -162,10 +162,10 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
         );
       }
 
-      alert("Cập nhật danh mục thành công!");
+      alert('Cập nhật danh mục thành công!');
       router.back();
     } catch {
-      alert(`Lỗi khi cập nhật danh mục`);
+      alert('Lỗi khi cập nhật danh mục');
     }
     setLoading(false);
   };
@@ -177,7 +177,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
   if (category.parentId) {
     return (
       <div className="update-category-container">
-        <h1 className="update-category-title">{t("updateSubCategory")}</h1>
+        <h1 className="update-category-title">{t('updateSubCategory')}</h1>
         <form onSubmit={handleSubmit}>
           <CategoryForm
             name={formData.name}
@@ -188,9 +188,9 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
           <FormButtons
             onCancel={() => router.back()}
             loading={loading}
-            submitText={t("updateCategory")}
-            cancelText={t("categoryCancel")}
-            loadingText={t("updating")}
+            submitText={t('updateCategory')}
+            cancelText={t('categoryCancel')}
+            loadingText={t('updating')}
           />
         </form>
       </div>
@@ -199,7 +199,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
 
   return (
     <div className="update-category-container">
-      <h1 className="update-category-title">{t("updateCategory")}</h1>
+      <h1 className="update-category-title">{t('updateCategory')}</h1>
 
       <form onSubmit={handleSubmit}>
         <CategoryForm
@@ -211,7 +211,7 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
 
         {subCategories.length > 0 && (
           <div className="sub-categories-section">
-            <h2>{t("subCategories")}</h2>
+            <h2>{t('subCategories')}</h2>
             {subCategories.map((subCat) => (
               <div key={subCat.categoryId} className="sub-category-form">
                 <CategoryForm
@@ -230,9 +230,9 @@ const UpdateCategoryPage: React.FC<UpdateCategoryPageProps> = ({
         <FormButtons
           onCancel={() => router.back()}
           loading={loading}
-          submitText={t("updateCategory")}
-          cancelText={t("categoryCancel")}
-          loadingText={t("updating")}
+          submitText={t('updateCategory')}
+          cancelText={t('categoryCancel')}
+          loadingText={t('updating')}
         />
       </form>
     </div>

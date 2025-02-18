@@ -1,9 +1,9 @@
 
-import { Metadata } from "next";
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Payment fail",
-  description: "Payment fail",
+  title: 'Payment fail',
+  description: 'Payment fail',
 };
 
 export default function CartLayout({

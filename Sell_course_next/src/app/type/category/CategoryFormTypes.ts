@@ -17,7 +17,7 @@ export interface CategoryFormProps {
   name: string;
   description: string;
   error: CategoryFormErrors;
-  onChange: (field: "name" | "description", value: string) => void;
+  onChange: (field: 'name' | 'description', value: string) => void;
 }
 
 export interface SubCategoryFormProps {

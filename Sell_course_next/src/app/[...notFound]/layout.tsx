@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react';
 
 export const metadata = {
-  title: "My App",
-  description: "This is the main layout of my app",
+  title: 'My App',
+  description: 'This is the main layout of my app',
 };
 
 export default async function RootLayout({

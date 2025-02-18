@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 
 export const fetchPermissions = async (token: string) => {
   const response = await axios.get(

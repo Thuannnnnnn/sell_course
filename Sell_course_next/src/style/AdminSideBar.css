@@ -16,7 +16,7 @@
 }
 
 .sidebar-container.open .sidebar {
-  width: 250px;
+  width: max-content;
 }
 
 .toggle-btn {
@@ -32,7 +32,7 @@
 
 .sidebar {
   margin: 20px;
-  height: 700px;
+  height: max-content;
   padding: 20px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
 }
