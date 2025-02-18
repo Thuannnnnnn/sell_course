@@ -205,6 +205,7 @@ const DocsPage = () => {
           <div className="mb-3">
             <label className="form-label">{t("document_name")}</label>
             <input
+              title="text"
               type="text"
               className={`form-control ${errors.title ? "is-invalid" : ""}`}
               value={formData.title}
@@ -226,6 +227,7 @@ const DocsPage = () => {
             </label>
 
             <input
+              title="file"
               type="file"
               className={`form-control ${errors.file ? "is-invalid" : ""}`}
               onChange={handleFileChange}
@@ -256,7 +258,7 @@ const DocsPage = () => {
 
           {formData.file &&
             formData.file.type ===
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
               <div className="mb-3">
                 <p>
                   <strong>{t("file_name")}:</strong> {formData.file.name}

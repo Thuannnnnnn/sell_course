@@ -1,5 +1,5 @@
-import { UserGetAllCoursePurchase } from "@/app/type/user/User";
-import axios from "axios";
+import { UserGetAllCoursePurchase } from '@/app/type/user/User';
+import axios from 'axios';
 
 export const changePassword = async (
   token: string,
@@ -14,13 +14,13 @@ export const changePassword = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
     return response.data;
   } catch {
-    throw "Failed to change password.";
+    throw 'Failed to change password.';
   }
 };
 
@@ -32,14 +32,14 @@ export const updateUserProfile = async (formData: FormData, token: string) => {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       }
     );
     const user = response.data;
     return user;
   } catch {
-    throw "Error updating profile.";
+    throw 'Error updating profile.';
   }
 };
 
@@ -56,8 +56,8 @@ export const fetchUserDetails = async (token: string, email: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching user details:", error);
-    throw new Error("Failed to load user details. Please try again later.");
+    console.error('Error fetching user details:', error);
+    throw new Error('Failed to load user details. Please try again later.');
   }
 };
 
@@ -68,17 +68,17 @@ export const getUserId = async (token: string) => {
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
     const UserData = response.data.data;
-    console.log("Data Backend:", UserData);
+    console.log('Data Backend:', UserData);
     const UserId = UserData.user_id;
     console.log(UserId);
     return UserId;
   } catch (error) {
-    console.error("Error fetching user ID:", error);
+    console.error('Error fetching user ID:', error);
   }
 };
 
@@ -92,7 +92,7 @@ export const fetchCoursePurchased = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );

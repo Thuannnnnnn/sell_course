@@ -32,7 +32,7 @@ const LessonPage = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const searchParams = useSearchParams();
-  const courseId = searchParams.get("courseId");
+  const courseId = searchParams.get('courseId');
   useEffect(() => {
     const fetchData = async () => {
       const token = session?.user.token;
@@ -70,14 +70,14 @@ const LessonPage = () => {
       );
 
       if (response) {
-        console.log("Content added successfully:", response);
+        console.log('Content added successfully:', response);
         const updatedData = await fetchLesson(courseId!, session.user.token);
         setCourseData(updatedData);
       } else {
-        console.error("Failed to add content.");
+        console.error('Failed to add content.');
       }
     } catch (error) {
-      console.error("Error adding content:", error);
+      console.error('Error adding content:', error);
     }
 
     handleCloseModal();

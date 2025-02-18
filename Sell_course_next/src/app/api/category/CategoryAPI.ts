@@ -1,5 +1,5 @@
-import { Category } from "@/app/type/category/Category";
-import axios from "axios";
+import { Category } from '@/app/type/category/Category';
+import axios from 'axios';
 export const fetchCategories = async (token: string): Promise<Category[]> => {
   try {
     const response = await axios.get<Category[]>(
@@ -10,16 +10,16 @@ export const fetchCategories = async (token: string): Promise<Category[]> => {
         },
       }
     );
-    console.log("data:" + JSON.stringify(response.data, null, 2));
+    console.log('data:' + JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error(
-        "Axios error fetching categories:",
+        'Axios error fetching categories:',
         error.response?.data || error.message
       );
     } else {
-      console.error("Unexpected error fetching categories:", error);
+      console.error('Unexpected error fetching categories:', error);
     }
     throw error;
   }
@@ -42,11 +42,11 @@ export const deleteCategory = async (
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error(
-        "Axios error fetching categories:",
+        'Axios error fetching categories:',
         error.response?.data || error.message
       );
     } else {
-      console.error("Unexpected error fetching categories:", error);
+      console.error('Unexpected error fetching categories:', error);
     }
     throw error;
   }
