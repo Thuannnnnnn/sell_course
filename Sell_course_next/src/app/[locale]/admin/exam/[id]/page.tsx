@@ -1,7 +1,7 @@
 "use client";
 import styles from '../../../../../style/ExamAdmin.module.css';
 import { CreateExamDto, getExamByCourseId, getExamQuetion, updateExamQuestion, createExamQuestion, deleteExamQuestion } from "@/app/api/exam/exam";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
@@ -25,7 +25,7 @@ interface Exam {
 }
 
 interface UpdateQuizzDto {
-  quizzId: string;
+  // examId: string;
     questionId: string;
     question: string;
     answers: {
@@ -41,12 +41,12 @@ const ExamManagementPage = () => {
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [editingQuestion, setEditingQuestion] = useState<{
-    examId: string;
+    // examId: string;
     questionId: string;
     question: string;
     answers: { answerId: string; answer: string; isCorrect: boolean }[];
   } | null>(null);
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
 
   const [newExamData, setNewExamData] = useState<CreateExamDto>({
     courseId: id || "",
@@ -56,8 +56,6 @@ const ExamManagementPage = () => {
     }],
   });
 
-  console.log("Token ", session?.user.token);
-  
   // Fetch exams by courseId
   const fetchExams = async () => {
     if (!id) {
@@ -103,55 +101,62 @@ const ExamManagementPage = () => {
   };
 
   // Handle editing a question
-  const handleEditQuestion = async (examId: string | undefined, question: Question) => {
-    if (!examId) {
-      alert("Cannot edit question: Quiz ID is missing");
-      return;
+const handleEditQuestion = async (questionId: string | undefined, question: Question) => {
+  if (!questionId) {
+    alert("Cannot edit question: Quiz ID is missing");
+    return;
+  }
+  if (!question?.questionId) {
+    alert("Cannot edit question: Question ID is missing");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const examData = await getExamQuetion(question.questionId);
+    console.log("Exam data received:", examData);
+
+    // Validate examData structure
+    if (!examData || !examData.questionId || !Array.isArray(examData.answers)) {
+      console.error("Invalid examData format:", examData);
+      throw new Error("Questions data is not available or is in the wrong format");
     }
-    if (!question?.questionId) {
-      alert("Cannot edit question: Question ID is missing");
-      return;
-    }
-    try {
-      setLoading(true);
-      const examData = await getExamQuetion(question.questionId);
-      console.log("Exam Data:", examData); // Check the format of the data
-      // Check if questions is an array and exists
-      if (!examData || !Array.isArray(examData.questions)) {
-        throw new Error("Questions data is not available or is in the wrong format");
-      }
-      const targetQuestion = examData.questions.find(
-        (q: Question) => q.questionId === question.questionId
-      );
-      if (!targetQuestion) {
-        throw new Error("Question not found in quiz");
-      }
-      setEditingQuestion({
-        examId: examId,
-        questionId: question.questionId,
-        question: targetQuestion.question || "",
-        answers: targetQuestion.answers.map((a: Answer) => ({
-          answerId: a.answerId,
-          answer: a.answer || "",
-          isCorrect: Boolean(a.isCorrect),
-        })),
-      });
-      setShowEditModal(true);
-    } catch (error) {
-      console.error("Error editing question:", error);
-      alert("An error occurred while editing the question.");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+
+    // Prepare the data for updating
+    const updateData: UpdateQuizzDto = {
+      questionId: examData.questionId,
+      question: examData.question || "",
+      answers: examData.answers.map((a: Answer) => ({
+        answerId: a.answerId,
+        answer: a.answer || "",
+        isCorrect: Boolean(a.isCorrect),
+      })),
+    };
+
+    // Send update request
+    await updateExamQuestion(updateData);
+
+    // Update state with new data
+    setEditingQuestion(updateData);
+    setShowEditModal(true);
+  } catch (error) {
+    console.error("Error editing question:", error);
+    alert("An error occurred while editing the question.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
   const handleDeleteQuestion = async (questionId: string) => {
     if (confirm("Are you sure you want to delete this question?")) {
       try {
         setLoading(true);
         await deleteExamQuestion(questionId);  // Call delete API
         fetchExams();  // Refresh the list
-      } catch (error) {
+      } catch {
         alert("Failed to delete question.");
       } finally {
         setLoading(false);
@@ -175,7 +180,7 @@ const ExamManagementPage = () => {
       fetchExams(); // Refresh the exams list
       setShowEditModal(false);
       setEditingQuestion(null);
-    } catch (error) {
+    } catch  {
       alert("Failed to update question. Please ensure all fields are filled correctly.");
     } finally {
       setLoading(false);
