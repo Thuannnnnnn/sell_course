@@ -23,7 +23,6 @@ import { Qa } from './modules/qa/entities/qa.entity';
 import { QuestionsExam } from './modules/questions_exam/entities/questions_exam.entity';
 import { Quizz } from './modules/quizz/entities/quizz.entity';
 import { Reply } from './modules/reply/entities/reply.entity';
-import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
 import { Video } from './modules/video/entities/video.entity';
 import { Waitlist } from './modules/waitlist/entities/waitlist.entity';
 import { Wishlist } from './modules/wishlist/entities/wishlist.entity';
@@ -45,7 +44,6 @@ import { QaModule } from './modules/qa/qa.module';
 import { QuestionsExamModule } from './modules/questions_exam/questions_exam.module';
 import { QuizzModule } from './modules/quizz/quizz.module';
 import { ReplyModule } from './modules/reply/reply.module';
-import { ResultExamModule } from './modules/result_exam/result_exam.module';
 import { VideoModule } from './modules/video/video.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
@@ -61,8 +59,14 @@ import { PermissionMiddleware } from './modules/permission/permission.middleware
 import { Order } from './modules/order/entities/order.entity';
 import { ExamQuestion } from './modules/exam/entities/examQuestion.entity';
 import { Answer } from './modules/exam/entities/answerExam.entity';
-// import { APP_GUARD } from '@nestjs/core';
-// import { PermissionsGuard } from './modules/permission/permissions.guard';
+import { Questionentity } from './modules/quizz/entities/question.entity';
+import { AnswerEntity } from './modules/quizz/entities/answer.entity';
+import { QuizzStore } from './modules/quizz_store/entities/quizz_store.entity';
+import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
+/*
+ * import { APP_GUARD } from '@nestjs/core';
+ * import { PermissionsGuard } from './modules/permission/permissions.guard';
+ */
 
 @Module({
   imports: [
@@ -78,9 +82,11 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      // ssl: {
-      //   rejectUnauthorized: false,
-      // },
+      /*
+       * ssl: {
+       *   rejectUnauthorized: false,
+       * },
+       */
       entities: [
         Notify,
         UserNotify,
@@ -102,8 +108,10 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
         Qa,
         QuestionsExam,
         Quizz,
+        Questionentity,
+        AnswerEntity,
+        QuizzStore,
         Reply,
-        ResultExam,
         Video,
         Waitlist,
         Wishlist,
@@ -134,9 +142,9 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
     OrderHistoriesModule,
     QaModule,
     QuestionsExamModule,
+    QuizzStoreModule,
     QuizzModule,
     ReplyModule,
-    ResultExamModule,
     VideoModule,
     WaitlistModule,
     WishlistModule,
@@ -149,7 +157,7 @@ import { Answer } from './modules/exam/entities/answerExam.entity';
   providers: [AppService],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/adad/*');
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(PermissionMiddleware).forRoutes('/api/a/*');
   }
 }

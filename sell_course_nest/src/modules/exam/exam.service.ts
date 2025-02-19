@@ -89,56 +89,76 @@ export class ExamQuestionService {
     return exam;
   }
 
-  // async updateExam(examId: string, dto: UpdateExamDto) {
-  //   const exam = await this.examRepository.findOne({
-  //     where: { examId },
-  //     relations: ['questions', 'questions.answers'],
-  //   });
+  /*
+   * async updateExam(examId: string, dto: UpdateExamDto) {
+   *   const exam = await this.examRepository.findOne({
+   *     where: { examId },
+   *     relations: ['questions', 'questions.answers'],
+   *   });
+   */
 
-  //   if (!exam) {
-  //     throw new NotFoundException(`Exam with id ${examId} not found`);
-  //   }
+  /*
+   *   if (!exam) {
+   *     throw new NotFoundException(`Exam with id ${examId} not found`);
+   *   }
+   */
 
-  //   for (const questionDto of dto.questions) {
-  //     let existingQuestion = exam.questions.find(
-  //       (q) => q.questionId === questionDto.questionId,
-  //     );
+  /*
+   *   for (const questionDto of dto.questions) {
+   *     let existingQuestion = exam.questions.find(
+   *       (q) => q.questionId === questionDto.questionId,
+   *     );
+   */
 
-  //     if (!existingQuestion) {
-  //       existingQuestion = new ExamQuestion();
-  //       existingQuestion.questionId = uuidv4();
-  //       existingQuestion.exam = exam;
-  //       exam.questions.push(existingQuestion);
-  //     }
+  /*
+   *     if (!existingQuestion) {
+   *       existingQuestion = new ExamQuestion();
+   *       existingQuestion.questionId = uuidv4();
+   *       existingQuestion.exam = exam;
+   *       exam.questions.push(existingQuestion);
+   *     }
+   */
 
-  //     existingQuestion.question = questionDto.question.trim();
-  //     await this.questionRepository.save(existingQuestion);
+  /*
+   *     existingQuestion.question = questionDto.question.trim();
+   *     await this.questionRepository.save(existingQuestion);
+   */
 
-  //     // Lấy danh sách câu trả lời từ database để đảm bảo dữ liệu đồng bộ
-  //     existingQuestion.answers = await this.answerRepository.find({
-  //       where: { question: existingQuestion },
-  //     });
+  /*
+   *     // Lấy danh sách câu trả lời từ database để đảm bảo dữ liệu đồng bộ
+   *     existingQuestion.answers = await this.answerRepository.find({
+   *       where: { question: existingQuestion },
+   *     });
+   */
 
-  //     for (const answerDto of questionDto.answers) {
-  //       let existingAnswer = existingQuestion.answers.find(
-  //         (a) => a.answerId === answerDto.answerId,
-  //       );
+  /*
+   *     for (const answerDto of questionDto.answers) {
+   *       let existingAnswer = existingQuestion.answers.find(
+   *         (a) => a.answerId === answerDto.answerId,
+   *       );
+   */
 
-  //       if (!existingAnswer) {
-  //         existingAnswer = new Answer();
-  //         existingAnswer.answerId = uuidv4();
-  //         existingAnswer.question = existingQuestion;
-  //         existingQuestion.answers.push(existingAnswer);
-  //       }
+  /*
+   *       if (!existingAnswer) {
+   *         existingAnswer = new Answer();
+   *         existingAnswer.answerId = uuidv4();
+   *         existingAnswer.question = existingQuestion;
+   *         existingQuestion.answers.push(existingAnswer);
+   *       }
+   */
 
-  //       existingAnswer.answer = answerDto.answer.trim();
-  //       existingAnswer.isCorrect = answerDto.isCorrect;
-  //       await this.answerRepository.save(existingAnswer);
-  //     }
-  //   }
+  /*
+   *       existingAnswer.answer = answerDto.answer.trim();
+   *       existingAnswer.isCorrect = answerDto.isCorrect;
+   *       await this.answerRepository.save(existingAnswer);
+   *     }
+   *   }
+   */
 
-  //   return this.getExamById(examId);
-  // }
+  /*
+   *   return this.getExamById(examId);
+   * }
+   */
 
   async deleteExam(examId: string) {
     const exam = await this.examRepository.findOne({

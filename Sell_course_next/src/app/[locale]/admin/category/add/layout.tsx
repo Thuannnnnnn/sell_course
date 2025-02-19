@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 export const metadata: Metadata = {
-  title: "Add Category",
-  description: "Admin Category",
+  title: 'Add Category',
+  description: 'Admin Category',
 };
 
 export default function RootLayout({

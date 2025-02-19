@@ -1,5 +1,5 @@
-import axios from "axios";
-import { Course } from "@/app/type/course/Course";
+import axios from 'axios';
+import { Course } from '@/app/type/course/Course';
 
 const getAuthHeaders = (token: string) => ({
   headers: {
@@ -18,7 +18,7 @@ export const fetchCourses = async (): Promise<Course[]> => {
       createdAt: new Date(course.createdAt).toISOString(),
     }));
   } catch (error) {
-    handleAxiosError(error, "fetching courses");
+    handleAxiosError(error, 'fetching courses');
     throw error;
   }
 };
@@ -38,7 +38,7 @@ export const fetchCoursesAdmin = async (token: string): Promise<Course[]> => {
       createdAt: new Date(course.createdAt).toISOString(),
     }));
   } catch (error) {
-    handleAxiosError(error, "fetching courses");
+    handleAxiosError(error, 'fetching courses');
     throw error;
   }
 };
@@ -96,8 +96,8 @@ export const createCourse = async (
       }
     });
 
-    if (files.videoInfo) formData.append("videoInfo", files.videoInfo);
-    if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
+    if (files.videoInfo) formData.append('videoInfo', files.videoInfo);
+    if (files.imageInfo) formData.append('imageInfo', files.imageInfo);
 
     const response = await axios.post<Course>(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/courses/create_course`,
@@ -106,14 +106,14 @@ export const createCourse = async (
         ...getAuthHeaders(token),
         headers: {
           ...getAuthHeaders(token).headers,
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       }
     );
 
     return response.data;
   } catch (error) {
-    handleAxiosError(error, "creating course");
+    handleAxiosError(error, 'creating course');
     throw error;
   }
 };
@@ -132,8 +132,8 @@ export const updateCourse = async (
       }
     });
 
-    if (files.videoInfo) formData.append("videoInfo", files.videoInfo);
-    if (files.imageInfo) formData.append("imageInfo", files.imageInfo);
+    if (files.videoInfo) formData.append('videoInfo', files.videoInfo);
+    if (files.imageInfo) formData.append('imageInfo', files.imageInfo);
 
     const response = await axios.put<Course>(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/courses/update_course/${courseId}`,
@@ -142,7 +142,7 @@ export const updateCourse = async (
         ...getAuthHeaders(token),
         headers: {
           ...getAuthHeaders(token).headers,
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       }
     );

@@ -13,7 +13,11 @@ export class ContentService {
     private readonly lessonRepository: Repository<Lesson>,
   ) {}
 
-  async createContent(lessonId: string, contentType: string): Promise<boolean> {
+  async createContent(
+    lessonId: string,
+    contentName: string,
+    contentType: string,
+  ): Promise<boolean> {
     try {
       const lesson = await this.lessonRepository.findOne({
         where: { lessonId },
@@ -22,14 +26,14 @@ export class ContentService {
       if (!lesson) {
         throw new HttpException('Lesson not found', HttpStatus.NOT_FOUND);
       }
-
-      // Lấy số lượng nội dung hiện có để xác định thứ tự mới
       const contentCount = await this.contentRepository.count({
-        where: { lesson },
+        where: { lesson: { lessonId } },
       });
 
+      console.log(contentCount);
       const content = this.contentRepository.create({
         lesson,
+        contentName,
         contentType,
         order: contentCount + 1,
       });

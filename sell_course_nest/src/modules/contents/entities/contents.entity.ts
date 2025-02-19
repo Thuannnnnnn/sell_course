@@ -16,6 +16,9 @@ export class Contents {
   @ManyToOne(() => Lesson, (lesson) => lesson.contents, { onDelete: 'CASCADE' })
   lesson: Lesson;
 
+  @Column({ name: 'content_name', type: 'varchar', length: 255 })
+  contentName: string;
+
   @Column({ name: 'content_type', type: 'varchar' })
   contentType: string;
 

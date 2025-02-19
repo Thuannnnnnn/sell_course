@@ -1,7 +1,6 @@
-import { ResponseQaDto } from "@/app/type/qa/Qa";
+import { ResponseQaDto } from '@/app/type/qa/Qa';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 
 export async function getAllQa(courseId: string): Promise<ResponseQaDto[]> {
   try {
@@ -13,11 +12,10 @@ export async function getAllQa(courseId: string): Promise<ResponseQaDto[]> {
 
     return await response.json();
   } catch (error) {
-    console.error("Error fetching QA data:", error);
+    console.error('Error fetching QA data:', error);
     throw error;
   }
 }
-
 
 export async function createQa(
   userEmail: string,
@@ -27,9 +25,9 @@ export async function createQa(
 ): Promise<ResponseQaDto> {
   try {
     const response = await fetch(`${BACKEND_URL}/api/qa`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userEmail,
@@ -45,23 +43,22 @@ export async function createQa(
 
     return await response.json();
   } catch (error) {
-    console.error("Error creating QA:", error);
+    console.error('Error creating QA:', error);
     throw error;
   }
 }
 
-
 export async function deleteQa(qaId: string): Promise<void> {
   try {
     const response = await fetch(`${BACKEND_URL}/api/qa/${qaId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
 
     if (!response.ok) {
       throw new Error(`Failed to delete QA: ${response.status}`);
     }
   } catch (error) {
-    console.error("Error deleting QA:", error);
+    console.error('Error deleting QA:', error);
     throw error;
   }
 }

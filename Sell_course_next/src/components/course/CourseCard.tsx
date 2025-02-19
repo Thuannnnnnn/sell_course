@@ -1,10 +1,10 @@
-import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
-import { Course } from "@/app/type/course/Course";
-import "@/style/CourseCard.css";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
-import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import { CoursePurchaseAPI } from '@/app/api/coursePurchased/coursePurchased';
+import { Course } from '@/app/type/course/Course';
+import '@/style/CourseCard.css';
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
+import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
 interface CourseCardProps {
   course: Course;
 }
@@ -13,7 +13,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
   const params = useParams();
   const { data: session } = useSession();
-  const email = session?.user.email || "";
+  const email = session?.user.email || '';
   const handleClick = async () => {
     let data;
     if (email) {
@@ -35,7 +35,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     <div className="card" onClick={handleClick}>
       <div className="header">
         <Image
-          src={course.userAvata || ""}
+          src={course.userAvata || ''}
           alt="Avatar"
           width={30}
           height={30}

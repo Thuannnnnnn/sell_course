@@ -1,3 +1,14 @@
+:root {
+  --background: #f4f4f4;
+  --primary: #007bff;
+  --primary-foreground: #ffffff;
+  --primary-hover: #0056b3;
+  --secondary: #6c757d;
+  --secondary-foreground: #ffffff;
+  --card: #ffffff;
+  --foreground: #333333;
+}
+
 html, body {
     height: 100%;
     display: flex;

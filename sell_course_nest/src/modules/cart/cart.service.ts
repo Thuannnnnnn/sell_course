@@ -25,10 +25,14 @@ export class CartService {
     const user = await this.userRepository.findOne({
       where: { email: email },
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     const course = await this.courseRepository.findOne({ where: { courseId } });
-    if (!course) throw new NotFoundException('Course not found');
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
 
     const cartId = uuidv4();
     const cartItem = this.cartRepository.create({ cartId, user, course });

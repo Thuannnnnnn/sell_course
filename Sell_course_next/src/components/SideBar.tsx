@@ -1,4 +1,4 @@
-"use client";  // Đảm bảo rằng component này chạy trên client
+'use client'; // Đảm bảo rằng component này chạy trên client
 
 import { useEffect, useState } from "react";
 import "../style/AdminSideBar.css";
@@ -18,7 +18,7 @@ import { SiWebauthn } from "react-icons/si";
 import { usePathname } from "next/navigation";
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const t = useTranslations("dashBoard");
+  const t = useTranslations('dashBoard');
   const locate = useLocale();
   const pathname = usePathname();
   const toggleSidebar = () => {
@@ -32,17 +32,17 @@ const Sidebar = () => {
         setIsOpen(true);
       }
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     handleResize();
-    return () => window.removeEventListener("resize", handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   const isActive = (path: string) => {
-    return pathname === path ? "active" : "";
+    return pathname === path ? 'active' : '';
   };
   return (
-    <div className={`sidebar-container ${isOpen ? "open" : "closed"}`}>
+    <div className={`sidebar-container ${isOpen ? 'open' : 'closed'}`}>
       <button className="toggle-btn" onClick={toggleSidebar}>
-        {isOpen ? "☰" : "→"}
+        {isOpen ? '☰' : '→'}
       </button>
       <div className="sidebar">
         <ul>
