@@ -63,6 +63,8 @@ import { Questionentity } from './modules/quizz/entities/question.entity';
 import { AnswerEntity } from './modules/quizz/entities/answer.entity';
 import { QuizzStore } from './modules/quizz_store/entities/quizz_store.entity';
 import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
+import { ResultExamModule } from './modules/result_exam/result_exam.module';
+import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -118,6 +120,7 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
         Category,
         Permission,
         Order,
+        ResultExam,
       ],
       synchronize: true,
     }),
@@ -152,6 +155,7 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
     PermissionModule,
     OrderModule,
     PaymentModule,
+    ResultExamModule,
   ],
   controllers: [AppController],
   providers: [AppService],
