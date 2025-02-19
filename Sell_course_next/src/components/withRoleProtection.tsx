@@ -1,6 +1,6 @@
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import React, { ReactNode, useEffect } from "react";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import React, { ReactNode, useEffect } from 'react';
 
 interface WithRoleProtectionProps {
   children: ReactNode;
@@ -15,13 +15,13 @@ const WithRoleProtection: React.FC<WithRoleProtectionProps> = ({
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === 'loading') return;
     if (!session || session.user?.role !== allowedRole) {
-      router.push("/auth/login");
+      router.push('/auth/login');
     }
   }, [status, session, router, allowedRole]);
 
-  if (status === "loading" || !session || session.user?.role !== allowedRole) {
+  if (status === 'loading' || !session || session.user?.role !== allowedRole) {
     return <div>Loading...</div>;
   }
 

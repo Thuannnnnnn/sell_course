@@ -1,38 +1,38 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { SessionProvider } from "next-auth/react";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
-import BottomBar from "../../components/Bottombar";
-import { ThemeProvider } from "../../contexts/ThemeContext";
-import { Inter } from "@next/font/google";
+import type { Metadata } from 'next';
+import localFont from 'next/font/local';
+import './globals.css';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { SessionProvider } from 'next-auth/react';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
+import BottomBar from '../../components/Bottombar';
+import { ThemeProvider } from '../../contexts/ThemeContext';
+import { Inter } from '@next/font/google';
 
 const geistSans = localFont({
-  src: "../fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+  src: '../fonts/GeistVF.woff',
+  variable: '--font-geist-sans',
+  weight: '100 900',
 });
 const geistMono = localFont({
-  src: "../fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+  src: '../fonts/GeistMonoVF.woff',
+  variable: '--font-geist-mono',
+  weight: '100 900',
 });
 const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
-  display: "swap",
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Home Page",
-  description: "Home Page of sell course",
+  title: 'Home Page',
+  description: 'Home Page of sell course',
 };
 
 export default async function RootLayout({
@@ -43,7 +43,7 @@ export default async function RootLayout({
   params: { locale: string };
 }>) {
   // Ensure that the incoming `locale` is valid
-  if (!routing.locales.includes(params.locale as "en" | "vn")) {
+  if (!routing.locales.includes(params.locale as 'en' | 'vn')) {
     notFound();
   }
 

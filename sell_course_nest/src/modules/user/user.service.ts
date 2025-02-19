@@ -34,51 +34,57 @@ export class UserService {
     return new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() });
   }
 
-  // async changePassword(
-  //   email: string,
-  //   currentPassword: string,
-  //   newPassword: string,
-  //   confirmPassword: string,
-  // ): Promise<string> {
-  //   // Find the user by user_id (which matches the value from the token)
-  //   const user = await this.userRepository.findOne({ where: { email } });
-  //   if (!user) {
-  //     throw new NotFoundException('User not found');
-  //   }
-  //   // Validate current password
-  //   const isCurrentPasswordValid = await bcrypt.compare(
-  //     currentPassword,
-  //     user.password,
-  //   );
-  //   if (!isCurrentPasswordValid) {
-  //     throw new UnauthorizedException('Current password is incorrect');
-  //   }
-  //   // Check if new password matches confirm password
-  //   if (newPassword !== confirmPassword) {
-  //     throw new BadRequestException(
-  //       'New password and confirm password do not match',
-  //     );
-  //   }
-  //   // Hash the new password
-  //   const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-  //   // Update the user's password
-  //   user.password = hashedNewPassword;
-  //   await this.userRepository.save(user); // Ensure that this saves the updated user in the database
-  //   return 'Password changed successfully';
-  // }
-  // async updateProfile(
-  //   email: string,
-  //   updateProfileDto: UpdateProfileDto,
-  // ): Promise<User> {
-  //   const user = await this.userRepository.findOne({ where: { email } });
+  /*
+   * async changePassword(
+   *   email: string,
+   *   currentPassword: string,
+   *   newPassword: string,
+   *   confirmPassword: string,
+   * ): Promise<string> {
+   *   // Find the user by user_id (which matches the value from the token)
+   *   const user = await this.userRepository.findOne({ where: { email } });
+   *   if (!user) {
+   *     throw new NotFoundException('User not found');
+   *   }
+   *   // Validate current password
+   *   const isCurrentPasswordValid = await bcrypt.compare(
+   *     currentPassword,
+   *     user.password,
+   *   );
+   *   if (!isCurrentPasswordValid) {
+   *     throw new UnauthorizedException('Current password is incorrect');
+   *   }
+   *   // Check if new password matches confirm password
+   *   if (newPassword !== confirmPassword) {
+   *     throw new BadRequestException(
+   *       'New password and confirm password do not match',
+   *     );
+   *   }
+   *   // Hash the new password
+   *   const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+   *   // Update the user's password
+   *   user.password = hashedNewPassword;
+   *   await this.userRepository.save(user); // Ensure that this saves the updated user in the database
+   *   return 'Password changed successfully';
+   * }
+   * async updateProfile(
+   *   email: string,
+   *   updateProfileDto: UpdateProfileDto,
+   * ): Promise<User> {
+   *   const user = await this.userRepository.findOne({ where: { email } });
+   */
 
-  //   if (!user) {
-  //     throw new NotFoundException('User not found');
-  //   }
+  /*
+   *   if (!user) {
+   *     throw new NotFoundException('User not found');
+   *   }
+   */
 
-  //   Object.assign(user, updateProfileDto);
-  //   return this.userRepository.save(user);
-  // }
+  /*
+   *   Object.assign(user, updateProfileDto);
+   *   return this.userRepository.save(user);
+   * }
+   */
   async findAll(): Promise<UserDTO[] | null> {
     const users = await this.userRepository.find({
       relations: ['permissions'],
@@ -99,7 +105,9 @@ export class UserService {
       where: { user_id: userId },
       relations: ['permissions'],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     return user;
   }
 
@@ -191,7 +199,7 @@ export class UserService {
     );
   }
 
-  //get user
+  // get user
   async getMe(email: string): Promise<UserDTO> {
     const user = await this.userRepository.findOne({
       where: { email },

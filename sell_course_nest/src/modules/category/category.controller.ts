@@ -10,14 +10,14 @@ import {
 import { CategoryService } from './category.service';
 import { CategoryRequestDto } from './dto/categoryRequestData.dto';
 import { CategoryResponseDto } from './dto/categoryResponseData.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('api/')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post('admin/categories/create_category')
-  // @ApiBearerAuth()
+  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
     status: 201,
@@ -67,6 +67,7 @@ export class CategoryController {
   }
 
   @Put('admin/categories/update_category/:id')
+  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
     status: 200,
@@ -90,6 +91,7 @@ export class CategoryController {
 
   @Delete('admin/categories/delete_category/:id')
   @ApiOperation({ summary: 'Delete a category by ID' })
+  @ApiBearerAuth('Authorization')
   @ApiResponse({
     status: 200,
     description: 'The category has been successfully deleted.',

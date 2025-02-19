@@ -45,9 +45,9 @@ export class CoursePurchasedDTO {
     coursePurchaseId: string,
     courseId: string,
     title: string,
-    categoryName: string = 'Unknown Category',
-    categoryId: string = 'Unknown',
-    imageInfo: string = '',
+    categoryName = 'Unknown Category',
+    categoryId = 'Unknown',
+    imageInfo = '',
   ) {
     this.email = email;
     this.coursePurchaseId = coursePurchaseId;

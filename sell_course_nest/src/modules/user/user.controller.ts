@@ -29,11 +29,13 @@ export class UserController {
   async getAllUsers() {
     return this.userService.findAll();
   }
-  // @UseGuards(JwtAuthGuard)
-  // @Get('/users/:id')
-  // async getUserById(@Param('id') userId: string) {
-  //   return this.userService.findById(userId);
-  // }
+  /*
+   * @UseGuards(JwtAuthGuard)
+   * @Get('/users/:id')
+   * async getUserById(@Param('id') userId: string) {
+   *   return this.userService.findById(userId);
+   * }
+   */
 
   @UseGuards(JwtAuthGuard)
   @Get('/users/user')

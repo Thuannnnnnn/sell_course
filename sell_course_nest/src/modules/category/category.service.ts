@@ -61,8 +61,10 @@ export class CategoryService {
   async getAllCategories(): Promise<CategoryResponseDto[]> {
     const categories = await this.categoryRepository.find();
     return categories;
-    // .filter((category) => !category.parentId)
-    // .map((category) => this.toResponseDto(category, categories));
+    /*
+     * .filter((category) => !category.parentId)
+     * .map((category) => this.toResponseDto(category, categories));
+     */
   }
 
   async getCategoryById(

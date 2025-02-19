@@ -1,10 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne } from 'typeorm';
 import { Questionentity } from './question.entity';
 
-@Entity('answers')
+@Entity('answersQuizz')
 export class AnswerEntity {
   @PrimaryColumn({ name: 'answer_id', type: 'uuid' })
-  anwserId: string;
+  answerId: string;
 
   @ManyToOne(() => Questionentity, (question) => question.answers)
   question: Questionentity;
@@ -13,7 +13,7 @@ export class AnswerEntity {
   answer: string;
 
   @Column({ type: 'boolean' })
-  iscorrect: boolean;
+  isCorrect: boolean;
 
   @Column({
     type: 'timestamp',

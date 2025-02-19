@@ -123,6 +123,7 @@
     "dashboard": "Bảng điều khiển",
     "user": "Người dùng",
     "quizz": "Câu hỏi",
+    "exam": "Bài kiểm tra",
     "course": "Khóa học",
     "report": "Báo cáo",
     "payment": "Thanh toán",
@@ -380,7 +381,7 @@
     "title-reset": "Đặt lại mật khẩu"
   },
   "lesson": {
-    "loading": "Đang tải...",
+    "NotHave": "Không có bài học nào!",
     "addContent": "Thêm nội dung",
     "contentName": "Tên nội dung",
     "contentType": "Loại nội dung",

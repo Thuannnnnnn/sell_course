@@ -123,6 +123,7 @@
     "dashboard": "Dashboard",
     "user": "Users",
     "quizz": "Quizz",
+    "exam": "Exam",
     "course": "Courses",
     "report": "Reports",
     "payment": "Payment",
@@ -372,7 +373,7 @@
     "login": "Login"
   },
   "lesson": {
-    "loading": "Loading...",
+    "NotHave": "Don't have any Lesson!",
     "addContent": "Add Content",
     "contentName": "Content Name",
     "contentType": "Content Type",
