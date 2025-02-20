@@ -32,11 +32,11 @@ export class ResultExamController {
     return this.resultExamService.getAllUserExamResults(req.user.email);
   }
 
-  @Get('users/user/questions/:examId')
-  async getQuestionsForUser(@Param('examId') examId: string) {
+  @Get('users/user/questions/:courseId')
+  async getQuestionsForUser(@Param('courseId') courseId: string) {
     try {
       const questions =
-        await this.resultExamService.getQuestionsForUser(examId);
+        await this.resultExamService.getQuestionsForUser(courseId);
       return questions;
     } catch {
       throw new NotFoundException('Exam not found');

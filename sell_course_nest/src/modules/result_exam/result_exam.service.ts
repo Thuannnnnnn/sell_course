@@ -27,7 +27,7 @@ export class ResultExamService {
     }
 
     const exam = await this.examRepository.findOne({
-      where: { examId: submitExamDto.examId },
+      where: { courseId: submitExamDto.courseId },
       relations: ['questions', 'questions.answers'],
     });
     if (!exam) {
@@ -36,7 +36,7 @@ export class ResultExamService {
 
     // Use getQuestionsForUser to get a random subset of questions (10 in this case)
     const questionsForUser = await this.getQuestionsForUser(
-      submitExamDto.examId,
+      submitExamDto.courseId,
     );
     const questionsMap = new Map(
       questionsForUser.map((q) => [q.questionId, q]),
@@ -49,7 +49,7 @@ export class ResultExamService {
     const existingResult = await this.resultExamRepository.findOne({
       where: {
         user: { email },
-        exam: { examId: submitExamDto.examId },
+        exam: { courseId: submitExamDto.courseId },
       },
     });
 
@@ -66,7 +66,7 @@ export class ResultExamService {
       const selectedAnswer = answersMap.get(submission.answerId);
 
       if (!question || !selectedAnswer) {
-        continue; // Skip invalid submissions
+        continue;
       }
 
       const isCorrect = selectedAnswer.isCorrect;
@@ -127,11 +127,12 @@ export class ResultExamService {
     return results;
   }
 
-  async getQuestionsForUser(examId: string) {
+  async getQuestionsForUser(courseId: string) {
     const exam = await this.examRepository.findOne({
-      where: { examId },
+      where: { courseId },
       relations: ['questions', 'questions.answers'],
     });
+    console.log('Get exxam Id', courseId);
     if (!exam) {
       throw new NotFoundException('Exam not found');
     }
