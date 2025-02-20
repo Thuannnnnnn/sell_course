@@ -38,7 +38,7 @@ export class ResultExamController {
       const questions =
         await this.resultExamService.getQuestionsForUser(courseId);
       return questions;
-    } catch {
+    } catch (error) {
       throw new NotFoundException('Exam not found');
     }
   }

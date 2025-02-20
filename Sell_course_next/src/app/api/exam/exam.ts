@@ -135,6 +135,9 @@ export const fetchQuestion = async (token: string, courseId: string) => {
 
 export const submitExam = async (token: string, courseId: string, answers: AnswerSubmitDto[]) => {
   try {
+    console.log("Submitting Exam Data:", { courseId, answers }); // Kiểm tra trước khi gửi
+    console.log("Number of Answers Sent:", answers.length); // Đếm số lượng câu trả lời gửi lên
+
     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user/submit`, {
       courseId,
       answers,
@@ -143,10 +146,11 @@ export const submitExam = async (token: string, courseId: string, answers: Answe
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("Response: ",response.data)
+
+    console.log("API Response:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Error submitting exam:', error);
+    console.error("Error submitting exam:", error);
     throw error;
   }
 };

@@ -54,21 +54,29 @@ const ExamPage = () => {
   };
 
   const handleSubmit = async () => {
-        if (!session?.user?.token) return;
-        const formattedAnswers = Object.entries(answers).map(([questionId, answerId]) => ({
-          questionId,
-          answerId,
-        }));
-        try {
-          const result = await submitExam(session.user.token, id as string, formattedAnswers);
-          setScore(result.score);
-          setCorrectAnswers(result.correctAnswers);
-          setSubmitted(true);
-        } catch (error) {
-          console.error("Failed to submit exam:", error);
-          setError("Failed to submit exam. Please try again.");
-        }
-      };
+    if (!session?.user?.token) return;
+
+    const formattedAnswers = Object.entries(answers).map(([questionId, answerId]) => ({
+      questionId,
+      answerId,
+    }));
+
+    console.log("Selected Answers:", formattedAnswers); // Kiểm tra trước khi gửi API
+
+    try {
+      const result = await submitExam(session.user.token, id as string, formattedAnswers);
+
+      console.log("API Response:", result); // Kiểm tra dữ liệu từ API
+
+      setScore(result.score);
+      setCorrectAnswers(result.correctAnswers);
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Failed to submit exam:", error);
+      setError("Failed to submit exam. Please try again.");
+    }
+  };
+
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {

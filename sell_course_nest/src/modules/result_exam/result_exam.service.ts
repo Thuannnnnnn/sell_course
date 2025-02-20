@@ -34,15 +34,9 @@ export class ResultExamService {
       throw new NotFoundException('Exam not found');
     }
 
-    // Use getQuestionsForUser to get a random subset of questions (10 in this case)
-    const questionsForUser = await this.getQuestionsForUser(
-      submitExamDto.courseId,
-    );
-    const questionsMap = new Map(
-      questionsForUser.map((q) => [q.questionId, q]),
-    );
+    const questionsMap = new Map(exam.questions.map((q) => [q.questionId, q]));
     const answersMap = new Map(
-      questionsForUser.flatMap((q) => q.answers.map((a) => [a.answerId, a])),
+      exam.questions.flatMap((q) => q.answers.map((a) => [a.answerId, a])),
     );
 
     // Check if the user has already submitted an exam for the given examId
@@ -82,7 +76,7 @@ export class ResultExamService {
     }
 
     // Calculate the score as a percentage based on the selected questions
-    const totalQuestions = questionsForUser.length;
+    const totalQuestions = 10;
     const percentageScore = (score / totalQuestions) * 100;
 
     const resultExam = this.resultExamRepository.create({
