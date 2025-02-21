@@ -164,7 +164,7 @@ export default function CourseInfo() {
       <div className="course-nav">
         <div className="course-nav-content">
           <span className="nav-item active">📖 Overview</span>
-          <span className="nav-item">💬 Q&A</span>
+          {/* <span className="nav-item">💬 Q&A</span> */}
         </div>
       </div>
       <div className="course-content-wrapper">
