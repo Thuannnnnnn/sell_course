@@ -9,5 +9,5 @@ export interface PaymentResponse {
   orderCode: number;
   paymentLinkId: string;
   qrCode: string;
-  status: "PENDING" | "PAID" | "FAILED"; // Giới hạn các trạng thái có thể có
+  status: 'PENDING' | 'PAID' | 'FAILED'; // Giới hạn các trạng thái có thể có
 }

@@ -1,11 +1,8 @@
 'use client';
-import { useSearchParams } from "next/navigation";
-
+import QuizzesManagement from '@/components/quizz/QuizzManagement';
 const QuizzPage = () => {
-  const searchParams = useSearchParams();
-  const contentId = searchParams.get("contentId");
 
-  return <div>Quizz Page for content ID: {contentId}</div>;
+  return <QuizzesManagement />;
 };
 
 export default QuizzPage;

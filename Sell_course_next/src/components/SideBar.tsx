@@ -1,10 +1,11 @@
-"use client";  // Đảm bảo rằng component này chạy trên client
+'use client'; // Đảm bảo rằng component này chạy trên client
 
 import { useEffect, useState } from "react";
 import "../style/AdminSideBar.css";
 import { MdDashboard } from "react-icons/md";
 import { HiUserGroup } from "react-icons/hi2";
 import { FaCircleQuestion } from "react-icons/fa6";
+import { MdQuiz } from "react-icons/md";
 import { SiCoursera } from "react-icons/si";
 import { BiSolidCategory } from "react-icons/bi";
 import { TbMessageReportFilled } from "react-icons/tb";
@@ -17,7 +18,7 @@ import { SiWebauthn } from "react-icons/si";
 import { usePathname } from "next/navigation";
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const t = useTranslations("dashBoard");
+  const t = useTranslations('dashBoard');
   const locate = useLocale();
   const pathname = usePathname();
   const toggleSidebar = () => {
@@ -31,17 +32,17 @@ const Sidebar = () => {
         setIsOpen(true);
       }
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     handleResize();
-    return () => window.removeEventListener("resize", handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   const isActive = (path: string) => {
-    return pathname === path ? "active" : "";
+    return pathname === path ? 'active' : '';
   };
   return (
-    <div className={`sidebar-container ${isOpen ? "open" : "closed"}`}>
+    <div className={`sidebar-container ${isOpen ? 'open' : 'closed'}`}>
       <button className="toggle-btn" onClick={toggleSidebar}>
-        {isOpen ? "☰" : "→"}
+        {isOpen ? '☰' : '→'}
       </button>
       <div className="sidebar">
         <ul>
@@ -67,6 +68,14 @@ const Sidebar = () => {
                 <FaCircleQuestion />
               </div>
               <div>{t('quizz')}</div>
+            </Link>
+          </li>
+          <li className={isActive(`/${locate}/admin/exam`)}>
+            <Link href={`/${locate}/admin/exam`} className="sidebar-link">
+              <div className="icon-sidebar">
+                <MdQuiz />
+              </div>
+              <div>{t('exam')}</div>
             </Link>
           </li>
           <li className={isActive(`/${locate}/admin/courseAdmin`)}>

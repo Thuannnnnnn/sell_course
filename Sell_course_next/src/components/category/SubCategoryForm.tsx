@@ -1,6 +1,6 @@
-import React from "react";
-import { SubCategoryFormProps } from "@/app/type/category/CategoryFormTypes";
-import { useTranslations } from "next-intl";
+import React from 'react';
+import { SubCategoryFormProps } from '@/app/type/category/CategoryFormTypes';
+import { useTranslations } from 'next-intl';
 
 export const SubCategoryForm: React.FC<SubCategoryFormProps> = ({
   index,
@@ -9,12 +9,12 @@ export const SubCategoryForm: React.FC<SubCategoryFormProps> = ({
   onUpdate,
   onRemove,
 }) => {
-  const t = useTranslations("categories");
+  const t = useTranslations('categories');
   return (
     <div className="sub-category-form">
       <div className="sub-category-header">
         <h4 className="sub-category-title">
-          {t("TitleCreateSubCategory")} #{index + 1}
+          {t('TitleCreateSubCategory')} #{index + 1}
         </h4>
         <button
           type="button"
@@ -39,24 +39,24 @@ export const SubCategoryForm: React.FC<SubCategoryFormProps> = ({
       </div>
 
       <div className="form-group">
-        <label>{t("name")}</label>
+        <label>{t('name')}</label>
         <input
           type="text"
           className="form-control"
           value={data.name}
-          onChange={(e) => onUpdate(index, "name", e.target.value)}
-          placeholder={t("placeHodelName")}
+          onChange={(e) => onUpdate(index, 'name', e.target.value)}
+          placeholder={t('placeHodelName')}
         />
         {error.name && <p className="error-text">{error.name}</p>}
       </div>
 
       <div className="form-group">
-        <label>{t("description")}</label>
+        <label>{t('description')}</label>
         <textarea
           className="form-control"
           value={data.description}
-          onChange={(e) => onUpdate(index, "description", e.target.value)}
-          placeholder={t("placeHodelDescription")}
+          onChange={(e) => onUpdate(index, 'description', e.target.value)}
+          placeholder={t('placeHodelDescription')}
         />
         {error.description && <p className="error-text">{error.description}</p>}
       </div>

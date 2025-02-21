@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { fetchCoursePurchased } from "@/app/api/auth/User/user";
-import { UserGetAllCoursePurchase } from "@/app/type/user/User";
-import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import DashBoardUser from "@/components/DashBoardUser";
-import BannerUser from "@/components/BannerUser";
-import SignIn from "../../../auth/login/page";
-import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
-import "../../../../../style/UserProfilePage.css";
+import { fetchCoursePurchased } from '@/app/api/auth/User/user';
+import { UserGetAllCoursePurchase } from '@/app/type/user/User';
+import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import DashBoardUser from '@/components/DashBoardUser';
+import BannerUser from '@/components/BannerUser';
+import SignIn from '../../../auth/login/page';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import '../../../../../style/UserProfilePage.css';
 
 interface User {
   id: string;
@@ -28,38 +28,38 @@ interface User {
 
 const CoursePurchase: React.FC = () => {
   const [coursePurchased, setCoursePurchased] = useState<UserGetAllCoursePurchase[]>([]);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const localActive = useLocale();
   const router = useRouter();
-  const t = useTranslations('enrolledCourse')
+  const t = useTranslations('enrolledCourse');
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
+    if (status === 'unauthenticated') {
+      router.push('/auth/login');
       return;
     }
 
     if (session?.user) {
       const user: User = {
-        id: session.user.id || "",
-        email: session.user.email || "",
-        name: session.user.name || "",
-        avatarImg: session.user.avatarImg || "",
-        gender: session.user.gender || "",
-        birthDay: session.user.birthDay || "",
-        phoneNumber: session.user.phoneNumber || "",
-        role: session.user.role || "",
-        user_id: "",
-        username: ""
+        id: session.user.id || '',
+        email: session.user.email || '',
+        name: session.user.name || '',
+        avatarImg: session.user.avatarImg || '',
+        gender: session.user.gender || '',
+        birthDay: session.user.birthDay || '',
+        phoneNumber: session.user.phoneNumber || '',
+        role: session.user.role || '',
+        user_id: '',
+        username: '',
       };
       setUser(user);
       if (session.user.token && session.user.email) {
         fetchCourseData(session.user.token, session.user.email);
       } else {
-        setError("Token or email is missing.");
+        setError('Token or email is missing.');
       }
     }
   }, [router, session, status]);
@@ -68,16 +68,16 @@ const CoursePurchase: React.FC = () => {
     setLoading(true);
     try {
       if (!token || !email) {
-        setError("Bạn cần đăng nhập để xem khóa học đã mua.");
+        setError('Bạn cần đăng nhập để xem khóa học đã mua.');
         return;
       }
 
       const courses = await fetchCoursePurchased(token, email);
       setCoursePurchased(courses ?? []);
-      setError("");
+      setError('');
     } catch (error) {
-      console.error("Chi tiết lỗi:", error);
-      setError(String(error))
+      console.error('Chi tiết lỗi:', error);
+      setError(String(error));
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ const CoursePurchase: React.FC = () => {
                   {!session && (
                     <button
                       className="mt-4 bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300"
-                      onClick={() => (window.location.href = "/login")}
+                      onClick={() => (window.location.href = '/login')}
                     >
                       Đăng nhập
                     </button>
@@ -138,8 +138,8 @@ const CoursePurchase: React.FC = () => {
                       <div onClick={() =>
                         (window.location.href = `/course/${course.courseId}`)
                       }
-                        key={course.courseId}
-                        className="cardContent"
+                      key={course.courseId}
+                      className="cardContent"
                       >
                         {course.imageInfo && (
                           <Image

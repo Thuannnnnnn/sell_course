@@ -8,9 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
 import { Course } from '../course/entities/course.entity';
-import { UpdateLessonDTO } from './dto/lesson.dto';
+import { UpdateLessonDTO, CourseWithLessonsDto } from './dto/lesson.dto';
 import { plainToInstance } from 'class-transformer';
-import { CourseWithLessonsDto } from './dto/lesson.dto';
 @Injectable()
 export class LessonService {
   constructor(
@@ -50,20 +49,16 @@ export class LessonService {
       );
     }
   }
-
-  // Lấy danh sách bài học kèm nội dung
   async getLessons(): Promise<Lesson[]> {
     return await this.lessonRepository.find({
-      relations: ['course', 'contents'], // Lấy luôn danh sách content
+      relations: ['course', 'contents'],
       order: { order: 'ASC' },
     });
   }
-
-  // Lấy chi tiết bài học theo ID kèm nội dung
   async getLessonById(lessonId: string): Promise<Lesson> {
     const lesson = await this.lessonRepository.findOne({
       where: { lessonId },
-      relations: ['course', 'contents'], // Lấy luôn danh sách content
+      relations: ['course', 'contents'],
     });
 
     if (!lesson) {
