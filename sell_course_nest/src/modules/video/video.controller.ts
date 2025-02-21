@@ -2,11 +2,8 @@ import {
   Controller,
   Post,
   Body,
-  Param,
   UseInterceptors,
   UploadedFile,
-  Put,
-  Delete,
 } from '@nestjs/common';
 import { VideoService } from './video.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -20,21 +17,22 @@ export class VideoController {
   async uploadVideo(
     @UploadedFile() file: Express.Multer.File,
     @Body('contentId') contentId: string,
+    @Body('title') title: string,
   ) {
-    return this.videoService.uploadFile(file, contentId);
+    return this.videoService.uploadFile(file, title, contentId);
   }
 
-  @Put('update/:videoId/:contentId')
-  @UseInterceptors(FileInterceptor('file'))
-  async updateVideo(
-    @UploadedFile() file: Express.Multer.File,
-    @Param('videoId') videoId: string,
-    @Param('contentId') contentId: string,
-  ) {
-    return this.videoService.updateVideo(file, contentId, videoId);
-  }
-  @Delete('delete/:videoId')
-  async deleteVideo(@Param('videoId') videoId: string) {
-    return this.videoService.deleteVideo(videoId);
-  }
+  //   @Put('update/:videoId/:contentId')
+  //   @UseInterceptors(FileInterceptor('file'))
+  //   async updateVideo(
+  //     @UploadedFile() file: Express.Multer.File,
+  //     @Param('videoId') videoId: string,
+  //     @Param('contentId') contentId: string,
+  //   ) {
+  //     return this.videoService.updateVideo(file, contentId, videoId);
+  //   }
+  //   @Delete('delete/:videoId')
+  //   async deleteVideo(@Param('videoId') videoId: string) {
+  //     return this.videoService.deleteVideo(videoId);
+  //   }
 }
