@@ -23,7 +23,7 @@ export class ResultExamController {
   }
 
   @Get('users/user/results/:courseId')
-  async getExamResults(@Request() req, @Param('examId') courseId: string) {
+  async getExamResults(@Request() req, @Param('courseId') courseId: string) {
     return this.resultExamService.getUserExamResults(req.user.email, courseId);
   }
 
