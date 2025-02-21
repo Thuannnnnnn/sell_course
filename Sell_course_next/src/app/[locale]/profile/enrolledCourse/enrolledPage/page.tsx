@@ -1,10 +1,9 @@
 'use client';
 
-import { fetchCoursePurchased } from '@/app/api/auth/User/user';
+import { fetchCoursePurchased, fetchUserDetails } from '@/app/api/auth/User/user';
 import { UserGetAllCoursePurchase } from '@/app/type/user/User';
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import DashBoardUser from '@/components/DashBoardUser';
 import BannerUser from '@/components/BannerUser';
@@ -33,36 +32,33 @@ const CoursePurchase: React.FC = () => {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const localActive = useLocale();
-  const router = useRouter();
+
   const t = useTranslations('enrolledCourse');
+  const token = session?.user.token;
+  const email = session?.user.email || '';
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (session?.user) {
-      const user: User = {
-        id: session.user.id || '',
-        email: session.user.email || '',
-        name: session.user.name || '',
-        avatarImg: session.user.avatarImg || '',
-        gender: session.user.gender || '',
-        birthDay: session.user.birthDay || '',
-        phoneNumber: session.user.phoneNumber || '',
-        role: session.user.role || '',
-        user_id: '',
-        username: '',
-      };
-      setUser(user);
-      if (session.user.token && session.user.email) {
-        fetchCourseData(session.user.token, session.user.email);
-      } else {
-        setError('Token or email is missing.');
+      if (status === 'loading') return;
+      if (!email || !token) {
+        setError('User not found or unauthorized.');
+        return;
       }
-    }
-  }, [router, session, status]);
+      const fetchUser = async () => {
+        try {
+          const userDetails = await fetchUserDetails(token, email);
+          setUser(userDetails);
+          if (userDetails) {
+            fetchCourseData(token, email)
+          }
+          else {
+            setError('Token or email is missing.');
+          }
+        } catch {
+          setError('Failed to load user details.');
+        }
+      };
+      if (!user) fetchUser();
+    }, [email, session, status, token, user]);
 
   const fetchCourseData = async (token: string, email: string) => {
     setLoading(true);

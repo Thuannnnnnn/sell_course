@@ -22,6 +22,15 @@ export interface UpdateExamDto {
     }[];
   // }[];
 }
+export interface AnswerSubmitDto {
+  questionId: string;
+  answerId: string;
+}
+
+export interface SubmitExamDto {
+  courseId: string;
+  answers: AnswerSubmitDto[];
+}
 
 export const  getExamByCourseId = async (courseId: string) => {
   try {
@@ -104,5 +113,44 @@ export const createExamQuestion = async (createExamDto: CreateExamDto) => {
   } catch (error) {
     console.error("Error creating question:", error);
     throw new Error('Could not create question');
+  }
+};
+
+export const fetchQuestion = async (token: string, courseId: string) => {
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user/questions/${courseId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching question:", error);
+    throw new Error('Could not fetch question');
+  }
+}
+
+export const submitExam = async (token: string, courseId: string, answers: AnswerSubmitDto[]) => {
+  try {
+    console.log("Submitting Exam Data:", { courseId, answers }); // Kiểm tra trước khi gửi
+    console.log("Number of Answers Sent:", answers.length); // Đếm số lượng câu trả lời gửi lên
+
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user/submit`, {
+      courseId,
+      answers,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("API Response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting exam:", error);
+    throw error;
   }
 };
