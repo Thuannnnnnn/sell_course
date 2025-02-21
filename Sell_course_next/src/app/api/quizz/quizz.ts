@@ -66,3 +66,15 @@ export const deleteQuizzByQuestionId = async (
     throw error;
   }
 };
+
+export const RandomQuizz = async (quizzId: string) => {
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/random/${quizzId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching random quiz:", error);
+    throw error;
+  }
+};

@@ -22,9 +22,9 @@ export class QuizzController {
     return this.quizzService.createQuizz(createQuizzDto);
   }
 
-  @Get(':id')
-  async getQuizz(@Param('id') id: string) {
-    return this.quizzService.getQuizById(id);
+  @Get(':quizzId')
+  getQuizById(@Param('quizzId') quizzId: string) {
+    return this.quizzService.getQuizById(quizzId);
   }
 
   @Get('/content/:id')
