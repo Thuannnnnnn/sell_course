@@ -30,6 +30,7 @@ const ExamPage = () => {
 
   const { data: session, status } = useSession();
 
+  console.log(correctAnswers)
   useEffect(() => {
     if (status === "loading") return;
     if (!session?.user?.token) return;
