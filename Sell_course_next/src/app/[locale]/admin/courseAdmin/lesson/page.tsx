@@ -2,25 +2,37 @@
 import { useState, useEffect } from 'react';
 import { Container, Card, ListGroup, Button, Modal, Form } from 'react-bootstrap';
 import { CourseData } from '@/app/type/course/Lesson';
-import { fetchLesson } from '@/app/api/course/LessonAPI';
+import { fetchLesson, addLesson } from '@/app/api/course/LessonAPI';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from "next/navigation";
 import { addContent } from '@/app/api/course/ContentAPI';
 import { FaPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { useTranslations } from 'next-intl';
+import { NotificationManager, NotificationContainer, } from 'react-notifications';
+import  styles  from '@/style/lesson.module.css'
+import "react-notifications/lib/notifications.css";
 const LessonPage = () => {
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showLessonModal, setShowLessonModal] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [newContent, setNewContent] = useState({
     contentName: '',
     contentType: 'video',
     order: '',
   });
+  const [newLesson, setNewLesson] = useState({
+    lessonName: '',
+  });
+
   const router = useRouter();
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const courseId = searchParams.get("courseId");
+
+  const t = useTranslations('lesson');
+
   useEffect(() => {
     const fetchData = async () => {
       const token = session?.user.token;
@@ -49,108 +61,203 @@ const LessonPage = () => {
     if (!selectedLessonId || !session?.user.token) return;
 
     try {
-      console.log("ABCD")
       const response = await addContent(
         selectedLessonId,
         newContent.contentName,
         newContent.contentType,
         session.user.token
       );
-
       if (response) {
-        console.log("Content added successfully:", response);
         const updatedData = await fetchLesson(courseId!, session.user.token);
         setCourseData(updatedData);
+        NotificationManager.success(t('contentAdded'), t('success'), 3000);
       } else {
         console.error("Failed to add content.");
+        NotificationManager.error(t('contentFailed'), t('error'), 3000);
       }
     } catch (error) {
       console.error("Error adding content:", error);
+      NotificationManager.error(t('contentFailed'), t('error'), 3000);
     }
 
     handleCloseModal();
   };
+
+  const handleAddLesson = async () => {
+    if (!newLesson.lessonName || !session?.user.token || !courseId) return;
+
+    try {
+      const response = await addLesson(
+        newLesson.lessonName,
+        courseId,
+        session.user.token
+      );
+
+      if (response) {
+        const updatedData = await fetchLesson(courseId!, session.user.token);
+        setCourseData(updatedData);
+        NotificationManager.success(t('lessonAdded'), t('success'), 3000);
+      } else {
+        console.error("Failed to add lesson.");
+        NotificationManager.error(t('lessonFailed'), t('error'), 3000);
+      }
+    } catch (error) {
+      console.error("Error adding lesson:", error);
+      NotificationManager.error(t('lessonFailed'), t('error'), 3000);
+    }
+
+    setShowLessonModal(false);
+    setNewLesson({ lessonName: '' });
+  };
+
   const handleContentClick = (content: { contentType: string; contentId: string }) => {
     const { contentType, contentId } = content;
-    console.log(contentType);
     switch (contentType) {
       case 'video':
         router.push(`lesson/content/video?contentId=${contentId}`);
         break;
       case 'document':
-        router.push(`content/document/${contentId}`);
+        router.push(`lesson/content/document?contentId=${contentId}`);
         break;
       case 'quiz':
-        // router.push(`content/quiz/${contentId}`);
+        router.push(`lesson/content/quizz?contentId=${contentId}`);
         break;
       default:
         break;
     }
   };
-  if (!courseData) return <p>Loading...</p>;
-  return (
-    <Container className="mt-4">
-      <h1>{courseData.courseName}</h1>
-      {courseData.lessons.map((lesson) => (
-        <Card key={lesson.lessonId} className="mb-3">
-          <Card.Body>
-            <Card.Title>{lesson.order}. {lesson.lessonName}</Card.Title>
-            <ListGroup>
-              {lesson.contents.map((content) => (
-                <ListGroup.Item key={content.contentId} onClick={() => handleContentClick(content)}>
-                  {content.order}. [{content.contentType.toUpperCase()}] {content.contentName}
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-            <Button variant="outline-seccondary" className="mt-2" onClick={() => handleShowModal(lesson.lessonId)}>
+
+    return (
+      <Container className="mt-4">
+        {!courseData ? (
+          <div>
+          <p>{t('NotHave')}</p>
+          <div></div>
+          <Button variant="outline-primary" className="mt-3" onClick={() => setShowLessonModal(true)}>
               <FaPlus />
             </Button>
-          </Card.Body>
-        </Card>
-      ))}
-
-      {/* Modal thêm nội dung */}
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add Content</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Content Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter content name"
-                value={newContent.contentName}
-                onChange={(e) => setNewContent({ ...newContent, contentName: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <label htmlFor="contentType">Content Type</label>
-              <select
-                id="contentType"
-                title="Content Type"
-                value={newContent.contentType}
-                onChange={(e) => setNewContent({ ...newContent, contentType: e.target.value })}
-              >
-                <option value="video">Video</option>
-                <option value="document">Document</option>
-                <option value="quiz">Quiz</option>
-              </select>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleAddContent}>
-            Add Content
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </Container>
-  );
-};
+          <Modal show={showLessonModal} onHide={handleCloseModal}>
+              <Modal.Header closeButton>
+                <Modal.Title>{t('addLesson')}</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>{t('lessonName')}</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder={t('lessonName')}
+                      value={newLesson.lessonName}
+                      onChange={(e) => setNewLesson({ ...newLesson, lessonName: e.target.value })}
+                    />
+                  </Form.Group>
+                </Form>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseModal}>
+                  Close
+                </Button>
+                <Button variant="primary" onClick={handleAddLesson}>
+                  {t('addLesson')}
+                </Button>
+              </Modal.Footer>
+            </Modal>
+            <NotificationContainer />
+          </div>
+        ) : (
+          <>
+            <h1>{courseData.courseName}</h1>
+            {courseData.lessons.map((lesson) => (
+              <Card key={lesson.lessonId} className="mb-3">
+                <Card.Body>
+                  <Card.Title>
+                    {lesson.order}. {lesson.lessonName}
+                  </Card.Title>
+                  <ListGroup>
+                    {lesson.contents.map((content) => (
+                      <ListGroup.Item key={content.contentId} onClick={() => handleContentClick(content)} className={styles.cursorPointer}>
+                        {content.order}. [{content.contentType.toUpperCase()}] {content.contentName}
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                  <Button variant="outline-secondary" className="mt-2" onClick={() => handleShowModal(lesson.lessonId)}>
+                    <FaPlus />
+                  </Button>
+                </Card.Body>
+              </Card>
+            ))}
+            <Button variant="outline-primary" className="mt-3" onClick={() => setShowLessonModal(true)}>
+              <FaPlus />
+            </Button>
+            <Modal show={showModal} onHide={handleCloseModal}>
+              <Modal.Header closeButton>
+                <Modal.Title>{t('addContent')}</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>{t('contentName')}</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder={t('contentName')}
+                      value={newContent.contentName}
+                      onChange={(e) => setNewContent({ ...newContent, contentName: e.target.value })}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <label htmlFor="contentType">{t('contentType')}</label>
+                    <select
+                      id="contentType"
+                      value={newContent.contentType}
+                      onChange={(e) => setNewContent({ ...newContent, contentType: e.target.value })}
+                    >
+                      <option value="video">{t('video')}</option>
+                      <option value="document">{t('document')}</option>
+                      <option value="quiz">{t('quiz')}</option>
+                    </select>
+                  </Form.Group>
+                </Form>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseModal}>
+                  Close
+                </Button>
+                <Button variant="primary" onClick={handleAddContent}>
+                  {t('addContent')}
+                </Button>
+              </Modal.Footer>
+            </Modal>
+            <Modal show={showLessonModal} onHide={handleCloseModal}>
+              <Modal.Header closeButton>
+                <Modal.Title>{t('addLesson')}</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>{t('lessonName')}</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder={t('lessonName')}
+                      value={newLesson.lessonName}
+                      onChange={(e) => setNewLesson({ ...newLesson, lessonName: e.target.value })}
+                    />
+                  </Form.Group>
+                </Form>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseModal}>
+                  Close
+                </Button>
+                <Button variant="primary" onClick={handleAddLesson}>
+                  {t('addLesson')}
+                </Button>
+              </Modal.Footer>
+            </Modal>
+            <NotificationContainer />
+          </>
+        )}
+      </Container>
+    );
+  }
 
 export default LessonPage;

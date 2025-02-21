@@ -21,10 +21,11 @@ export class ExamQuestionController {
     return this.examQuestionService.createExam(dto);
   }
   @Get('/admin/exam/view_exam/:id')
-  async getAllExamById(@Param('id') examId: string) {
-    const exam = await this.examQuestionService.getExamById(examId);
+  async getAllExamById(@Param('id') courseId: string) {
+    const exam = await this.examQuestionService.getExamById(courseId);
+    console.log('ID', courseId);
     if (!exam) {
-      throw new NotFoundException(`Exam with id ${examId} not found`);
+      throw new NotFoundException(`Exam with id ${courseId} not found`);
     }
     return exam;
   }

@@ -39,6 +39,24 @@ export class DocsController {
     return await this.docsService.getAllDocs();
   }
 
+  @Get('/admin/docs/view_doc/:id')
+  @ApiBearerAuth('Authorization')
+  @ApiOperation({ summary: 'Get all Docs' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved all Docs.',
+    type: [DocsResponseDTO],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No Docs found.',
+  })
+  async getDocByContentIdAmin(
+    @Param('id') contentsId: string,
+  ): Promise<DocsResponseDTO> {
+    return await this.docsService.getByContentId(contentsId);
+  }
+
   @Post('/admin/docs/create_docs')
   @ApiBearerAuth('Authorization')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 1 }]))
@@ -82,7 +100,7 @@ export class DocsController {
     @UploadedFiles()
     file?: { file?: Express.Multer.File[] },
   ): Promise<void> {
-    return await this.docsService.updatedDocs(docsId, updateData, file ?? {});
+    return await this.docsService.updatedDocs(docsId, updateData, file);
   }
 
   @ApiBearerAuth('Authorization')

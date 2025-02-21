@@ -63,8 +63,12 @@ import { Questionentity } from './modules/quizz/entities/question.entity';
 import { AnswerEntity } from './modules/quizz/entities/answer.entity';
 import { QuizzStore } from './modules/quizz_store/entities/quizz_store.entity';
 import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
-// import { APP_GUARD } from '@nestjs/core';
-// import { PermissionsGuard } from './modules/permission/permissions.guard';
+import { ResultExamModule } from './modules/result_exam/result_exam.module';
+import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
+/*
+ * import { APP_GUARD } from '@nestjs/core';
+ * import { PermissionsGuard } from './modules/permission/permissions.guard';
+ */
 
 @Module({
   imports: [
@@ -80,10 +84,11 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      ssl:
-        process.env.DATABASE_SSL === 'true'
-          ? { rejectUnauthorized: false }
-          : false,
+      /*
+       * ssl: {
+       *   rejectUnauthorized: false,
+       * },
+       */
       entities: [
         Notify,
         UserNotify,
@@ -115,6 +120,7 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
         Category,
         Permission,
         Order,
+        ResultExam,
       ],
       synchronize: true,
     }),
@@ -149,12 +155,13 @@ import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
     PermissionModule,
     OrderModule,
     PaymentModule,
+    ResultExamModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/user/*');
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(PermissionMiddleware).forRoutes('/api/a/*');
   }
 }

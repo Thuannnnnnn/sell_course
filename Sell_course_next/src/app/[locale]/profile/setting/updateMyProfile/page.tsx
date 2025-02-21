@@ -1,17 +1,16 @@
-"use client"
-import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import SignIn from "@/app/[locale]/auth/login/page";
-import DashBoardUser from "@/components/DashBoardUser";
-import "../../../../../style/UserProfilePage.css";
-import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
-import BannerUser from "@/components/BannerUser";
-import Image from "next/image";
-import defaultAvatar from "../../../../../../public/defait-img.png";
-import { fetchUserDetails, updateUserProfile } from "@/app/api/auth/User/user";
-import { GetUser } from "@/app/type/user/User";
-
+'use client';
+import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import SignIn from '@/app/[locale]/auth/login/page';
+import DashBoardUser from '@/components/DashBoardUser';
+import '../../../../../style/UserProfilePage.css';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import BannerUser from '@/components/BannerUser';
+import Image from 'next/image';
+import defaultAvatar from '../../../../../../public/defait-img.png';
+import { fetchUserDetails, updateUserProfile } from '@/app/api/auth/User/user';
+import { GetUser } from '@/app/type/user/User';
 
 const UpdateMyProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
@@ -23,13 +22,13 @@ const UpdateMyProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const t = useTranslations('updateProfile');
 
-  const token = session?.user.token
-  const email = session?.user.email
+  const token = session?.user.token;
+  const email = session?.user.email;
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === 'loading') return;
     if (!email || !token) {
-      setError("User not found or unauthorized.");
+      setError('User not found or unauthorized.');
       return;
     }
 
@@ -45,13 +44,13 @@ const UpdateMyProfilePage: React.FC = () => {
           phoneNumber: userDetails.phoneNumber,
         });
       } catch {
-        setError("Failed to load user details.");
+        setError('Failed to load user details.');
       }
     };
     if (!user) fetchUser();
   }, [email, session, status, token, user]);
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return <div>Loading...</div>;
   }
 
@@ -72,7 +71,7 @@ const UpdateMyProfilePage: React.FC = () => {
 
   const getMaxDate = () => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+    return today.toISOString().split('T')[0];
   };
 
   const isUserAtLeast10YearsOld = (birthDate: string) => {
@@ -95,12 +94,12 @@ const UpdateMyProfilePage: React.FC = () => {
     }
 
     const form = new FormData();
-    form.append("email", formData.email || user?.email || "");
-    if (formData.gender) form.append("username", formData.username || user?.username || "");
-    if (formData.gender) form.append("gender", formData.gender);
-    if (formData.birthDay) form.append("birthDay", formData.birthDay);
-    if (formData.phoneNumber) form.append("phoneNumber", formData.phoneNumber);
-    if (avatar) form.append("avatar", avatar);
+    form.append('email', formData.email || user?.email || '');
+    if (formData.gender) form.append('username', formData.username || user?.username || '');
+    if (formData.gender) form.append('gender', formData.gender);
+    if (formData.birthDay) form.append('birthDay', formData.birthDay);
+    if (formData.phoneNumber) form.append('phoneNumber', formData.phoneNumber);
+    if (avatar) form.append('avatar', avatar);
 
     const token = session?.user?.token;
     if (!token) {
@@ -112,18 +111,17 @@ const UpdateMyProfilePage: React.FC = () => {
       setIsLoading(true);
       const updatedUser = await updateUserProfile(form, token);
       setUser(updatedUser);
-      alert("Profile updated successfully!");
+      alert('Profile updated successfully!');
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message || "Error updating profile.");
+        setError(err.message || 'Error updating profile.');
       } else {
-        setError("Error updating profile.");
+        setError('Error updating profile.');
       }
     } finally {
       setIsLoading(false);
     }
   };
-
 
   if (!user) {
     return <SignIn />;
@@ -154,29 +152,29 @@ const UpdateMyProfilePage: React.FC = () => {
                 <Image src={user?.avatarImg || defaultAvatar} alt="User Avatar" className="avatar-img" layout="fixed" width={100} height={100} />
                 <input title="avatar" className="avatar-upload" type="file" id="avatar" onChange={handleFileChange} />
               </div>
-              <span className="name">{user?.username || "Unknown User"}</span>
+              <span className="name">{user?.username || 'Unknown User'}</span>
             </div>
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit}>
               <div className="input-group">
                 <label htmlFor="email">{t('email')}</label>
-                <input disabled type="email" id="email" name="email" value={formData.email || ""} onChange={handleInputChange} required />
+                <input disabled type="email" id="email" name="email" value={formData.email || ''} onChange={handleInputChange} required />
               </div>
               <div className="input-group">
                 <label htmlFor="username">{t('username')}</label>
-                <input type="text" id="username" name="username" value={formData.username || ""} onChange={handleInputChange} required />
+                <input type="text" id="username" name="username" value={formData.username || ''} onChange={handleInputChange} required />
               </div>
               <div className="input-group">
                 <label htmlFor="gender">{t('gender')}</label>
-                <input type="text" id="gender" name="gender" value={formData.gender || ""} onChange={handleInputChange} />
+                <input type="text" id="gender" name="gender" value={formData.gender || ''} onChange={handleInputChange} />
               </div>
               <div className="input-group">
                 <label htmlFor="birthDay">{t('birthDay')}</label>
-                <input type="date" id="birthDay" name="birthDay" value={formData.birthDay || ""} onChange={handleInputChange} max={getMaxDate()} />
+                <input type="date" id="birthDay" name="birthDay" value={formData.birthDay || ''} onChange={handleInputChange} max={getMaxDate()} />
               </div>
               <div className="input-group">
                 <label htmlFor="phoneNumber">{t('phoneNumber')}</label>
-                <input type="text" id="phoneNumber" name="phoneNumber" value={formData.phoneNumber || ""} onChange={handleInputChange} />
+                <input type="text" id="phoneNumber" name="phoneNumber" value={formData.phoneNumber || ''} onChange={handleInputChange} />
               </div>
               <button className="btn-update" type="submit" disabled={isLoading}>
                 {isLoading ? t('btnChange-2') : t('btnChange-1')}

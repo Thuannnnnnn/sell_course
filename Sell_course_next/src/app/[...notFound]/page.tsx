@@ -1,7 +1,7 @@
 // NotFound.tsx
 'use client';
-import Link from "next/link";
-import { MdError } from "react-icons/md";
+import Link from 'next/link';
+import { MdError } from 'react-icons/md';
 import './NotFound.css';
 
 const NotFound = () => {

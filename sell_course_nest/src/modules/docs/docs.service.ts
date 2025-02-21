@@ -42,15 +42,33 @@ export class DocsService {
     return DocsResponseDTOs;
   }
 
+  async getByContentId(contentsId: string) {
+    const docs = await this.docsRepository.findOne({
+      where: { contents: { contentId: contentsId } },
+      relations: ['contents'],
+    });
+
+    if (!docs) {
+      return;
+    }
+
+    return new DocsResponseDTO(
+      docs.docsId,
+      docs.title,
+      docs.url,
+      docs.createdAt,
+    );
+  }
+
   async createDocs(
     doc: DocsRequestDTO,
     file?: { file?: Express.Multer.File[] },
   ): Promise<void> {
     const { contentsId } = doc;
-
     const contentData = await this.contentsRepository.findOne({
       where: { contentId: contentsId },
     });
+
     if (!contentData) {
       throw new HttpException(
         `User with ID content not found.`,
@@ -100,7 +118,7 @@ export class DocsService {
 
   async updatedDocs(
     docsId: string,
-    updateData: Partial<DocsRequestDTO>,
+    updateData: DocsRequestDTO,
     file?: { file?: Express.Multer.File[] },
   ): Promise<void> {
     const doc = await this.docsRepository.findOne({
@@ -118,17 +136,9 @@ export class DocsService {
         HttpStatus.NOT_FOUND,
       );
     }
-
-    const existingDoc = await this.docsRepository.findOne({
-      where: { contents: { contentId: updateData.contentsId } },
-    });
-
-    if (existingDoc) {
-      throw new HttpException(
-        'This content is already associated with another document.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    console.log('check data o day: ' + JSON.stringify(updateData.title));
+    console.log('check data o day: ' + JSON.stringify(updateData.file));
+    console.log('check data o day: ' + JSON.stringify(updateData.contentsId));
     let docUrl = doc.url;
 
     if (file?.file?.[0]) {
@@ -151,11 +161,12 @@ export class DocsService {
     }
 
     Object.assign(doc, updateData, {
-      title: doc.title,
       url: docUrl,
       contents: contentData,
       createdAt: doc.createdAt,
     });
+
+    await this.docsRepository.save(doc);
 
     throw new HttpException(`update docs oke`, HttpStatus.OK);
   }

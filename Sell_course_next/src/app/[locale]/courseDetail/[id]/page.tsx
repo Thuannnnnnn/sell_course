@@ -10,10 +10,16 @@ export default function CourseDetailPage() {
   const localActive = useLocale();
   return (
     <div>
-      <CourseDetail courseId={id} />      {/* Thêm nút điều hướng sang CourseInfo */}
+      <CourseDetail courseId={id} /> {/* Thêm nút điều hướng sang CourseInfo */}
       <div style={{ marginTop: "20px", textAlign: "center" }}>
         <Link href={`/${localActive}/courseInfo/${id}`}>
-          <button style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}>
+          <button
+            style={{
+              padding: "10px 20px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
             Go to Course Info
           </button>
         </Link>

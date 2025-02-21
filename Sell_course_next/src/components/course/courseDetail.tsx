@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
-import "@/style/CourseDetail.css";
-import { fetchCourseById } from "@/app/api/course/CourseAPI";
-import { Course } from "@/app/type/course/Course";
+import { useEffect, useState } from 'react';
+import '@/style/CourseDetail.css';
+import { fetchCourseById } from '@/app/api/course/CourseAPI';
+import { Course } from '@/app/type/course/Course';
 
-import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
-import { addToCart } from "@/app/api/cart/cart";
-import "react-quill/dist/quill.snow.css";
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
+import { addToCart } from '@/app/api/cart/cart';
+import 'react-quill/dist/quill.snow.css';
 import {
   NotificationContainer,
   NotificationManager,
-} from "react-notifications";
-import "react-notifications/lib/notifications.css";
-import { ResponseQaDto } from "@/app/type/qa/Qa";
-import { createQa, deleteQa, getAllQa } from "@/app/api/qa/Qa";
-import ReactQuill from "react-quill";
+} from 'react-notifications';
+import 'react-notifications/lib/notifications.css';
+import { ResponseQaDto } from '@/app/type/qa/Qa';
+import { createQa, deleteQa, getAllQa } from '@/app/api/qa/Qa';
+import ReactQuill from 'react-quill';
 
 // const getRelativeTime = (dateString: string) => {
 //   const now = new Date();
@@ -74,7 +74,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: session } = useSession();
   const [qaData, setQaData] = useState<ResponseQaDto[]>([]);
-  const [text, setText] = useState("");
+  const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   // const [showReplyPopup, setShowReplyPopup] = useState(false);
@@ -82,7 +82,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   //   null
   // );
   // const [replyText, setReplyText] = useState("");
-  const t = useTranslations("courseDetailForm");
+  const t = useTranslations('courseDetailForm');
 
   useEffect(() => {
     const fetchQaData = async () => {
@@ -94,9 +94,9 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         setQaData(data);
         setError(null);
       } catch (err) {
-        console.error("Error fetching QA:", err);
+        console.error('Error fetching QA:', err);
         setError(
-          err instanceof Error ? err.message : "Failed to fetch QA data"
+          err instanceof Error ? err.message : 'Failed to fetch QA data'
         );
         setQaData([]);
       } finally {
@@ -120,9 +120,9 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       try {
         const data = await fetchCourseById(courseId);
         setCourses(data);
-        console.log("Loaded courses:", data);
+        console.log('Loaded courses:', data);
       } catch (error) {
-        console.log("Loaded courses error:", error);
+        console.log('Loaded courses error:', error);
       } finally {
       }
     };
@@ -139,7 +139,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       const token = session?.user.token;
       const email = session?.user.email;
       if (!token || !courseId || !email) {
-        NotificationManager.warning(t("loginRequired"), t("warning"), 2000);
+        NotificationManager.warning(t('loginRequired'), t('warning'), 2000);
         return;
       }
 
@@ -147,15 +147,15 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       const response = await addToCart(token, email, courseId);
       if (response.statusCode === 200) {
         NotificationManager.success(
-          t("addedToCartSuccess"),
-          t("success"),
+          t('addedToCartSuccess'),
+          t('success'),
           2000
         );
       } else {
-        NotificationManager.error(t("addedToCartFail"), t("error"), 2000);
+        NotificationManager.error(t('addedToCartFail'), t('error'), 2000);
       }
     } catch {
-      NotificationManager.error(t("addedToCartFail"), t("error"), 2000);
+      NotificationManager.error(t('addedToCartFail'), t('error'), 2000);
     }
   };
   const handleCheckOut = () => {
@@ -170,7 +170,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         user_name: session?.user?.name,
         course_title: courses.title,
         course_price: courses.price,
-        course_img: courses.imageInfo || "",
+        course_img: courses.imageInfo || '',
       },
     ];
 
@@ -180,7 +180,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   };
   const handleCreateQa = async () => {
     if (!text.trim()) {
-      setError("Nội dung câu hỏi không được để trống!");
+      setError('Nội dung câu hỏi không được để trống!');
       return;
     }
 
@@ -189,28 +189,28 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       if (session?.user.email) {
         const newQa = await createQa(session?.user.email, courseId, text);
         setQaData((prevQa) => [newQa, ...prevQa]);
-        setText("");
+        setText('');
         setError(null);
       } else {
-        setError("Bạn phải đăng kí để có thể Q&A");
+        setError('Bạn phải đăng kí để có thể Q&A');
       }
     } catch (error) {
-      setError("Không thể tạo câu hỏi. Vui lòng thử lại!" + error);
+      setError('Không thể tạo câu hỏi. Vui lòng thử lại!' + error);
     }
     setLoading(false);
   };
 
   const handleDeleteQa = async (qaId: string, email: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xoá câu hỏi này?")) return;
+    if (!confirm('Bạn có chắc chắn muốn xoá câu hỏi này?')) return;
     try {
       if (email?.toLowerCase() === session?.user?.email?.toLowerCase()) {
         await deleteQa(qaId);
         setQaData((prevQa) => prevQa.filter((qa) => qa.qaId !== qaId));
       } else {
-        setError("Bạn không có quyền xoá câu hỏi này");
+        setError('Bạn không có quyền xoá câu hỏi này');
       }
     } catch (error) {
-      setError("Không thể xoá câu hỏi." + error);
+      setError('Không thể xoá câu hỏi.' + error);
     }
   };
   if (loading) {
@@ -246,7 +246,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         <div className="meta">
           <div className="avatar">
             <Image
-              src={courses?.userAvata || ""}
+              src={courses?.userAvata || ''}
               alt="Course Thumbnail"
               width={250}
               height={140}
@@ -254,20 +254,20 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
             />
           </div>
           <div>
-            <p>{t("teacher")}</p>
+            <p>{t('teacher')}</p>
             <h3>{courses?.userName}</h3>
           </div>
           <div>
-            <p>{t("category")}</p>
+            <p>{t('category')}</p>
             <h3>{courses?.categoryName}</h3>
           </div>
           <div>
-            <p>{t("lastUpdate")}</p>
-            <h3>{formatDate(courses?.updatedAt || "")}</h3>
+            <p>{t('lastUpdate')}</p>
+            <h3>{formatDate(courses?.updatedAt || '')}</h3>
           </div>
           <div>
             <p>⭐⭐⭐⭐⭐</p>
-            <h3>{t("rating")}:5/5</h3>
+            <h3>{t('rating')}:5/5</h3>
           </div>
         </div>
       </div>
@@ -275,28 +275,28 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       <div className="content-detailCourse">
         <div className="content-left">
           <div className="course-description">
-            <h2>{t("aboutCourse")}</h2>
+            <h2>{t('aboutCourse')}</h2>
             <div
-              className={`ql-editor ${isExpanded ? "expanded" : "collapsed"}`}
-              dangerouslySetInnerHTML={{ __html: courses?.description ?? "" }}
+              className={`ql-editor ${isExpanded ? 'expanded' : 'collapsed'}`}
+              dangerouslySetInnerHTML={{ __html: courses?.description ?? '' }}
             />
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="read-more-btn"
             >
-              {isExpanded ? t("collapse") : t("readMore")}
+              {isExpanded ? t('collapse') : t('readMore')}
             </button>
           </div>
 
           <div className="course-curriculum">
-            <h2>{t("courseCurriculum")}</h2>
+            <h2>{t('courseCurriculum')}</h2>
 
             <div className="curriculum-section">
               <h3
-                onClick={() => toggleSection("intro")}
+                onClick={() => toggleSection('intro')}
                 className="section-title"
               >
-                {t("inTroToCourse")} {expandedSections.intro ? "▼" : "▶"}
+                {t('inTroToCourse')} {expandedSections.intro ? '▼' : '▶'}
               </h3>
               {expandedSections.intro && (
                 <ul>
@@ -310,10 +310,10 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
             <div className="curriculum-section">
               <h3
-                onClick={() => toggleSection("exam")}
+                onClick={() => toggleSection('exam')}
                 className="section-title"
               >
-                {t("exam")} {expandedSections.exam ? "▼" : "▶"}
+                {t('exam')} {expandedSections.exam ? '▼' : '▶'}
               </h3>
               {expandedSections.exam && (
                 <ul>
@@ -325,15 +325,15 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
           <div className="course-qa bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-2xl font-bold mb-6">
-              {t("questionsAndAnswers")}
+              {t('questionsAndAnswers')}
             </h2>
             <ReactQuill
               value={text}
               onChange={setText}
               theme="snow"
-              placeholder={t("enterDescription")}
+              placeholder={t('enterDescription')}
               className="quill"
-              style={{ margin: "10px" }}
+              style={{ margin: '10px' }}
             />
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -345,7 +345,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               className="m-2 bg-primary text-white px-4 py-2 rounded"
               disabled={loading}
             >
-              {loading ? "Đang gửi..." : "Gửi câu hỏi"}
+              {loading ? 'Đang gửi...' : 'Gửi câu hỏi'}
             </button>
             {qaData.length > 0 ? (
               <div className="qa-list space-y-6">
@@ -380,10 +380,10 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                               </h4>
                               <p className="textQuestion mt-2 text-gray-700">
                                 <div
-                                  className={`ql-editor ${isExpanded ? "expanded" : "collapsed"
-                                    }`}
+                                  className={`ql-editor ${isExpanded ? 'expanded' : 'collapsed'
+                                  }`}
                                   dangerouslySetInnerHTML={{
-                                    __html: question.text ?? "",
+                                    __html: question.text ?? '',
                                   }}
                                 />
                               </p>
@@ -407,7 +407,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                             // }}
                             className="mt-2 text-blue-600 hover:text-blue-800 font-medium buttonReply"
                           >
-                            {t("reply")}
+                            {t('reply')}
                           </button>
                         </div>
                         {answers.map((answer) => (
@@ -424,7 +424,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               </div>
             ) : (
               <p className="text-gray-500 text-center py-8">
-                {t("noQuestionsYet")}
+                {t('noQuestionsYet')}
               </p>
             )}
           </div>
@@ -443,12 +443,12 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
           <button
             className="btn add-to-cart"
-            onClick={() => handleAddToCart(courses?.courseId || "")}
+            onClick={() => handleAddToCart(courses?.courseId || '')}
           >
-            {t("addToCart")}
+            {t('addToCart')}
           </button>
           <button className="btn buy-course" onClick={() => handleCheckOut()}>
-            {t("buyCourse")}
+            {t('buyCourse')}
           </button>
 
           <div className="course-details">
