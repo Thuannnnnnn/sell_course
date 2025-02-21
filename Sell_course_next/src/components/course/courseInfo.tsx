@@ -1,8 +1,6 @@
 "use client";
-import { FaPlay } from "react-icons/fa";
 import { useState } from "react";
 import CourseInfoBanner from "@/components/Banner-CourseInfor";
-import { AiOutlineCheckCircle, AiOutlineDown } from "react-icons/ai";
 import { BsFillCameraVideoFill } from "react-icons/bs";
 import { IoDocumentText, IoCheckmarkDoneCircle } from "react-icons/io5";
 import { MdQuiz, MdOutlineSchool } from "react-icons/md";
@@ -11,6 +9,7 @@ import DocumentLesson from "@/components/Lessons/Doc";
 import QuizLesson from "@/components/Lessons/Quiz";
 import ExamLesson from "@/components/Lessons/Exam";
 import "../../style/CourseInfo.css";
+import { AiOutlineDown } from "react-icons/ai";
 
 export default function CourseInfo() {
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -23,16 +22,48 @@ export default function CourseInfo() {
       completed: 0,
       total: 4,
       lessons: [
-        { type: "video", title: "Video: Course Info", duration: "5:36", completed: false },
-        { type: "document", title: "Document: Course Guidelines", content: "Welcome to the course!", completed: false },
-        { type: "quiz", title: "Quiz: Introduction", questions: [{ question: "What is this course about?", options: ["Design", "Cooking", "Finance"], correct: 0 }], completed: false },
-        { type: "exam", title: "Exam: Final Test", questions: [{ question: "What is interior design?", options: ["Art", "Science", "Both"], correct: 2 }], completed: false },
+        {
+          type: "video",
+          title: "Video: Course Info",
+          duration: "5:36",
+          completed: false,
+        },
+        {
+          type: "document",
+          title: "Document: Course Guidelines",
+          content: "Welcome to the course!",
+          completed: false,
+        },
+        {
+          type: "quiz",
+          title: "Quiz: Introduction",
+          questions: [
+            {
+              question: "What is this course about?",
+              options: ["Design", "Cooking", "Finance"],
+              correct: 0,
+            },
+          ],
+          completed: false,
+        },
+        {
+          type: "exam",
+          title: "Exam: Final Test",
+          questions: [
+            {
+              question: "What is interior design?",
+              options: ["Art", "Science", "Both"],
+              correct: 2,
+            },
+          ],
+          completed: false,
+        },
       ],
     },
   ];
 
-
-  const isLessonCompleted = (lessonIndex: number) => completedLessons.includes(lessonIndex);
+  const isLessonCompleted = (lessonIndex: number) =>
+    completedLessons.includes(lessonIndex);
 
   const markLessonCompleted = (lessonIndex: number) => {
     if (!isLessonCompleted(lessonIndex)) {
@@ -41,8 +72,8 @@ export default function CourseInfo() {
   };
 
   const calculateProgress = () => {
-    let totalLessons = courseSections[0].lessons.length;
-    let progress = (completedLessons.length / totalLessons) * 100;
+    const totalLessons = courseSections[0].lessons.length;
+    const progress = (completedLessons.length / totalLessons) * 100;
     return `${progress.toFixed(0)}%`;
   };
 
@@ -76,35 +107,59 @@ export default function CourseInfo() {
 
   const renderLessonComponent = () => {
     const currentLessonData = courseSections[0]?.lessons[currentLesson];
-  
+
     if (!currentLessonData) return <p>Lesson not found</p>;
-  
+
     const handleComplete = () => {
       markLessonCompleted(currentLesson);
     };
-  
+
     switch (currentLessonData.type) {
       case "video":
-        return <VideoLesson title={currentLessonData.title || "Untitled Video"} duration={currentLessonData.duration || "0:00"} onComplete={handleComplete} />;
+        return (
+          <VideoLesson
+            title={currentLessonData.title || "Untitled Video"}
+            duration={currentLessonData.duration || "0:00"}
+            onComplete={handleComplete}
+          />
+        );
       case "document":
-        return <DocumentLesson title={currentLessonData.title || "Untitled Document"} content={currentLessonData.content || "No content available"} onComplete={handleComplete} />;
+        return (
+          <DocumentLesson
+            title={currentLessonData.title || "Untitled Document"}
+            content={currentLessonData.content || "No content available"}
+            onComplete={handleComplete}
+          />
+        );
       case "quiz":
-        return <QuizLesson title={currentLessonData.title || "Untitled Quiz"} questions={currentLessonData.questions || []} onComplete={handleComplete} />;
+        return (
+          <QuizLesson
+            title={currentLessonData.title || "Untitled Quiz"}
+            questions={currentLessonData.questions || []}
+            onComplete={handleComplete}
+          />
+        );
       case "exam":
-        return <ExamLesson title={currentLessonData.title || "Untitled Exam"} questions={currentLessonData.questions || []} onComplete={handleComplete} />;
+        return (
+          <ExamLesson
+            title={currentLessonData.title || "Untitled Exam"}
+            questions={currentLessonData.questions || []}
+            onComplete={handleComplete}
+          />
+        );
       default:
         return <p>Lesson type not found</p>;
     }
   };
-
-
 
   return (
     <div className="course-info-container">
       <CourseInfoBanner title="Course" subtitle="Lesson Details" />
       <div className="course-header">
         <h1 className="course-title">Interior design concepts Masterclass</h1>
-        <span className="course-progress">Your Progress: {calculateProgress()}</span>
+        <span className="course-progress">
+          Your Progress: {calculateProgress()}
+        </span>
       </div>
       <div className="course-nav">
         <div className="course-nav-content">
@@ -118,22 +173,45 @@ export default function CourseInfo() {
           <ul className="course-list">
             {courseSections.map((section, sectionIndex) => (
               <li key={sectionIndex} className="course-section">
-                <div className="course-section-header" onClick={() => setExpanded(expanded === sectionIndex ? null : sectionIndex)}>
+                <div
+                  className="course-section-header"
+                  onClick={() =>
+                    setExpanded(expanded === sectionIndex ? null : sectionIndex)
+                  }
+                >
                   <span className="course-section-title">{section.title}</span>
-                  <span className="course-section-progress">{completedLessons.length}/{section.total}</span>
-                  <AiOutlineDown className={`dropdown-icon ${expanded === sectionIndex ? "rotated" : ""}`} />
+                  <span className="course-section-progress">
+                    {completedLessons.length}/{section.total}
+                  </span>
+                  <AiOutlineDown
+                    className={`dropdown-icon ${
+                      expanded === sectionIndex ? "rotated" : ""
+                    }`}
+                  />
                 </div>
                 {expanded === sectionIndex && (
                   <ul className="course-lessons">
                     {section.lessons.map((lesson, lessonIndex) => (
-                      <li key={lessonIndex} className={`course-item ${currentLesson === lessonIndex ? "active" : ""}`} onClick={() => selectLesson(lessonIndex)}>
+                      <li
+                        key={lessonIndex}
+                        className={`course-item ${
+                          currentLesson === lessonIndex ? "active" : ""
+                        }`}
+                        onClick={() => selectLesson(lessonIndex)}
+                      >
                         <div className="lesson-info">
                           {getLessonIcon(lesson.type)}
                           <span className="course-text">{lesson.title}</span>
                         </div>
                         <div className="lesson-meta">
-                          {lesson.duration && <span className="course-duration">{lesson.duration}</span>}
-                          {isLessonCompleted(lessonIndex) && <IoCheckmarkDoneCircle className="course-check" />}
+                          {lesson.duration && (
+                            <span className="course-duration">
+                              {lesson.duration}
+                            </span>
+                          )}
+                          {isLessonCompleted(lessonIndex) && (
+                            <IoCheckmarkDoneCircle className="course-check" />
+                          )}
                         </div>
                       </li>
                     ))}
@@ -146,8 +224,16 @@ export default function CourseInfo() {
         <main className="course-video-section">
           {renderLessonComponent()}
           <div className="course-navigation">
-            <button className="btn-prev" disabled={currentLesson === 0} onClick={() => setCurrentLesson(currentLesson - 1)}>← Previous</button>
-            <button className="btn-next" onClick={handleNextLesson}>Next →</button>
+            <button
+              className="btn-prev"
+              disabled={currentLesson === 0}
+              onClick={() => setCurrentLesson(currentLesson - 1)}
+            >
+              ← Previous
+            </button>
+            <button className="btn-next" onClick={handleNextLesson}>
+              Next →
+            </button>
           </div>
         </main>
       </div>
