@@ -1,225 +1,202 @@
-/* CourseInfo.css */
+/* Full CSS for Course Info UI */
 
-/* Tổng thể layout */
+.course-info-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+}
+
+.course-header {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
 .course-info {
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  height: 100vh;
-  background: #f8f9fa;
-  font-family: Arial, sans-serif;
+  flex-direction: column; /* Xếp phần tử theo chiều dọc */
+  align-items: flex-start; /* Canh trái nội dung */
+  gap: 5px; /* Khoảng cách giữa các phần tử */
 }
 
-/* Sidebar - Course Content */
-.course-content {
-  width: 320px;
-  background: #f0f0f0;
-  padding: 20px;
-  border-right: 1px solid #ccc;
-  overflow-y: auto;
-}
-
-.course-content h3 {
-  font-size: 18px;
+.course-title {
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 5px; /* Tạo khoảng cách giữa tiêu đề và progress */
 }
 
-.section {
-  margin-bottom: 15px;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 5px;
-  background: #e8e8e8;
-}
-
-.section-header:hover {
-  background: #d8d8d8;
-}
-
-.item-list {
-  padding-left: 15px;
-}
-
-.item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
+.course-progress {
   font-size: 14px;
-  background: white;
-  border-radius: 5px;
-  margin-bottom: 5px;
-  cursor: pointer;
-  transition: background 0.2s ease-in-out;
-}
-
-.item:hover {
-  background: #e0e0e0;
-}
-
-.item.completed {
-  color: #4caf50;
-  font-weight: bold;
-}
-
-.item span {
-  font-size: 12px;
   color: #666;
 }
 
-/* Căn chỉnh icon sang bên phải */
-.item .icon {
-  margin-left: auto;
-}
-
-/* Video Container */
-.video-container {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-container h2 {
-  font-size: 24px;
+.course-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-weight: bold;
-  margin-bottom: 10px;
 }
 
-.progress {
+.course-nav {
+  background-color: #e3e3e3;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center; /* Căn giữa theo chiều dọc */
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  border-bottom: 1px solid #ccc;
+}
+
+.course-nav-content {
+  display: flex;
+  gap: 20px;
+}
+
+
+.nav-item {
   font-size: 14px;
-  margin-bottom: 10px;
+  cursor: pointer;
   color: #555;
 }
 
-/* Video Player */
-.video-player {
-  width: 100%;
-  max-width: 800px;
-  height: 450px;
-  background: black;
+.nav-item.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.course-content-wrapper {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  border-radius: 10px;
-  margin-bottom: 15px;
+  gap: 20px;
+  padding: 20px;
 }
 
-.video-player .play-button {
-  font-size: 50px;
-  color: white;
-  cursor: pointer;
+.course-sidebar {
+  width: 20%;
+  background: #f9f9f9;
+  padding: 15px;
+  border-right: 1px solid #ddd;
+  flex-direction: column;
 }
 
-/* Video Progress Bar */
-.video-progress {
-  width: 100%;
-  max-width: 800px;
-  height: 5px;
-  background: #ddd;
-  position: relative;
-  margin-top: -10px;
-  border-radius: 5px;
-}
-
-.video-progress .progress-bar {
-  width: 33%;
-  height: 100%;
-  background: #007bff;
-  border-radius: 5px;
-}
-
-/* Điều khiển Video */
-.controls {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 800px;
-}
-
-.controls button {
-  padding: 10px 20px;
-  font-size: 14px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background 0.2s ease-in-out;
-}
-
-.prev {
-  background: #ddd;
-}
-
-.prev:hover {
-  background: #bbb;
-}
-
-.next {
-  background: #007bff;
-  color: white;
-}
-
-.next:hover {
-  background: #0056b3;
-}
-.fullscreen-video {
-  width: 82vw;
-  height: 72vh;
-  object-fit: cover;
-}
-
-.progress-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-  font-size: 1.5rem;
+.course-title {
+  font-size: 16px;
   font-weight: bold;
 }
-.navigation-buttons {
+
+.course-list {
+  list-style: none;
+  padding: 0;
+}
+
+.course-section {
   display: flex;
-  justify-content: space-between; /* Đưa hai nút về hai bên */
+  flex-direction: column;
+}
+
+.course-item {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
-  padding: 0 20px; /* Tạo khoảng cách hai bên */
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
 }
 
-.navigation-buttons button {
-  padding: 10px 20px;
-  font-size: 16px;
+.course-text {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.course-duration, .course-check {
+  margin-left: 10px;
+  white-space: nowrap;
+}
+
+
+.course-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   cursor: pointer;
+}
+
+.dropdown-icon {
+  transition: transform 0.2s ease-in-out;
+}
+
+.dropdown-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.course-lessons {
+  list-style: none;
+  padding-left: 15px;
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.course-icon {
+  color: #555;
+}
+
+.course-text {
+  flex-grow: 1;
+}
+
+.course-duration {
+  font-size: 12px;
+  color: #888;
+}
+
+.course-check {
+  color: green;
+}
+
+.course-video-section {
+  flex-grow: 1;
+  padding: 20px;
+  background: #fff;
+}
+
+.video-header h2 {
+  font-size: 18px;
+}
+
+.video-player {
+  width: 100%;
+  height: 400px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-play-icon {
+  color: #fff;
+  font-size: 50px;
+  cursor: pointer;
+}
+
+.course-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn-prev, .btn-next {
+  padding: 10px 20px;
   border: none;
-  border-radius: 5px;
-  background-color: #007bff;
+  cursor: pointer;
+  background: #007bff;
   color: white;
-  transition: background-color 0.3s ease;
+  border-radius: 5px;
 }
 
-.navigation-buttons button:hover {
-  background-color: #0056b3;
-}
-
-.navigation-buttons button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-
-.content-container {
-  position: relative;
-  min-height: 400px; /* Đảm bảo có đủ khoảng trống cho nút */
+.btn-prev:hover, .btn-next:hover {
+  background: #0056b3;
 }

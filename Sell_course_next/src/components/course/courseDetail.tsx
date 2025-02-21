@@ -45,6 +45,7 @@ import ReactQuill from "react-quill";
 //   return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
 // };
 
+
 interface CourseCardProps {
   courseId: string;
 }
@@ -141,6 +142,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         NotificationManager.warning(t("loginRequired"), t("warning"), 2000);
         return;
       }
+
 
       const response = await addToCart(token, email, courseId);
       if (response.statusCode === 200) {
