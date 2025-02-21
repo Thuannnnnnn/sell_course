@@ -23,7 +23,9 @@ const ExamPage = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
-  const [correctAnswers, setCorrectAnswers] = useState<Record<string, string>>({});
+  const [correctAnswers, setCorrectAnswers] = useState<Record<string, string>>(
+    {}
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -37,7 +39,10 @@ const ExamPage = () => {
     const fetchExamQuestion = async () => {
       try {
         setLoading(true);
-        const examQuestions = await fetchQuestion(session.user.token, id as string);
+        const examQuestions = await fetchQuestion(
+          session.user.token,
+          id as string
+        );
         setQuestions(examQuestions);
       } catch {
         setError("Failed to load exam questions.");
@@ -52,19 +57,25 @@ const ExamPage = () => {
   const handleSelectAnswer = (questionId: string, answerId: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
   };
-
+  console.log(correctAnswers);
   const handleSubmit = async () => {
     if (!session?.user?.token) return;
 
-    const formattedAnswers = Object.entries(answers).map(([questionId, answerId]) => ({
-      questionId,
-      answerId,
-    }));
+    const formattedAnswers = Object.entries(answers).map(
+      ([questionId, answerId]) => ({
+        questionId,
+        answerId,
+      })
+    );
 
     console.log("Selected Answers:", formattedAnswers); // Kiểm tra trước khi gửi API
 
     try {
-      const result = await submitExam(session.user.token, id as string, formattedAnswers);
+      const result = await submitExam(
+        session.user.token,
+        id as string,
+        formattedAnswers
+      );
 
       console.log("API Response:", result); // Kiểm tra dữ liệu từ API
 
@@ -76,7 +87,6 @@ const ExamPage = () => {
       setError("Failed to submit exam. Please try again.");
     }
   };
-
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
@@ -99,7 +109,16 @@ const ExamPage = () => {
     <div className="exam-container">
       <div className="exam-header">
         <h1>Exam</h1>
-        {submitted && <div className="score">Your Score: {score}</div>}
+        {submitted &&
+          score !== null &&
+          (score >= 50 ? (
+            <div className="scoreSuccess">Your Score: {score}</div>
+          ) : null)}
+        {submitted &&
+          score !== null &&
+          (score <= 50 ? (
+            <div className="scoreFail">Your Score: {score}</div>
+          ) : null)}
       </div>
       <div className="exam-content">
         {currentQuestion && (
@@ -114,14 +133,23 @@ const ExamPage = () => {
               {currentQuestion.answers.map((answer) => (
                 <label
                   key={answer.answerId}
-                  className={`answer-item ${submitted && answer.isCorrect ? "correct-answer" : ""}`}
+                  className={`answer-item ${
+                    submitted && answer.isCorrect ? "correct-answer" : ""
+                  }`}
                 >
                   <input
                     type="radio"
                     name={currentQuestion.questionId}
                     value={answer.answerId}
-                    checked={answers[currentQuestion.questionId] === answer.answerId}
-                    onChange={() => handleSelectAnswer(currentQuestion.questionId, answer.answerId)}
+                    checked={
+                      answers[currentQuestion.questionId] === answer.answerId
+                    }
+                    onChange={() =>
+                      handleSelectAnswer(
+                        currentQuestion.questionId,
+                        answer.answerId
+                      )
+                    }
                     disabled={submitted}
                   />
                   {answer.answer}
@@ -131,7 +159,11 @@ const ExamPage = () => {
           </div>
         )}
         <div className="navigation-buttons">
-          <button className="nav-button" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>
+          <button
+            className="nav-button"
+            onClick={handlePreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+          >
             Previous
           </button>
           {currentQuestionIndex < questions.length - 1 ? (

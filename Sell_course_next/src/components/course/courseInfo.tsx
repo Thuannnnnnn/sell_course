@@ -7,10 +7,9 @@ import { MdQuiz, MdOutlineSchool } from "react-icons/md";
 import VideoLesson from "@/components/Lessons/Video";
 import DocumentLesson from "@/components/Lessons/Doc";
 import QuizLesson from "@/components/Lessons/Quiz";
-import ExamLesson from "@/components/Lessons/Exam";
 import "../../style/CourseInfo.css";
 import { AiOutlineDown } from "react-icons/ai";
-
+import ExamPage from "../exam/Exam";
 export default function CourseInfo() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [currentLesson, setCurrentLesson] = useState<number>(0);
@@ -140,13 +139,7 @@ export default function CourseInfo() {
           />
         );
       case "exam":
-        return (
-          <ExamLesson
-            title={currentLessonData.title || "Untitled Exam"}
-            questions={currentLessonData.questions || []}
-            onComplete={handleComplete}
-          />
-        );
+        return <ExamPage />;
       default:
         return <p>Lesson type not found</p>;
     }

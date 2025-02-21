@@ -20,10 +20,15 @@
   font-weight: bold;
 }
 
-.score {
+.scoreSuccess {
   font-size: 18px;
   font-weight: bold;
   color: #4caf50;
+}
+.scoreFail {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff2525;
 }
 
 .exam-content {
