@@ -91,11 +91,11 @@ export class ResultExamService {
     return this.resultExamRepository.save(resultExam);
   }
 
-  async getUserExamResults(email: string, examId: string) {
+  async getUserExamResults(email: string, courseId: string) {
     const results = await this.resultExamRepository.findOne({
       where: {
         user: { email },
-        exam: { examId },
+        exam: { courseId },
       },
       relations: ['exam', 'user'],
     });
