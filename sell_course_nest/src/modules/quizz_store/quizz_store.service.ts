@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { QuizzStore } from './entities/quizz_store.entity';
@@ -34,6 +38,7 @@ export class QuizzStoreService {
       throw new NotFoundException('Quiz not found');
     }
 
+    // Xóa kết quả cũ nếu có
     const existingResult = await this.quizzStoreRepository.findOne({
       where: {
         user: { user_id },
@@ -47,39 +52,47 @@ export class QuizzStoreService {
 
     let score = 0;
     const answersResult = [];
+    const totalQuestions = quiz.questions.length;
 
-    for (const submission of submitQuizDto.answers) {
-      console.log('Processing submission:', submission);
+    if (totalQuestions === 0) {
+      throw new BadRequestException('Quiz không có câu hỏi nào');
+    }
 
-      const question = quiz.questions.find(
-        (q) => q.questionId === submission.questionId,
+    for (const question of quiz.questions) {
+      // Tìm câu trả lời của người dùng cho câu hỏi này
+      const submission = submitQuizDto.answers.find(
+        (ans) => ans.questionId === question.questionId,
       );
-      if (!question) {
+
+      if (!submission) {
+        // Nếu người dùng không trả lời câu hỏi này, tính là sai
+        answersResult.push({
+          questionId: question.questionId,
+          answerId: null, // Không có câu trả lời
+          isCorrect: false,
+        });
         continue;
       }
 
+      // Kiểm tra câu trả lời đúng hay sai
       const selectedAnswer = question.answers.find(
-        (a) => a.answerId === submission.anwserId,
+        (a) => a.answerId === submission.answerId,
       );
-      if (!selectedAnswer) {
-        continue;
-      }
+      const isCorrect = selectedAnswer ? selectedAnswer.isCorrect : false;
 
-      const isCorrect = selectedAnswer.isCorrect;
       if (isCorrect) {
         score++;
       }
 
       answersResult.push({
         questionId: submission.questionId,
-        anwserId: submission.anwserId,
+        answerId: submission.answerId,
         isCorrect,
       });
     }
 
-    // Calculate score based on submitted answers count instead of total quiz questions
-    const totalSubmittedQuestions = submitQuizDto.answers.length;
-    const percentageScore = (score / totalSubmittedQuestions) * 100;
+    // Tính điểm dựa trên tổng số câu hỏi trong quiz (dưới 10 hoặc 10)
+    const percentageScore = (score / totalQuestions) * 100;
 
     const quizStore = this.quizzStoreRepository.create({
       storeId: uuidv4(),
