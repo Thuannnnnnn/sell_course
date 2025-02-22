@@ -34,10 +34,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           );
           console.log('Check session o day: ' + response.data);
+          console.log('Check user_id: ', response.data?.user_id);
           if (response.data?.token) {
             return {
               token: response.data.token,
-              user_id: response.data.user_id || '',
+              user_id: response.data.user_id,
               email: response.data.email,
               gender: response.data.gender,
               birthDay: response.data.birthDay,
@@ -77,22 +78,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.token = user.token;
       }
+      console.log('Check token user_id in jwt: ', token.user_id);
       return token;
     },
 
-    // async session({ session, token }) {
-
-    //   session.user.id = token.id as string;
-    //   session.user.email = token.email as string;
-    //   session.user.role = token.role as string;
-    //   session.user.token = token.token as string;
-    //   session.user.name = token.name as string;
-    //   session.user.avatarImg = token.avatarImg || "/default-avatar.png";
-    //   session.gender = token.gender as string;
-    //   session.birthDay = token.birthDay as string;
-    //   session.phoneNumber = token.phoneNumber as number;
-    //   return session;
-    // },
     async session({ session, token }) {
       session.user = {
         ...session.user,
@@ -106,6 +95,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         birthDay: token.birthDay as string,
         phoneNumber: token.phoneNumber as string,
       };
+      console.log('Check session user_id: ', session.user.user_id);
       return session;
     },
     async signIn({ user, account }) {
@@ -114,6 +104,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       if (account.type === 'credentials') {
+        console.log('Check credentials user_id: ', user.user_id);
         return true;
       }
 
@@ -151,7 +142,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         user.avatarImg = response.data.avatarImg || '';
         user.username = response.data.username || 'Unknown';
         user.role = response.data.role || 'user';
-
+        console.log('Check OAuth user_id: ', user.user_id);
         return true;
       } catch (error) {
         console.error('Error during API call in sign-in callback:', error);
