@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -27,10 +28,9 @@ interface QuizPageProps {
   quizzId?: string;
 }
 
-const QuizPage = ({ quizzId }: QuizPageProps) => {
+const QuizPage: React.FC<QuizPageProps> = ({ quizzId }) => {
   const { id } = useParams();
   const { data: session, status } = useSession();
-  console.log("Session data:", session);
   const effectiveId = quizzId || id;
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -47,13 +47,11 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
 
       try {
         setLoading(true);
-        // First check if there are previous results
         const result = await getQuizzResults(session.user.token, effectiveId.toString());
         if (result && result.score !== undefined) {
           setScore(result.score);
           setHasPreviousResult(true);
         } else {
-          // If no previous results, fetch new quiz
           const quizData = await getRandomQuiz(effectiveId.toString());
           setQuiz(quizData);
         }
@@ -67,21 +65,16 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
     fetchQuizData();
   }, [effectiveId, session?.user?.token]);
 
-  const handleSelectAnswer = (questionId: string, answerId: string) => {
+  const handleSelectAnswer = (questionId: string, answerId: string): void => {
     setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     if (!quiz) return;
-
-    console.log("Quiz data:", quiz);
-    console.log("Current answers:", answers);
 
     const unansweredQuestions = quiz.questions.filter(
       (question) => !answers[question.questionId]
     );
-
-    console.log("Unanswered questions:", unansweredQuestions);
 
     if (unansweredQuestions.length > 0) {
       setError(
@@ -97,42 +90,38 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
 
     const formattedAnswers = {
       userId: session.user.user_id,
-      quizzId: effectiveId,
+      quizzId: Array.isArray(effectiveId) ? effectiveId[0] : effectiveId,
       answers: Object.entries(answers).map(([questionId, answerId]) => ({
         questionId,
         answerId
       })),
     };
 
-    console.log("Formatted answers:", formattedAnswers);
-
     try {
       setError(null);
       const result = await submitQuizAnswers(formattedAnswers, session.user.token);
-      console.log("Submit result:", result);
       setScore(result.score);
       setSubmitted(true);
     } catch (error) {
-      console.error("Failed to submit quiz:", error);
       setError(
         "Failed to submit quiz. Please try again. If the problem persists, please refresh the page."
       );
     }
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = (): void => {
     if (quiz && currentQuestionIndex < quiz.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
 
-  const handlePreviousQuestion = () => {
+  const handlePreviousQuestion = (): void => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
 
-  const handleRetry = async () => {
+  const handleRetry = async (): Promise<void> => {
     setAnswers({});
     setSubmitted(false);
     setScore(null);

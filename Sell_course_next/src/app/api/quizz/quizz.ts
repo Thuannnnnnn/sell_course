@@ -1,5 +1,21 @@
-import { CreateQuizzDto, UpdateQuizzDto } from "@/app/type/quizz/quizz";
-import axios from "axios";
+import { CreateQuizzDto, UpdateQuizzDto } from '@/app/type/quizz/quizz';
+import axios, { AxiosError } from 'axios';
+
+const handleAxiosError = (error: unknown): never => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+    if (axiosError.response?.data && 'message' in axiosError.response.data) {
+      throw new Error(axiosError.response.data.message);
+    }
+    if (axiosError.response) {
+      throw new Error(`Request failed with status ${axiosError.response.status}`);
+    }
+    if (axiosError.request) {
+      throw new Error('No response received from server');
+    }
+  }
+  throw error;
+};
 
 export const createQuizz = async (createQuizzDto: CreateQuizzDto) => {
   try {
@@ -9,7 +25,7 @@ export const createQuizz = async (createQuizzDto: CreateQuizzDto) => {
     );
     return response.data;
   } catch (error) {
-    throw error;
+    handleAxiosError(error);
   }
 };
 
@@ -20,7 +36,7 @@ export const getQuizzesByContentId = async (contentId: string) => {
     );
     return response.data;
   } catch (error) {
-    throw error;
+    handleAxiosError(error);
   }
 };
 
@@ -33,7 +49,7 @@ export const updateQuizz = async (updateQuizzDto: UpdateQuizzDto) => {
     );
     return response.data;
   } catch (error) {
-    throw error;
+    handleAxiosError(error);
   }
 };
 
@@ -44,9 +60,10 @@ export const getQuizzById = async (quizzId: string) => {
     );
     return response.data;
   } catch (error) {
-    throw error;
+    handleAxiosError(error);
   }
 };
+
 export const deleteQuizzByQuestionId = async (
   quizzId: string,
   questionId: string
@@ -57,7 +74,7 @@ export const deleteQuizzByQuestionId = async (
     );
     return response.data;
   } catch (error) {
-    throw error;
+    handleAxiosError(error);
   }
 };
 
@@ -68,32 +85,39 @@ export const getRandomQuiz = async (quizzId: string) => {
     );
     return response.data;
   } catch (error) {
-    throw error;
+    handleAxiosError(error);
   }
 };
 
+interface QuizAnswer {
+  questionId: string;
+  answerId: string;
+}
+
+interface QuizSubmissionData {
+  userId: string;
+  answers: QuizAnswer[];
+  quizzId?: string;
+}
+
 export const submitQuizAnswers = async (
-  data: {
-    userId: string;
-    answers: Array<{ questionId: string; answerId: string }>;
-    quizzId?: string;
-  },
+  data: QuizSubmissionData,
   token: string
 ) => {
   try {
     if (!token) {
-      throw new Error("Authentication token is required");
+      throw new Error('Authentication token is required');
     }
     if (!data.userId) {
-      throw new Error("userId is required");
+      throw new Error('userId is required');
     }
     if (!Array.isArray(data.answers) || data.answers.length === 0) {
-      throw new Error("answers array is required and cannot be empty");
+      throw new Error('answers array is required and cannot be empty');
     }
 
     for (const answer of data.answers) {
       if (!answer.questionId || !answer.answerId) {
-        throw new Error("Each answer must have both questionId and answerId");
+        throw new Error('Each answer must have both questionId and answerId');
       }
     }
 
@@ -103,7 +127,7 @@ export const submitQuizAnswers = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
@@ -111,36 +135,39 @@ export const submitQuizAnswers = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      if (error.response?.status === 500) {
-        throw new Error(
-          error.response.data.message ||
-            "Internal server error occurred. Please try again later or contact support if the issue persists."
-        );
-      }
-      if (error.response?.status === 400) {
-        throw new Error(
-          error.response.data.message ||
-            "Invalid quiz submission data. Please check your answers and try again."
-        );
-      }
-      if (error.response) {
-        throw new Error(
-          error.response.data.message ||
-            `Error submitting quiz answers: ${error.response.status}`
-        );
-      }
-      if (error.request) {
-        throw new Error(
-          "No response received from server. Please check your connection and try again."
-        );
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      switch (status) {
+        case 500:
+          throw new Error(
+            message ||
+              'Internal server error occurred. Please try again later or contact support if the issue persists.'
+          );
+        case 400:
+          throw new Error(
+            message ||
+              'Invalid quiz submission data. Please check your answers and try again.'
+          );
+        default:
+          if (error.response) {
+            throw new Error(
+              message || `Error submitting quiz answers: ${status}`
+            );
+          }
+          if (error.request) {
+            throw new Error(
+              'No response received from server. Please check your connection and try again.'
+            );
+          }
       }
     }
 
-    if (error instanceof Error && error.message) {
+    if (error instanceof Error) {
       throw error;
     }
 
-    throw new Error("Failed to submit quiz answers. Please try again.");
+    throw new Error('Failed to submit quiz answers. Please try again.');
   }
 };
 
@@ -149,20 +176,38 @@ export const getQuizzResults = async (token: string, quizzId: string) => {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizzStore/results/${quizzId}`,
       {
-        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
 
-    if (response.status !== 200) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
     return response.data;
   } catch (error) {
-    return null;
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      switch (status) {
+        case 404:
+          throw new Error('Quiz results not found');
+        case 401:
+          throw new Error('Unauthorized access to quiz results');
+        default:
+          if (error.response) {
+            throw new Error(
+              message || `Error fetching quiz results: ${status}`
+            );
+          }
+          if (error.request) {
+            throw new Error(
+              'No response received from server. Please check your connection and try again.'
+            );
+          }
+      }
+    }
+
+    throw error;
   }
 };
