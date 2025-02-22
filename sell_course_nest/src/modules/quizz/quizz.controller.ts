@@ -17,12 +17,12 @@ import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 export class QuizzController {
   constructor(private readonly quizzService: QuizzService) {}
 
-  @Post('/admin/quizzcreate')
+  @Post('/admin/quizz/create')
   async createQuizz(@Body() createQuizzDto: CreateQuizzDto) {
     return this.quizzService.createQuizz(createQuizzDto);
   }
 
-  @Get('/admin/quizz:id')
+  @Get('/admin/quizz/:id')
   async getQuizz(@Param('id') id: string) {
     return this.quizzService.getQuizById(id);
   }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getRandomQuiz, submitQuizAnswers } from "@/app/api/quizz/quizz";
+import { getRandomQuiz, submitQuizAnswers, getQuizzResults } from "@/app/api/quizz/quizz";
 import { useSession } from "next-auth/react";
 import "../../style/ExamPage.css";
 
@@ -39,24 +39,33 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [hasPreviousResult, setHasPreviousResult] = useState(false);
 
   useEffect(() => {
-    const fetchQuiz = async () => {
-      if (!effectiveId) return;
+    const fetchQuizData = async () => {
+      if (!effectiveId || !session?.user?.token) return;
 
       try {
         setLoading(true);
-        const quizData = await getRandomQuiz(effectiveId.toString());
-        setQuiz(quizData);
+        // First check if there are previous results
+        const result = await getQuizzResults(session.user.token, effectiveId.toString());
+        if (result && result.score !== undefined) {
+          setScore(result.score);
+          setHasPreviousResult(true);
+        } else {
+          // If no previous results, fetch new quiz
+          const quizData = await getRandomQuiz(effectiveId.toString());
+          setQuiz(quizData);
+        }
       } catch (error) {
-        setError("Failed to load quiz questions.");
+        setError("Failed to load quiz data.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuiz();
-  }, [effectiveId]);
+    fetchQuizData();
+  }, [effectiveId, session?.user?.token]);
 
   const handleSelectAnswer = (questionId: string, answerId: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
@@ -68,7 +77,6 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
     console.log("Quiz data:", quiz);
     console.log("Current answers:", answers);
 
-    // Check if all questions have been answered
     const unansweredQuestions = quiz.questions.filter(
       (question) => !answers[question.questionId]
     );
@@ -92,7 +100,7 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
       quizzId: effectiveId,
       answers: Object.entries(answers).map(([questionId, answerId]) => ({
         questionId,
-        answerId,
+        answerId
       })),
     };
 
@@ -124,57 +132,83 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
     }
   };
 
+  const handleRetry = async () => {
+    setAnswers({});
+    setSubmitted(false);
+    setScore(null);
+    setHasPreviousResult(false);
+    setQuiz(null);
+    setCurrentQuestionIndex(0);
+    setLoading(true);
+
+    try {
+      if (!session?.user?.token || !effectiveId) return;
+      const quizData = await getRandomQuiz(effectiveId.toString());
+      setQuiz(quizData);
+    } catch (error) {
+      setError("Failed to load new quiz questions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (status === "loading") return <p>Loading session...</p>;
   if (status === "unauthenticated") return <p className="text-red-600">Please log in to access the quiz.</p>;
   if (loading) return <p>Loading quiz questions...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
+
+  if (hasPreviousResult) {
+    return (
+      <div className="exam-container">
+        <h1>Quiz Result</h1>
+        <div className={`score ${score && score >= 50 ? "scoreSuccess" : "scoreFail"}`}>
+          Your Score: {score}
+        </div>
+        <button className="retry-button" onClick={handleRetry}>Retry Quiz</button>
+      </div>
+    );
+  }
+
   if (!quiz) return <p>No quiz data available.</p>;
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
 
   return (
     <div className="exam-container">
-      <div className="exam-header">
-        <h1>Quiz</h1>
-        {submitted && score !== null && (
-          <div className={score >= 50 ? "scoreSuccess" : "scoreFail"}>
-            Your Score: {score}
-          </div>
-        )}
-      </div>
+      <h1>Quiz</h1>
       <div className="exam-content">
         {currentQuestion && (
           <div className="question-card">
-            <div className="question-header">
-              <span className="question-number">
-                Question {currentQuestionIndex + 1}/{quiz.questions.length}
-              </span>
-            </div>
+            <span className="question-number">
+              Question {currentQuestionIndex + 1}/{quiz.questions.length}
+            </span>
             <p className="question-text">{currentQuestion.question}</p>
             <div className="answers-list">
               {currentQuestion.answers.map((answer) => (
                 <label
                   key={answer.answerId}
                   className={`answer-item ${
-                    submitted && answer.isCorrect ? "correct-answer" : ""
+                    submitted
+                      ? answer.isCorrect
+                        ? "correct-answer"
+                        : answers[currentQuestion.questionId] === answer.answerId
+                        ? "incorrect-answer"
+                        : ""
+                      : ""
                   }`}
                 >
                   <input
                     type="radio"
                     name={currentQuestion.questionId}
                     value={answer.answerId}
-                    checked={
-                      answers[currentQuestion.questionId] === answer.answerId
-                    }
-                    onChange={() =>
-                      handleSelectAnswer(
-                        currentQuestion.questionId,
-                        answer.answerId
-                      )
-                    }
+                    checked={answers[currentQuestion.questionId] === answer.answerId}
+                    onChange={() => handleSelectAnswer(currentQuestion.questionId, answer.answerId)}
                     disabled={submitted}
                   />
                   {answer.answer}
+                  {submitted && answer.isCorrect && <span className="correct-indicator"> ✓</span>}
+                  {submitted && !answer.isCorrect && answers[currentQuestion.questionId] === answer.answerId &&
+                    <span className="incorrect-indicator"> ✗</span>}
                 </label>
               ))}
             </div>
@@ -200,6 +234,16 @@ const QuizPage = ({ quizzId }: QuizPageProps) => {
             )
           )}
         </div>
+        {submitted && score !== null && (
+          <div>
+            <div className={`score ${score >= 50 ? "scoreSuccess" : "scoreFail"}`}>
+              Your Score: {score}
+            </div>
+            <button className="retry-button" onClick={handleRetry}>
+              Retry Quiz
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -3,21 +3,18 @@ import axios from "axios";
 
 export const createQuizz = async (createQuizzDto: CreateQuizzDto) => {
   try {
-    console.log("Creating quiz with data:", createQuizzDto);
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/quizz/create`,
       createQuizzDto
     );
     return response.data;
   } catch (error) {
-    console.error("Error creating quiz:", error);
     throw error;
   }
 };
 
 export const getQuizzesByContentId = async (contentId: string) => {
   try {
-    console.log("Fetching quizzes for contentId:", contentId);
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/quizz/content/${contentId}`
     );
@@ -36,7 +33,6 @@ export const updateQuizz = async (updateQuizzDto: UpdateQuizzDto) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error updating quiz:", error);
     throw error;
   }
 };
@@ -48,7 +44,6 @@ export const getQuizzById = async (quizzId: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching quiz:", error);
     throw error;
   }
 };
@@ -62,7 +57,6 @@ export const deleteQuizzByQuestionId = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error deleting question:", error);
     throw error;
   }
 };
@@ -74,7 +68,6 @@ export const getRandomQuiz = async (quizzId: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching random quiz:", error);
     throw error;
   }
 };
@@ -104,43 +97,36 @@ export const submitQuizAnswers = async (
       }
     }
 
-    console.log("Submitting quiz answers with payload:", JSON.stringify(data, null, 2));
-
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizzStore/submit`,
       data,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
 
-    console.log("Quiz submission successful:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error submitting quiz answers. Full error:", error);
-    console.error("Submission payload:", JSON.stringify(data, null, 2));
-
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 500) {
-        console.error("Server error details:", error.response.data);
         throw new Error(
           error.response.data.message ||
-          "Internal server error occurred. Please try again later or contact support if the issue persists."
+            "Internal server error occurred. Please try again later or contact support if the issue persists."
         );
       }
       if (error.response?.status === 400) {
         throw new Error(
           error.response.data.message ||
-          "Invalid quiz submission data. Please check your answers and try again."
+            "Invalid quiz submission data. Please check your answers and try again."
         );
       }
       if (error.response) {
         throw new Error(
           error.response.data.message ||
-          `Error submitting quiz answers: ${error.response.status}`
+            `Error submitting quiz answers: ${error.response.status}`
         );
       }
       if (error.request) {
@@ -155,5 +141,28 @@ export const submitQuizAnswers = async (
     }
 
     throw new Error("Failed to submit quiz answers. Please try again.");
+  }
+};
+
+export const getQuizzResults = async (token: string, quizzId: string) => {
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizzStore/results/${quizzId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    return null;
   }
 };
