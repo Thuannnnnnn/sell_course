@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  Put,
   HttpException,
 } from '@nestjs/common';
 import { ContentService } from './contents.service';
@@ -38,8 +39,16 @@ export class ContentController {
     return await this.contentService.getContentsByLesson(lessonId);
   }
 
-  @Delete(':contentId')
+  @Delete('admin/content/delete_content/:contentId')
   async deleteContent(@Param('contentId') contentId: string) {
     return await this.contentService.deleteContent(contentId);
+  }
+  @Put('admin/content/update_content/:contentId')
+  async updateContent(@Param('contentId') contentId: string, @Body() body: { contentName: string }) {
+    try {
+      return await this.contentService.updateContent(contentId, body.contentName);
+    } catch (error) {
+      throw new HttpException(error, 500);
+    }
   }
 }
