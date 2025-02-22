@@ -22,9 +22,9 @@ export class ResultExamController {
     return this.resultExamService.submitExam(req.user.email, submitExamDto);
   }
 
-  @Get('users/user/results/:examId')
-  async getExamResults(@Request() req, @Param('examId') examId: string) {
-    return this.resultExamService.getUserExamResults(req.user.email, examId);
+  @Get('users/user/results/:courseId')
+  async getExamResults(@Request() req, @Param('courseId') courseId: string) {
+    return this.resultExamService.getUserExamResults(req.user.email, courseId);
   }
 
   @Get('users/user/results')

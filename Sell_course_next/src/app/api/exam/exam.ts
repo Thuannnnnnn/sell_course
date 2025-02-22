@@ -1,5 +1,20 @@
 import axios from 'axios';
 
+interface Answer {
+  answerId: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+interface Question {
+  questionId?: string;
+  question: string;
+  answers: Answer[];
+}
+
+// Removed unused interface Exam
+
+
 export interface CreateExamDto {
   courseId: string;
   questions: {
@@ -152,5 +167,26 @@ export const submitExam = async (token: string, courseId: string, answers: Answe
   } catch (error) {
     console.error("Error submitting exam:", error);
     throw error;
+  }
+};
+
+export const getExamResults = async (token: string, courseId: string) => {
+  try {
+    const response = await  axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/user/results/${courseId}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch exam results:", error);
+    return null;
   }
 };

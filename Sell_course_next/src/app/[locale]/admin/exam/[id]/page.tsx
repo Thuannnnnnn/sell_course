@@ -56,7 +56,35 @@ const ExamManagementPage = () => {
     }],
   });
 
-  // Fetch exams by courseId
+  useEffect(() => {
+    if (id) {
+      const fetchExams = async () => {
+        if (!id) {
+          console.log("Course ID is missing");
+          return;
+        }
+        try {
+          setLoading(true);
+          const data = await getExamByCourseId(id);
+          console.log("Data received:", data);
+          // Ensure the data is in the correct format (object)
+          if (data && data.examId) {
+            setExams(data);  // Set the exam object
+          } else {
+            console.error("Expected an exam object but got:", data);
+            setExams(null);  // Reset if the data is not valid
+          }
+        } catch (error) {
+          console.error("Error fetching exams:", error);
+          setExams(null);  // Set exams to null in case of error
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchExams();
+    }
+  }, [id]);
+
   const fetchExams = async () => {
     if (!id) {
       console.log("Course ID is missing");
@@ -80,12 +108,6 @@ const ExamManagementPage = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (id) {
-      fetchExams();
-    }
-  }, [id]);
 
   console.log("CourseId ", id);
 

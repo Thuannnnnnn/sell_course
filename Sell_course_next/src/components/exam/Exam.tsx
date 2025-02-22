@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { fetchQuestion, submitExam } from "@/app/api/exam/exam";
+import { fetchQuestion, getExamResults, submitExam } from "@/app/api/exam/exam";
 import "../../style/ExamPage.css";
 
 interface Answer {
@@ -23,68 +23,78 @@ const ExamPage = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
-  const [correctAnswers, setCorrectAnswers] = useState<Record<string, string>>(
-    {}
-  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [hasPreviousResult, setHasPreviousResult] = useState(false);
 
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!session?.user?.token) return;
+  console.log(loading, error)
 
-    const fetchExamQuestion = async () => {
+  useEffect(() => {
+    if (status === "loading" || !session?.user?.token) return;
+
+    const fetchExamData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const examQuestions = await fetchQuestion(
-          session.user.token,
-          id as string
-        );
-        setQuestions(examQuestions);
+        const result = await getExamResults(session.user.token, id as string);
+        if (result && result.score !== undefined) {
+          setScore(result.score);
+          setHasPreviousResult(true);
+        } else {
+          const examQuestions = await fetchQuestion(session.user.token, id as string);
+          setQuestions(examQuestions);
+        }
       } catch {
-        setError("Failed to load exam questions.");
+        setError("Failed to load exam data.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchExamQuestion();
+    fetchExamData();
   }, [session, status, id]);
 
   const handleSelectAnswer = (questionId: string, answerId: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
   };
-  console.log(correctAnswers);
+
   const handleSubmit = async () => {
     if (!session?.user?.token) return;
 
-    const formattedAnswers = Object.entries(answers).map(
-      ([questionId, answerId]) => ({
-        questionId,
-        answerId,
-      })
-    );
-
-    console.log("Selected Answers:", formattedAnswers); // Kiểm tra trước khi gửi API
+    const formattedAnswers = Object.entries(answers).map(([questionId, answerId]) => ({
+      questionId,
+      answerId,
+    }));
 
     try {
-      const result = await submitExam(
-        session.user.token,
-        id as string,
-        formattedAnswers
-      );
-
-      console.log("API Response:", result); // Kiểm tra dữ liệu từ API
-
+      const result = await submitExam(session.user.token, id as string, formattedAnswers);
       setScore(result.score);
-      setCorrectAnswers(result.correctAnswers);
       setSubmitted(true);
-    } catch (error) {
-      console.error("Failed to submit exam:", error);
+      setHasPreviousResult(true);
+    } catch {
       setError("Failed to submit exam. Please try again.");
+    }
+  };
+
+  const handleRetry = async () => {
+    setAnswers({});
+    setSubmitted(false);
+    setScore(null);
+    setHasPreviousResult(false);
+    setQuestions([]);
+    setCurrentQuestionIndex(0);
+    setLoading(true);
+
+    try {
+      if (!session?.user?.token) return;
+      const examQuestions = await fetchQuestion(session.user.token, id as string);
+      setQuestions(examQuestions);
+    } catch {
+      setError("Failed to reload exam questions.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,56 +110,39 @@ const ExamPage = () => {
     }
   };
 
-  if (loading) return <p>Loading exam questions...</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
+  if (hasPreviousResult) {
+    return (
+      <div className="exam-container">
+        <h1>Exam Result</h1>
+        <div className={`score ${score && score >= 50 ? "scoreSuccess" : "scoreFail"}`}>
+          Your Score: {score}
+        </div>
+        <button className="retry-button" onClick={handleRetry}>Retry Exam</button>
+      </div>
+    );
+  }
 
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
     <div className="exam-container">
-      <div className="exam-header">
-        <h1>Exam</h1>
-        {submitted &&
-          score !== null &&
-          (score >= 50 ? (
-            <div className="scoreSuccess">Your Score: {score}</div>
-          ) : null)}
-        {submitted &&
-          score !== null &&
-          (score <= 50 ? (
-            <div className="scoreFail">Your Score: {score}</div>
-          ) : null)}
-      </div>
+      <h1>Exam</h1>
       <div className="exam-content">
         {currentQuestion && (
           <div className="question-card">
-            <div className="question-header">
-              <span className="question-number">
-                Question {currentQuestionIndex + 1}/{questions.length}
-              </span>
-            </div>
+            <span className="question-number">
+              Question {currentQuestionIndex + 1}/{questions.length}
+            </span>
             <p className="question-text">{currentQuestion.question}</p>
             <div className="answers-list">
               {currentQuestion.answers.map((answer) => (
-                <label
-                  key={answer.answerId}
-                  className={`answer-item ${
-                    submitted && answer.isCorrect ? "correct-answer" : ""
-                  }`}
-                >
+                <label key={answer.answerId} className="answer-item">
                   <input
                     type="radio"
                     name={currentQuestion.questionId}
                     value={answer.answerId}
-                    checked={
-                      answers[currentQuestion.questionId] === answer.answerId
-                    }
-                    onChange={() =>
-                      handleSelectAnswer(
-                        currentQuestion.questionId,
-                        answer.answerId
-                      )
-                    }
+                    checked={answers[currentQuestion.questionId] === answer.answerId}
+                    onChange={() => handleSelectAnswer(currentQuestion.questionId, answer.answerId)}
                     disabled={submitted}
                   />
                   {answer.answer}
@@ -159,22 +152,12 @@ const ExamPage = () => {
           </div>
         )}
         <div className="navigation-buttons">
-          <button
-            className="nav-button"
-            onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0}
-          >
-            Previous
-          </button>
+          <button className="nav-button" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>Previous</button>
           {currentQuestionIndex < questions.length - 1 ? (
-            <button className="nav-button" onClick={handleNextQuestion}>
-              Next
-            </button>
+            <button className="nav-button" onClick={handleNextQuestion}>Next</button>
           ) : (
             !submitted && (
-              <button className="submit-button" onClick={handleSubmit}>
-                Submit Exam
-              </button>
+              <button className="submit-button" onClick={handleSubmit}>Submit Exam</button>
             )
           )}
         </div>
