@@ -19,6 +19,9 @@ export class Video {
   @Column()
   url: string;
 
+  @Column()
+  urlScript: string;
+
   @Column({ type: 'timestamp', name: 'created_at' })
   createdAt: Date;
 }
