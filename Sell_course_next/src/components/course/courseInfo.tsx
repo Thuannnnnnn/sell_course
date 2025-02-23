@@ -45,18 +45,6 @@ export default function CourseInfo() {
           ],
           completed: false,
         },
-        {
-          type: "exam",
-          title: "Exam: Final Test",
-          questions: [
-            {
-              question: "What is interior design?",
-              options: ["Art", "Science", "Both"],
-              correct: 2,
-            },
-          ],
-          completed: false,
-        },
       ],
     },
   ];
