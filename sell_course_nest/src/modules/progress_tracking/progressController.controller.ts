@@ -2,13 +2,16 @@ import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ProgressTrackingService } from './progressService.service';
 import { MarkProgressDto } from './dto/progressRequestDto.dto';
 import { LessonProgressResponseDto } from './dto/progressReponseDto.dto';
+import { ProgressTracking } from './entities/progress.entity';
 
 @Controller('progress')
 export class ProgressTrackingController {
   constructor(private readonly progressService: ProgressTrackingService) {}
 
   @Post('complete')
-  async markAsCompleted(@Body() markProgressDto: MarkProgressDto) {
+  async markAsCompleted(
+    @Body() markProgressDto: MarkProgressDto,
+  ): Promise<ProgressTracking> {
     const { userId, contentId, lessonId } = markProgressDto;
     const progress = await this.progressService.markAsCompleted(
       userId,
