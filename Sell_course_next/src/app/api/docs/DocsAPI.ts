@@ -118,9 +118,10 @@ export const updateDoc = async (
 export const deleteDoc = async (
   docId: string,
   token: string
-): Promise<void> => {
+): Promise<number> => {
   try {
-    await axios.delete(`${API_URL}/delete_doc/${docId}`, getAuthHeaders(token));
+    const doc = await axios.delete(`${API_URL}/delete_doc/${docId}`, getAuthHeaders(token));
+    return doc.status;
   } catch (error) {
     handleAxiosError(error, `deleting document with ID: ${docId}`);
     throw error;

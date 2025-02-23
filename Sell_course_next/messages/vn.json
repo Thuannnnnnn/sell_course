@@ -380,6 +380,23 @@
   "resetPasswordBanner": {
     "title-reset": "Đặt lại mật khẩu"
   },
+  "docAdminPage": {
+    "document_upload": "Tải Tài Liệu Lên",
+    "add_new_document": "Thêm Tài Liệu Mới (Word / PDF)",
+    "document_name": "Tên Tài Liệu",
+    "choose_file": "Chọn Tệp Tin (Word / PDF)",
+    "file_preview": "Xem Trước Tài Liệu",
+    "upload_document": "Tải Lên Tài Liệu",
+    "delete_decument": "Xóa Tài Liệu",
+    "document_list": "Danh Sách Tài Liệu",
+    "file_type_error": "Chỉ chấp nhận tệp .docx hoặc .pdf",
+    "file_required": "Bạn phải chọn một tệp tin",
+    "title_required": "Tên tài liệu không được để trống",
+    "title_length_error": "Tên tài liệu phải có ít nhất 3 ký tự",
+    "title_exists_error": "Tên tài liệu đã tồn tại",
+    "upload_error": "Có lỗi xảy ra khi tải tài liệu lên",
+      "file_status" : "Tệp tin đã có sẵn"
+  },
   "lesson": {
     "NotHave": "Không có bài học nào!",
     "addContent": "Thêm nội dung",

@@ -6,6 +6,7 @@ import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import {
   createDoc,
+  deleteDoc,
   fetchDocByIdAdmin,
   updateDoc,
 } from "@/app/api/docs/DocsAPI";
@@ -15,10 +16,12 @@ import {
   NotificationManager,
 } from "react-notifications";
 import "react-notifications/lib/notifications.css";
+import { useTranslations } from "next-intl";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs`;
 
 const DocsPage = () => {
+  const t = useTranslations("docAdminPage");
   const searchParams = useSearchParams();
   const contentsId = searchParams.get("contentId");
   const [formData, setFormData] = useState<{
@@ -41,7 +44,7 @@ const DocsPage = () => {
   };
   const token = session?.user.token;
   useEffect(() => {
-    const loadCourse = async () => {
+    const loadDoc = async () => {
       if (contentsId) {
         if (!token) {
           return;
@@ -59,11 +62,12 @@ const DocsPage = () => {
             docsId: doc.docsId,
           }));
           setCheckUpdate(true);
+          setFilePreview(doc.url);
         }
       }
     };
 
-    if (contentsId) loadCourse();
+    if (contentsId) loadDoc();
   }, [contentsId, token]);
 
   const createNotification = (
@@ -128,6 +132,23 @@ const DocsPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const deleteDocument = async () => {
+    try {
+      const token = session?.user.token;
+      const str = contentsId || "";
+      const data = str.split("?");
+      if (!token) {
+        return;
+      }
+      const response = await deleteDoc(formData.docsId, token);
+      if (response === 200) {
+        router.push(`/${locale}/admin/courseAdmin/lesson?courseId=${data[1]}`);
+      }
+    } catch (error) {
+      return error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm() || !formData.file) return;
@@ -139,7 +160,6 @@ const DocsPage = () => {
     const data = str.split("?");
     try {
       if (checkUpdate == true) {
-        console.log("check vao day");
         const doc = await updateDoc(
           formData.docsId,
           formData.title,
@@ -178,12 +198,12 @@ const DocsPage = () => {
   };
   return (
     <div className="container mt-5 mb-5">
-      <h1>Document Upload</h1>
+      <h1>{t("document_upload")}</h1>
       <div className="container mt-5">
-        <h2>Thêm Tài Liệu Mới (Word / PDF)</h2>
+        <h2>{t("add_new_document")}</h2>
         <form onSubmit={handleSubmit} className="p-4 border rounded shadow">
           <div className="mb-3">
-            <label className="form-label">Tên tài liệu</label>
+            <label className="form-label">{t("document_name")}</label>
             <input
               title="text"
               type="text"
@@ -197,7 +217,15 @@ const DocsPage = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Chọn tệp tin (Word / PDF)</label>
+            <label className="form-label">
+              {t("choose_file")}{" "}
+              {checkUpdate && (
+                <span className="text-success ms-2  ">
+                  ✅ {t("file_status")}
+                </span>
+              )}
+            </label>
+
             <input
               title="file"
               type="file"
@@ -211,7 +239,7 @@ const DocsPage = () => {
 
           {filePreview && formData.file?.type === "application/pdf" && (
             <div className="mb-3">
-              <p>Xem trước tài liệu PDF:</p>
+              <p>{t("file_preview")}:</p>
               <PDFDocument
                 file={filePreview}
                 onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -233,24 +261,31 @@ const DocsPage = () => {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
               <div className="mb-3">
                 <p>
-                  <strong>Tên tệp:</strong> {formData.file.name}
+                  <strong>{t("file_name")}:</strong> {formData.file.name}
                 </p>
                 <p>
-                  <i>
-                    (Không thể hiển thị nội dung Word, vui lòng mở tệp trên máy
-                    tính)
-                  </i>
+                  <i>({t("word_file_info")})</i>
                 </p>
               </div>
             )}
+
           <button type="submit" className="btn btn-primary">
-            Thêm tài liệu
+            {t("upload_document")}
           </button>
         </form>
+        {checkUpdate === true && (
+          <button
+            type="button"
+            className="btn btn-primary mt-4"
+            onClick={() => deleteDocument()}
+          >
+            {t("delete_document")}
+          </button>
+        )}
 
         {documents.length > 0 && (
           <div className="mt-4">
-            <h4>Danh sách tài liệu:</h4>
+            <h4>{t("document_list")}:</h4>
             <ul className="list-group">
               {documents.map((doc, index) => (
                 <li key={index} className="list-group-item">
