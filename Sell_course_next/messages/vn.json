@@ -402,6 +402,8 @@
     "addContent": "Thêm nội dung",
     "contentName": "Tên nội dung",
     "contentType": "Loại nội dung",
+    "updateLesson" : "Cập nhật bài Học",
+    "updateContent" : "Cập nhật nội dung",
     "video": "Video",
     "document": "Tài liệu",
     "quiz": "Câu hỏi",

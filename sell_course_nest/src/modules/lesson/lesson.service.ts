@@ -84,15 +84,18 @@ export class LessonService {
     });
   }
 
-  async deleteLesson(lessonId: string): Promise<void> {
+  async deleteLesson(lessonId: string): Promise<{ message: string }> {
     const lesson = await this.lessonRepository.findOne({ where: { lessonId } });
 
     if (!lesson) {
-      throw new HttpException('Lesson not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('Lesson not found');
     }
 
     await this.lessonRepository.delete(lessonId);
+    return { message: 'Lesson deleted successfully' };
   }
+
+
   async getLessonsByCourseId(courseId: string): Promise<CourseWithLessonsDto> {
     const lessons = await this.lessonRepository.find({
       where: { course: { courseId } },
