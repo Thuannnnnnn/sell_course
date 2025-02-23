@@ -103,6 +103,28 @@ export class VideoService {
 
   async deleteVideo(videoId: string) {
     await axios.delete(`http://0.0.0.0:8000/delete_video/${videoId}`);
+    await this.videoRepository.delete({ videoId: videoId });
     return { message: 'Video and related files deleted successfully' };
+  }
+
+  async deleteScript(videoId: string) {
+    await axios.delete(`http://0.0.0.0:8000/delete_script/${videoId}`);
+    await this.videoRepository.update({ videoId }, { urlScript: null });
+    return { message: 'Script files deleted successfully' };
+  }
+
+  async viewVideo(): Promise<Video> {
+    const videoList = await this.videoRepository.find();
+    if (videoList.length === 0) {
+      throw new Error('No videos found');
+    }
+    return videoList[0];
+  }
+  async viewVideoById(videoId: string): Promise<Video> {
+    const video = await this.videoRepository.findOne({
+      where: { videoId: videoId },
+    });
+
+    return video;
   }
 }
