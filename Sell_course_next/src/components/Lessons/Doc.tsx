@@ -24,13 +24,28 @@ export default function DocumentLesson({
 
   useEffect(() => {
     const fileType = getFileType(fileUrl);
+    if (!fileType) return;
 
     if (fileType === "docx") {
       const fetchDocx = async () => {
-        const response = await fetch(fileUrl);
-        const arrayBuffer = await response.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        setContent(result.value);
+        try {
+          const response = await fetch(fileUrl);
+          const blob = await response.blob();
+          const file = new File([blob], "document.docx");
+
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const result = reader.result;
+            if (result instanceof ArrayBuffer) {
+              const arrayBuffer: ArrayBuffer = result;
+              const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+              setContent(htmlResult.value);
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        } catch (error) {
+          console.error("Lỗi khi tải tệp DOCX:", error);
+        }
       };
       fetchDocx();
     }
@@ -50,9 +65,10 @@ export default function DocumentLesson({
       )}
 
       {fileType === "docx" && (
-        <div className="doc-content">
-          <p>{content}</p>
-        </div>
+        <div
+          className="docx-preview"
+          dangerouslySetInnerHTML={{ __html: content }}
+        ></div>
       )}
 
       {fileType !== "pdf" && fileType !== "docx" && (
