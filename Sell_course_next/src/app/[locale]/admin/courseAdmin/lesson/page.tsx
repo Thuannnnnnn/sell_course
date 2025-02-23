@@ -249,13 +249,13 @@ const LessonPage = () => {
     const { contentType, contentId } = content;
     switch (contentType) {
       case "video":
-        router.push(`lesson/content/video?contentId=${contentId}`);
+        router.push(`lesson/content/video?contentId=${contentId}?${courseId}`);
         break;
       case "document":
-        router.push(`lesson/content/document?contentId=${contentId}`);
+        router.push(`lesson/content/document?contentId=${contentId}?${courseId}`);
         break;
       case "quiz":
-        router.push(`lesson/content/quizz?contentId=${contentId}`);
+        router.push(`lesson/content/quizz?contentId=${contentId}?${courseId}`);
         break;
       default:
         break;

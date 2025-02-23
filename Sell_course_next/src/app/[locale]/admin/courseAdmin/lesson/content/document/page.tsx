@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { pdfjs, Page, Document as PDFDocument } from "react-pdf";
+import { pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import {
@@ -18,6 +18,12 @@ import {
 import "react-notifications/lib/notifications.css";
 import { useTranslations } from "next-intl";
 
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
+import mammoth from "mammoth";
+
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs`;
 
 const DocsPage = () => {
@@ -33,7 +39,7 @@ const DocsPage = () => {
   const [errors, setErrors] = useState<{ title?: string; file?: string }>({});
   const [documents, setDocuments] = useState<string[]>([]);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [numPages, setNumPages] = useState<number | null>(null);
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
@@ -105,12 +111,27 @@ const DocsPage = () => {
       setErrors((prev) => ({ ...prev, file: "Chỉ chấp nhận .docx hoặc .pdf" }));
       return;
     }
+
     setErrors((prev) => ({ ...prev, file: undefined }));
     setFormData((prev) => ({ ...prev, file }));
 
-    setFilePreview(
-      file.type === "application/pdf" ? URL.createObjectURL(file) : null
-    );
+    if (file.type === "application/pdf") {
+      setFilePreview(URL.createObjectURL(file));
+    } else if (
+      file.type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const result = reader.result;
+        if (result instanceof ArrayBuffer) {
+          const arrayBuffer: ArrayBuffer = result;
+          const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+          setFilePreview(htmlResult.value);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -238,37 +259,24 @@ const DocsPage = () => {
           </div>
 
           {filePreview && formData.file?.type === "application/pdf" && (
-            <div className="mb-3">
-              <p>{t("file_preview")}:</p>
-              <PDFDocument
-                file={filePreview}
-                onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                className="border p-2"
-              >
-                {Array.from(new Array(numPages), (el, index) => (
-                  <Page
-                    key={`page_${index + 1}`}
-                    pageNumber={index + 1}
-                    width={500}
-                  />
-                ))}
-              </PDFDocument>
-            </div>
+            <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+              <div style={{ height: "750px" }}>
+                <Viewer
+                  fileUrl={filePreview}
+                  plugins={[defaultLayoutPluginInstance]}
+                />
+              </div>
+            </Worker>
           )}
 
-          {formData.file &&
-            formData.file.type ===
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
-              <div className="mb-3">
-                <p>
-                  <strong>{t("file_name")}:</strong> {formData.file.name}
-                </p>
-                <p>
-                  <i>({t("word_file_info")})</i>
-                </p>
-              </div>
+          {filePreview &&
+            formData.file?.type ===
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
+              <div
+                className="docx-preview"
+                dangerouslySetInnerHTML={{ __html: filePreview }}
+              ></div>
             )}
-
           <button type="submit" className="btn btn-primary">
             {t("upload_document")}
           </button>
@@ -281,19 +289,6 @@ const DocsPage = () => {
           >
             {t("delete_document")}
           </button>
-        )}
-
-        {documents.length > 0 && (
-          <div className="mt-4">
-            <h4>{t("document_list")}:</h4>
-            <ul className="list-group">
-              {documents.map((doc, index) => (
-                <li key={index} className="list-group-item">
-                  {doc}
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
       </div>
       <NotificationContainer />

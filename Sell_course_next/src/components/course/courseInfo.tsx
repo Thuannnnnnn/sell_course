@@ -126,7 +126,7 @@ export default function CourseInfo() {
         return (
           <DocumentLesson
             title={currentLessonData.title || "Untitled Document"}
-            content={currentLessonData.content || "No content available"}
+            fileUrl="https://sdnmma.blob.core.windows.net/wdp/6445e536-f667-46df-b432-4e341e4a51ca-productsDetai%20compare%20search.docx"
             onComplete={handleComplete}
           />
         );
