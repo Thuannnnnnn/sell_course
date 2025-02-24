@@ -49,6 +49,30 @@ export class ProgressTrackingController {
     return { lessonId, userId, completedContentsCount: count };
   }
 
+  @Get('course/:courseId/user/:userId/progress')
+  async getCourseProgress(
+    @Param('courseId') courseId: string,
+    @Param('userId') userId: string,
+  ): Promise<{ progress: number }> {
+    const progress = await this.progressService.calculateCourseProgress(
+      userId,
+      courseId,
+    );
+    return { progress };
+  }
+
+  @Get('content/:contentId/user/:userId/status')
+  async getContentStatus(
+    @Param('contentId') contentId: string,
+    @Param('userId') userId: string,
+  ): Promise<{ contentId: string; userId: string; isCompleted: boolean }> {
+    const isCompleted = await this.progressService.getContentCompletionStatus(
+      userId,
+      contentId,
+    );
+    return { contentId, userId, isCompleted };
+  }
+
   @Get('course/:courseId/user/:userId/completed-lessons-count')
   async getCompletedLessonsCountInCourse(
     @Param('courseId') courseId: string,

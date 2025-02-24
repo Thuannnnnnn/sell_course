@@ -59,6 +59,22 @@ export class ProgressTrackingService {
     });
     return completedCount === totalContents;
   }
+
+  async getContentCompletionStatus(
+    userId: string,
+    contentId: string,
+  ): Promise<boolean> {
+    const progress = await this.progressRepository.findOne({
+      where: {
+        user: { user_id: userId },
+        content: { contentId: contentId },
+        is_completed: true,
+      },
+    });
+
+    return !!progress;
+  }
+
   async getCompletedContentsCount(
     userId: string,
     lessonId: string,
@@ -70,6 +86,41 @@ export class ProgressTrackingService {
         is_completed: true,
       },
     });
+  }
+
+  async calculateCourseProgress(
+    userId: string,
+    courseId: string,
+  ): Promise<number> {
+    const lessons = await this.lessonRepository.find({
+      where: { course: { courseId } },
+      relations: ['contents'],
+    });
+
+    let totalContents = 0;
+    let completedContents = 0;
+
+    for (const lesson of lessons) {
+      const lessonContents = lesson.contents.length;
+      totalContents += lessonContents;
+
+      if (lessonContents > 0) {
+        const completedCount = await this.progressRepository.count({
+          where: {
+            user: { user_id: userId },
+            lesson: { lessonId: lesson.lessonId },
+            is_completed: true,
+          },
+        });
+        completedContents += completedCount;
+      }
+    }
+
+    if (totalContents === 0) {
+      return 0;
+    }
+
+    return (completedContents / totalContents) * 100;
   }
 
   async getCompletedLessonsCountInCourse(

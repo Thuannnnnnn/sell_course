@@ -4,21 +4,43 @@ import * as mammoth from "mammoth";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+import { fetchDocById } from "@/app/api/docs/DocsAPI";
+import { useSession } from "next-auth/react";
 interface DocumentLessonProps {
   title: string;
-  fileUrl: string;
+  contentId: string;
   onComplete: () => void;
 }
 
 export default function DocumentLesson({
   title,
-  fileUrl,
+  contentId,
   onComplete,
 }: DocumentLessonProps) {
   const [content, setContent] = useState<string>("");
   const getFileType = (url: string) => {
-    return url.split(".").pop()?.toLowerCase();
+    if (url !== "") return url.split(".").pop()?.toLowerCase();
   };
+  const [fileUrl, setFileUrl] = useState<string>("");
+  const { data: session } = useSession();
+  const token = session?.user.token;
+  useEffect(() => {
+    const loadDoc = async () => {
+      if (contentId) {
+        if (!token) {
+          return;
+        }
+        const doc = await fetchDocById(contentId, token);
+        if (doc) {
+          setFileUrl(doc.url);
+        } else {
+          setFileUrl("");
+        }
+      }
+    };
+
+    if (contentId) loadDoc();
+  }, [token, contentId]);
 
   const fileType = getFileType(fileUrl);
 

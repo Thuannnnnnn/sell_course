@@ -65,6 +65,8 @@ import { QuizzStore } from './modules/quizz_store/entities/quizz_store.entity';
 import { QuizzStoreModule } from './modules/quizz_store/quizz_store.module';
 import { ResultExamModule } from './modules/result_exam/result_exam.module';
 import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
+import { ProgressTracking } from './modules/progress_tracking/entities/progress.entity';
+import { ProcessModule } from './modules/progress_tracking/progress.module';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -121,10 +123,12 @@ import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
         Permission,
         Order,
         ResultExam,
+        ProgressTracking,
       ],
       synchronize: true,
     }),
     TypeOrmModule.forFeature([User, Permission]),
+    ProcessModule,
     NotifyModule,
     UserNotifyModule,
     UserModule,

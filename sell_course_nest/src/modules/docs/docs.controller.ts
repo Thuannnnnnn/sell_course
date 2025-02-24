@@ -57,6 +57,24 @@ export class DocsController {
     return await this.docsService.getByContentId(contentsId);
   }
 
+  @Get('/docs/view_doc/:id')
+  @ApiBearerAuth('Authorization')
+  @ApiOperation({ summary: 'Get all Docs' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved all Docs.',
+    type: [DocsResponseDTO],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No Docs found.',
+  })
+  async getDocByContentId(
+    @Param('id') contentsId: string,
+  ): Promise<DocsResponseDTO> {
+    return await this.docsService.getByContentId(contentsId);
+  }
+
   @Post('/admin/docs/create_docs')
   @ApiBearerAuth('Authorization')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 1 }]))
