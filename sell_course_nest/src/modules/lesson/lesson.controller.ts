@@ -49,7 +49,7 @@ export class LessonController {
   async getLessonByCourseIdAdmin(@Param('courseId') courseId: string) {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
-  @Get('/view_lesson/:courseId')
+  @Get('/lesson/view_lesson/:courseId')
   @ApiOperation({ summary: 'Get course by ID with contents' })
   @ApiResponse({ status: 200, description: 'Lesson details' })
   async getLessonByCourseId(@Param('courseId') courseId: string) {
