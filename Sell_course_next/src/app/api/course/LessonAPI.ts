@@ -72,8 +72,8 @@ export const updateLesson = async (
 ) => {
   try {
     const response = await axios.put(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/lesson/update_lesson`,
-      { lessonId, lessonName },
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/lesson/update_lesson/${lessonId}`,
+      { lessonName },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -81,16 +81,17 @@ export const updateLesson = async (
         },
       }
     );
-
     return response.data;
   } catch (error) {
     console.error("Error updating lesson:", error);
     return null;
   }
 };
+
+
 export const deleteLesson = async (lessonId: string, token: string) => {
   try {
-    const response = await axios.put(
+    const response = await axios.delete(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/lesson/delete_lesson/${lessonId}`,
       {
         headers: {
@@ -101,7 +102,7 @@ export const deleteLesson = async (lessonId: string, token: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error updating lesson:", error);
+    console.error("Error deleting lesson:", error);
     return null;
   }
 };

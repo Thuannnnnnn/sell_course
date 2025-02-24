@@ -14,6 +14,11 @@ import { useSession } from "next-auth/react";
 import { CourseData } from "@/app/type/course/Lesson";
 import { useParams } from "next/navigation";
 import QuizPage from "../quizz/Quiz";
+import {
+  fetchContentStatus,
+  fetchCourseProgress,
+  markContentAsCompleted,
+} from "@/app/api/progress/ProgressAPI";
 
 export default function CourseInfo() {
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -21,7 +26,7 @@ export default function CourseInfo() {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(0);
   const [currentContentIndex, setCurrentContentIndex] = useState<number>(0);
   const [completedContents, setCompletedContents] = useState<string[]>([]);
-
+  const [progress, setProgress] = useState<number>(0);
   const { id } = useParams();
   const { data: session } = useSession();
 
@@ -34,32 +39,80 @@ export default function CourseInfo() {
           Array.isArray(id) ? id[0] : id,
           session.user.token
         );
+        if (!lessonData || !lessonData.lessons) return;
         setCourseData(lessonData);
+
+        const completedList: string[] = [];
+
+        for (const lesson of lessonData.lessons) {
+          for (const content of lesson.contents) {
+            try {
+              const isContentCompleted = await fetchContentStatus(
+                content.contentId,
+                session.user.user_id,
+                session.user.token
+              );
+
+              if (isContentCompleted) {
+                completedList.push(content.contentId);
+              }
+            } catch (error) {
+              console.error(
+                `Error fetching content status for ${content.contentId}:`,
+                error
+              );
+            }
+          }
+        }
+
+        setCompletedContents(completedList);
       } catch (error) {
         console.error("Failed to fetch lesson data:", error);
       }
     };
+    const loadProgress = async () => {
+      if (!session?.user.token || !id) return;
 
+      try {
+        const response = await fetchCourseProgress(
+          Array.isArray(id) ? id[0] : id,
+          session.user.user_id,
+          session.user.token
+        );
+        setProgress(response);
+      } catch (error) {
+        console.error("Failed to fetch progress:", error);
+      }
+    };
+
+    loadProgress();
     loadLesson();
   }, [id, session]);
-
   const isContentCompleted = (contentId: string) =>
     completedContents.includes(contentId);
 
-  const markContentCompleted = (contentId: string) => {
-    if (!isContentCompleted(contentId)) {
-      setCompletedContents([...completedContents, contentId]);
-    }
-  };
+  const markContentCompleted = async (contentId: string, lessonId: string) => {
+    if (!isContentCompleted(contentId) && session?.user.token && id) {
+      try {
+        await markContentAsCompleted(
+          session.user.user_id,
+          contentId,
+          lessonId,
+          session.user.token
+        );
 
-  const calculateProgress = () => {
-    if (!courseData) return "0%";
-    const totalContents = courseData.lessons.reduce(
-      (total, lesson) => total + lesson.contents.length,
-      0
-    );
-    const progress = (completedContents.length / totalContents) * 100;
-    return `${progress.toFixed(0)}%`;
+        setCompletedContents([...completedContents, contentId]);
+
+        const updatedProgress = await fetchCourseProgress(
+          Array.isArray(id) ? id[0] : id,
+          session.user.user_id,
+          session.user.token
+        );
+        setProgress(updatedProgress);
+      } catch (error) {
+        console.error("Failed to mark content as completed:", error);
+      }
+    }
   };
 
   const handleNextContent = () => {
@@ -68,12 +121,14 @@ export default function CourseInfo() {
     const currentLesson = courseData.lessons[currentLessonIndex];
     if (currentContentIndex + 1 < currentLesson.contents.length) {
       markContentCompleted(
-        currentLesson.contents[currentContentIndex].contentId
+        currentLesson.contents[currentContentIndex].contentId,
+        currentLesson.lessonId
       );
       setCurrentContentIndex(currentContentIndex + 1);
     } else if (currentLessonIndex + 1 < courseData.lessons.length) {
       markContentCompleted(
-        currentLesson.contents[currentContentIndex].contentId
+        currentLesson.contents[currentContentIndex].contentId,
+        currentLesson.lessonId
       );
       setCurrentLessonIndex(currentLessonIndex + 1);
       setCurrentContentIndex(0);
@@ -84,7 +139,8 @@ export default function CourseInfo() {
     setCurrentLessonIndex(lessonIndex);
     setCurrentContentIndex(contentIndex);
     markContentCompleted(
-      courseData!.lessons[lessonIndex].contents[contentIndex].contentId
+      courseData!.lessons[lessonIndex].contents[contentIndex].contentId,
+      courseData!.lessons[lessonIndex].lessonId
     );
   };
 
@@ -111,7 +167,8 @@ export default function CourseInfo() {
 
     if (!currentContent) return <p>Content not found</p>;
 
-    const handleComplete = () => markContentCompleted(currentContent.contentId);
+    const handleComplete = () =>
+      markContentCompleted(currentContent.contentId, currentLesson.lessonId);
 
     switch (currentContent.contentType) {
       case "video":
@@ -127,7 +184,7 @@ export default function CourseInfo() {
           <DocumentLesson
             title={currentContent.contentName}
             onComplete={handleComplete}
-            content={""}
+            contentId={currentContent.contentId}
           />
         );
       case "quiz":
@@ -144,9 +201,7 @@ export default function CourseInfo() {
       <CourseInfoBanner title="Course" subtitle="Lesson Details" />
       <div className="course-header">
         <h1 className="course-title">{courseData?.courseName}</h1>
-        <span className="course-progress">
-          Your Progress: {calculateProgress()}
-        </span>
+        <span className="course-progress">Your Progress: {progress} %</span>
       </div>
       <div className="course-nav">
         <div className="course-nav-content">
@@ -196,6 +251,9 @@ export default function CourseInfo() {
                             <span className="course-text">
                               {lesson.contentName}
                             </span>
+                            {isContentCompleted(lesson.contentId) && (
+                              <span className="completed-icon">✅</span>
+                            )}
                           </div>
                         </li>
                       ))}
