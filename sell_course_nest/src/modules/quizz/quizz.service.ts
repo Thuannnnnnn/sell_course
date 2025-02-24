@@ -186,33 +186,41 @@ export class QuizzService {
     return this.getQuizById(quizzId);
   }
 
-  async getRandomQuiz(quizzId: string, numberOfQuestions = 10) {
-    const quiz = await this.quizzRepository.findOne({
-      where: { quizzId },
-      relations: ['contents', 'questions', 'questions.answers'],
-    });
+  async getRandomQuiz(
+    contentId: string,
+    quizzId?: string,
+    numberOfQuestions = 10,
+  ) {
+    const quizzes = await this.getQuizzesByContentId(contentId);
+
+    if (!quizzes.length) {
+      throw new NotFoundException(
+        `No quizzes found for content ID ${contentId}`,
+      );
+    }
+
+    const quiz = quizzId
+      ? quizzes.find((q) => q.quizzId === quizzId)
+      : quizzes[0];
 
     if (!quiz) {
-      throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
+      throw new NotFoundException(
+        `Quiz ID ${quizzId} không thuộc content ID ${contentId}`,
+      );
     }
 
     if (quiz.questions.length < numberOfQuestions) {
       throw new NotFoundException(
-        `Quiz only has ${quiz.questions.length} questions, cannot get ${numberOfQuestions} random questions`,
+        `Quiz chỉ có ${quiz.questions.length} câu hỏi, không thể lấy ${numberOfQuestions} câu`,
       );
     }
 
-    const shuffledQuestions = [...quiz.questions];
-    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledQuestions[i], shuffledQuestions[j]] = [
-        shuffledQuestions[j],
-        shuffledQuestions[i],
-      ];
-    }
-    const randomQuestions = shuffledQuestions.slice(0, numberOfQuestions);
-    const randomQuiz = { ...quiz, questions: randomQuestions };
-    return randomQuiz;
+    const shuffledQuestions = quiz.questions.sort(() => Math.random() - 0.5);
+
+    return {
+      ...quiz,
+      questions: shuffledQuestions.slice(0, numberOfQuestions),
+    };
   }
 
   async deleteQuestion(quizzId: string, questionId: string) {
@@ -220,31 +228,31 @@ export class QuizzService {
       where: { quizzId },
       relations: ['questions'],
     });
-  
+
     if (!quiz) {
       throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
     }
-  
+
     const question = await this.questionRepository.findOne({
-      where: { 
+      where: {
         questionId,
-        quizz: { quizzId }
+        quizz: { quizzId },
       },
       relations: ['answers'],
     });
-  
+
     if (!question) {
       throw new NotFoundException(
-        `Question with ID ${questionId} not found in Quiz ${quizzId}`
+        `Question with ID ${questionId} not found in Quiz ${quizzId}`,
       );
     }
-  
+
     await this.answerRepository.delete({ question: { questionId } });
-  
+
     await this.questionRepository.delete({ questionId });
-  
-    return { 
-      message: `Question with ID ${questionId} has been deleted from Quiz ${quizzId}` 
+
+    return {
+      message: `Question with ID ${questionId} has been deleted from Quiz ${quizzId}`,
     };
   }
 }
