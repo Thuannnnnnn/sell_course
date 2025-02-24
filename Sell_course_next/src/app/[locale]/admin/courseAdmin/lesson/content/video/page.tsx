@@ -59,18 +59,17 @@ export default function VideoPage() {
       <Card className={styles.uploadBox} onClick={() => fileInputRef.current?.click()}>
         <Card.Body className={styles.dragDropArea}>
           <p className={styles.dragText}>Drag & drop files or <span className={styles.browse} onClick={() => fileInputRef.current?.click()}>Browse</span></p>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className={styles.fileInput} 
-            style={{ display: "none" }} 
+          <input
+            type="file"
+            ref={fileInputRef}
+            className={styles.fileInput}
+            style={{ display: "none" }}
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
           <p className={styles.supportedFormats}>Supported formats: JPEG, PNG, GIF, MP4, PDF, PSD, AI, Word, PPT</p>
           <Button onClick={handleUpload} className={styles.uploadButton}>UPLOAD FILES</Button>
         </Card.Body>
       </Card>
-      
       <ListGroup className={styles.uploadedSection}>
         <p className={styles.uploadedText}>Uploaded Files</p>
         {uploadedFiles.map(file => (
