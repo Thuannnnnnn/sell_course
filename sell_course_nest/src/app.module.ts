@@ -74,6 +74,7 @@ import { ProcessModule } from './modules/progress_tracking/progress.module';
 
 @Module({
   imports: [
+    VideoModule,
     ContentModule,
     PaymentModule,
     ConfigModule.forRoot({
@@ -165,7 +166,7 @@ import { ProcessModule } from './modules/progress_tracking/progress.module';
   providers: [AppService],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/a/*');
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(PermissionMiddleware).forRoutes('/api/xyz/*');
   }
 }
