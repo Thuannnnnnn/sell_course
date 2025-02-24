@@ -163,8 +163,8 @@ export default function CourseInfo() {
           <VideoLesson
             title={currentContent.contentName}
             contentId={currentContent.contentId}
+            lessonId={currentLesson.lessonId}
             onComplete={handleComplete}
-            duration={""}
           />
         );
       case "document":
@@ -174,7 +174,7 @@ export default function CourseInfo() {
             onComplete={handleComplete}
             lessonId={currentLesson.lessonId}
             contentId={currentContent.contentId}
-            onNextContent={handleNextContent} 
+            onNextContent={handleNextContent}
           />
         );
       case "quiz":
