@@ -120,16 +120,8 @@ export default function CourseInfo() {
 
     const currentLesson = courseData.lessons[currentLessonIndex];
     if (currentContentIndex + 1 < currentLesson.contents.length) {
-      markContentCompleted(
-        currentLesson.contents[currentContentIndex].contentId,
-        currentLesson.lessonId
-      );
       setCurrentContentIndex(currentContentIndex + 1);
     } else if (currentLessonIndex + 1 < courseData.lessons.length) {
-      markContentCompleted(
-        currentLesson.contents[currentContentIndex].contentId,
-        currentLesson.lessonId
-      );
       setCurrentLessonIndex(currentLessonIndex + 1);
       setCurrentContentIndex(0);
     }
@@ -138,10 +130,6 @@ export default function CourseInfo() {
   const selectContent = (lessonIndex: number, contentIndex: number) => {
     setCurrentLessonIndex(lessonIndex);
     setCurrentContentIndex(contentIndex);
-    markContentCompleted(
-      courseData!.lessons[lessonIndex].contents[contentIndex].contentId,
-      courseData!.lessons[lessonIndex].lessonId
-    );
   };
 
   const getLessonIcon = (type: string) => {
@@ -169,7 +157,6 @@ export default function CourseInfo() {
 
     const handleComplete = () =>
       markContentCompleted(currentContent.contentId, currentLesson.lessonId);
-
     switch (currentContent.contentType) {
       case "video":
         return (
@@ -185,7 +172,9 @@ export default function CourseInfo() {
           <DocumentLesson
             title={currentContent.contentName}
             onComplete={handleComplete}
+            lessonId={currentLesson.lessonId}
             contentId={currentContent.contentId}
+            onNextContent={handleNextContent} 
           />
         );
       case "quiz":
@@ -266,11 +255,11 @@ export default function CourseInfo() {
         </aside>
         <main className="course-video-section">
           {renderLessonComponent()}
-          <div className="course-navigation">
+          {/* <div className="course-navigation">
             <button className="btn-next" onClick={handleNextContent}>
               Next →
             </button>
-          </div>
+          </div> */}
         </main>
       </div>
     </div>
