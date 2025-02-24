@@ -13,16 +13,23 @@ export const uploadVideo = async (
   formData.append("contentId", contentId);
   formData.append("title", title);
 
-  await axios.post(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/video/create_video`,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/video/create_video`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data", // ✅ Đặt đúng Content-Type
+        },
+      }
+    );
+    console.log("Upload success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Upload failed:", error);
+    throw error;
+  }
 };
 
 export const updateVideo = async (
