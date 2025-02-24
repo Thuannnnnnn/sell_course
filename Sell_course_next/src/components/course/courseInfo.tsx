@@ -175,6 +175,7 @@ export default function CourseInfo() {
         return (
           <VideoLesson
             title={currentContent.contentName}
+            contentId={currentContent.contentId}
             onComplete={handleComplete}
             duration={""}
           />
