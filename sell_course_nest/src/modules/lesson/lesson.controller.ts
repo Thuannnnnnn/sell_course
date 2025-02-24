@@ -49,14 +49,14 @@ export class LessonController {
   async getLessonByCourseIdAdmin(@Param('courseId') courseId: string) {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
-  @Get('/view_lesson/:courseId')
+  @Get('/lesson/view_lesson/:courseId')
   @ApiOperation({ summary: 'Get course by ID with contents' })
   @ApiResponse({ status: 200, description: 'Lesson details' })
   async getLessonByCourseId(@Param('courseId') courseId: string) {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
 
-  @Put('admin/update_lesson/:lessonId')
+  @Put('admin/lesson/update_lesson/:lessonId')
   @ApiOperation({ summary: 'Update lesson details' })
   @ApiResponse({ status: 200, description: 'Lesson updated successfully' })
   async updateLesson(
@@ -66,9 +66,10 @@ export class LessonController {
     return this.lessonService.updateLesson(lessonId, updateLessonDto);
   }
 
-  @Delete('admin/delete_lesson/:lessonId')
+  @Delete('admin/lesson/delete_lesson/:lessonId')
   @ApiOperation({ summary: 'Delete a lesson' })
   @ApiResponse({ status: 200, description: 'Lesson deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Lesson not found' })
   async deleteLesson(@Param('lessonId') lessonId: string) {
     return this.lessonService.deleteLesson(lessonId);
   }

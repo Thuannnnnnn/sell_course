@@ -1,3 +1,128 @@
-.cursorPointer {
-    cursor: pointer;
+/* General container styling */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* ===== Card Styling ===== */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s;
+  background: white;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Căn chỉnh các nút về bên phải */
+.card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Đảm bảo các nút nằm cùng một hàng và căn phải */
+.card-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto; /* Đẩy nút về bên phải */
+}
+
+/* Căn chỉnh nội dung danh sách */
+.list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.list-group-item:hover {
+  background: #e9ecef;
+  border-left: 5px solid #0056b3;
+}
+
+/* Content Types */
+.content-video {
+  border-left: 5px solid #ff4d4d;
+}
+
+.content-document {
+  border-left: 5px solid #ffcc00;
+}
+
+.content-quiz {
+  border-left: 5px solid #33cc33;
+}
+
+/* ===== Buttons Styling ===== */
+.card-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  border-radius: 6px;
+  font-size: 14px;
+  padding: 5px 10px;
+}
+
+/* Add Button */
+.btn-add {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 24px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.btn-add:hover {
+  background-color: #0056b3;
+  transform: scale(1.1);
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Input Fields */
+.form-control {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card-title {
+    font-size: 1.2rem;
   }
+
+  .btn-add {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .list-group-item {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

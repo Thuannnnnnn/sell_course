@@ -1,21 +1,115 @@
 "use client";
-import { AiOutlineFileText } from "react-icons/ai";
-
+import { useEffect, useState } from "react";
+import * as mammoth from "mammoth";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+import { fetchDocById } from "@/app/api/docs/DocsAPI";
+import { useSession } from "next-auth/react";
 interface DocumentLessonProps {
   title: string;
-  content: string;
-  onComplete: () => void;
+  contentId: string;
+  lessonId: string;
+  onComplete: (contentId: string, lessonId: string) => void;
+  onNextContent: () => void;
 }
 
-export default function DocumentLesson({ title, content, onComplete }: DocumentLessonProps) {
+export default function DocumentLesson({
+  title,
+  contentId,
+  lessonId,
+  onComplete,
+  onNextContent,
+}: DocumentLessonProps) {
+  const [content, setContent] = useState<string>("");
+  const getFileType = (url: string) => {
+    if (url !== "") return url.split(".").pop()?.toLowerCase();
+  };
+  const [fileUrl, setFileUrl] = useState<string>("");
+  const { data: session } = useSession();
+  const token = session?.user.token;
+  useEffect(() => {
+    const loadDoc = async () => {
+      if (contentId) {
+        if (!token) {
+          return;
+        }
+        const doc = await fetchDocById(contentId, token);
+        if (doc) {
+          setFileUrl(doc.url);
+        } else {
+          setFileUrl("");
+        }
+      }
+    };
+
+    if (contentId) loadDoc();
+  }, [token, contentId]);
+
+  const fileType = getFileType(fileUrl);
+
+  useEffect(() => {
+    const fileType = getFileType(fileUrl);
+    if (!fileType) return;
+
+    if (fileType === "docx") {
+      const fetchDocx = async () => {
+        try {
+          const response = await fetch(fileUrl);
+          const blob = await response.blob();
+          const file = new File([blob], "document.docx");
+
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const result = reader.result;
+            if (result instanceof ArrayBuffer) {
+              const arrayBuffer: ArrayBuffer = result;
+              const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+              setContent(htmlResult.value);
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        } catch (error) {
+          console.error("Lỗi khi tải tệp DOCX:", error);
+        }
+      };
+      fetchDocx();
+    }
+  }, [fileUrl]);
+
   return (
     <div className="lesson-container">
       <h2>{title}</h2>
-      <div className="doc-content">
-        <AiOutlineFileText className="doc-icon" />
-        <p>{content}</p>
-      </div>
-      <button onClick={onComplete}>Mark as Read</button>
+
+      {fileType === "pdf" && (
+        <div className="pdf-viewer">
+          <Worker
+            workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
+          >
+            <Viewer fileUrl={fileUrl} />
+          </Worker>
+        </div>
+      )}
+
+      {fileType === "docx" && (
+        <div
+          className="docx-preview"
+          dangerouslySetInnerHTML={{ __html: content }}
+        ></div>
+      )}
+
+      {fileType !== "pdf" && fileType !== "docx" && (
+        <p>Định dạng tệp không được hỗ trợ</p>
+      )}
+
+      <button
+        onClick={() => {
+          onComplete(contentId, lessonId);
+          onNextContent();
+        }}
+      >
+        Mark as Read
+      </button>
     </div>
   );
 }
