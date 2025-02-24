@@ -178,7 +178,7 @@ export default function CourseInfo() {
           />
         );
       case "quiz":
-        return <QuizPage />;
+        return <QuizPage contentId={currentContent.contentId} />;
       case "exam":
         return <ExamPage />;
       default:
