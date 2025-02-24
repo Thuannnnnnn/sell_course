@@ -228,12 +228,12 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
     <div className="container">
       <div className="wrapper">
         <div className="header">
-          <h1 className="title">Quizzes Management</h1>
+          <h1 className="title">Exam Management</h1>
           <button
             className={`${styles.button} ${styles.primary}`}
             onClick={() => setShowCreateModal(true)}
           >
-            Add New Quiz
+            Add New Exam
           </button>
         </div>
 
@@ -241,7 +241,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
         {showCreateModal && (
           <div className={styles.modal}>
             <div className={styles.modalContent}>
-              <h2>Create New Quiz</h2>
+              <h2>Create New Exam</h2>
               <button className={styles.addButton} onClick={handleAddQuestion}>
                 Add New Question
               </button>
@@ -292,7 +292,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                   className={`${styles.button} ${styles.primary}`}
                   onClick={handleCreateExam}
                 >
-                  Create Quiz
+                  Create Question
                 </button>
                 <button
                   className={`${styles.button} ${styles.secondary}`}
