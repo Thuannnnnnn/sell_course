@@ -1,0 +1,203 @@
+/* Full CSS for Course Info UI */
+
+.course-info-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+}
+
+.course-header {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+.course-info {
+  display: flex;
+  flex-direction: column; /* Xếp phần tử theo chiều dọc */
+  align-items: flex-start; /* Canh trái nội dung */
+  gap: 5px; /* Khoảng cách giữa các phần tử */
+}
+
+.course-title {
+  font-weight: bold;
+  margin-bottom: 5px; /* Tạo khoảng cách giữa tiêu đề và progress */
+}
+
+.course-progress {
+  font-size: 14px;
+  color: #666;
+}
+
+.course-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+}
+
+.course-nav {
+  background-color: #e3e3e3;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center; /* Căn giữa theo chiều dọc */
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  border-bottom: 1px solid #ccc;
+}
+
+.course-nav-content {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  font-size: 14px;
+  cursor: pointer;
+  color: #555;
+}
+
+.nav-item.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.course-content-wrapper {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.course-sidebar {
+  width: 20%;
+  background: #f9f9f9;
+  padding: 15px;
+  border-right: 1px solid #ddd;
+  flex-direction: column;
+}
+
+.course-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.course-list1 {
+  list-style: none;
+  padding: 0;
+}
+
+.course-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.course-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.course-text {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.course-duration,
+.course-check {
+  margin-left: 10px;
+  white-space: nowrap;
+}
+
+.course-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.dropdown-icon {
+  transition: transform 0.2s ease-in-out;
+}
+
+.dropdown-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.course-lessons {
+  list-style: none;
+  padding-left: 15px;
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.course-icon {
+  color: #555;
+}
+
+.course-text {
+  flex-grow: 1;
+}
+
+.course-duration {
+  font-size: 12px;
+  color: #888;
+}
+
+.course-check {
+  color: green;
+}
+
+.course-video-section {
+  flex-grow: 1;
+  padding: 20px;
+  background: #fff;
+}
+
+.video-header h2 {
+  font-size: 18px;
+}
+
+.video-player {
+  width: 100%;
+  height: 400px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-play-icon {
+  color: #fff;
+  font-size: 50px;
+  cursor: pointer;
+}
+
+.course-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn-prev,
+.btn-next {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  background: #007bff;
+  color: white;
+  border-radius: 5px;
+}
+
+.btn-prev:hover,
+.btn-next:hover {
+  background: #0056b3;
+}

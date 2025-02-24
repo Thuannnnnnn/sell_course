@@ -11,7 +11,7 @@ import { QuizzStoreService } from './quizz_store.service';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
-@Controller('quizzStore')
+@Controller('api/quizzStore')
 @UseGuards(JwtAuthGuard)
 export class QuizzStoreController {
   constructor(private readonly quizzStoreService: QuizzStoreService) {}

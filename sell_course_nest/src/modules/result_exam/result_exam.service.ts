@@ -27,29 +27,23 @@ export class ResultExamService {
     }
 
     const exam = await this.examRepository.findOne({
-      where: { examId: submitExamDto.examId },
+      where: { courseId: submitExamDto.courseId },
       relations: ['questions', 'questions.answers'],
     });
     if (!exam) {
       throw new NotFoundException('Exam not found');
     }
 
-    // Use getQuestionsForUser to get a random subset of questions (10 in this case)
-    const questionsForUser = await this.getQuestionsForUser(
-      submitExamDto.examId,
-    );
-    const questionsMap = new Map(
-      questionsForUser.map((q) => [q.questionId, q]),
-    );
+    const questionsMap = new Map(exam.questions.map((q) => [q.questionId, q]));
     const answersMap = new Map(
-      questionsForUser.flatMap((q) => q.answers.map((a) => [a.answerId, a])),
+      exam.questions.flatMap((q) => q.answers.map((a) => [a.answerId, a])),
     );
 
     // Check if the user has already submitted an exam for the given examId
     const existingResult = await this.resultExamRepository.findOne({
       where: {
         user: { email },
-        exam: { examId: submitExamDto.examId },
+        exam: { courseId: submitExamDto.courseId },
       },
     });
 
@@ -66,7 +60,7 @@ export class ResultExamService {
       const selectedAnswer = answersMap.get(submission.answerId);
 
       if (!question || !selectedAnswer) {
-        continue; // Skip invalid submissions
+        continue;
       }
 
       const isCorrect = selectedAnswer.isCorrect;
@@ -82,7 +76,7 @@ export class ResultExamService {
     }
 
     // Calculate the score as a percentage based on the selected questions
-    const totalQuestions = questionsForUser.length;
+    const totalQuestions = 10;
     const percentageScore = (score / totalQuestions) * 100;
 
     const resultExam = this.resultExamRepository.create({
@@ -97,11 +91,11 @@ export class ResultExamService {
     return this.resultExamRepository.save(resultExam);
   }
 
-  async getUserExamResults(email: string, examId: string) {
+  async getUserExamResults(email: string, courseId: string) {
     const results = await this.resultExamRepository.findOne({
       where: {
         user: { email },
-        exam: { examId },
+        exam: { courseId },
       },
       relations: ['exam', 'user'],
     });
@@ -127,11 +121,12 @@ export class ResultExamService {
     return results;
   }
 
-  async getQuestionsForUser(examId: string) {
+  async getQuestionsForUser(courseId: string) {
     const exam = await this.examRepository.findOne({
-      where: { examId },
+      where: { courseId },
       relations: ['questions', 'questions.answers'],
     });
+    console.log('Get exxam Id', courseId);
     if (!exam) {
       throw new NotFoundException('Exam not found');
     }

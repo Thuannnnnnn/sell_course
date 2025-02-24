@@ -1,7 +1,7 @@
 import { Document } from "@/app/type/document/Document";
 import axios from "axios";
 
-const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/docs`;
+const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}`;
 
 const getAuthHeaders = (token: string) => ({
   headers: {
@@ -11,7 +11,7 @@ const getAuthHeaders = (token: string) => ({
 
 export const fetchDocs = async (): Promise<Document[]> => {
   try {
-    const response = await axios.get<Document[]>(`${API_URL}/getAll`);
+    const response = await axios.get<Document[]>(`${API_URL}/api/docs/getAll`);
     return response.data.map((doc) => ({
       ...doc,
     }));
@@ -36,14 +36,18 @@ export const fetchDocsAdmin = async (token: string): Promise<Document[]> => {
   }
 };
 
-export const fetchDocById = async (docId: string): Promise<Document> => {
+export const fetchDocById = async (
+  contensId: string,
+  token: string
+): Promise<Document> => {
   try {
-    const response = await axios.get<Document>(`${API_URL}/getByDoc/${docId}`);
-    return {
-      ...response.data,
-    };
+    const response = await axios.get<Document>(
+      `${API_URL}/api/docs/view_doc/${contensId}`,
+      getAuthHeaders(token)
+    );
+    return response.data;
   } catch (error) {
-    handleAxiosError(error, `fetching document with ID: ${docId}`);
+    handleAxiosError(error, `fetching document with ID:(Admin)`);
     throw error;
   }
 };
@@ -54,7 +58,7 @@ export const fetchDocByIdAdmin = async (
 ): Promise<Document> => {
   try {
     const response = await axios.get<Document>(
-      `${API_URL}/view_doc/${contensId}`,
+      `${API_URL}/api/admin/docs/view_doc/${contensId}`,
       getAuthHeaders(token)
     );
     return response.data;
@@ -72,7 +76,7 @@ export const createDoc = async (
 ): Promise<number> => {
   try {
     const response = await axios.post<Document>(
-      `${API_URL}/create_docs`,
+      `${API_URL}/api/admin/docs/create_docs`,
       { title, contentsId, file },
       {
         headers: {
@@ -97,7 +101,7 @@ export const updateDoc = async (
 ): Promise<number> => {
   try {
     const response = await axios.put<Document>(
-      `${API_URL}/update_docs/${docsId}`,
+      `${API_URL}/api/admin/docs/update_docs/${docsId}`,
       { title, file, contentsId },
       {
         ...getAuthHeaders(token),
@@ -118,9 +122,13 @@ export const updateDoc = async (
 export const deleteDoc = async (
   docId: string,
   token: string
-): Promise<void> => {
+): Promise<number> => {
   try {
-    await axios.delete(`${API_URL}/delete_doc/${docId}`, getAuthHeaders(token));
+    const doc = await axios.delete(
+      `${API_URL}/api/admin/docs/delete_doc/${docId}`,
+      getAuthHeaders(token)
+    );
+    return doc.status;
   } catch (error) {
     handleAxiosError(error, `deleting document with ID: ${docId}`);
     throw error;

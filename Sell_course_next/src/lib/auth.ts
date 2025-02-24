@@ -1,22 +1,26 @@
-import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import axios, { AxiosError } from 'axios';
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import axios, { AxiosError } from "axios";
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: {
+    strategy: "jwt",
+    maxAge: 0,
+  },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials || !credentials.email || !credentials.password) {
-          console.error('Missing credentials');
+          console.error("Missing credentials");
           return null;
         }
 
@@ -29,15 +33,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
             {
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
             }
           );
-          console.log('Check session o day: ' + response.data);
+          console.log("Check session o day: " + response.data);
+          console.log("Check user_id: ", response.data?.user_id);
           if (response.data?.token) {
             return {
               token: response.data.token,
-              user_id: response.data.user_id || '',
+              user_id: response.data.user_id,
               email: response.data.email,
               gender: response.data.gender,
               birthDay: response.data.birthDay,
@@ -48,15 +53,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           } else {
             console.error(
-              'Login failed:',
-              response.data.message || 'Unknown error'
+              "Login failed:",
+              response.data.message || "Unknown error"
             );
             return null;
           }
         } catch (error) {
           const err = error as AxiosError;
           console.error(
-            'Error in authorize function:',
+            "Error in authorize function:",
             err.response?.data || err.message
           );
           return null;
@@ -77,22 +82,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.token = user.token;
       }
+      console.log("Check token user_id in jwt: ", token.user_id);
       return token;
     },
 
-    // async session({ session, token }) {
-
-    //   session.user.id = token.id as string;
-    //   session.user.email = token.email as string;
-    //   session.user.role = token.role as string;
-    //   session.user.token = token.token as string;
-    //   session.user.name = token.name as string;
-    //   session.user.avatarImg = token.avatarImg || "/default-avatar.png";
-    //   session.gender = token.gender as string;
-    //   session.birthDay = token.birthDay as string;
-    //   session.phoneNumber = token.phoneNumber as number;
-    //   return session;
-    // },
     async session({ session, token }) {
       session.user = {
         ...session.user,
@@ -106,6 +99,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         birthDay: token.birthDay as string,
         phoneNumber: token.phoneNumber as string,
       };
+      console.log("Check session user_id: ", session.user.user_id);
       return session;
     },
     async signIn({ user, account }) {
@@ -113,7 +107,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false;
       }
 
-      if (account.type === 'credentials') {
+      if (account.type === "credentials") {
+        console.log("Check credentials user_id: ", user.user_id);
         return true;
       }
 
@@ -133,28 +128,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           payload,
           {
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
           }
         );
 
         if (!response.data) {
-          console.error('Error: API response data is null');
+          console.error("Error: API response data is null");
           return false;
         }
         user.token = response.data.token;
-        user.user_id = response.data.user_id || '';
-        user.email = response.data.email || '';
+        user.user_id = response.data.user_id || "";
+        user.email = response.data.email || "";
         user.gender = response.data.gender || null;
         user.birthDay = response.data.birthDay || null;
         user.phoneNumber = response.data.phoneNumber || null;
-        user.avatarImg = response.data.avatarImg || '';
-        user.username = response.data.username || 'Unknown';
-        user.role = response.data.role || 'user';
-
+        user.avatarImg = response.data.avatarImg || "";
+        user.username = response.data.username || "Unknown";
+        user.role = response.data.role || "user";
+        console.log("Check OAuth user_id: ", user.user_id);
         return true;
       } catch (error) {
-        console.error('Error during API call in sign-in callback:', error);
+        console.error("Error during API call in sign-in callback:", error);
         return false;
       }
     },

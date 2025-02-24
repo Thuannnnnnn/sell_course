@@ -15,7 +15,7 @@ interface BannerUserProps {
 
 export default function BannerUser({ user }: BannerUserProps) {
   return (
-    <div className="card">
+    <div className="cardUser">
       <div className="avatar">
         <Image
           src={user.avatarImg || defaultAvatar}

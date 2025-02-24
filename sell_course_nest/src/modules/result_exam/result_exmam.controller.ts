@@ -22,9 +22,9 @@ export class ResultExamController {
     return this.resultExamService.submitExam(req.user.email, submitExamDto);
   }
 
-  @Get('users/user/results/:examId')
-  async getExamResults(@Request() req, @Param('examId') examId: string) {
-    return this.resultExamService.getUserExamResults(req.user.email, examId);
+  @Get('users/user/results/:courseId')
+  async getExamResults(@Request() req, @Param('courseId') courseId: string) {
+    return this.resultExamService.getUserExamResults(req.user.email, courseId);
   }
 
   @Get('users/user/results')
@@ -32,13 +32,13 @@ export class ResultExamController {
     return this.resultExamService.getAllUserExamResults(req.user.email);
   }
 
-  @Get('users/user/questions/:examId')
-  async getQuestionsForUser(@Param('examId') examId: string) {
+  @Get('users/user/questions/:courseId')
+  async getQuestionsForUser(@Param('courseId') courseId: string) {
     try {
       const questions =
-        await this.resultExamService.getQuestionsForUser(examId);
+        await this.resultExamService.getQuestionsForUser(courseId);
       return questions;
-    } catch {
+    } catch (error) {
       throw new NotFoundException('Exam not found');
     }
   }

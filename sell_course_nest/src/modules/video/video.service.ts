@@ -120,9 +120,9 @@ export class VideoService {
     }
     return videoList[0];
   }
-  async viewVideoById(videoId: string): Promise<Video> {
+  async viewVideoById(contentId: string): Promise<Video> {
     const video = await this.videoRepository.findOne({
-      where: { videoId: videoId },
+      where: { contents: { contentId } },
     });
 
     return video;
