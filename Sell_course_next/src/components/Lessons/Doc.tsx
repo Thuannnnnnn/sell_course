@@ -9,13 +9,17 @@ import { useSession } from "next-auth/react";
 interface DocumentLessonProps {
   title: string;
   contentId: string;
-  onComplete: () => void;
+  lessonId: string;
+  onComplete: (contentId: string, lessonId: string) => void;
+  onNextContent: () => void;
 }
 
 export default function DocumentLesson({
   title,
   contentId,
+  lessonId,
   onComplete,
+  onNextContent,
 }: DocumentLessonProps) {
   const [content, setContent] = useState<string>("");
   const getFileType = (url: string) => {
@@ -72,6 +76,7 @@ export default function DocumentLesson({
       fetchDocx();
     }
   }, [fileUrl]);
+
   return (
     <div className="lesson-container">
       <h2>{title}</h2>
@@ -97,7 +102,14 @@ export default function DocumentLesson({
         <p>Định dạng tệp không được hỗ trợ</p>
       )}
 
-      <button onClick={onComplete}>Mark as Read</button>
+      <button
+        onClick={() => {
+          onComplete(contentId, lessonId);
+          onNextContent();
+        }}
+      >
+        Mark as Read
+      </button>
     </div>
   );
 }
