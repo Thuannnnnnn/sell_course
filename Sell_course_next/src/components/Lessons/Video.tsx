@@ -8,8 +8,8 @@ import { VideoResponse } from "@/app/type/video/video";
 interface VideoLessonProps {
   title: string;
   contentId: string;
-  duration: string;
-  onComplete: () => void;
+  lessonId: string;
+  onComplete: (contentId: string, lessonId: string) => void;
 }
 
 interface SubtitleSegment {
@@ -22,13 +22,16 @@ interface SubtitleSegment {
 export default function VideoLesson({
   title,
   contentId,
-  duration,
+  lessonId,
+  onComplete,
 }: VideoLessonProps) {
   const [videoData, setVideoData] = useState<VideoResponse | null>(null);
   const [subtitles, setSubtitles] = useState<SubtitleSegment[]>([]);
   const [currentText, setCurrentText] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [hasCompleted, setHasCompleted] = useState<boolean>(false);
   const { data: session } = useSession();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -88,10 +91,32 @@ export default function VideoLesson({
         }
       };
 
+      const handleMetadataLoaded = () => {
+        if (videoRef.current) {
+          setVideoDuration(videoRef.current.duration);
+        }
+      };
+
+      const handleTimeUpdate = () => {
+        if (videoRef.current) {
+          const currentTime = videoRef.current.currentTime;
+          const targetTime = videoDuration * 0.8;
+
+          if (!hasCompleted && currentTime >= targetTime) {
+            onComplete(contentId, lessonId);
+            setHasCompleted(true);
+          }
+        }
+      };
+
       video.addEventListener("timeupdate", updateSubtitle);
+      video.addEventListener("loadedmetadata", handleMetadataLoaded);
+      video.addEventListener("timeupdate", handleTimeUpdate);
 
       return () => {
         video.removeEventListener("timeupdate", updateSubtitle);
+        video.removeEventListener("loadedmetadata", handleMetadataLoaded);
+        video.removeEventListener("timeupdate", handleTimeUpdate);
       };
     }
 
@@ -101,7 +126,15 @@ export default function VideoLesson({
         hlsRef.current = null;
       }
     };
-  }, [videoData?.url, subtitles]);
+  }, [
+    videoData?.url,
+    subtitles,
+    videoDuration,
+    hasCompleted,
+    contentId,
+    lessonId,
+    onComplete,
+  ]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
@@ -135,7 +168,7 @@ export default function VideoLesson({
           </div>
         )}
       </div>
-      <p>Duration: {duration}</p>
+      <p>Thời lượng Video: {videoDuration.toFixed(2)}s</p>
     </div>
   );
 }

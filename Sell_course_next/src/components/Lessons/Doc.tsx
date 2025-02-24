@@ -1,11 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import * as mammoth from "mammoth";
-import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { Worker } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { fetchDocById } from "@/app/api/docs/DocsAPI";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
+
+const PDFViewer = dynamic(
+  () => import("@react-pdf-viewer/core").then((mod) => mod.Viewer),
+  {
+    ssr: false,
+  }
+);
 interface DocumentLessonProps {
   title: string;
   contentId: string;
@@ -86,7 +94,7 @@ export default function DocumentLesson({
           <Worker
             workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
           >
-            <Viewer fileUrl={fileUrl} />
+            <PDFViewer fileUrl={fileUrl} />
           </Worker>
         </div>
       )}
