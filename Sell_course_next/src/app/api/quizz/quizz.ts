@@ -1,17 +1,19 @@
-import { CreateQuizzDto, UpdateQuizzDto } from '@/app/type/quizz/quizz';
-import axios, { AxiosError } from 'axios';
-
+import { CreateQuizzDto, UpdateQuizzDto } from "@/app/type/quizz/quizz";
+import axios, { AxiosError } from "axios";
+import { QuizSubmissionData } from "@/app/type/quizz/quizz";
 const handleAxiosError = (error: unknown): never => {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{ message?: string }>;
-    if (axiosError.response?.data && 'message' in axiosError.response.data) {
+    if (axiosError.response?.data && "message" in axiosError.response.data) {
       throw new Error(axiosError.response.data.message);
     }
     if (axiosError.response) {
-      throw new Error(`Request failed with status ${axiosError.response.status}`);
+      throw new Error(
+        `Request failed with status ${axiosError.response.status}`
+      );
     }
     if (axiosError.request) {
-      throw new Error('No response received from server');
+      throw new Error("No response received from server");
     }
   }
   throw error;
@@ -78,27 +80,52 @@ export const deleteQuizzByQuestionId = async (
   }
 };
 
-export const getRandomQuiz = async (quizzId: string) => {
+export const getRandomQuiz = async (
+  contentId: string,
+  quizId?: string,
+  numberOfQuestions: number = 10
+) => {
   try {
+    const queryParams = new URLSearchParams();
+
+    if (quizId) {
+      queryParams.append("quizzId", quizId);
+    }
+    queryParams.append("numberOfQuestions", numberOfQuestions.toString());
+
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizz/random/${quizzId}`
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_URL
+      }/api/quizz/random/${contentId}?${queryParams.toString()}`
     );
+
+    console.log("data day ne", response.data);
     return response.data;
   } catch (error) {
-    handleAxiosError(error);
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      switch (status) {
+        case 404:
+          throw new Error("No quiz found for this content");
+        case 400:
+          throw new Error(message || "Invalid quiz request");
+        default:
+          if (error.response) {
+            throw new Error(message || `Error fetching quiz: ${status}`);
+          }
+          if (error.request) {
+            throw new Error(
+              "No response received from server. Please check your connection and try again."
+            );
+          }
+      }
+    }
+    console.error("Error fetching random quiz:", error);
+    throw new Error("Failed to load quiz. Please try again.");
   }
 };
-
-interface QuizAnswer {
-  questionId: string;
-  answerId: string;
-}
-
-interface QuizSubmissionData {
-  userId: string;
-  answers: QuizAnswer[];
-  quizzId?: string;
-}
 
 export const submitQuizAnswers = async (
   data: QuizSubmissionData,
@@ -106,18 +133,18 @@ export const submitQuizAnswers = async (
 ) => {
   try {
     if (!token) {
-      throw new Error('Authentication token is required');
+      throw new Error("Authentication token is required");
     }
     if (!data.userId) {
-      throw new Error('userId is required');
+      throw new Error("userId is required");
     }
     if (!Array.isArray(data.answers) || data.answers.length === 0) {
-      throw new Error('answers array is required and cannot be empty');
+      throw new Error("answers array is required and cannot be empty");
     }
 
     for (const answer of data.answers) {
       if (!answer.questionId || !answer.answerId) {
-        throw new Error('Each answer must have both questionId and answerId');
+        throw new Error("Each answer must have both questionId and answerId");
       }
     }
 
@@ -127,7 +154,7 @@ export const submitQuizAnswers = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -142,12 +169,12 @@ export const submitQuizAnswers = async (
         case 500:
           throw new Error(
             message ||
-              'Internal server error occurred. Please try again later or contact support if the issue persists.'
+              "Internal server error occurred. Please try again later or contact support if the issue persists."
           );
         case 400:
           throw new Error(
             message ||
-              'Invalid quiz submission data. Please check your answers and try again.'
+              "Invalid quiz submission data. Please check your answers and try again."
           );
         default:
           if (error.response) {
@@ -157,7 +184,7 @@ export const submitQuizAnswers = async (
           }
           if (error.request) {
             throw new Error(
-              'No response received from server. Please check your connection and try again.'
+              "No response received from server. Please check your connection and try again."
             );
           }
       }
@@ -167,18 +194,22 @@ export const submitQuizAnswers = async (
       throw error;
     }
 
-    throw new Error('Failed to submit quiz answers. Please try again.');
+    throw new Error("Failed to submit quiz answers. Please try again.");
   }
 };
 
-export const getQuizzResults = async (token: string, quizzId: string) => {
+export const getQuizzResults = async (
+  token: string,
+  contentId: string,
+  quizzId: string
+) => {
   try {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizzStore/results/${quizzId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/quizzStore/results/${contentId}/${quizzId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -191,9 +222,9 @@ export const getQuizzResults = async (token: string, quizzId: string) => {
 
       switch (status) {
         case 404:
-          throw new Error('Quiz results not found');
+          throw new Error("Quiz results not found");
         case 401:
-          throw new Error('Unauthorized access to quiz results');
+          throw new Error("Unauthorized access to quiz results");
         default:
           if (error.response) {
             throw new Error(
@@ -202,7 +233,7 @@ export const getQuizzResults = async (token: string, quizzId: string) => {
           }
           if (error.request) {
             throw new Error(
-              'No response received from server. Please check your connection and try again.'
+              "No response received from server. Please check your connection and try again."
             );
           }
       }

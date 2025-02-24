@@ -20,6 +20,15 @@ export interface Quiz {
   contentId: string;
   questions: Question[];
 }
+interface QuizAnswer {
+  questionId: string;
+  answerId: string;
+}
+export interface QuizSubmissionData {
+  userId: string;
+  answers: QuizAnswer[];
+  quizzId?: string;
+}
 
 // Interface for creating a new quiz
 export interface CreateQuizzDto {

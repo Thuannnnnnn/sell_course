@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { QuizzService } from './quizz.service';
@@ -40,10 +41,17 @@ export class QuizzController {
     return this.quizzService.updateQuizz(id, updateQuizzDto);
   }
 
-  @Get('/quizz/random/:id/')
-  async getRandomQuiz(@Param('id') id: string) {
+  @Get('quizz/random/:contentId')
+  async getRandomQuiz(
+    @Param('contentId') contentId: string,
+    @Query('quizzId') quizzId?: string,
+  ) {
     const numberOfQuestions = 10;
-    return this.quizzService.getRandomQuiz(id, numberOfQuestions);
+    return this.quizzService.getRandomQuiz(
+      contentId,
+      quizzId,
+      numberOfQuestions,
+    );
   }
 
   @Delete('/admin/quizz/:quizzId/question/:questionId')
