@@ -10,10 +10,12 @@ import {
 import "../../style/ExamPage.css";
 import { Question, Quiz } from "@/app/type/quizz/quizz";
 
-const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
-  contentId,
-  quizzId,
-}) => {
+const QuizPage: React.FC<{
+  contentId: string;
+  quizzId?: string;
+  lessonId: string;
+  onComplete: (contentId: string, lessonId: string) => void;
+}> = ({ contentId, quizzId, lessonId, onComplete }) => {
   const { data: session } = useSession();
   const token = session?.user?.token;
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -52,8 +54,12 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
         setLoading(false);
       }
     };
+
+    if (score && score >= 50) {
+      onComplete(contentId, lessonId);
+    }
     fetchQuizData();
-  }, [contentId, quizzId, token]);
+  }, [contentId, quizzId, token, lessonId, onComplete, score]);
 
   if (loading) {
     return <p>Loading quiz...</p>;
