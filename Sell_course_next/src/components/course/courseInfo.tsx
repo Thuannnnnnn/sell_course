@@ -162,9 +162,9 @@ export default function CourseInfo() {
         return (
           <VideoLesson
             title={currentContent.contentName}
-            contentId={currentContent.contentId}
             onComplete={handleComplete}
-            duration={""}
+            lessonId={currentLesson.lessonId}
+            contentId={currentContent.contentId}
           />
         );
       case "document":
@@ -174,11 +174,17 @@ export default function CourseInfo() {
             onComplete={handleComplete}
             lessonId={currentLesson.lessonId}
             contentId={currentContent.contentId}
-            onNextContent={handleNextContent} 
+            onNextContent={handleNextContent}
           />
         );
       case "quiz":
-        return <QuizPage />;
+        return (
+          <QuizPage
+            onComplete={handleComplete}
+            lessonId={currentLesson.lessonId}
+            contentId={currentContent.contentId}
+          />
+        );
       case "exam":
         return <ExamPage />;
       default:
