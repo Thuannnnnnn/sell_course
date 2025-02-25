@@ -8,8 +8,7 @@ import {
   getQuizzResults,
 } from "@/app/api/quizz/quizz";
 import "../../style/ExamPage.css";
-import { Quiz } from "@/app/type/quizz/quizz";
-
+import { Question, Quiz } from "@/app/type/quizz/quizz";
 
 const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
   contentId,
@@ -17,6 +16,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
 }) => {
   const { data: session, status } = useSession();
   const token = session?.user?.token;
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -33,6 +33,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
       try {
         const quizData = await getRandomQuiz(contentId, quizzId);
         setQuiz(quizData);
+        setQuestions(quizData.questions);
         if (quizData?.quizzId) {
           try {
             const result = await getQuizzResults(
@@ -76,19 +77,52 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
       );
       setScore(result.score);
       setSubmitted(true);
+      setHasPreviousResult(true);
     } catch {
       setError("Failed to submit quiz. Please try again.");
     }
   };
 
-  if (status === "loading") return <p>Loading session...</p>;
-  if (status === "unauthenticated")
-    return <p className="text-red-600">Please log in to access the quiz.</p>;
-  if (loading) return <p>Loading quiz questions...</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
-  if (!quiz) return <p>No quiz data available.</p>;
+  const handleRetry = async () => {
+    setAnswers({});
+    setSubmitted(false);
+    setScore(null);
+    setHasPreviousResult(false);
+    setQuestions([]);
+    setCurrentQuestionIndex(0);
+    setLoading(true);
 
-  const currentQuestion = quiz.questions[currentQuestionIndex];
+    try {
+      if (!session?.user?.token) return;
+      const quizData = await getRandomQuiz(contentId, quizzId);
+      setQuiz(quizData);
+      setQuestions(quizData.questions);
+    } catch {
+      setError("Failed to reload quiz questions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (hasPreviousResult) {
+    return (
+      <div className="exam-container">
+        <h1>Quiz Result</h1>
+        <div
+          className={`score ${
+            score && score >= 50 ? "scoreSuccess" : "scoreFail"
+          }`}
+        >
+          Your Score: {score}
+        </div>
+        <button className="retry-button" onClick={handleRetry}>
+          Retry Quiz
+        </button>
+      </div>
+    );
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
 
   return (
     <div className="exam-container">
@@ -97,7 +131,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
         {currentQuestion && (
           <div className="question-card">
             <span className="question-number">
-              Question {currentQuestionIndex + 1}/{quiz.questions.length}
+              Question {currentQuestionIndex + 1}/{questions.length}
             </span>
             <p className="question-text">{currentQuestion.question}</p>
             <div className="answers-list">
@@ -127,12 +161,14 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
         <div className="navigation-buttons">
           <button
             className="nav-button"
-            onClick={() => setCurrentQuestionIndex((prev) => prev - 1)}
+            onClick={() =>
+              setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))
+            }
             disabled={currentQuestionIndex === 0}
           >
             Previous
           </button>
-          {currentQuestionIndex < quiz.questions.length - 1 ? (
+          {currentQuestionIndex < questions.length - 1 ? (
             <button
               className="nav-button"
               onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}
@@ -147,13 +183,6 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
             )
           )}
         </div>
-        {submitted && score !== null && (
-          <div
-            className={`score ${score >= 50 ? "scoreSuccess" : "scoreFail"}`}
-          >
-            Your Score: {score}
-          </div>
-        )}
       </div>
     </div>
   );
