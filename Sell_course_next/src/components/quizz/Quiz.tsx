@@ -10,12 +10,10 @@ import {
 import "../../style/ExamPage.css";
 import { Question, Quiz } from "@/app/type/quizz/quizz";
 
-const QuizPage: React.FC<{
-  contentId: string;
-  quizzId?: string;
-  lessonId: string;
-  onComplete: (contentId: string, lessonId: string) => void;
-}> = ({ contentId, quizzId, lessonId, onComplete }) => {
+const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
+  contentId,
+  quizzId,
+}) => {
   const { data: session } = useSession();
   const token = session?.user?.token;
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -24,7 +22,6 @@ const QuizPage: React.FC<{
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasPreviousResult, setHasPreviousResult] = useState(false);
 
@@ -50,23 +47,16 @@ const QuizPage: React.FC<{
           } catch {}
         }
       } catch {
-        setError("Failed to load quiz data.");
+        new Notification("Failed to load quiz data.");
       } finally {
         setLoading(false);
       }
     };
-    if (score && score >= 50) {
-      onComplete(contentId, lessonId);
-    }
     fetchQuizData();
-  }, [contentId, quizzId, token, lessonId, onComplete, score]);
+  }, [contentId, quizzId, token]);
 
   if (loading) {
     return <p>Loading quiz...</p>;
-  }
-
-  if (error) {
-    return <p className="error">{error}</p>;
   }
 
   const handleSelectAnswer = (questionId: string, answerId: string) => {
@@ -76,7 +66,9 @@ const QuizPage: React.FC<{
   const handleSubmit = async () => {
     if (!quiz || !session?.user?.user_id || !token) return;
     try {
-      setError(null);
+      new Notification("null", {
+        body: "Quiz submitted successfully!",
+      });
       const result = await submitQuizAnswers(
         {
           userId: session.user.user_id,
@@ -92,7 +84,7 @@ const QuizPage: React.FC<{
       setSubmitted(true);
       setHasPreviousResult(true);
     } catch {
-      setError("Failed to submit quiz. Please try again.");
+      new Notification("Failed to submit quiz. Please try again.");
     }
   };
 
@@ -111,12 +103,11 @@ const QuizPage: React.FC<{
       setQuiz(quizData);
       setQuestions(quizData.questions);
     } catch {
-      // Notification;
+      new Notification("Failed to load quiz data.");
     } finally {
       setLoading(false);
     }
   };
-
   if (hasPreviousResult) {
     return (
       <div className="exam-container">
