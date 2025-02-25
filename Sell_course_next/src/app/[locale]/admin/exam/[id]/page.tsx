@@ -1,6 +1,7 @@
 "use client";
 import styles from '../../../../../style/ExamAdmin.module.css';
 import { CreateExamDto, getExamByCourseId, getExamQuetion, updateExamQuestion, createExamQuestion, deleteExamQuestion } from "@/app/api/exam/exam";
+import { useTranslations } from 'next-intl';
 // import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
@@ -35,6 +36,7 @@ interface UpdateQuizzDto {
     }[];
 }
 const ExamManagementPage = () => {
+  const t = useTranslations('examPage');
   const { id } = useParams() as { id: string }; // Get courseId from route params
   const [exams, setExams] = useState<Exam | null>(null);  // Keep exams as a single object
   const [loading, setLoading] = useState<boolean>(true);
@@ -60,23 +62,20 @@ const ExamManagementPage = () => {
     if (id) {
       const fetchExams = async () => {
         if (!id) {
-          console.log("Course ID is missing");
           return;
         }
         try {
           setLoading(true);
           const data = await getExamByCourseId(id);
-          console.log("Data received:", data);
-          // Ensure the data is in the correct format (object)
           if (data && data.examId) {
-            setExams(data);  // Set the exam object
+            setExams(data);
           } else {
             console.error("Expected an exam object but got:", data);
-            setExams(null);  // Reset if the data is not valid
+            setExams(null);
           }
         } catch (error) {
           console.error("Error fetching exams:", error);
-          setExams(null);  // Set exams to null in case of error
+          setExams(null);
         } finally {
           setLoading(false);
         }
@@ -228,12 +227,12 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
     <div className="container">
       <div className="wrapper">
         <div className="header">
-          <h1 className="title">Quizzes Management</h1>
+          <h1 className="title">{t('exam')}</h1>
           <button
             className={`${styles.button} ${styles.primary}`}
             onClick={() => setShowCreateModal(true)}
           >
-            Add New Quiz
+            {t('btn-Add')}
           </button>
         </div>
 
@@ -241,13 +240,13 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
         {showCreateModal && (
           <div className={styles.modal}>
             <div className={styles.modalContent}>
-              <h2>Create New Quiz</h2>
+              <h2>{t('create-Exam')}</h2>
               <button className={styles.addButton} onClick={handleAddQuestion}>
-                Add New Question
+                {t('add-newQuestion')}
               </button>
               {newExamData.questions.map((question, qIndex) => (
                 <div key={qIndex} className={styles.questionSection}>
-                  <h3>Question {qIndex + 1}</h3>
+                  <h3>{t('question')} {qIndex + 1}</h3>
                   <input
                     type="text"
                     className={styles.inputText}
@@ -282,7 +281,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                           setNewExamData({ ...newExamData, questions: updatedQuestions });
                         }}
                       />
-                      <label>Correct</label>
+                      <label>{t('correct')}</label>
                     </div>
                   ))}
                 </div>
@@ -292,13 +291,13 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                   className={`${styles.button} ${styles.primary}`}
                   onClick={handleCreateExam}
                 >
-                  Create Quiz
+                  {t('btn-Create')}
                 </button>
                 <button
                   className={`${styles.button} ${styles.secondary}`}
                   onClick={() => setShowCreateModal(false)}
                 >
-                  Cancel
+                  {t('btn-cancel')}
                 </button>
               </div>
             </div>
@@ -309,7 +308,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
         {showEditModal && editingQuestion && (
           <div className={styles.modal}>
             <div className={styles.modalContent}>
-              <h2>Edit Question</h2>
+              <h2>{t('edit-Question')}</h2>
               <div className={styles.questionSection}>
                 <input
                   type="text"
@@ -343,7 +342,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                         setEditingQuestion({ ...editingQuestion, answers: updatedAnswers });
                       }}
                     />
-                    <label>Correct</label>
+                    <label>{t('correct')}</label>
                   </div>
                 ))}
               </div>
@@ -352,13 +351,13 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                   className={`${styles.button} ${styles.primary}`}
                   onClick={handleUpdateQuestion}
                 >
-                  Update Question
+                  {t('btn-Update')}
                 </button>
                 <button
                   className={`${styles.button} ${styles.secondary}`}
                   onClick={() => setShowEditModal(false)}
                 >
-                  Cancel
+                  {t('btn-cancel')}
                 </button>
               </div>
             </div>
@@ -371,7 +370,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
             <p>Loading exams...</p>
           ) : exams ? (
             <div className={styles.examCard}>
-              <h3>Exam for Course </h3>
+              <h3>{t('exam_name')}</h3>
               <div className={styles.questions}>
                 {exams.questions.map((question, index) => (
                   <div key={index} className={styles.questionCard}>
@@ -388,13 +387,13 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                       className={`${styles.button} ${styles.secondary}`}
                       onClick={() => handleEditQuestion(question.questionId, question)}
                     >
-                      Edit Question
+                      {t('edit-Question')}
                     </button>
                     <button
                       className={`${styles.button} ${styles.danger}`}
                       onClick={() => handleDeleteQuestion(question.questionId)}
                     >
-                      Delete Question
+                      {t('btn-Delete')}
                     </button>
                   </div>
                 ))}

@@ -415,5 +415,20 @@
     "lessonFailed": "Thêm bài học thất bại",
     "success": "Thành công",
     "error": "Lỗi"
+  },
+  "examPage": {
+    "exam": "Quản lý bài kiểm tra",
+    "btn-Add": "Thêm câu hỏi",
+    "exam_name": "Bài kiểm tra",
+    "btn-Update": "Cập nhật",
+    "btn-Delete": "Xóa bài",
+    "edit-Question": "Chỉnh sửa",
+    "btn-updateQuestion": "Cập nhật",
+    "btn-cancel": "Hủy",
+    "correct": "Đúng",
+    "create-Exam": "Tạo bài kiểm tra",
+    "add-newQuestion": "Thêm câu hỏi",
+    "question": "Câu hỏi",
+    "btn-Create": "Tạo Bài Kiểm Tra"
   }
 }
