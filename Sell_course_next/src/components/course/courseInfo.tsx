@@ -8,7 +8,6 @@ import VideoLesson from "@/components/Lessons/Video";
 import DocumentLesson from "@/components/Lessons/Doc";
 import "../../style/CourseInfo.css";
 import { AiOutlineDown } from "react-icons/ai";
-import ExamPage from "../exam/Exam";
 import { fetchLesson } from "@/app/api/course/LessonAPI";
 import { useSession } from "next-auth/react";
 import { CourseData } from "@/app/type/course/Lesson";
@@ -185,8 +184,6 @@ export default function CourseInfo() {
             contentId={currentContent.contentId}
           />
         );
-      case "exam":
-        return <ExamPage />;
       default:
         return <p>Unknown content type</p>;
     }
