@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import CourseInfoBanner from "@/components/Banner-CourseInfor";
 import { BsFillCameraVideoFill } from "react-icons/bs";
 import { IoDocumentText } from "react-icons/io5";
-import { MdQuiz, MdOutlineSchool } from "react-icons/md";
+import { MdOutlineSchool, MdQuiz } from "react-icons/md";
 import VideoLesson from "@/components/Lessons/Video";
 import DocumentLesson from "@/components/Lessons/Doc";
 import "../../style/CourseInfo.css";
+import { FaLock, FaLockOpen } from "react-icons/fa";
 import { AiOutlineDown } from "react-icons/ai";
 import ExamPage from "../exam/Exam";
 import { fetchLesson } from "@/app/api/course/LessonAPI";
@@ -14,6 +15,7 @@ import { useSession } from "next-auth/react";
 import { CourseData } from "@/app/type/course/Lesson";
 import { useParams } from "next/navigation";
 import QuizPage from "../quizz/Quiz";
+import {getExamByCourseId} from "@/app/api/exam/exam";
 import {
   fetchContentStatus,
   fetchCourseProgress,
@@ -27,8 +29,10 @@ export default function CourseInfo() {
   const [currentContentIndex, setCurrentContentIndex] = useState<number>(0);
   const [completedContents, setCompletedContents] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [examData, setExamData] = useState(null); 
   const { id } = useParams();
   const { data: session } = useSession();
+  const [examExists, setExamExists] = useState<boolean>(false);
 
   useEffect(() => {
     const loadLesson = async () => {
@@ -84,7 +88,19 @@ export default function CourseInfo() {
         console.error("Failed to fetch progress:", error);
       }
     };
-
+    const checkExam = async () => {
+      if (!session?.user.token || !id) return;
+      try {
+        const examData = await getExamByCourseId(
+          Array.isArray(id) ? id[0] : id,
+          session.user.token
+        );
+        setExamExists(!!examData); // Nếu có exam thì true, không có thì false
+      } catch (error) {
+        console.error("Failed to fetch exam data:", error);
+      }
+    };
+    checkExam();
     loadProgress();
     loadLesson();
   }, [id, session]);
@@ -140,8 +156,6 @@ export default function CourseInfo() {
         return <IoDocumentText className="course-icon" />;
       case "quiz":
         return <MdQuiz className="course-icon" />;
-      case "exam":
-        return <MdOutlineSchool className="course-icon" />;
       default:
         return null;
     }
@@ -149,7 +163,6 @@ export default function CourseInfo() {
 
   const renderLessonComponent = () => {
     if (!courseData) return <p>Loading...</p>;
-
     const currentLesson = courseData.lessons[currentLessonIndex];
     const currentContent = currentLesson.contents[currentContentIndex];
 
@@ -185,8 +198,6 @@ export default function CourseInfo() {
             contentId={currentContent.contentId}
           />
         );
-      case "exam":
-        return <ExamPage />;
       default:
         return <p>Unknown content type</p>;
     }
@@ -214,9 +225,7 @@ export default function CourseInfo() {
                   <div
                     className="course-section-header"
                     onClick={() =>
-                      setExpanded(
-                        expanded === sectionIndex ? null : sectionIndex
-                      )
+                      setExpanded(expanded === sectionIndex ? null : sectionIndex)
                     }
                   >
                     <span className="course-section-title">
@@ -234,13 +243,9 @@ export default function CourseInfo() {
                         <li
                           key={lessonIndex}
                           className={`course-item ${
-                            isContentCompleted(lesson.contentId)
-                              ? "completed"
-                              : ""
+                            isContentCompleted(lesson.contentId) ? "completed" : ""
                           }`}
-                          onClick={() =>
-                            selectContent(sectionIndex, lessonIndex)
-                          }
+                          onClick={() => selectContent(sectionIndex, lessonIndex)}
                         >
                           <div className="lesson-info">
                             {getLessonIcon(lesson.contentType)}
@@ -257,15 +262,43 @@ export default function CourseInfo() {
                   )}
                 </li>
               ))}
+            {/* Exam Section */}
+            <li className="course-section">
+              <div className="course-section-header">
+                <span className="course-section-title">Exam</span>
+              </div>
+              <ul className="course-lessons">
+                <li
+                  className="course-item"
+                  onClick={() => {
+                    if (examExists) {
+                      setCurrentLessonIndex(-1);
+                      setCurrentContentIndex(-1);
+                    }
+                  }}
+                >
+                  <div className="lesson-info">
+                    <MdOutlineSchool className="course-icon" />
+                    <span className="course-text">Final Exam</span>
+                    {examExists ? (
+                      <FaLockOpen className="completed-icon" style={{ color: "green" }} />
+                    ) : (
+                      <FaLock className="completed-icon" style={{ color: "gray" }} />
+                    )}
+                  </div>
+                </li>
+              </ul>
+            </li>
           </ul>
         </aside>
         <main className="course-video-section">
           {renderLessonComponent()}
-          {/* <div className="course-navigation">
-            <button className="btn-next" onClick={handleNextContent}>
-              Next →
-            </button>
-          </div> */}
+          {currentLessonIndex === -1 && examExists && (
+            <div className="exam-section">
+              <h2 className="exam-title">Exam</h2>
+              <ExamPage />
+            </div>
+          )}
         </main>
       </div>
     </div>
