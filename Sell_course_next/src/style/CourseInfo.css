@@ -92,6 +92,20 @@
   flex-direction: column;
   margin-bottom: 10px;
 }
+.course-section-Exam {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.course-section-Exam.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
 
 .course-section-header {
   display: flex;
