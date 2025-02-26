@@ -209,17 +209,15 @@ export class QuizzService {
       );
     }
 
-    if (quiz.questions.length < numberOfQuestions) {
-      throw new NotFoundException(
-        `Quiz chỉ có ${quiz.questions.length} câu hỏi, không thể lấy ${numberOfQuestions} câu`,
-      );
-    }
-
     const shuffledQuestions = quiz.questions.sort(() => Math.random() - 0.5);
+    const actualNumberOfQuestions = Math.min(
+      quiz.questions.length,
+      numberOfQuestions,
+    );
 
     return {
       ...quiz,
-      questions: shuffledQuestions.slice(0, numberOfQuestions),
+      questions: shuffledQuestions.slice(0, actualNumberOfQuestions),
     };
   }
 
