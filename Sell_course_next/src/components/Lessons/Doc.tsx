@@ -7,6 +7,7 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { fetchDocById } from "@/app/api/docs/DocsAPI";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
+import "@/style/CourseDetail.css";
 
 const PDFViewer = dynamic(
   () => import("@react-pdf-viewer/core").then((mod) => mod.Viewer),
@@ -86,7 +87,7 @@ export default function DocumentLesson({
   }, [fileUrl]);
 
   return (
-    <div className="lesson-container">
+    <div className="doc-container">
       <h2>{title}</h2>
 
       {fileType === "pdf" && (
@@ -111,6 +112,7 @@ export default function DocumentLesson({
       )}
 
       <button
+        className="btn add-to-cart"
         onClick={() => {
           onComplete(contentId, lessonId);
           onNextContent();

@@ -301,8 +301,9 @@ export default function CourseInfo() {
             ))}
 
             {/* Final Exam Section */}
-            <li className="course-section">
-              <div className="course-section-header" onClick={selectExam}>
+            
+            <li className={`course-section-Exam${progress === 100 ? "-completed": ""} ${progress !== 100 ? "disabled" : ""}`}>
+              <div className="course-section-header" onClick={progress === 100 ? selectExam : undefined}>
                 <span className="course-section-title">🎓 Final Exam</span>
               </div>
             </li>
