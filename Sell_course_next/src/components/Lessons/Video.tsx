@@ -6,7 +6,6 @@ import { useSession } from "next-auth/react";
 import { VideoResponse } from "@/app/type/video/video";
 
 interface VideoLessonProps {
-  title: string;
   contentId: string;
   lessonId: string;
   onComplete: (contentId: string, lessonId: string) => void;
@@ -20,7 +19,6 @@ interface SubtitleSegment {
 }
 
 export default function VideoLesson({
-  title,
   contentId,
   lessonId,
   onComplete,
@@ -36,10 +34,12 @@ export default function VideoLesson({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
 
+  // Fetch video data when contentId or session changes
   useEffect(() => {
     const fetchVideo = async () => {
       try {
         if (!session?.user.token || !contentId) return;
+        setLoading(true);
         const data = await getVideo(contentId, session.user.token);
         setVideoData(data);
 
@@ -59,62 +59,69 @@ export default function VideoLesson({
     fetchVideo();
   }, [contentId, session]);
 
+  // Handle video playback and HLS setup
   useEffect(() => {
-    if (videoData?.url && videoRef.current) {
-      const video = videoRef.current;
+    if (!videoData?.url || !videoRef.current) return;
 
-      if (Hls.isSupported()) {
-        if (!hlsRef.current) {
-          hlsRef.current = new Hls();
-          hlsRef.current.loadSource(videoData.url);
-          hlsRef.current.attachMedia(video);
-          hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play();
-          });
-        }
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = videoData.url;
-        video.addEventListener("canplay", () => video.play());
-      }
+    const video = videoRef.current;
 
-      const updateSubtitle = () => {
-        const currentTime = video.currentTime;
-        const matchingSubtitle = subtitles.find(
-          (subtitle) =>
-            currentTime >= subtitle.start && currentTime <= subtitle.end
-        );
-        setCurrentText(matchingSubtitle?.text || null);
-      };
-
-      const handleMetadataLoaded = () => {
-        if (videoRef.current) {
-          setVideoDuration(videoRef.current.duration);
-        }
-      };
-
-      const handleTimeUpdate = () => {
-        if (videoRef.current) {
-          const currentTime = videoRef.current.currentTime;
-          const targetTime = videoDuration * 0.8;
-          if (!hasCompleted && currentTime >= targetTime) {
-            onComplete(contentId, lessonId);
-            setHasCompleted(true);
-          }
-        }
-      };
-
-      video.addEventListener("timeupdate", updateSubtitle);
-      video.addEventListener("loadedmetadata", handleMetadataLoaded);
-      video.addEventListener("timeupdate", handleTimeUpdate);
-
-      return () => {
-        video.removeEventListener("timeupdate", updateSubtitle);
-        video.removeEventListener("loadedmetadata", handleMetadataLoaded);
-        video.removeEventListener("timeupdate", handleTimeUpdate);
-      };
+    // Cleanup previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
     }
 
+    // Initialize HLS or native video playback
+    if (Hls.isSupported()) {
+      hlsRef.current = new Hls();
+      hlsRef.current.loadSource(videoData.url);
+      hlsRef.current.attachMedia(video);
+      hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch((err) => console.error("Auto-play failed:", err));
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = videoData.url;
+      video.addEventListener("canplay", () => {
+        video.play().catch((err) => console.error("Auto-play failed:", err));
+      });
+    }
+
+    // Event handlers
+    const updateSubtitle = () => {
+      const currentTime = video.currentTime;
+      const matchingSubtitle = subtitles.find(
+        (subtitle) =>
+          currentTime >= subtitle.start && currentTime <= subtitle.end
+      );
+      setCurrentText(matchingSubtitle?.text || null);
+    };
+
+    const handleMetadataLoaded = () => {
+      if (videoRef.current) {
+        setVideoDuration(videoRef.current.duration);
+      }
+    };
+
+    const handleTimeUpdate = () => {
+      if (videoRef.current) {
+        const currentTime = videoRef.current.currentTime;
+        const targetTime = videoDuration * 0.8;
+        if (!hasCompleted && currentTime >= targetTime) {
+          onComplete(contentId, lessonId);
+          setHasCompleted(true);
+        }
+      }
+    };
+
+    video.addEventListener("timeupdate", updateSubtitle);
+    video.addEventListener("loadedmetadata", handleMetadataLoaded);
+    video.addEventListener("timeupdate", handleTimeUpdate);
+
+    // Cleanup event listeners and HLS instance
     return () => {
+      video.removeEventListener("timeupdate", updateSubtitle);
+      video.removeEventListener("loadedmetadata", handleMetadataLoaded);
+      video.removeEventListener("timeupdate", handleTimeUpdate);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -123,19 +130,21 @@ export default function VideoLesson({
   }, [
     videoData?.url,
     subtitles,
-    videoDuration,
-    hasCompleted,
     contentId,
     lessonId,
+    hasCompleted,
     onComplete,
+    videoDuration,
   ]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
   return (
-    <div className="lesson-container" style={{ width: "100%", padding: "20px" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>{title}</h2>
+    <div
+      className="lesson-container"
+      style={{ width: "100%", padding: "20px" }}
+    >
       <div
         className="video-container"
         style={{
@@ -188,13 +197,7 @@ export default function VideoLesson({
           fontSize: "16px",
           color: "#000",
         }}
-      >
-        <h3 style={{ fontWeight: "bold", marginBottom: "10px" }}>Script</h3>
-        <p>Script content will be displayed here...</p>
-      </div>
-      <p style={{ textAlign: "center", marginTop: "10px", color: "#666" }}>
-        Thời lượng Video: {videoDuration.toFixed(2)}s
-      </p>
+      ></div>
     </div>
   );
 }

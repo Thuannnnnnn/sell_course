@@ -90,7 +90,10 @@ export default function CourseInfo() {
     const loadExam = async () => {
       if (!session?.user.token || !id) return;
       try {
-        await fetchQuestion(session?.user.token, Array.isArray(id) ? id[0] : id);
+        await fetchQuestion(
+          session?.user.token,
+          Array.isArray(id) ? id[0] : id
+        );
       } catch (error) {
         console.error("Failed to fetch exam data:", error);
       }
@@ -167,15 +170,22 @@ export default function CourseInfo() {
     if (isExamSelected) {
       return <ExamPage />;
     }
-    if (!courseData || currentLessonIndex < 0 || currentLessonIndex >= courseData.lessons.length) {
+    if (
+      !courseData ||
+      currentLessonIndex < 0 ||
+      currentLessonIndex >= courseData.lessons.length
+    ) {
       return <p>Loading...</p>;
     }
     const currentLesson = courseData.lessons[currentLessonIndex];
-    if (!currentLesson || currentContentIndex < 0 || currentContentIndex >= currentLesson.contents.length) {
+    if (
+      !currentLesson ||
+      currentContentIndex < 0 ||
+      currentContentIndex >= currentLesson.contents.length
+    ) {
       return <p>Content not found</p>;
     }
     const currentContent = currentLesson.contents[currentContentIndex];
-
 
     const handleComplete = () =>
       markContentCompleted(currentContent.contentId, currentLesson.lessonId);
@@ -187,7 +197,6 @@ export default function CourseInfo() {
       case "video":
         return (
           <VideoLesson
-            title={currentContent.contentName}
             onComplete={handleComplete}
             lessonId={currentLesson.lessonId}
             contentId={currentContent.contentId}
@@ -220,19 +229,19 @@ export default function CourseInfo() {
     <div className="course-info-container">
       {/* Header */}
       <CourseInfoBanner title="Course" subtitle="Lesson Details" />
-  
+
       <div className="course-header">
         <h1 className="course-title">{courseData?.courseName}</h1>
         <span className="course-progress">Your Progress: {progress}%</span>
       </div>
-  
+
       {/* Navigation Bar */}
       <div className="course-nav">
         <div className="course-nav-content">
           <span className="nav-item active">📖 Overview</span>
         </div>
       </div>
-  
+
       {/* Main Layout */}
       <div className="course-content-wrapper">
         {/* Sidebar - Course Content */}
@@ -251,13 +260,15 @@ export default function CourseInfo() {
                     {section.lessonName}
                   </span>
 
-                  <span> 
-                  <small>{section.contents.length}/{section.contents.length}</small>
-                  <AiOutlineDown
-                    className={`dropdown-icon ${
-                      expanded === sectionIndex ? "rotated" : ""
-                    }`}
-                  />
+                  <span>
+                    <small>
+                      {section.contents.length}/{section.contents.length}
+                    </small>
+                    <AiOutlineDown
+                      className={`dropdown-icon ${
+                        expanded === sectionIndex ? "rotated" : ""
+                      }`}
+                    />
                   </span>
                 </div>
                 {/* Expand Lessons */}
@@ -267,13 +278,17 @@ export default function CourseInfo() {
                       <li
                         key={lessonIndex}
                         className={`course-item ${
-                          isContentCompleted(lesson.contentId) ? "completed" : ""
+                          isContentCompleted(lesson.contentId)
+                            ? "completed"
+                            : ""
                         }`}
                         onClick={() => selectContent(sectionIndex, lessonIndex)}
                       >
                         <div className="lesson-info">
                           {getLessonIcon(lesson.contentType)}
-                          <span className="course-text">{lesson.contentName}</span>
+                          <span className="course-text">
+                            {lesson.contentName}
+                          </span>
                           {isContentCompleted(lesson.contentId) && (
                             <span className="completed-icon">✅</span>
                           )}
@@ -301,5 +316,4 @@ export default function CourseInfo() {
       </div>
     </div>
   );
-
 }
