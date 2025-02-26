@@ -51,10 +51,14 @@ export class VideoService {
     const formData = new FormData();
     formData.append('file', file.buffer, file.originalname);
     formData.append('content_id', contentId);
-
-    const response = await axios.post('http://0.0.0.0:8000/upload', formData, {
-      headers: formData.getHeaders(),
-    });
+    console.log(process.env.URL_PYTHON);
+    const response = await axios.post(
+      `${process.env.URL_PYTHON}/upload`,
+      formData,
+      {
+        headers: formData.getHeaders(),
+      },
+    );
 
     if (!response.data.fileUrl) {
       throw new Error('Failed to process video');
@@ -78,9 +82,13 @@ export class VideoService {
     const formData = new FormData();
     formData.append('file', file.buffer, file.originalname);
 
-    await axios.put(`http://0.0.0.0:8000/update_script/${videoId}`, formData, {
-      headers: formData.getHeaders(),
-    });
+    await axios.put(
+      `${process.env.URL_PYTHON}/update_script/${videoId}`,
+      formData,
+      {
+        headers: formData.getHeaders(),
+      },
+    );
 
     return { message: 'Subtitles updated successfully' };
   }
@@ -94,21 +102,25 @@ export class VideoService {
     const formData = new FormData();
     formData.append('file', file.buffer, file.originalname);
 
-    await axios.put(`http://0.0.0.0:8000/update_video/${videoId}`, formData, {
-      headers: formData.getHeaders(),
-    });
+    await axios.put(
+      `${process.env.URL_PYTHON}/update_video/${videoId}`,
+      formData,
+      {
+        headers: formData.getHeaders(),
+      },
+    );
 
     return { message: 'Video updated successfully' };
   }
 
   async deleteVideo(videoId: string) {
-    await axios.delete(`http://0.0.0.0:8000/delete_video/${videoId}`);
+    await axios.delete(`${process.env.URL_PYTHON}/delete_video/${videoId}`);
     await this.videoRepository.delete({ videoId: videoId });
     return { message: 'Video and related files deleted successfully' };
   }
 
   async deleteScript(videoId: string) {
-    await axios.delete(`http://0.0.0.0:8000/delete_script/${videoId}`);
+    await axios.delete(`${process.env.URL_PYTHON}/delete_script/${videoId}`);
     await this.videoRepository.update({ videoId }, { urlScript: null });
     return { message: 'Script files deleted successfully' };
   }
