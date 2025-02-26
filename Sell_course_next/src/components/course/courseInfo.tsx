@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import CourseInfoBanner from "@/components/Banner-CourseInfor";
 import { BsFillCameraVideoFill } from "react-icons/bs";
 import { IoDocumentText } from "react-icons/io5";
-import { MdQuiz, MdOutlineSchool } from "react-icons/md";
+import { MdQuiz } from "react-icons/md";
 import VideoLesson from "@/components/Lessons/Video";
 import DocumentLesson from "@/components/Lessons/Doc";
 import "../../style/CourseInfo.css";
@@ -14,6 +14,8 @@ import { useSession } from "next-auth/react";
 import { CourseData } from "@/app/type/course/Lesson";
 import { useParams } from "next/navigation";
 import QuizPage from "../quizz/Quiz";
+import { fetchQuestion } from "@/app/api/exam/exam";
+
 import {
   fetchContentStatus,
   fetchCourseProgress,
@@ -27,6 +29,7 @@ export default function CourseInfo() {
   const [currentContentIndex, setCurrentContentIndex] = useState<number>(0);
   const [completedContents, setCompletedContents] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [isExamSelected, setIsExamSelected] = useState(false);
   const { id } = useParams();
   const { data: session } = useSession();
 
@@ -84,7 +87,15 @@ export default function CourseInfo() {
         console.error("Failed to fetch progress:", error);
       }
     };
-
+    const loadExam = async () => {
+      if (!session?.user.token || !id) return;
+      try {
+        await fetchQuestion(session?.user.token, Array.isArray(id) ? id[0] : id);
+      } catch (error) {
+        console.error("Failed to fetch exam data:", error);
+      }
+    };
+    loadExam();
     loadProgress();
     loadLesson();
   }, [id, session]);
@@ -124,12 +135,19 @@ export default function CourseInfo() {
     } else if (currentLessonIndex + 1 < courseData.lessons.length) {
       setCurrentLessonIndex(currentLessonIndex + 1);
       setCurrentContentIndex(0);
+      setIsExamSelected(false);
     }
   };
 
   const selectContent = (lessonIndex: number, contentIndex: number) => {
     setCurrentLessonIndex(lessonIndex);
     setCurrentContentIndex(contentIndex);
+    setIsExamSelected(false);
+  };
+  const selectExam = () => {
+    setIsExamSelected(true);
+    setCurrentLessonIndex(-1); // Đặt giá trị không hợp lệ để tránh xung đột
+    setCurrentContentIndex(-1);
   };
 
   const getLessonIcon = (type: string) => {
@@ -140,31 +158,39 @@ export default function CourseInfo() {
         return <IoDocumentText className="course-icon" />;
       case "quiz":
         return <MdQuiz className="course-icon" />;
-      case "exam":
-        return <MdOutlineSchool className="course-icon" />;
       default:
         return null;
     }
   };
 
   const renderLessonComponent = () => {
-    if (!courseData) return <p>Loading...</p>;
-
+    if (isExamSelected) {
+      return <ExamPage />;
+    }
+    if (!courseData || currentLessonIndex < 0 || currentLessonIndex >= courseData.lessons.length) {
+      return <p>Loading...</p>;
+    }
     const currentLesson = courseData.lessons[currentLessonIndex];
+    if (!currentLesson || currentContentIndex < 0 || currentContentIndex >= currentLesson.contents.length) {
+      return <p>Content not found</p>;
+    }
     const currentContent = currentLesson.contents[currentContentIndex];
 
-    if (!currentContent) return <p>Content not found</p>;
 
     const handleComplete = () =>
       markContentCompleted(currentContent.contentId, currentLesson.lessonId);
+
+    if (isExamSelected) {
+      return <ExamPage />;
+    }
     switch (currentContent.contentType) {
       case "video":
         return (
           <VideoLesson
             title={currentContent.contentName}
-            contentId={currentContent.contentId}
-            lessonId={currentLesson.lessonId}
             onComplete={handleComplete}
+            lessonId={currentLesson.lessonId}
+            contentId={currentContent.contentId}
           />
         );
       case "document":
@@ -178,9 +204,13 @@ export default function CourseInfo() {
           />
         );
       case "quiz":
-        return <QuizPage contentId={currentContent.contentId} />;
-      case "exam":
-        return <ExamPage />;
+        return (
+          <QuizPage
+            onComplete={handleComplete}
+            lessonId={currentLesson.lessonId}
+            contentId={currentContent.contentId}
+          />
+        );
       default:
         return <p>Unknown content type</p>;
     }
@@ -188,80 +218,88 @@ export default function CourseInfo() {
 
   return (
     <div className="course-info-container">
+      {/* Header */}
       <CourseInfoBanner title="Course" subtitle="Lesson Details" />
+  
       <div className="course-header">
         <h1 className="course-title">{courseData?.courseName}</h1>
-        <span className="course-progress">Your Progress: {progress} %</span>
+        <span className="course-progress">Your Progress: {progress}%</span>
       </div>
+  
+      {/* Navigation Bar */}
       <div className="course-nav">
         <div className="course-nav-content">
           <span className="nav-item active">📖 Overview</span>
         </div>
       </div>
+  
+      {/* Main Layout */}
       <div className="course-content-wrapper">
+        {/* Sidebar - Course Content */}
         <aside className="course-sidebar">
-          <h2 className="course-title">Course Content</h2>
+          <h3 className="sidebar-title">Course Content</h3>
           <ul className="course-list1">
-            {courseData &&
-              courseData.lessons.map((section, sectionIndex) => (
-                <li key={sectionIndex} className="course-section">
-                  <div
-                    className="course-section-header"
-                    onClick={() =>
-                      setExpanded(
-                        expanded === sectionIndex ? null : sectionIndex
-                      )
-                    }
-                  >
-                    <span className="course-section-title">
-                      {section.lessonName}
-                    </span>
-                    <AiOutlineDown
-                      className={`dropdown-icon ${
-                        expanded === sectionIndex ? "rotated" : ""
-                      }`}
-                    />
-                  </div>
-                  {expanded === sectionIndex && (
-                    <ul className="course-lessons">
-                      {section.contents.map((lesson, lessonIndex) => (
-                        <li
-                          key={lessonIndex}
-                          className={`course-item ${
-                            isContentCompleted(lesson.contentId)
-                              ? "completed"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            selectContent(sectionIndex, lessonIndex)
-                          }
-                        >
-                          <div className="lesson-info">
-                            {getLessonIcon(lesson.contentType)}
-                            <span className="course-text">
-                              {lesson.contentName}
-                            </span>
-                            {isContentCompleted(lesson.contentId) && (
-                              <span className="completed-icon">✅</span>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
+            {courseData?.lessons.map((section, sectionIndex) => (
+              <li key={sectionIndex} className="course-section">
+                <div
+                  className="course-section-header"
+                  onClick={() =>
+                    setExpanded(expanded === sectionIndex ? null : sectionIndex)
+                  }
+                >
+                  <span className="course-section-title">
+                    {section.lessonName}
+                  </span>
+
+                  <span> 
+                  <small>{section.contents.length}/{section.contents.length}</small>
+                  <AiOutlineDown
+                    className={`dropdown-icon ${
+                      expanded === sectionIndex ? "rotated" : ""
+                    }`}
+                  />
+                  </span>
+                </div>
+                {/* Expand Lessons */}
+                {expanded === sectionIndex && (
+                  <ul className="course-lessons">
+                    {section.contents.map((lesson, lessonIndex) => (
+                      <li
+                        key={lessonIndex}
+                        className={`course-item ${
+                          isContentCompleted(lesson.contentId) ? "completed" : ""
+                        }`}
+                        onClick={() => selectContent(sectionIndex, lessonIndex)}
+                      >
+                        <div className="lesson-info">
+                          {getLessonIcon(lesson.contentType)}
+                          <span className="course-text">{lesson.contentName}</span>
+                          {isContentCompleted(lesson.contentId) && (
+                            <span className="completed-icon">✅</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+
+            {/* Final Exam Section */}
+            <li className="course-section">
+              <div className="course-section-header" onClick={selectExam}>
+                <span className="course-section-title">🎓 Final Exam</span>
+              </div>
+            </li>
           </ul>
         </aside>
+
+        {/* Video / Lesson Content */}
         <main className="course-video-section">
-          {renderLessonComponent()}
-          {/* <div className="course-navigation">
-            <button className="btn-next" onClick={handleNextContent}>
-              Next →
-            </button>
-          </div> */}
+          {isExamSelected ? <ExamPage /> : renderLessonComponent()}
         </main>
       </div>
     </div>
   );
+
 }

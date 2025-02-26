@@ -18,7 +18,6 @@ import { Course } from '../type/course/Course';
 import { fetchCourses } from '../api/course/CourseAPI';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
-import { CoursePurchaseAPI } from '../api/coursePurchased/coursePurchased';
 export default function HomePage() {
   const t = useTranslations('homePage');
   const tc = useTranslations('cardCourse');
@@ -43,23 +42,11 @@ export default function HomePage() {
 
   const router = useRouter();
   const params = useParams();
-  const email = session?.user.email || '';
   const handleClick = async (courseDetaill: string) => {
-    let data;
-    if (email) {
-      data = await CoursePurchaseAPI.getCoursePurchaseById(
-        courseDetaill,
-        email
-      );
-    } else {
-      data = 404;
-    }
     const locale = params.locale;
-    if (data === 200) {
-      router.push(`/${locale}/course/${courseDetaill}`);
-    } else {
-      router.push(`/${locale}/courseDetail/${courseDetaill}`);
-    }
+
+    router.push(`/${locale}/courseDetail/${courseDetaill}`);
+
   };
   return (
     <>

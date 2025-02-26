@@ -1,8 +1,10 @@
+import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
 import { Course } from "@/app/type/course/Course";
 import "@/style/CourseCard.css";
-// import { useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useLocale } from "next-intl";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 interface CourseCardProps {
   course: Course;
@@ -10,16 +12,29 @@ interface CourseCardProps {
 
 export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
-  const params = useParams();
-  // const { data: session } = useSession();
-  // const email = session?.user.email || "";
-  const handleClick = async () => {
-    const locale = params.locale;
+  const { data: session } = useSession();
+  const localActive = useLocale();
+  const handleCoursePurchase = async (courseId: string) => {
+    if (!session?.user.email) return;
 
-    router.push(`/${locale}/courseDetail/${course.courseId}`);
+    try {
+      const data = await CoursePurchaseAPI.getCoursePurchaseById(
+        courseId,
+        session?.user.email
+      );
+      if (data === 200) {
+        console.log("ABC");
+        router.push(`/${localActive}/courseInfo/${courseId}`);
+        return;
+      }
+      router.push(`/${localActive}/courseDetail/${courseId}`);
+    } catch (error) {
+      console.error("Error fetching course purchase:", error);
+    }
   };
+
   return (
-    <div className="card" onClick={handleClick}>
+    <div className="card" onClick={() => handleCoursePurchase(course.courseId)}>
       <div className="header">
         <Image
           src={course.userAvata || ""}

@@ -43,7 +43,6 @@ export default function VideoLesson({
         const data = await getVideo(contentId, session.user.token);
         setVideoData(data);
 
-        // Fetch subtitle script
         if (data.urlScript) {
           const subtitleResponse = await fetch(data.urlScript);
           const subtitleData: SubtitleSegment[] = await subtitleResponse.json();
@@ -77,18 +76,14 @@ export default function VideoLesson({
         video.src = videoData.url;
         video.addEventListener("canplay", () => video.play());
       }
+
       const updateSubtitle = () => {
         const currentTime = video.currentTime;
         const matchingSubtitle = subtitles.find(
           (subtitle) =>
             currentTime >= subtitle.start && currentTime <= subtitle.end
         );
-
-        if (matchingSubtitle) {
-          setCurrentText(matchingSubtitle.text);
-        } else {
-          setCurrentText(null);
-        }
+        setCurrentText(matchingSubtitle?.text || null);
       };
 
       const handleMetadataLoaded = () => {
@@ -101,7 +96,6 @@ export default function VideoLesson({
         if (videoRef.current) {
           const currentTime = videoRef.current.currentTime;
           const targetTime = videoDuration * 0.8;
-
           if (!hasCompleted && currentTime >= targetTime) {
             onComplete(contentId, lessonId);
             setHasCompleted(true);
@@ -140,35 +134,67 @@ export default function VideoLesson({
   if (error) return <p>{error}</p>;
 
   return (
-    <div className="lesson-container">
-      <h2>{title}</h2>
+    <div className="lesson-container" style={{ width: "100%", padding: "20px" }}>
+      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>{title}</h2>
       <div
         className="video-container"
         style={{
+          width: "100%",
+          backgroundColor: "#000",
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "center",
           alignItems: "center",
+          position: "relative",
         }}
       >
-        <video ref={videoRef} controls width="800px"></video>
+        <video
+          ref={videoRef}
+          controls
+          style={{
+            width: "100%",
+            maxHeight: "80vh",
+            objectFit: "contain",
+          }}
+        />
         {currentText && (
           <div
             className="subtitle-box"
             style={{
-              marginTop: "10px",
+              position: "absolute",
+              bottom: "60px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              color: "#fff",
               padding: "10px",
-              fontSize: "18px",
-              backgroundColor: "yellow",
               borderRadius: "5px",
+              fontSize: "18px",
               textAlign: "center",
-              width: "80%",
+              maxWidth: "80%",
             }}
           >
             {currentText}
           </div>
         )}
       </div>
-      <p>Thời lượng Video: {videoDuration.toFixed(2)}s</p>
+      <div
+        className="script-section"
+        style={{
+          marginTop: "20px",
+          padding: "15px",
+          backgroundColor: "#fff",
+          border: "1px solid #ddd",
+          borderRadius: "5px",
+          fontSize: "16px",
+          color: "#000",
+        }}
+      >
+        <h3 style={{ fontWeight: "bold", marginBottom: "10px" }}>Script</h3>
+        <p>Script content will be displayed here...</p>
+      </div>
+      <p style={{ textAlign: "center", marginTop: "10px", color: "#666" }}>
+        Thời lượng Video: {videoDuration.toFixed(2)}s
+      </p>
     </div>
   );
 }

@@ -1,16 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
 });
 
 export class CoursePurchaseAPI {
   static async getAllCoursePurchases() {
     try {
-      const response = await axiosInstance.get('/api/course_purchased/');
+      const response = await axiosInstance.get("/api/course_purchased/");
       return response.data;
     } catch (error) {
-      console.error('Error fetching purchased courses:', error);
+      console.error("Error fetching purchased courses:", error);
       throw error;
     }
   }
@@ -28,7 +28,7 @@ export class CoursePurchaseAPI {
   static async createCoursePurchase(email: string, courseIds: string[]) {
     try {
       const response = await axiosInstance.post(
-        '/api/course_purchased/create',
+        "/api/course_purchased/create",
         {
           email,
           courseIds,
@@ -36,7 +36,7 @@ export class CoursePurchaseAPI {
       );
       return response.data;
     } catch (error) {
-      console.error('Error creating course purchase:', error);
+      console.error("Error creating course purchase:", error);
       throw error;
     }
   }
