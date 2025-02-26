@@ -8,7 +8,6 @@ import VideoLesson from "@/components/Lessons/Video";
 import DocumentLesson from "@/components/Lessons/Doc";
 import "../../style/CourseInfo.css";
 import { AiOutlineDown } from "react-icons/ai";
-import ExamPage from "../exam/Exam";
 import { fetchLesson } from "@/app/api/course/LessonAPI";
 import { useSession } from "next-auth/react";
 import { CourseData } from "@/app/type/course/Lesson";
@@ -162,9 +161,9 @@ export default function CourseInfo() {
         return (
           <VideoLesson
             title={currentContent.contentName}
-            contentId={currentContent.contentId}
-            lessonId={currentLesson.lessonId}
             onComplete={handleComplete}
+            lessonId={currentLesson.lessonId}
+            contentId={currentContent.contentId}
           />
         );
       case "document":

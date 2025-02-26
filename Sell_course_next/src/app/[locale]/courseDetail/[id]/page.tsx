@@ -29,7 +29,7 @@ export default function CourseDetailPage() {
   }, [id, email]);
   return (
     <div>
-      <CourseDetail courseId={id} /> {/* Thêm nút điều hướng sang CourseInfo */}
+      <CourseDetail courseId={id} />
       <div style={{ marginTop: "20px", textAlign: "center" }}>
         {hasCompleted && (
           <Link href={`/${localActive}/courseInfo/${id}`}>

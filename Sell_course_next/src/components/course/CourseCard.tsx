@@ -1,6 +1,5 @@
 import { Course } from "@/app/type/course/Course";
 import "@/style/CourseCard.css";
-// import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
@@ -11,8 +10,6 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
   const params = useParams();
-  // const { data: session } = useSession();
-  // const email = session?.user.email || "";
   const handleClick = async () => {
     const locale = params.locale;
 
