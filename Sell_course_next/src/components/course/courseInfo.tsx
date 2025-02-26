@@ -8,11 +8,15 @@ import VideoLesson from "@/components/Lessons/Video";
 import DocumentLesson from "@/components/Lessons/Doc";
 import "../../style/CourseInfo.css";
 import { AiOutlineDown } from "react-icons/ai";
+import ExamPage from "../exam/Exam";
 import { fetchLesson } from "@/app/api/course/LessonAPI";
 import { useSession } from "next-auth/react";
 import { CourseData } from "@/app/type/course/Lesson";
 import { useParams } from "next/navigation";
 import QuizPage from "../quizz/Quiz";
+import { getExamByCourseId } from "@/app/api/exam/exam";
+import { FaLock, FaLockOpen } from "react-icons/fa";
+
 import {
   fetchContentStatus,
   fetchCourseProgress,
@@ -26,6 +30,7 @@ export default function CourseInfo() {
   const [currentContentIndex, setCurrentContentIndex] = useState<number>(0);
   const [completedContents, setCompletedContents] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [isExamUnlocked, setIsExamUnlocked] = useState(false);
   const { id } = useParams();
   const { data: session } = useSession();
 
@@ -83,7 +88,15 @@ export default function CourseInfo() {
         console.error("Failed to fetch progress:", error);
       }
     };
-
+    const loadExam = async () => {
+      if (!session?.user.token || !id) return;
+      try {
+        const exam = await getExamByCourseId(Array.isArray(id) ? id[0] : id);
+      } catch (error) {
+        console.error("Failed to fetch exam data:", error);
+      }
+    };
+    loadExam();
     loadProgress();
     loadLesson();
   }, [id, session]);
@@ -139,8 +152,6 @@ export default function CourseInfo() {
         return <IoDocumentText className="course-icon" />;
       case "quiz":
         return <MdQuiz className="course-icon" />;
-      case "exam":
-        return <MdOutlineSchool className="course-icon" />;
       default:
         return null;
     }
@@ -148,7 +159,6 @@ export default function CourseInfo() {
 
   const renderLessonComponent = () => {
     if (!courseData) return <p>Loading...</p>;
-
     const currentLesson = courseData.lessons[currentLessonIndex];
     const currentContent = currentLesson.contents[currentContentIndex];
 
@@ -156,6 +166,10 @@ export default function CourseInfo() {
 
     const handleComplete = () =>
       markContentCompleted(currentContent.contentId, currentLesson.lessonId);
+
+    if (isExamUnlocked) {
+      return <ExamPage />;
+    }
     switch (currentContent.contentType) {
       case "video":
         return (
@@ -177,9 +191,13 @@ export default function CourseInfo() {
           />
         );
       case "quiz":
-        return <QuizPage contentId={currentContent.contentId} />;
-      case "exam":
-        return <ExamPage />;
+        return (
+          <QuizPage
+            onComplete={handleComplete}
+            lessonId={currentLesson.lessonId}
+            contentId={currentContent.contentId}
+          />
+        );
       default:
         return <p>Unknown content type</p>;
     }
@@ -187,17 +205,25 @@ export default function CourseInfo() {
 
   return (
     <div className="course-info-container">
+      {/* Header Banner */}
       <CourseInfoBanner title="Course" subtitle="Lesson Details" />
+
+      {/* Course Header */}
       <div className="course-header">
         <h1 className="course-title">{courseData?.courseName}</h1>
         <span className="course-progress">Your Progress: {progress} %</span>
       </div>
+
+      {/* Navigation Bar */}
       <div className="course-nav">
         <div className="course-nav-content">
           <span className="nav-item active">📖 Overview</span>
         </div>
       </div>
+
+      {/* Main Content Layout */}
       <div className="course-content-wrapper">
+        {/* Sidebar - Course Content */}
         <aside className="course-sidebar">
           <h2 className="course-title">Course Content</h2>
           <ul className="course-list1">
@@ -250,14 +276,40 @@ export default function CourseInfo() {
                   )}
                 </li>
               ))}
+
+            {/* Exam Section */}
+            <li className="course-section">
+              <div
+                className="course-section-header"
+                onClick={() => setIsExamUnlocked(true)}
+              >
+                <span className="course-section-title">Final Exam</span>
+                {isExamUnlocked ? (
+                  <FaLockOpen className="exam-icon-unlocked" />
+                ) : (
+                  <FaLock className="exam-icon-locked" />
+                )}
+              </div>
+            </li>
           </ul>
         </aside>
+
+        {/* Video / Lesson / Exam Content */}
         <main className="course-video-section">
           {renderLessonComponent()}
-          {/* <div className="course-navigation">
-            <button className="btn-next" onClick={handleNextContent}>
-              Next →
-            </button>
+
+          {/* Navigation Buttons
+          <div className="course-navigation">
+            {currentContentIndex > 0 && (
+              <button className="btn-prev" onClick={handlePrevContent}>
+                ← Previous
+              </button>
+            )}
+            {currentContentIndex < totalLessons - 1 && (
+              <button className="btn-next" onClick={handleNextContent}>
+                Next →
+              </button>
+            )}
           </div> */}
         </main>
       </div>
