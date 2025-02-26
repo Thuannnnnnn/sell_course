@@ -22,7 +22,6 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasPreviousResult, setHasPreviousResult] = useState(false);
 
@@ -42,13 +41,13 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
               quizData.quizzId
             );
             if (result?.score !== undefined) {
-              setScore(result.score);
+              new Notification(result.score);
               setHasPreviousResult(true);
             }
           } catch {}
         }
       } catch {
-        setError("Failed to load quiz data.");
+        new Notification("Failed to load quiz data.");
       } finally {
         setLoading(false);
       }
@@ -63,7 +62,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
   const handleSubmit = async () => {
     if (!quiz || !session?.user?.user_id || !token) return;
     try {
-      setError(null);
+      new Notification("Submitting quiz...");
       const result = await submitQuizAnswers(
         {
           userId: session.user.user_id,
@@ -79,7 +78,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
       setSubmitted(true);
       setHasPreviousResult(true);
     } catch {
-      setError("Failed to submit quiz. Please try again.");
+      new Notification("Failed to submit quiz. Please try again.");
     }
   };
 
@@ -98,7 +97,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
       setQuiz(quizData);
       setQuestions(quizData.questions);
     } catch {
-      setError("Failed to reload quiz questions.");
+      new Notification("Failed to reload quiz questions.");
     } finally {
       setLoading(false);
     }
