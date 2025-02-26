@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CourseInfoBanner from "@/components/Banner-CourseInfor";
 import { BsFillCameraVideoFill } from "react-icons/bs";
 import { IoDocumentText } from "react-icons/io5";
@@ -90,7 +90,10 @@ export default function CourseInfo() {
     const loadExam = async () => {
       if (!session?.user.token || !id) return;
       try {
-        await fetchQuestion(session?.user.token, Array.isArray(id) ? id[0] : id);
+        await fetchQuestion(
+          session?.user.token,
+          Array.isArray(id) ? id[0] : id
+        );
       } catch (error) {
         console.error("Failed to fetch exam data:", error);
       }
@@ -140,13 +143,22 @@ export default function CourseInfo() {
   };
 
   const selectContent = (lessonIndex: number, contentIndex: number) => {
+    // Tránh cập nhật state nếu lesson và content không thay đổi
+    if (
+      lessonIndex === currentLessonIndex &&
+      contentIndex === currentContentIndex &&
+      !isExamSelected
+    ) {
+      return;
+    }
     setCurrentLessonIndex(lessonIndex);
     setCurrentContentIndex(contentIndex);
     setIsExamSelected(false);
   };
+
   const selectExam = () => {
     setIsExamSelected(true);
-    setCurrentLessonIndex(-1); // Đặt giá trị không hợp lệ để tránh xung đột
+    setCurrentLessonIndex(-1);
     setCurrentContentIndex(-1);
   };
 
@@ -163,38 +175,44 @@ export default function CourseInfo() {
     }
   };
 
-  const renderLessonComponent = () => {
+  const memoizedRenderLessonComponent = useMemo(() => {
     if (isExamSelected) {
       return <ExamPage />;
     }
-    if (!courseData || currentLessonIndex < 0 || currentLessonIndex >= courseData.lessons.length) {
+
+    if (
+      !courseData ||
+      currentLessonIndex < 0 ||
+      currentLessonIndex >= courseData.lessons.length
+    ) {
       return <p>Loading...</p>;
     }
+
     const currentLesson = courseData.lessons[currentLessonIndex];
-    if (!currentLesson || currentContentIndex < 0 || currentContentIndex >= currentLesson.contents.length) {
+    if (
+      !currentLesson ||
+      currentContentIndex < 0 ||
+      currentContentIndex >= currentLesson.contents.length
+    ) {
       return <p>Content not found</p>;
     }
-    const currentContent = currentLesson.contents[currentContentIndex];
 
+    const currentContent = currentLesson.contents[currentContentIndex];
 
     const handleComplete = () =>
       markContentCompleted(currentContent.contentId, currentLesson.lessonId);
 
-    if (isExamSelected) {
-      return <ExamPage />;
-    }
-    switch (currentContent.contentType) {
-      case "video":
-        return (
+    return (
+      <>
+        {currentContent.contentType === "video" && (
           <VideoLesson
             title={currentContent.contentName}
             onComplete={handleComplete}
             lessonId={currentLesson.lessonId}
             contentId={currentContent.contentId}
           />
-        );
-      case "document":
-        return (
+        )}
+        {currentContent.contentType === "document" && (
           <DocumentLesson
             title={currentContent.contentName}
             onComplete={handleComplete}
@@ -202,37 +220,35 @@ export default function CourseInfo() {
             contentId={currentContent.contentId}
             onNextContent={handleNextContent}
           />
-        );
-      case "quiz":
-        return (
+        )}
+        {currentContent.contentType === "quiz" && (
           <QuizPage
             onComplete={handleComplete}
             lessonId={currentLesson.lessonId}
             contentId={currentContent.contentId}
           />
-        );
-      default:
-        return <p>Unknown content type</p>;
-    }
-  };
+        )}
+      </>
+    );
+  }, [currentLessonIndex, currentContentIndex, isExamSelected, courseData]);
 
   return (
     <div className="course-info-container">
       {/* Header */}
       <CourseInfoBanner title="Course" subtitle="Lesson Details" />
-  
+
       <div className="course-header">
         <h1 className="course-title">{courseData?.courseName}</h1>
         <span className="course-progress">Your Progress: {progress}%</span>
       </div>
-  
+
       {/* Navigation Bar */}
       <div className="course-nav">
         <div className="course-nav-content">
           <span className="nav-item active">📖 Overview</span>
         </div>
       </div>
-  
+
       {/* Main Layout */}
       <div className="course-content-wrapper">
         {/* Sidebar - Course Content */}
@@ -251,13 +267,15 @@ export default function CourseInfo() {
                     {section.lessonName}
                   </span>
 
-                  <span> 
-                  <small>{section.contents.length}/{section.contents.length}</small>
-                  <AiOutlineDown
-                    className={`dropdown-icon ${
-                      expanded === sectionIndex ? "rotated" : ""
-                    }`}
-                  />
+                  <span>
+                    <small>
+                      {section.contents.length}/{section.contents.length}
+                    </small>
+                    <AiOutlineDown
+                      className={`dropdown-icon ${
+                        expanded === sectionIndex ? "rotated" : ""
+                      }`}
+                    />
                   </span>
                 </div>
                 {/* Expand Lessons */}
@@ -267,13 +285,17 @@ export default function CourseInfo() {
                       <li
                         key={lessonIndex}
                         className={`course-item ${
-                          isContentCompleted(lesson.contentId) ? "completed" : ""
+                          isContentCompleted(lesson.contentId)
+                            ? "completed"
+                            : ""
                         }`}
                         onClick={() => selectContent(sectionIndex, lessonIndex)}
                       >
                         <div className="lesson-info">
                           {getLessonIcon(lesson.contentType)}
-                          <span className="course-text">{lesson.contentName}</span>
+                          <span className="course-text">
+                            {lesson.contentName}
+                          </span>
                           {isContentCompleted(lesson.contentId) && (
                             <span className="completed-icon">✅</span>
                           )}
@@ -295,11 +317,10 @@ export default function CourseInfo() {
         </aside>
 
         {/* Video / Lesson Content */}
-        <main className="course-video-section">
-          {isExamSelected ? <ExamPage /> : renderLessonComponent()}
-        </main>
+        <div className="course-video-section">
+          {isExamSelected ? <ExamPage /> : <>{memoizedRenderLessonComponent}</>}
+        </div>
       </div>
     </div>
   );
-
 }
