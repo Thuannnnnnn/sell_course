@@ -8,7 +8,7 @@ import {
   getQuizzResults,
 } from "@/app/api/quizz/quizz";
 import "../../style/ExamPage.css";
-import { Quiz } from "@/app/type/quizz/quizz";
+import { Question, Quiz } from "@/app/type/quizz/quizz";
 
 const QuizPage: React.FC<{
   contentId: string;
@@ -26,7 +26,7 @@ const QuizPage: React.FC<{
   const [loading, setLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasPreviousResult, setHasPreviousResult] = useState(false);
-  console.log(hasPreviousResult);
+
   useEffect(() => {
     const fetchQuizData = async () => {
       if (!contentId || !token) return;
@@ -54,12 +54,8 @@ const QuizPage: React.FC<{
         setLoading(false);
       }
     };
-
-    if (score && score >= 50) {
-      onComplete(contentId, lessonId);
-    }
     fetchQuizData();
-  }, [contentId, quizzId, token, lessonId, onComplete, score]);
+  }, [contentId, quizzId, token]);
 
   if (loading) {
     return <p>Loading quiz...</p>;
@@ -72,9 +68,7 @@ const QuizPage: React.FC<{
   const handleSubmit = async () => {
     if (!quiz || !session?.user?.user_id || !token) return;
     try {
-      new Notification("null", {
-        body: "Quiz submitted successfully!",
-      });
+      new Notification("Submitting quiz...");
       const result = await submitQuizAnswers(
         {
           userId: session.user.user_id,
@@ -89,6 +83,9 @@ const QuizPage: React.FC<{
       setScore(result.score);
       setSubmitted(true);
       setHasPreviousResult(true);
+      if (result.score && result.score >= 50) {
+        onComplete(contentId, lessonId);
+      }
     } catch {
       new Notification("Failed to submit quiz. Please try again.");
     }
@@ -109,11 +106,12 @@ const QuizPage: React.FC<{
       setQuiz(quizData);
       setQuestions(quizData.questions);
     } catch {
-      new Notification("Failed to load quiz data.");
+      new Notification("Failed to reload quiz questions.");
     } finally {
       setLoading(false);
     }
   };
+
   if (hasPreviousResult) {
     return (
       <div className="exam-container">
