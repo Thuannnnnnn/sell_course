@@ -41,7 +41,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
               quizData.quizzId
             );
             if (result?.score !== undefined) {
-              new Notification(result.score);
+              setScore(result.score);
               setHasPreviousResult(true);
             }
           } catch {}
