@@ -16,7 +16,7 @@ const QuizPage: React.FC<{
   lessonId: string;
   onComplete: (contentId: string, lessonId: string) => void;
 }> = ({ contentId, quizzId, lessonId, onComplete }) => {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const token = session?.user?.token;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
