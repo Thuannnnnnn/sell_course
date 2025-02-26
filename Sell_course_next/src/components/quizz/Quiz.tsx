@@ -10,7 +10,6 @@ import {
 import "../../style/ExamPage.css";
 import { Quiz } from "@/app/type/quizz/quizz";
 
-
 const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
   contentId,
   quizzId,
@@ -25,7 +24,7 @@ const QuizPage: React.FC<{ contentId: string; quizzId?: string }> = ({
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasPreviousResult, setHasPreviousResult] = useState(false);
-
+  console.log(hasPreviousResult);
   useEffect(() => {
     const fetchQuizData = async () => {
       if (!contentId || !token) return;
