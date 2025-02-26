@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import CourseInfoBanner from "@/components/Banner-CourseInfor";
 import { BsFillCameraVideoFill } from "react-icons/bs";
 import { IoDocumentText } from "react-icons/io5";
-import { MdQuiz, MdOutlineSchool } from "react-icons/md";
+import { MdQuiz } from "react-icons/md";
 import VideoLesson from "@/components/Lessons/Video";
 import DocumentLesson from "@/components/Lessons/Doc";
 import "../../style/CourseInfo.css";
