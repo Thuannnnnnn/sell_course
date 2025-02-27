@@ -23,11 +23,13 @@ export class QuizzStoreService {
   ) {}
 
   async submitQuiz(user_id: string, submitQuizDto: SubmitQuizDto) {
-    const user = await this.userRepository.findOne({
-      where: { user_id },
-    });
+    if (!submitQuizDto.quizzId) {
+      throw new BadRequestException('quizzId is required');
+    }
+
+    const user = await this.userRepository.findOne({ where: { user_id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(`User with ID ${user_id} not found`);
     }
 
     const quiz = await this.quizzRepository.findOne({
@@ -35,7 +37,9 @@ export class QuizzStoreService {
       relations: ['questions', 'questions.answers'],
     });
     if (!quiz) {
-      throw new NotFoundException('Quiz not found');
+      throw new NotFoundException(
+        `Quiz with ID ${submitQuizDto.quizzId} not found`,
+      );
     }
 
     const existingResult = await this.quizzStoreRepository.findOne({
@@ -44,26 +48,21 @@ export class QuizzStoreService {
         quizz: { quizzId: submitQuizDto.quizzId },
       },
     });
-
     if (existingResult) {
       await this.quizzStoreRepository.remove(existingResult);
     }
 
-    if (quiz.questions.length === 0) {
-      throw new BadRequestException('Quiz không có câu hỏi nào');
+    if (!quiz.questions || quiz.questions.length === 0) {
+      throw new BadRequestException('Quiz has no questions');
     }
 
-    const requiredQuestions = Math.min(10, quiz.questions.length);
+    const validQuestionIds = quiz.questions.map((q) => q.questionId);
 
     let score = 0;
     const answersResult = [];
 
-    const requiredQuestionIds = quiz.questions
-      .slice(0, requiredQuestions)
-      .map((q) => q.questionId);
-
     if (!submitQuizDto.answers || submitQuizDto.answers.length === 0) {
-      for (const questionId of requiredQuestionIds) {
+      for (const questionId of validQuestionIds) {
         answersResult.push({
           questionId,
           answerId: null,
@@ -76,36 +75,53 @@ export class QuizzStoreService {
       );
 
       for (const submission of submitQuizDto.answers) {
-        if (!requiredQuestionIds.includes(submission.questionId)) {
+        if (!validQuestionIds.includes(submission.questionId)) {
           throw new BadRequestException(
-            `Câu hỏi với ID ${submission.questionId} không nằm trong danh sách yêu cầu`,
+            `Invalid question ID: ${submission.questionId}. It must belong to quiz ${submitQuizDto.quizzId}`,
           );
         }
 
         const question = quiz.questions.find(
           (q) => q.questionId === submission.questionId,
         );
-
-        const selectedAnswer = question.answers.find(
-          (a) => a.answerId === submission.answerId,
-        );
-
-        const isCorrect = selectedAnswer ? selectedAnswer.isCorrect : false;
-        if (isCorrect) {
-          score++;
+        if (!question) {
+          throw new BadRequestException(
+            `Question with ID ${submission.questionId} not found in quiz`,
+          );
         }
 
-        answersResult.push({
-          questionId: submission.questionId,
-          answerId: submission.answerId || null,
-          isCorrect,
-        });
+        if (submission.answerId) {
+          const validAnswer = question.answers.find(
+            (a) => a.answerId === submission.answerId,
+          );
+          if (!validAnswer) {
+            throw new BadRequestException(
+              `Answer with ID ${submission.answerId} is invalid for question ${submission.questionId}`,
+            );
+          }
+
+          const isCorrect = validAnswer.isCorrect;
+          if (isCorrect) {
+            score++;
+          }
+
+          answersResult.push({
+            questionId: submission.questionId,
+            answerId: submission.answerId,
+            isCorrect,
+          });
+        } else {
+          answersResult.push({
+            questionId: submission.questionId,
+            answerId: null,
+            isCorrect: false,
+          });
+        }
       }
 
-      const unansweredQuestions = requiredQuestionIds.filter(
+      const unansweredQuestions = validQuestionIds.filter(
         (qId) => !submittedQuestionIds.includes(qId),
       );
-
       for (const questionId of unansweredQuestions) {
         answersResult.push({
           questionId,
@@ -114,14 +130,14 @@ export class QuizzStoreService {
         });
       }
     }
-
-    if (answersResult.length !== requiredQuestions) {
-      throw new BadRequestException(
-        `Số lượng câu trả lời không khớp với ${requiredQuestions} câu hỏi yêu cầu`,
-      );
+    const maxAnswers = 10;
+    if (submitQuizDto.answers && submitQuizDto.answers.length > maxAnswers) {
+      throw new BadRequestException(`Maximum ${maxAnswers} answers allowed`);
     }
+    console.log(submitQuizDto.answers);
 
-    const rawPercentageScore = (score / requiredQuestions) * 100;
+    const rawPercentageScore = (score / submitQuizDto.answers.length) * 100;
+    console.log(submitQuizDto.answers.length);
     const percentageScore = Math.round(rawPercentageScore);
 
     const quizStore = this.quizzStoreRepository.create({

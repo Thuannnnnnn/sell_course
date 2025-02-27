@@ -224,7 +224,7 @@ export class QuizzService {
   async deleteQuestion(quizzId: string, questionId: string) {
     const quiz = await this.quizzRepository.findOne({
       where: { quizzId },
-      relations: ['questions'],
+      relations: ['questions', 'questions.answers', 'contents'],
     });
 
     if (!quiz) {
@@ -252,5 +252,67 @@ export class QuizzService {
     return {
       message: `Question with ID ${questionId} has been deleted from Quiz ${quizzId}`,
     };
+  }
+
+  async deleteQuiz(contentId: string, quizzId?: string) {
+    const queryRunner =
+      this.quizzRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Tìm quiz dựa trên contentId
+      const quiz = await this.quizzRepository.findOne({
+        where: {
+          contents: { contentId }, // Tìm quiz dựa trên contentId trong bảng quan hệ
+        },
+        relations: ['questions', 'questions.answers', 'contents'],
+      });
+
+      if (!quiz) {
+        throw new NotFoundException(
+          `No quiz found for content ID ${contentId}`,
+        );
+      }
+
+      // Nếu có quizzId được truyền vào, kiểm tra xem nó có khớp không
+      if (quizzId && quiz.quizzId !== quizzId) {
+        throw new BadRequestException(
+          `Quiz ID ${quizzId} does not match the quiz associated with content ID ${contentId}`,
+        );
+      }
+
+      // Xóa các answers liên quan
+      for (const question of quiz.questions) {
+        await this.answerRepository.delete({
+          question: { questionId: question.questionId },
+        });
+      }
+
+      // Xóa các questions liên quan
+      await this.questionRepository.delete({
+        quizz: { quizzId: quiz.quizzId },
+      });
+
+      // Xóa quiz khỏi bảng quizz_store (nếu có)
+      await queryRunner.manager.query(
+        'DELETE FROM quizz_store WHERE quizz_id = $1',
+        [quiz.quizzId],
+      );
+
+      // Xóa quiz chính
+      await queryRunner.manager.delete(Quizz, { quizzId: quiz.quizzId });
+
+      await queryRunner.commitTransaction();
+
+      return {
+        message: `Quiz with ID ${quiz.quizzId} and all related questions and answers have been deleted`,
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

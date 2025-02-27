@@ -61,4 +61,12 @@ export class QuizzController {
   ) {
     return this.quizzService.deleteQuestion(quizzId, questionId);
   }
+
+  @Delete('/admin/quizz/delete/:contentId/:quizzId?')
+  async deleteQuizz(
+    @Param('contentId') contentId: string,
+    @Param('quizzId') quizzId?: string,
+  ) {
+    return this.quizzService.deleteQuiz(contentId, quizzId);
+  }
 }
