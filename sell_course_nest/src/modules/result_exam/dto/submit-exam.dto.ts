@@ -11,6 +11,8 @@ class AnswerSubmitDto {
 
 export class SubmitExamDto {
   @IsUUID()
+  examId: string;
+  @IsString()
   courseId: string;
   @IsArray()
   @ValidateNested({ each: true })

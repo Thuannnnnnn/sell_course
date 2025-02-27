@@ -15,7 +15,7 @@ export class ResultExam {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column('decimal', { precision: 5, scale: 2 })

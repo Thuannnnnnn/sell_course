@@ -252,7 +252,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                     type="text"
                     className={styles.inputText}
                     placeholder="Enter question"
-                    value={question.question}
+                    // value={question.question}
                     onChange={(e) => {
                       const updatedQuestions = [...newExamData.questions];
                       updatedQuestions[qIndex].question = e.target.value;
@@ -265,7 +265,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                         type="text"
                         className={styles.inputText}
                         placeholder={`Answer ${aIndex + 1}`}
-                        value={answer.answer}
+                        // value={answer.answer}
                         onChange={(e) => {
                           const updatedQuestions = [...newExamData.questions];
                           updatedQuestions[qIndex].answers[aIndex].answer = e.target.value;
@@ -275,7 +275,7 @@ const handleEditQuestion = async (questionId: string | undefined, question: Ques
                       <input
                         type="checkbox"
                         className={styles.inputCheckbox}
-                        checked={answer.isCorrect}
+                        // checked={answer.isCorrect}
                         onChange={(e) => {
                           const updatedQuestions = [...newExamData.questions];
                           updatedQuestions[qIndex].answers[aIndex].isCorrect = e.target.checked;
