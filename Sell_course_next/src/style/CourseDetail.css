@@ -40,6 +40,10 @@ body {
   flex-direction: column;
   gap: 20px;
 }
+.doc-container{
+  width: 100%;
+  margin: auto;
+}
 
 .course-header {
   width: 100%;

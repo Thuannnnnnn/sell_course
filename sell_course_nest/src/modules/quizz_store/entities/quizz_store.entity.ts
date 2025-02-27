@@ -15,7 +15,7 @@ export class QuizzStore {
   @JoinColumn({ name: 'quizz_id' })
   quizz: Quizz;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'float' })
   score: number;
 
   @Column({ type: 'jsonb' })

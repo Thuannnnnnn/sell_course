@@ -42,7 +42,7 @@ export class ResultExamService {
     // Check if the user has already submitted an exam for the given examId
     const existingResult = await this.resultExamRepository.findOne({
       where: {
-        user: { email },
+        // user: { email },
         exam: { courseId: submitExamDto.courseId },
       },
     });
@@ -76,7 +76,12 @@ export class ResultExamService {
     }
 
     // Calculate the score as a percentage based on the selected questions
-    const totalQuestions = 10;
+    let totalQuestions;
+    if (exam.questions.length > 10) {
+      totalQuestions = 10;
+    } else {
+      totalQuestions = exam.questions.length;
+    }
     const percentageScore = (score / totalQuestions) * 100;
 
     const resultExam = this.resultExamRepository.create({

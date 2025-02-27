@@ -252,7 +252,9 @@ const LessonPage = () => {
         router.push(`lesson/content/video?contentId=${contentId}`);
         break;
       case "document":
-        router.push(`lesson/content/document?contentId=${contentId}`);
+        router.push(
+          `lesson/content/document?contentId=${contentId}?${courseId}`
+        );
         break;
       case "quiz":
         router.push(`lesson/content/quizz?contentId=${contentId}`);

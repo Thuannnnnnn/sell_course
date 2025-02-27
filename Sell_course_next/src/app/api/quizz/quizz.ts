@@ -80,18 +80,13 @@ export const deleteQuizzByQuestionId = async (
   }
 };
 
-export const getRandomQuiz = async (
-  contentId: string,
-  quizId?: string,
-  numberOfQuestions: number = 10
-) => {
+export const getRandomQuiz = async (contentId: string, quizId?: string) => {
   try {
     const queryParams = new URLSearchParams();
 
     if (quizId) {
       queryParams.append("quizzId", quizId);
     }
-    queryParams.append("numberOfQuestions", numberOfQuestions.toString());
 
     const response = await axios.get(
       `${
