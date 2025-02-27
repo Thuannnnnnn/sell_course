@@ -52,6 +52,8 @@ export class ResultExamService {
     }
 
     let score = 0;
+    score = parseFloat(score.toFixed(2));
+
     const answersResult = [];
 
     // Iterate over the answers submitted by the user
@@ -82,7 +84,8 @@ export class ResultExamService {
     } else {
       totalQuestions = exam.questions.length;
     }
-    const percentageScore = (score / totalQuestions) * 100;
+    let percentageScore = (score / totalQuestions) * 100;
+    percentageScore = parseFloat(percentageScore.toFixed(2));
 
     const resultExam = this.resultExamRepository.create({
       resultExamId: uuidv4(),
