@@ -1,17 +1,17 @@
-import { Course } from 'src/modules/course/entities/course.entity';
+import { UserNotify } from '../../User_Notify/entities/user_Notify.entity';
+
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity('notify')
 export class Notify {
-  @PrimaryGeneratedColumn({ name: 'notify_id' })
-  notifyiId: string;
+  @PrimaryGeneratedColumn('uuid', { name: 'notify_id' })
+  notifyId: string;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
@@ -26,16 +26,12 @@ export class Notify {
   })
   type: 'USER' | 'COURSE' | 'GLOBAL';
 
-  @ManyToOne(() => Course)
-  @JoinColumn({ name: 'courseId', referencedColumnName: 'courseId' })
-  course: Course;
-
-  @Column({ nullable: true })
-  courseId: number;
-
   @Column({ default: false })
   isGlobal: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => UserNotify, (userNotify) => userNotify.notify)
+  userNotifies: UserNotify[];
 }

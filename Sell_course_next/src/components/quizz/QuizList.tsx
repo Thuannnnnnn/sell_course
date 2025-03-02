@@ -17,11 +17,11 @@ const QuizList: React.FC<QuizListProps> = ({
   onDeleteQuestion,
 }) => {
   if (loading) {
-    return <p className={styles.loading}>Đang tải dữ liệu...</p>;
+    return <p className={styles.loading}>Loading...</p>;
   }
 
   if (quizzes.length === 0) {
-    return <p className={styles.noData}>Không có quiz nào!</p>;
+    return <p className={styles.noData}>Do not have any quizz </p>;
   }
 
   return (

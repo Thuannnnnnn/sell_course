@@ -228,10 +228,13 @@ export default function CourseInfo() {
   return (
     <div className="course-info-container">
       {/* Header */}
-      <CourseInfoBanner title="Course" subtitle="Lesson Details" />
+      <CourseInfoBanner
+        title="Course"
+        subtitle={courseData?.courseName || ""}
+      />
 
       <div className="course-header">
-        <h1 className="course-title">{courseData?.courseName}</h1>
+        {/* <h1 className="course-title">{courseData?.courseName}</h1> */}
         <span className="course-progress">Your Progress: {progress}%</span>
       </div>
 
@@ -301,9 +304,16 @@ export default function CourseInfo() {
             ))}
 
             {/* Final Exam Section */}
-            
-            <li className={`course-section-Exam${progress === 100 ? "-completed": ""} ${progress !== 100 ? "disabled" : ""}`}>
-              <div className="course-section-header" onClick={progress === 100 ? selectExam : undefined}>
+
+            <li
+              className={`course-section-Exam${
+                progress === 100 ? "-completed" : ""
+              } ${progress !== 100 ? "disabled" : ""}`}
+            >
+              <div
+                className="course-section-header"
+                onClick={progress === 100 ? selectExam : undefined}
+              >
                 <span className="course-section-title">🎓 Final Exam</span>
               </div>
             </li>
