@@ -8,21 +8,28 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserNotifyService } from './user_notify.service';
 import {
   CreateUserNotifyDto,
   UpdateUserNotifyDto,
 } from './dto/user-notify.dto';
 import { UserNotify } from './entities/user_Notify.entity';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 @ApiTags('User Notifications')
-@Controller('user-notify')
+@Controller('api')
 export class UserNotifyController {
   constructor(private readonly userNotifyService: UserNotifyService) {}
-
-  @Post()
+  @ApiBearerAuth('Authorization')
+  @Post('admin/user_notify/create_user_notify')
   @ApiOperation({ summary: 'Create a new user notification' })
   @ApiResponse({
     status: 201,
@@ -34,8 +41,8 @@ export class UserNotifyController {
   ): Promise<UserNotify> {
     return await this.userNotifyService.createUserNotify(createUserNotifyDto);
   }
-
-  @Get()
+  @ApiBearerAuth('Authorization')
+  @Get('/admin/user_notify/get_all_user_notify')
   @ApiOperation({ summary: 'Get all user notifications' })
   @ApiResponse({
     status: 200,
@@ -45,8 +52,8 @@ export class UserNotifyController {
   async findAllUserNotifies(): Promise<UserNotify[]> {
     return await this.userNotifyService.findAllUserNotifies();
   }
-
-  @Get(':id')
+  @ApiBearerAuth('Authorization')
+  @Get('user_notify/get_user_notify/:id')
   @ApiOperation({ summary: 'Get a user notification by ID' })
   @ApiResponse({
     status: 200,
@@ -57,8 +64,9 @@ export class UserNotifyController {
   async findUserNotifyById(@Param('id') id: string): Promise<UserNotify> {
     return await this.userNotifyService.findUserNotifyById(id);
   }
-
-  @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Authorization')
+  @Put('user_notify/update_user_notify/:id')
   @ApiOperation({ summary: 'Update a user notification by ID' })
   @ApiResponse({
     status: 200,
@@ -75,8 +83,9 @@ export class UserNotifyController {
       updateUserNotifyDto,
     );
   }
-
-  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Authorization')
+  @Delete('user_notify/delete_user_notify/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a user notification by ID' })
   @ApiResponse({

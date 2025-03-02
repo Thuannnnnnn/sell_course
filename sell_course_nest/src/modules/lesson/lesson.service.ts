@@ -95,7 +95,6 @@ export class LessonService {
     return { message: 'Lesson deleted successfully' };
   }
 
-
   async getLessonsByCourseId(courseId: string): Promise<CourseWithLessonsDto> {
     const lessons = await this.lessonRepository.find({
       where: { course: { courseId } },

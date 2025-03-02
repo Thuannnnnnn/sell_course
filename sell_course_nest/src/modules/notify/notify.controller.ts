@@ -9,17 +9,22 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { NotifyService } from './notify.service';
 import { CreateNotifyDto, UpdateNotifyDto } from './dto/notify.dto';
 import { Notify } from './entities/notify.entity';
 
 @ApiTags('Notifications')
-@Controller('notify')
+@Controller('api/admin/notify')
 export class NotifyController {
   constructor(private readonly notifyService: NotifyService) {}
-
-  @Post()
+  @ApiBearerAuth('Authorization')
+  @Post('create_notify')
   @ApiOperation({ summary: 'Create a new notification' })
   @ApiResponse({
     status: 201,
@@ -31,8 +36,8 @@ export class NotifyController {
   ): Promise<Notify> {
     return await this.notifyService.createNotify(createNotifyDto);
   }
-
-  @Get()
+  @ApiBearerAuth('Authorization')
+  @Get('get_all_notify')
   @ApiOperation({ summary: 'Get all notifications' })
   @ApiResponse({
     status: 200,
@@ -42,8 +47,8 @@ export class NotifyController {
   async findAllNotify(): Promise<Notify[]> {
     return await this.notifyService.findAllNotify();
   }
-
-  @Get(':id')
+  @ApiBearerAuth('Authorization')
+  @Get('get_notify/:id')
   @ApiOperation({ summary: 'Get a notification by ID' })
   @ApiResponse({
     status: 200,
@@ -54,8 +59,8 @@ export class NotifyController {
   async findNotifyById(@Param('id') id: string): Promise<Notify> {
     return await this.notifyService.findNotifyById(id);
   }
-
-  @Put(':id')
+  @ApiBearerAuth('Authorization')
+  @Put('update_notify/:id')
   @ApiOperation({ summary: 'Update a notification by ID' })
   @ApiResponse({
     status: 200,
@@ -69,8 +74,8 @@ export class NotifyController {
   ): Promise<Notify> {
     return await this.notifyService.updateNotify(id, updateNotifyDto);
   }
-
-  @Delete(':id')
+  @ApiBearerAuth('Authorization')
+  @Delete('delete_notify/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a notification by ID' })
   @ApiResponse({

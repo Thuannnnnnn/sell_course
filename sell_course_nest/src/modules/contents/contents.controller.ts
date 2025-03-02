@@ -44,9 +44,15 @@ export class ContentController {
     return await this.contentService.deleteContent(contentId);
   }
   @Put('admin/content/update_content/:contentId')
-  async updateContent(@Param('contentId') contentId: string, @Body() body: { contentName: string }) {
+  async updateContent(
+    @Param('contentId') contentId: string,
+    @Body() body: { contentName: string },
+  ) {
     try {
-      return await this.contentService.updateContent(contentId, body.contentName);
+      return await this.contentService.updateContent(
+        contentId,
+        body.contentName,
+      );
     } catch (error) {
       throw new HttpException(error, 500);
     }

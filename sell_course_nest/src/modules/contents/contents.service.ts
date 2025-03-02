@@ -71,8 +71,13 @@ export class ContentService {
     return { message: 'Content deleted successfully' };
   }
 
-  async updateContent(contentId: string, contentName: string): Promise<Contents> {
-    const content = await this.contentRepository.findOne({ where: { contentId } });
+  async updateContent(
+    contentId: string,
+    contentName: string,
+  ): Promise<Contents> {
+    const content = await this.contentRepository.findOne({
+      where: { contentId },
+    });
 
     if (!content) {
       throw new HttpException('Content not found', HttpStatus.NOT_FOUND);

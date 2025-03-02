@@ -7,12 +7,10 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { QuizzService } from './quizz.service';
 import { CreateQuizzDto } from './dto/createQuizz.dto';
 import { UpdateQuizzDto } from './dto/updateQuizz.dto';
-import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 @Controller('api')
 export class QuizzController {
