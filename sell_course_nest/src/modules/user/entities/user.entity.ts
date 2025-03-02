@@ -7,9 +7,11 @@ import {
   ManyToMany,
   JoinTable,
   BeforeInsert,
+  OneToMany,
 } from 'typeorm';
 import { Permission } from '../../permission/entities/permission.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { UserNotify } from 'src/modules/User_Notify/entities/user_Notify.entity';
 
 @Entity('users')
 export class User {
@@ -62,4 +64,6 @@ export class User {
       this.user_id = uuidv4();
     }
   }
+  @OneToMany(() => UserNotify, (userNotify) => userNotify.user)
+  userNotifies: UserNotify[];
 }
