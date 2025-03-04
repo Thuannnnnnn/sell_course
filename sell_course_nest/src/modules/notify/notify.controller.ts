@@ -8,6 +8,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -18,11 +19,13 @@ import {
 import { NotifyService } from './notify.service';
 import { CreateNotifyDto, UpdateNotifyDto } from './dto/notify.dto';
 import { Notify } from './entities/notify.entity';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 @ApiTags('Notifications')
 @Controller('api/admin/notify')
 export class NotifyController {
   constructor(private readonly notifyService: NotifyService) {}
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('Authorization')
   @Post('create_notify')
   @ApiOperation({ summary: 'Create a new notification' })
@@ -37,6 +40,7 @@ export class NotifyController {
     return await this.notifyService.createNotify(createNotifyDto);
   }
   @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @Get('get_all_notify')
   @ApiOperation({ summary: 'Get all notifications' })
   @ApiResponse({
@@ -48,6 +52,7 @@ export class NotifyController {
     return await this.notifyService.findAllNotify();
   }
   @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @Get('get_notify/:id')
   @ApiOperation({ summary: 'Get a notification by ID' })
   @ApiResponse({
@@ -60,6 +65,7 @@ export class NotifyController {
     return await this.notifyService.findNotifyById(id);
   }
   @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @Put('update_notify/:id')
   @ApiOperation({ summary: 'Update a notification by ID' })
   @ApiResponse({
@@ -75,6 +81,7 @@ export class NotifyController {
     return await this.notifyService.updateNotify(id, updateNotifyDto);
   }
   @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @Delete('delete_notify/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a notification by ID' })

@@ -12,7 +12,7 @@ import {
 import { Permission } from '../../permission/entities/permission.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UserNotify } from 'src/modules/User_Notify/entities/user_Notify.entity';
-
+import { Forum } from 'src/modules/forum/entities/forum.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -66,4 +66,7 @@ export class User {
   }
   @OneToMany(() => UserNotify, (userNotify) => userNotify.user)
   userNotifies: UserNotify[];
+
+  @OneToMany(() => Forum, (forum) => forum.user)
+  forums: Forum[];
 }

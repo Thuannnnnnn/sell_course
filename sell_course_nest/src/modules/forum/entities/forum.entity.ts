@@ -1,12 +1,19 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 
 @Entity('forum')
 export class Forum {
-  @PrimaryColumn({ name: 'forum_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'forum_id' })
   forumId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.forums, { eager: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
@@ -19,6 +26,6 @@ export class Forum {
   @Column()
   text: string;
 
-  @Column({ type: 'timestamp', name: 'created_at' })
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   createdAt: Date;
 }
