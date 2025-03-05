@@ -9,6 +9,7 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { WaitlistService } from './waitlist.service';
 import { CreateWaitlistDto, UpdateWaitlistDto } from './dto/waitlist.dto';
@@ -19,7 +20,9 @@ import {
   ApiResponse,
   ApiBody,
   ApiParam,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 @ApiTags('waitlist')
 @Controller('api/waitlist')
@@ -27,6 +30,8 @@ export class WaitlistController {
   constructor(private readonly waitlistService: WaitlistService) {}
 
   @Post('create_waitlist')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new waitlist entry' })
   @ApiBody({ type: CreateWaitlistDto })
@@ -41,6 +46,8 @@ export class WaitlistController {
   }
 
   @Get('get_all_waitlist')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all waitlist entries' })
   @ApiResponse({
     status: 200,
@@ -52,6 +59,8 @@ export class WaitlistController {
   }
 
   @Get('get_waitlist/:userId')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get a specific waitlist entry' })
   @ApiParam({
     name: 'userId',
@@ -69,6 +78,8 @@ export class WaitlistController {
   }
 
   @Put('update_waitlist/:waitlistId')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update a waitlist entry' })
   @ApiParam({
     name: 'waitlistId',
@@ -90,6 +101,8 @@ export class WaitlistController {
   }
 
   @Delete('delete_waitlist/:waitlistId')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a waitlist entry' })
   @ApiParam({
