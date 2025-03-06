@@ -375,8 +375,8 @@
   "lesson": {
     "NotHave": "Don't have any Lesson!",
     "addContent": "Add Content",
-    "updateLesson" : "Update Lesson",
-    "updateContent" : "Update Content",
+    "updateLesson": "Update Lesson",
+    "updateContent": "Update Content",
     "contentName": "Content Name",
     "contentType": "Content Type",
     "video": "Video",
@@ -406,7 +406,7 @@
     "title_length_error": "Document title must have at least 3 characters",
     "title_exists_error": "Document title already exists",
     "upload_error": "Error occurred while uploading the document",
-    "file_status" : "File is available"
+    "file_status": "File is available"
   },
   "Forum": {
     "title": "Forum",
@@ -479,9 +479,9 @@
     "pagination": "Forum Pagination",
     "previousPage": "Previous Page",
     "nextPage": "Next Page"
-  }
+  },
   "wishListPage": {
     "title": "Wishlist",
     "noCourse": "You don't have any course in your wishlist"
-  },
+  }
 }

@@ -1,29 +1,29 @@
-'use client';
-import React from 'react';
-import { Navbar, Container, Nav, Image, Button } from 'react-bootstrap';
-import { useSession, signOut } from 'next-auth/react';
-import '../style/header.css';
-import Link from 'next/link';
-import LocalSwitcher from './local-switcher';
-import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { IoIosLogOut } from 'react-icons/io';
+"use client";
+import React from "react";
+import { Navbar, Container, Nav, Image, Button } from "react-bootstrap";
+import { useSession, signOut } from "next-auth/react";
+import "../style/header.css";
+import Link from "next/link";
+import LocalSwitcher from "./local-switcher";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { IoIosLogOut } from "react-icons/io";
 // import { MdDarkMode } from "react-icons/md";
 // import { MdLightMode } from "react-icons/md";
 // import { useTheme } from "../contexts/ThemeContext";
-import { FaRegUser } from 'react-icons/fa';
-import { useTheme } from '@/contexts/ThemeContext';
+import { FaRegUser } from "react-icons/fa";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
   const localActive = useLocale();
-  const t = useTranslations('Header');
+  const t = useTranslations("Header");
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   // const toggleTheme = () => {
   //   const newTheme = theme === "dark" ? "light" : "dark";
   // };
-  setTheme('light');
+  setTheme("light");
   return (
     <Navbar
       expand="lg"
@@ -46,29 +46,32 @@ const Header: React.FC = () => {
             />
           </Link>
           <Navbar.Brand href={`/${localActive}`} className="title-custom">
-            <span className="red-flag">RedFlag</span>{' '}
+            <span className="red-flag">RedFlag</span>{" "}
             <span className="golden-star">GoldenStar</span>
           </Navbar.Brand>
         </div>
 
         <Nav className="d-flex align-items-center flex-nowrap">
-          {session?.user.role == 'ADMIN' || session?.user.role == 'STAFF' ? (
-            <Link href={`/${localActive}/admin/dashboard`} className="nav-link me-4">
-              {t('manage')}
+          {session?.user.role == "ADMIN" || session?.user.role == "STAFF" ? (
+            <Link
+              href={`/${localActive}/admin/dashboard`}
+              className="nav-link me-4"
+            >
+              {t("manage")}
             </Link>
           ) : null}
           {/* <Link href={`/${localActive}/`} className="nav-link me-4">
             {t("home")}
           </Link> */}
           <Link href={`/${localActive}/showCourse`} className="nav-link me-4">
-            {t('course')}
+            {t("course")}
           </Link>
           <Link href={`/${localActive}/cart`} className="nav-link me-4">
-            {t('cart')}
+            {t("cart")}
           </Link>
-          {/* <Link href={`/${localActive}/news`} className="nav-link me-4">
+          <Link href={`/${localActive}/forum`} className="nav-link me-4">
             {t("forum")}
-          </Link> */}
+          </Link>
           {/* <Button
             onClick={toggleTheme}
             variant={`${theme}`}
@@ -81,7 +84,7 @@ const Header: React.FC = () => {
             )}
           </Button> */}
           <LocalSwitcher />
-          {status === 'loading' ? (
+          {status === "loading" ? (
             <span className="nav-link mx-4">Loading...</span>
           ) : session ? (
             <>
@@ -108,7 +111,7 @@ const Header: React.FC = () => {
                 }}
                 className={`btn-signup mx-3 ${theme}`}
               >
-                {t('signup')}
+                {t("signup")}
               </Button>
               <Button
                 variant="light"
@@ -117,7 +120,7 @@ const Header: React.FC = () => {
                 }}
                 className="btn-login"
               >
-                {t('login')}
+                {t("login")}
               </Button>
             </>
           )}
