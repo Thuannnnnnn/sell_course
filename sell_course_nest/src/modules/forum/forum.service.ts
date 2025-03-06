@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Forum } from './entities/forum.entity';
 import { CreateForumDto } from './dto/create-forum.dto';
 import { UpdateForumDto } from './dto/update-forum.dto';
+import { ForumResponseDto } from './dto/forum-response.dto';
 import {
   azureUpload,
   azureEdit,
@@ -36,15 +37,59 @@ export class ForumService {
     return await this.forumRepository.save(forum);
   }
 
-  async findAll(): Promise<Forum[]> {
-    return await this.forumRepository.find({ relations: ['user'] });
+  async findAll(): Promise<ForumResponseDto[]> {
+    const forums = await this.forumRepository.find({
+      relations: ['user', 'reactionTopics', 'discussions'],
+    });
+
+    return forums.map((forum) => ({
+      forumId: forum.forumId,
+      title: forum.title,
+      image: forum.image,
+      text: forum.text,
+      createdAt: forum.createdAt.toISOString(),
+      user: forum.user,
+      reactionTopics: forum.reactionTopics.map((reaction) => ({
+        reactionId: reaction.reactionId,
+        reactionType: reaction.reactionType,
+        createdAt: reaction.createdAt.toISOString(),
+      })),
+      discussions: forum.discussions.map((discussion) => ({
+        discussionId: discussion.discussionId,
+        content: discussion.content,
+        createdAt: discussion.createdAt.toISOString(),
+      })),
+    }));
   }
 
-  async findOne(id: string): Promise<Forum> {
-    return await this.forumRepository.findOne({
+  async findOne(id: string): Promise<ForumResponseDto> {
+    const forum = await this.forumRepository.findOne({
       where: { forumId: id },
-      relations: ['user'],
+      relations: ['user', 'reactionTopics', 'discussions'],
     });
+
+    if (!forum) {
+      throw new Error('Forum not found');
+    }
+
+    return {
+      forumId: forum.forumId,
+      title: forum.title,
+      image: forum.image,
+      text: forum.text,
+      createdAt: forum.createdAt.toISOString(),
+      user: forum.user,
+      reactionTopics: forum.reactionTopics.map((reaction) => ({
+        reactionId: reaction.reactionId,
+        reactionType: reaction.reactionType,
+        createdAt: reaction.createdAt.toISOString(),
+      })),
+      discussions: forum.discussions.map((discussion) => ({
+        discussionId: discussion.discussionId,
+        content: discussion.content,
+        createdAt: discussion.createdAt.toISOString(),
+      })),
+    };
   }
 
   async update(
@@ -83,6 +128,7 @@ export class ForumService {
     await this.forumRepository.delete(id);
   }
 }
+
 function extractBlobName(url: string): string {
   const parts = url.split('/');
   return parts.slice(4).join('/');

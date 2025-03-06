@@ -23,6 +23,7 @@ import { Forum } from './entities/forum.entity';
 import { CreateForumDto } from './dto/create-forum.dto';
 import { UpdateForumDto } from './dto/update-forum.dto';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { ForumResponseDto } from './dto/forum-response.dto';
 
 @ApiTags('Forum')
 @Controller('api/forum')
@@ -50,14 +51,14 @@ export class ForumController {
   @Get('get_all_forum')
   @ApiOperation({ summary: 'Get all forums' })
   @ApiResponse({ status: 200, description: 'List of forums', type: [Forum] })
-  findAll(): Promise<Forum[]> {
+  findAll(): Promise<ForumResponseDto[]> {
     return this.forumService.findAll();
   }
 
   @Get('get_forum/:id')
   @ApiOperation({ summary: 'Get a forum by ID' })
   @ApiResponse({ status: 200, description: 'Forum found', type: Forum })
-  findOne(@Param('id') id: string): Promise<Forum> {
+  findOne(@Param('id') id: string): Promise<ForumResponseDto> {
     return this.forumService.findOne(id);
   }
 

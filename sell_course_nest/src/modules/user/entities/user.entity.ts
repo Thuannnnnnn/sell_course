@@ -14,6 +14,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserNotify } from 'src/modules/User_Notify/entities/user_Notify.entity';
 import { Forum } from 'src/modules/forum/entities/forum.entity';
 import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
+import { ReactionTopic } from 'src/modules/forum/entities/reaction_topic.entity';
+import { Discussion } from 'src/modules/forum/entities/discussion.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -72,4 +74,8 @@ export class User {
   forums: Forum[];
   @OneToMany(() => Waitlist, (waitlist) => waitlist.user)
   waitlists: Waitlist[];
+  @OneToMany(() => ReactionTopic, (reactionTopic) => reactionTopic.user)
+  reactionTopics: ReactionTopic[];
+  @OneToMany(() => Discussion, (discussion) => discussion.user)
+  discussions: Discussion[];
 }

@@ -49,6 +49,7 @@ export class LessonController {
   async getLessonByCourseIdAdmin(@Param('courseId') courseId: string) {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
+
   @Get('/lesson/view_lesson/:courseId')
   @ApiOperation({ summary: 'Get course by ID with contents' })
   @ApiResponse({ status: 200, description: 'Lesson details' })
@@ -64,6 +65,18 @@ export class LessonController {
     @Body() updateLessonDto: UpdateLessonDTO,
   ) {
     return this.lessonService.updateLesson(lessonId, updateLessonDto);
+  }
+
+  @Put('admin/lesson/update_order')
+  @ApiOperation({ summary: 'Update the order of lessons' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lesson order updated successfully',
+  })
+  async updateLessonOrder(
+    @Body() lessons: { lessonId: string; order: number }[],
+  ) {
+    return this.lessonService.updateLessonOrder(lessons);
   }
 
   @Delete('admin/lesson/delete_lesson/:lessonId')

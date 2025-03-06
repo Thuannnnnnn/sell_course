@@ -128,4 +128,21 @@ export class LessonService {
       excludeExtraneousValues: true,
     });
   }
+  async updateLessonOrder(
+    lessons: { lessonId: string; order: number }[],
+  ): Promise<{ message: string }> {
+    for (const { lessonId, order } of lessons) {
+      const lesson = await this.lessonRepository.findOne({
+        where: { lessonId },
+      });
+      if (!lesson) {
+        throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
+      }
+
+      lesson.order = order;
+      await this.lessonRepository.save(lesson);
+    }
+
+    return { message: 'Lesson order updated successfully' };
+  }
 }

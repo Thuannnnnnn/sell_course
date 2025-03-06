@@ -69,6 +69,8 @@ import { ProgressTracking } from './modules/progress_tracking/entities/progress.
 import { ProcessModule } from './modules/progress_tracking/progress.module';
 import { QaStudyModule } from './modules/qa_study/qa_study.module';
 import { QaStudy } from './modules/qa_study/entities/qa.entity';
+import { ReactionTopic } from './modules/forum/entities/reaction_topic.entity';
+import { Discussion } from './modules/forum/entities/discussion.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -129,6 +131,8 @@ import { QaStudy } from './modules/qa_study/entities/qa.entity';
         ProgressTracking,
         UserNotify,
         QaStudy,
+        ReactionTopic,
+        Discussion,
       ],
       synchronize: true,
     }),
