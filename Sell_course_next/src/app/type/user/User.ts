@@ -6,8 +6,8 @@ export interface Permission {
 
 export interface User {
   user_id: string;
-  email: string;
-  username: string;
+  email: string | null;
+  username: string | null;
   avatarImg: string | null;
   gender: string;
   birthDay: string | null;
@@ -27,13 +27,23 @@ export interface UserGetAllCoursePurchase {
 }
 
 export interface GetUser {
-  user_id: string;
-  email: string;
-  username: string;
+  user_id: string | null;
+  email: string | null;
+  username: string | null;
   avatarImg: string | null;
-  gender: string;
+  gender: string | null;
   birthDay: string | null;
   phoneNumber: string;
   role: string;
+}
+export interface UserGetAllWishlist {
+  user_id: string;
+  wishlistId: string;
+  course: {
+    courseId: string;
+    imageInfo?: string;
+    title: string;
+    categoryName?: string;
+  };
 }
 

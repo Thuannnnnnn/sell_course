@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 
 export class WishlistRequestDto {
+
   @ApiProperty({ example: 'user123', description: 'ID của người dùng' })
   @IsString()
   @IsNotEmpty()

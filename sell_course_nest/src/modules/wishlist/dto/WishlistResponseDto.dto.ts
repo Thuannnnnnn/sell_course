@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsUUID } from 'class-validator';
 
 export class WishlistResponseDto {
+  @IsUUID()
   @ApiProperty({ example: 'wishlist789', description: 'ID của wishlist' })
   wishlistId: string;
 
