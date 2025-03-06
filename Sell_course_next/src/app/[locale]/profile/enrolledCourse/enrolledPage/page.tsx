@@ -13,10 +13,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import '../../../../../style/UserProfilePage.css';
 
 interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatarImg: string;
+  id: string | null;
+  email: string | null;
+  name: string | null;
+  avatarImg: string | null;
   gender: string;
   birthDay: string;
   phoneNumber: string;
@@ -132,7 +132,7 @@ const CoursePurchase: React.FC = () => {
                   {coursePurchased.map((course) => (
                     <div className="cardEnrolled" key={course.courseId}>
                       <div onClick={() =>
-                        (window.location.href = `/course/${course.courseId}`)
+                        (window.location.href = `/${localActive}/courseInfo/${course.courseId}`)
                       }
                       key={course.courseId}
                       className="cardContent"

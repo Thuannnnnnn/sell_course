@@ -40,7 +40,7 @@ export default function DashBoardUser() {
             <div>{t('enrolledCourse')}</div>
           </li>
         </Link>
-        <Link className='link-text' href={`/${localActive}/profile/wíhList`}>
+        <Link className='link-text' href={`/${localActive}/profile/wishList`}>
           <li>
             <div className="icon-sidebar">
               <PiListStarFill />

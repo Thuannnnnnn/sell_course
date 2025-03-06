@@ -39,8 +39,8 @@ export class WishlistService {
 
     if (!wishlist) {
       wishlist = this.wishlistRepository.create({
-        user,
-        course,
+        user: { user_id: dto.userId },
+        course: { courseId: dto.courseId },
         save: dto.save,
       });
     } else {
@@ -53,25 +53,20 @@ export class WishlistService {
     });
   }
 
-  async getWishlistByUser(userId: string): Promise<WishlistResponseDto[]> {
+  async getWishlistByUser(userId: string): Promise<any> {
     const wishlist = await this.wishlistRepository.find({
       where: { user: { user_id: userId } },
       relations: ['user', 'course'],
     });
 
-    return wishlist.map((item) =>
-      plainToClass(WishlistResponseDto, item, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return wishlist;
   }
 
-  async removeFromWishlist(wishlistId: string): Promise<string> {
+  async removeFromWishlist(courseId: string): Promise<string> {
     const wishlist = await this.wishlistRepository.findOne({
-      where: { wishlistId },
+      where: { courseId },
     });
     if (!wishlist) throw new NotFoundException('Wishlist item not found');
-
     await this.wishlistRepository.remove(wishlist);
     return 'Wishlist item removed successfully';
   }

@@ -407,6 +407,9 @@
     "title_exists_error": "Document title already exists",
     "upload_error": "Error occurred while uploading the document",
     "file_status" : "File is available"
-    
-  }
+  },
+    "wishListPage": {
+      "title": "Wishlist",
+      "noCourse": "You don't have any course in your wishlist"
+    }
 }

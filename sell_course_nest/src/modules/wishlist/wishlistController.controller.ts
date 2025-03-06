@@ -52,7 +52,7 @@ export class WishlistController {
   }
 
   @ApiBearerAuth('Authorization')
-  @Delete(':wishlistId')
+  @Delete(':courseId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Xóa khóa học khỏi wishlist' })
   @ApiResponse({
@@ -61,8 +61,8 @@ export class WishlistController {
   })
   @ApiResponse({ status: 404, description: 'Wishlist item not found' })
   async removeFromWishlist(
-    @Param('wishlistId') wishlistId: string,
+    @Param('courseId') courseId: string,
   ): Promise<string> {
-    return this.wishlistService.removeFromWishlist(wishlistId);
+    return this.wishlistService.removeFromWishlist(courseId);
   }
 }
