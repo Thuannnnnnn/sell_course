@@ -67,6 +67,10 @@ import { ResultExamModule } from './modules/result_exam/result_exam.module';
 import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
 import { ProgressTracking } from './modules/progress_tracking/entities/progress.entity';
 import { ProcessModule } from './modules/progress_tracking/progress.module';
+import { QaStudyModule } from './modules/qa_study/qa_study.module';
+import { QaStudy } from './modules/qa_study/entities/qa.entity';
+import { ReactionTopic } from './modules/forum/entities/reaction_topic.entity';
+import { Discussion } from './modules/forum/entities/discussion.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -126,6 +130,9 @@ import { ProcessModule } from './modules/progress_tracking/progress.module';
         ResultExam,
         ProgressTracking,
         UserNotify,
+        QaStudy,
+        ReactionTopic,
+        Discussion,
       ],
       synchronize: true,
     }),
@@ -162,6 +169,7 @@ import { ProcessModule } from './modules/progress_tracking/progress.module';
     OrderModule,
     PaymentModule,
     ResultExamModule,
+    QaStudyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

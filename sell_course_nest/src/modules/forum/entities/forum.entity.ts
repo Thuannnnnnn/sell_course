@@ -5,8 +5,11 @@ import {
   JoinColumn,
   Column,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
+import { ReactionTopic } from './reaction_topic.entity';
+import { Discussion } from './discussion.entity';
 
 @Entity('forum')
 export class Forum {
@@ -28,4 +31,8 @@ export class Forum {
 
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   createdAt: Date;
+  @OneToMany(() => ReactionTopic, (reactionTopic) => reactionTopic.forum)
+  reactionTopics: ReactionTopic[];
+  @OneToMany(() => Discussion, (discussion) => discussion.forum)
+  discussions: Discussion[];
 }
