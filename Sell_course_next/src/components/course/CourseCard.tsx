@@ -107,15 +107,17 @@ export default function CourseCard({ course }: CourseCardProps) {
         <span className="name">{course.userName}</span>
       </div>
 
-      <div className="image-wrapper" onClick={() => handleCoursePurchase(course.courseId)}>
-        <Image src={course.imageInfo} alt="Course Thumbnail" width={250} height={140} className="image" />
-      </div>
+      <div onClick={() => handleCoursePurchase(course.courseId)}>
+        <div className="image-wrapper">
+          <Image src={course.imageInfo} alt="Course Thumbnail" width={250} height={140} className="image" />
+        </div>
 
-      <div className="content">
-        <div className="tt">
-          <span className="category">{course.categoryName}</span>
-          <p className="lessons">12 Lessons</p>
-          <h3 className="title">{course.title}</h3>
+        <div className="content">
+          <div className="tt">
+            <span className="category">{course.categoryName}</span>
+            <p className="lessons">12 Lessons</p>
+            <h3 className="title">{course.title}</h3>
+          </div>
         </div>
       </div>
 
