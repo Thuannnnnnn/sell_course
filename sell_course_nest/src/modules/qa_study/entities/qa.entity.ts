@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Course } from 'src/modules/course/entities/course.entity';
+import { ReactionQa } from './reaction_qa.entity';
 
 @Entity('qa_study')
 export class QaStudy {
@@ -40,4 +41,6 @@ export class QaStudy {
   @ManyToOne(() => Course)
   @JoinColumn({ name: 'courseId', referencedColumnName: 'courseId' })
   course: Course;
+  @OneToMany(() => ReactionQa, (reactionQa) => reactionQa.QaStudy)
+  reactionQas: ReactionQa[];
 }

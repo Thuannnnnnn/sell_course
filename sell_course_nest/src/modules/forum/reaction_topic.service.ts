@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReactionTopic } from './entities/reaction_topic.entity';
@@ -25,32 +21,37 @@ export class ReactionTopicService {
     createReactionDto: CreateReactionTopicDto,
   ): Promise<ReactionTopic> {
     const { userId, forumId, reactionType } = createReactionDto;
+
     const user = await this.userRepository.findOne({
       where: { user_id: userId },
     });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
+
     const forum = await this.forumRepository.findOne({
       where: { forumId },
     });
     if (!forum) {
       throw new NotFoundException(`Forum with ID ${forumId} not found`);
     }
+
     const existingReaction = await this.reactionTopicRepository.findOne({
       where: { user: { user_id: userId }, forum: { forumId } },
     });
+
     if (existingReaction) {
-      throw new ConflictException(
-        `User ${userId} already reacted to forum ${forumId}`,
-      );
+      if (existingReaction.reactionType !== reactionType) {
+        existingReaction.reactionType = reactionType;
+        return this.reactionTopicRepository.save(existingReaction);
+      }
+      return existingReaction;
     }
     const reaction = this.reactionTopicRepository.create({
       user,
       forum,
       reactionType,
     });
-
     return this.reactionTopicRepository.save(reaction);
   }
   async findReactionsByForum(forumId: string): Promise<ReactionTopic[]> {

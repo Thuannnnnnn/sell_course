@@ -27,4 +27,11 @@ export class OrderService {
     await this.orderRepository.update({ orderCode }, updateData);
     return this.findByOrderCode(orderCode);
   }
+
+  async findOrderByEmail(email: string): Promise<Order[]> {
+    return this.orderRepository.find({
+      where: { email },
+      relations: ['user', 'course'],
+    });
+  }
 }

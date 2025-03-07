@@ -9,7 +9,6 @@ export enum ReactionType {
   SAD = 'sad',
   ANGRY = 'angry',
 }
-
 export class CreateReactionTopicDto {
   @ApiProperty({
     description: 'ID của user thực hiện reaction',
