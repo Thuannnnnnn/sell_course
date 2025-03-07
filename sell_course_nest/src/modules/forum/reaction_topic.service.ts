@@ -64,4 +64,18 @@ export class ReactionTopicService {
     }
     return reactions;
   }
+  async deleteReaction(userId: string, forumId: string): Promise<void> {
+    const reaction = await this.reactionTopicRepository.findOne({
+      where: { user: { user_id: userId }, forum: { forumId } },
+      relations: ['user', 'forum'],
+    });
+
+    if (!reaction) {
+      throw new NotFoundException(
+        `Reaction by user ${userId} on forum ${forumId} not found`,
+      );
+    }
+
+    await this.reactionTopicRepository.remove(reaction);
+  }
 }
