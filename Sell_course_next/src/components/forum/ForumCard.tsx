@@ -101,6 +101,7 @@ const ForumCard: React.FC<ForumCardProps> = ({ forum }) => {
         <div className="reaction-summary">
           <ForumReactionsReadOnly
             reactions={forumState.reactionTopics.map((reaction) => ({
+              userId: reaction.userId,
               reactionId: reaction.reactionId,
               reactionType: validateReactionType(reaction.reactionType),
               createdAt: reaction.createdAt,

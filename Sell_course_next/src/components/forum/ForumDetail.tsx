@@ -23,9 +23,12 @@ const ForumDetail: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState<string>("");
-  const isAuthor = session?.user?.user_id === forum?.user.user_id;
+  const [pollingActive, setPollingActive] = useState<boolean>(false);
+  const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
+  const [reactionProcessing, setReactionProcessing] = useState<boolean>(false);
 
   const fetchForumDetail = async (isPolling = false) => {
+    if (reactionProcessing && isPolling) return null; // Ngăn polling khi đang xử lý reaction
     try {
       if (!forumId) {
         setError(t("postNotFound"));
@@ -64,19 +67,11 @@ const ForumDetail: React.FC = () => {
         fetchForumDetail(true);
       }
     };
-    window.addEventListener(
-      "forumReactionChanged",
-      handleReactionChange as EventListener
-    );
+    window.addEventListener("forumReactionChanged", handleReactionChange as EventListener);
     return () => {
-      window.removeEventListener(
-        "forumReactionChanged",
-        handleReactionChange as EventListener
-      );
+      window.removeEventListener("forumReactionChanged", handleReactionChange as EventListener);
     };
   }, [forumId]);
-
-  const [pollingActive, setPollingActive] = useState<boolean>(false);
 
   useEffect(() => {
     const handleUserInteraction = () => {
@@ -96,10 +91,8 @@ const ForumDetail: React.FC = () => {
     };
   }, [pollingActive]);
 
-  const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
-
   useEffect(() => {
-    if (!pollingActive) return;
+    if (!pollingActive || reactionProcessing) return;
     const intervalId = setInterval(() => {
       if (!document.hidden) {
         setIsCurrentlyPolling(true);
@@ -117,11 +110,15 @@ const ForumDetail: React.FC = () => {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
     };
-  }, [pollingActive, forumId]);
+  }, [pollingActive, forumId, reactionProcessing]);
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setComment("");
+  };
+
+  const handleReactionProcessing = (isProcessing: boolean) => {
+    setReactionProcessing(isProcessing);
   };
 
   if (loading) {
@@ -139,10 +136,7 @@ const ForumDetail: React.FC = () => {
       <div className="alert alert-danger" role="alert">
         {error}
         <div className="mt-3">
-          <button
-            className="btn btn-outline-primary"
-            onClick={() => router.push(`/${locale}/forum`)}
-          >
+          <button className="btn btn-outline-primary" onClick={() => router.push(`/${locale}/forum`)}>
             {t("backToForum")}
           </button>
         </div>
@@ -154,10 +148,7 @@ const ForumDetail: React.FC = () => {
     return (
       <div className="text-center my-5">
         <p className="fs-5">{t("postNotFound")}</p>
-        <button
-          className="btn btn-primary mt-3"
-          onClick={() => router.push(`/${locale}/forum`)}
-        >
+        <button className="btn btn-primary mt-3" onClick={() => router.push(`/${locale}/forum`)}>
           {t("backToForum")}
         </button>
       </div>
@@ -174,10 +165,7 @@ const ForumDetail: React.FC = () => {
   return (
     <div className="container py-4">
       {pollingActive && (
-        <div
-          className="position-fixed bottom-0 end-0 p-3"
-          style={{ zIndex: 1050 }}
-        >
+        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1050 }}>
           <div
             className={`toast ${isCurrentlyPolling ? "show" : ""}`}
             role="alert"
@@ -186,9 +174,7 @@ const ForumDetail: React.FC = () => {
           >
             <div className="toast-header">
               <div
-                className={`spinner-border spinner-border-sm me-2 ${
-                  isCurrentlyPolling ? "" : "invisible"
-                }`}
+                className={`spinner-border spinner-border-sm me-2 ${isCurrentlyPolling ? "" : "invisible"}`}
                 role="status"
               >
                 <span className="visually-hidden">Loading...</span>
@@ -197,9 +183,7 @@ const ForumDetail: React.FC = () => {
               <small>{new Date().toLocaleTimeString()}</small>
             </div>
             <div className="toast-body">
-              {isCurrentlyPolling
-                ? "Đang cập nhật dữ liệu..."
-                : "Đang theo dõi thay đổi trong thời gian thực"}
+              {isCurrentlyPolling ? "Đang cập nhật dữ liệu..." : "Đang theo dõi thay đổi trong thời gian thực"}
             </div>
           </div>
         </div>
@@ -209,10 +193,7 @@ const ForumDetail: React.FC = () => {
           <nav aria-label="breadcrumb" className="mb-4">
             <ol className="breadcrumb">
               <li className="breadcrumb-item">
-                <Link
-                  href={`/${locale}/forum`}
-                  className="text-decoration-none"
-                >
+                <Link href={`/${locale}/forum`} className="text-decoration-none">
                   {t("title")}
                 </Link>
               </li>
@@ -255,20 +236,8 @@ const ForumDetail: React.FC = () => {
               <h4 className="card-title mb-3">{forum.title}</h4>
               {forum.image && (
                 <div className="forum-image mb-4">
-                  <div
-                    className="rounded"
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      height: "500px",
-                    }}
-                  >
-                    <Image
-                      src={forum.image}
-                      alt={forum.title}
-                      fill
-                      style={{ objectFit: "contain" }}
-                    />
+                  <div className="rounded" style={{ position: "relative", width: "100%", height: "500px" }}>
+                    <Image src={forum.image} alt={forum.title} fill style={{ objectFit: "contain" }} />
                   </div>
                 </div>
               )}
@@ -282,6 +251,7 @@ const ForumDetail: React.FC = () => {
                   <ForumReactions
                     forumId={forumId}
                     reactions={forum.reactionTopics.map((reaction) => ({
+                      userId: reaction.userId,
                       reactionId: reaction.reactionId,
                       reactionType: reaction.reactionType as any,
                       createdAt: reaction.createdAt,
@@ -289,33 +259,26 @@ const ForumDetail: React.FC = () => {
                     onReactionChange={(newReactions) => {
                       setForum((prev) => {
                         if (!prev) return null;
-                        const updatedForum = {
+                        return {
                           ...prev,
                           reactionTopics: newReactions.map((reaction) => ({
                             reactionId: reaction.reactionId,
                             reactionType: reaction.reactionType,
                             createdAt: reaction.createdAt,
-                            userId: reaction.reactionId.split("_")[0],
+                            userId: reaction.reactionId.split("_")[0], // Nếu server không trả userId
                           })),
                         };
-                        return updatedForum;
                       });
                     }}
+                    onProcessingChange={handleReactionProcessing}
                   />
-                  {isAuthor && (
+                  {session?.user?.user_id === forum.user.user_id && (
                     <>
-                      <Link
-                        href={`/${locale}/forum/edit/${forumId}`}
-                        className="btn btn-outline-secondary me-2"
-                      >
+                      <Link href={`/${locale}/forum/edit/${forumId}`} className="btn btn-outline-secondary me-2">
                         <i className="bi bi-pencil me-1"></i>
                         {t("editPost")}
                       </Link>
-                      <DeleteForumButton
-                        forumId={forumId}
-                        userId={forum.user.user_id}
-                        locale={locale}
-                      />
+                      <DeleteForumButton forumId={forumId} userId={forum.user.user_id} locale={locale} />
                     </>
                   )}
                 </div>
@@ -351,10 +314,7 @@ const ForumDetail: React.FC = () => {
               {forum.discussions.length > 0 ? (
                 <div className="comments-list">
                   {forum.discussions.map((discussion) => (
-                    <div
-                      key={discussion.discussionId}
-                      className="comment mb-3 pb-3 border-bottom"
-                    >
+                    <div key={discussion.discussionId} className="comment mb-3 pb-3 border-bottom">
                       <div className="d-flex">
                         <div className="me-3">
                           <div
@@ -366,17 +326,12 @@ const ForumDetail: React.FC = () => {
                         </div>
                         <div>
                           <div className="fw-bold mb-1">{t("author")}</div>
-                          <div className="comment-content mb-1">
-                            {discussion.content}
-                          </div>
+                          <div className="comment-content mb-1">{discussion.content}</div>
                           <div className="text-muted small">
-                            {formatDistanceToNow(
-                              new Date(discussion.createdAt),
-                              {
-                                addSuffix: true,
-                                locale: dateLocale,
-                              }
-                            )}
+                            {formatDistanceToNow(new Date(discussion.createdAt), {
+                              addSuffix: true,
+                              locale: dateLocale,
+                            })}
                           </div>
                         </div>
                       </div>
@@ -418,14 +373,12 @@ const ForumDetail: React.FC = () => {
                 <div>
                   <h6 className="mb-1">{forum.user.username}</h6>
                   <p className="text-muted small mb-0">
-                    {t("joinedOn")}:{" "}
-                    {format(new Date(forum.user.createdAt), "MM/yyyy")}
+                    {t("joinedOn")}: {format(new Date(forum.user.createdAt), "MM/yyyy")}
                   </p>
                 </div>
               </div>
             </div>
           </div>
-          {/* Forum Stats */}
           <div className="card shadow-sm mb-4">
             <div className="card-header bg-white">
               <h5 className="mb-0">{t("postStats")}</h5>
@@ -438,21 +391,15 @@ const ForumDetail: React.FC = () => {
                 </li>
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                   <span>{t("likes")}</span>
-                  <span className="badge bg-primary rounded-pill">
-                    {forum.reactionTopics.length}
-                  </span>
+                  <span className="badge bg-primary rounded-pill">{forum.reactionTopics.length}</span>
                 </li>
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                   <span>{t("comments")}</span>
-                  <span className="badge bg-primary rounded-pill">
-                    {forum.discussions.length}
-                  </span>
+                  <span className="badge bg-primary rounded-pill">{forum.discussions.length}</span>
                 </li>
               </ul>
             </div>
           </div>
-
-          {/* Back to Forum */}
           <div className="d-grid gap-2">
             <Link href={`/${locale}/forum`} className="btn btn-outline-primary">
               <i className="bi bi-arrow-left me-2"></i>

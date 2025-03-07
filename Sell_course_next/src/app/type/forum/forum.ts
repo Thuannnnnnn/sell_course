@@ -11,6 +11,7 @@ export const reactionEmojis: Record<ReactionType, string> = {
 
 // Reaction interface
 export interface Reaction {
+  userId: string;
   reactionId: string;
   reactionType: ReactionType;
   createdAt: string;
@@ -38,13 +39,21 @@ export interface User {
 }
 
 export const validateReactionType = (type: string): ReactionType => {
-    const validTypes: ReactionType[] = ["like", "love", "haha", "wow", "sad", "angry"];
-    return validTypes.includes(type as ReactionType)
-      ? (type as ReactionType)
-      : "like"; // Default to "like" if invalid
-  };
+  const validTypes: ReactionType[] = [
+    "like",
+    "love",
+    "haha",
+    "wow",
+    "sad",
+    "angry",
+  ];
+  return validTypes.includes(type as ReactionType)
+    ? (type as ReactionType)
+    : "like"; // Default to "like" if invalid
+};
 
 export interface ReactionTopic {
+  userId: string;
   reactionId: string;
   reactionType: string;
   createdAt: string;
