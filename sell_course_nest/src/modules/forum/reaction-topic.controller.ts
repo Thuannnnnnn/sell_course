@@ -4,6 +4,7 @@ import {
   Body,
   Get,
   Param,
+  Delete,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -59,5 +60,21 @@ export class ReactionTopicController {
     @Param('forumId') forumId: string,
   ): Promise<ReactionTopic[]> {
     return this.reactionTopicService.findReactionsByForum(forumId);
+  }
+
+  @Delete(':userId/:forumId')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Xóa reaction của user cho forum' })
+  @ApiParam({ name: 'userId', description: 'ID của user', type: String })
+  @ApiParam({ name: 'forumId', description: 'ID của forum', type: String })
+  @ApiResponse({ status: 204, description: 'Reaction đã được xóa thành công' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy reaction' })
+  async deleteReaction(
+    @Param('userId') userId: string,
+    @Param('forumId') forumId: string,
+  ): Promise<void> {
+    return this.reactionTopicService.deleteReaction(userId, forumId);
   }
 }
