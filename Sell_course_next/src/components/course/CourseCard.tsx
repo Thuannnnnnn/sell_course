@@ -102,12 +102,11 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   return (
     <div className="card">
-      <div className="header" onClick={() => handleCoursePurchase(course.courseId)}>
+      <div className="header">
         <Image src={course.userAvata || ""} alt="Avatar" width={30} height={30} className="avatarImage" />
         <span className="name">{course.userName}</span>
       </div>
-
-      <div className="image-wrapper">
+      <div className="image-wrapper" onClick={() => handleCoursePurchase(course.courseId)}>
         <Image src={course.imageInfo} alt="Course Thumbnail" width={250} height={140} className="image" />
       </div>
 

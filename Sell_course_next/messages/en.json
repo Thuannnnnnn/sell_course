@@ -483,5 +483,9 @@
   "wishListPage": {
     "title": "Wishlist",
     "noCourse": "You don't have any course in your wishlist"
+  },
+  "orderHistoryPage": {
+    "title": "Order History",
+    "noOrder": "You don't have any order"
   }
 }
