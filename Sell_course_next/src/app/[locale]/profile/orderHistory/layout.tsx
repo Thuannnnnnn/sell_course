@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 export const metadata: Metadata = {
-  title: 'Wish List',
-  description: 'WishList Page',
+  title: 'Order History',
+  description: 'OrderHistory Page',
 };
 
 export default function RootLayout({
