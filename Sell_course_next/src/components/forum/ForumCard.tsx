@@ -60,7 +60,7 @@ const ForumCard: React.FC<ForumCardProps> = ({ forum }) => {
 
           {forum.image && (
             <div className="forum-image mb-3">
-              <img
+              <Image
                 src={forum.image}
                 alt={forum.title}
                 className="img-thumbnail w-100"

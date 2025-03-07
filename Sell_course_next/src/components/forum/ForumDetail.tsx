@@ -176,7 +176,7 @@ const ForumDetail: React.FC = () => {
 
               {forum.image && (
                 <div className="forum-image mb-4">
-                  <img
+                  <Image
                     src={forum.image}
                     alt={forum.title}
                     className="img-fluid rounded"
