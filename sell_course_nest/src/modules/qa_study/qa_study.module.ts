@@ -7,14 +7,17 @@ import { UserModule } from '../user/user.module';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { CourseModule } from '../course/course.module';
+import { ReactionQaService } from './reaction_qa.service';
+import { ReactionQaController } from './reaction_qa.controller';
+import { ReactionQa } from './entities/reaction_qa.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([QaStudy, User, Course]),
+    TypeOrmModule.forFeature([QaStudy, User, Course, ReactionQa]),
     UserModule,
     CourseModule,
   ],
-  providers: [QaStudyService],
-  controllers: [QaStudyController],
+  providers: [QaStudyService, ReactionQaService],
+  controllers: [QaStudyController, ReactionQaController],
 })
 export class QaStudyModule {}

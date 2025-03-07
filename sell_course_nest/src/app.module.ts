@@ -71,6 +71,7 @@ import { QaStudyModule } from './modules/qa_study/qa_study.module';
 import { QaStudy } from './modules/qa_study/entities/qa.entity';
 import { ReactionTopic } from './modules/forum/entities/reaction_topic.entity';
 import { Discussion } from './modules/forum/entities/discussion.entity';
+import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -133,6 +134,7 @@ import { Discussion } from './modules/forum/entities/discussion.entity';
         QaStudy,
         ReactionTopic,
         Discussion,
+        ReactionQa,
       ],
       synchronize: true,
     }),
