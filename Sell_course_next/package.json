@@ -13,6 +13,7 @@
     "@next/font": "^14.2.15",
     "@react-pdf-viewer/core": "^3.11.174",
     "@react-pdf-viewer/default-layout": "^3.11.174",
+    "animate.css": "^4.1.1",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "date-fns": "^4.1.0",

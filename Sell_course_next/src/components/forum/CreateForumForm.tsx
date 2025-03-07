@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 const CreateForumForm: React.FC = () => {
   const router = useRouter();
@@ -26,12 +27,14 @@ const CreateForumForm: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Check if user is logged in
     if (status === "unauthenticated") {
       router.push(`/${locale}/auth/login`);
     }
 
     if (session) {
       console.log("Session data:", session);
+      // Check possible locations for userId
       if (session.user?.user_id) {
         console.log("Found user_id in session.user.user_id:", session.user.user_id);
         setUserId(session.user.user_id);
@@ -50,18 +53,22 @@ const CreateForumForm: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (limit 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError(t('imageFormats'));
         return;
       }
 
+      // Check file type
       if (!file.type.startsWith("image/")) {
         setError(t('imageFormats'));
         return;
       }
 
+      // Save original file to state
       setImage(file);
 
+      // Create preview URL for the image
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -82,6 +89,7 @@ const CreateForumForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate form
     if (!title.trim()) {
       setError(t('titleRequired'));
       return;
@@ -98,6 +106,7 @@ const CreateForumForm: React.FC = () => {
       return;
     }
 
+    // Check token
     const token = session?.user?.token;
     if (!token) {
       console.error("Missing token. Session:", session);
@@ -123,6 +132,7 @@ const CreateForumForm: React.FC = () => {
 
       if (result) {
         setSuccess(true);
+        // Redirect after 2 seconds
         setTimeout(() => {
           router.push(`/${locale}/forum`);
         }, 2000);
@@ -142,6 +152,7 @@ const CreateForumForm: React.FC = () => {
     }
   };
 
+  // Show loading message
   if (status === "loading") {
     return (
       <div className="container py-4">
@@ -154,6 +165,7 @@ const CreateForumForm: React.FC = () => {
     );
   }
 
+  // Show login required message
   if (status === "unauthenticated") {
     return (
       <div className="container py-4">
@@ -244,12 +256,14 @@ const CreateForumForm: React.FC = () => {
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="img-thumbnail"
-                          style={{ maxHeight: "200px" }}
-                        />
+                        <div className="img-thumbnail" style={{ maxHeight: "200px", position: "relative", width: "100%", height: "200px" }}>
+                          <Image
+                            src={imagePreview}
+                            alt="Preview"
+                            fill
+                            style={{ objectFit: "contain" }}
+                          />
+                        </div>
                         <button
                           type="button"
                           className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 interface EditForumFormProps {
   forumId: string;
@@ -32,12 +33,14 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Check if user is logged in
     if (status === "unauthenticated") {
       router.push(`/${locale}/auth/login`);
     }
 
     if (session) {
       console.log("Session data:", session);
+      // Check possible locations for userId
       if (session.user?.user_id) {
         console.log("Found user_id in session.user.user_id:", session.user.user_id);
         setUserId(session.user.user_id);
@@ -74,6 +77,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
           setImagePreview(forum.image);
         }
 
+        // Check edit permissions
         if (session?.user?.user_id !== forum.user.user_id) {
           setError(t('noPermissionMessage'));
         }
@@ -94,18 +98,22 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (limit 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError(t('imageFormats'));
         return;
       }
 
+      // Check file type
       if (!file.type.startsWith("image/")) {
         setError(t('imageFormats'));
         return;
       }
 
+      // Save original file to state
       setImage(file);
 
+      // Create preview URL for the image
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -126,6 +134,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate form
     if (!title.trim()) {
       setError(t('titleRequired'));
       return;
@@ -142,6 +151,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
       return;
     }
 
+    // Check token
     const token = session?.user?.token;
     if (!token) {
       console.error("Missing token. Session:", session);
@@ -167,6 +177,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
 
       if (result) {
         setSuccess(true);
+        // Redirect after 2 seconds
         setTimeout(() => {
           router.push(`/${locale}/forum/${forumId}`);
         }, 2000);
@@ -186,6 +197,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     }
   };
 
+  // Show loading message
   if (loading) {
     return (
       <div className="container py-4">
@@ -198,6 +210,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     );
   }
 
+  // Show login required message
   if (status === "unauthenticated") {
     return (
       <div className="container py-4">
@@ -218,6 +231,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     );
   }
 
+  // Show no permission message
   if (originalForum && session?.user?.user_id !== originalForum.user.user_id) {
     return (
       <div className="container py-4">
@@ -308,12 +322,14 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="img-thumbnail"
-                          style={{ maxHeight: "200px" }}
-                        />
+                        <div className="img-thumbnail" style={{ maxHeight: "200px", position: "relative", width: "100%", height: "200px" }}>
+                          <Image
+                            src={imagePreview}
+                            alt="Preview"
+                            fill
+                            style={{ objectFit: "contain" }}
+                          />
+                        </div>
                         <button
                           type="button"
                           className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"

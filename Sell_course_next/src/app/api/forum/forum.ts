@@ -77,8 +77,6 @@ export async function getForumById(forumId: string): Promise<Forum | null> {
     return response.data;
   } catch (error) {
     console.error("Error fetching forum by ID:", error);
-
-    // Thử phương án dự phòng - lấy tất cả bài đăng và lọc theo ID
     try {
       const allForumsResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_all_forum`,
@@ -183,5 +181,70 @@ export async function deleteForum(
   } catch (error) {
     console.error("Error deleting forum:", error);
     return false;
+  }
+}
+
+export async function ReactionTopic(
+  userId: string,
+  forumId: string,
+  reactionType: string,
+  token: string
+): Promise<boolean> {
+  try {
+    // Create the payload exactly as expected by the API
+    const payload = {
+      userId: userId,
+      forumId: forumId,
+      reactionType: reactionType
+    };
+
+    console.log("Sending reaction data:", payload);
+
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Reaction response:", response.status, response.data);
+    return response.status === 200 || response.status === 201;
+  } catch (error) {
+    console.error("Error reaction topic:", error);
+    return false;
+  }
+}
+
+export async function ReactionTopicById(
+  userId: string,
+  forumId: string,
+  reactionType: string,
+  token: string
+): Promise<any> {
+  try {
+    console.log(`Fetching reaction for userId: ${userId}, forumId: ${forumId}`);
+
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${forumId}`,
+      {
+        params: {
+          userId: userId
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Reaction data received:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting reaction topic:", error);
+    return null;
   }
 }
