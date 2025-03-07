@@ -1,440 +1,296 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
-import { Tooltip, Overlay, Popover } from 'react-bootstrap';
-import { useParams } from 'next/navigation';
-import { ReactionTopic, ReactionTopicById } from '@/app/api/forum/forum';
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 
-// Define reaction types
-export type ReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
+// Định nghĩa các loại reaction
+type ReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
 
-// Define reaction data structure
+// Emoji cho từng loại reaction
+const reactionEmojis: Record<ReactionType, string> = {
+  like: "👍",
+  love: "❤️",
+  haha: "😂",
+  wow: "😮",
+  sad: "😢",
+  angry: "😡",
+};
+
+// Định nghĩa interface cho reaction
 interface Reaction {
   reactionId: string;
   reactionType: ReactionType;
   createdAt: string;
 }
 
+// Component ForumReactions
 interface ForumReactionsProps {
   forumId: string;
-  reactions: Reaction[];
-  onReactionChange?: (newReactions: Reaction[]) => void;
+  reactions?: Reaction[];
+  onReactionChange?: (reactions: Reaction[]) => void;
 }
 
-// Reaction emoji mapping
-const reactionEmojis: Record<ReactionType, string> = {
-  like: '👍',
-  love: '❤️',
-  haha: '😂',
-  wow: '😮',
-  sad: '😢',
-  angry: '😡'
-};
-
-// Reaction color mapping
-const reactionColors: Record<ReactionType, string> = {
-  like: 'primary',
-  love: 'danger',
-  haha: 'warning',
-  wow: 'info',
-  sad: 'secondary',
-  angry: 'dark'
-};
-
-// Reaction animation classes
-const reactionAnimations: Record<ReactionType, string> = {
-  like: 'reaction-animation-pulse',
-  love: 'reaction-animation-heartBeat',
-  haha: 'reaction-animation-bounce',
-  wow: 'reaction-animation-tada',
-  sad: 'reaction-animation-shakeY',
-  angry: 'reaction-animation-headShake'
-};
-
-const ForumReactions: React.FC<ForumReactionsProps> = ({ forumId, reactions, onReactionChange }) => {
+const ForumReactions: React.FC<ForumReactionsProps> = ({
+  forumId,
+  reactions = [],
+  onReactionChange
+}) => {
   const { data: session } = useSession();
-  const t = useTranslations('Forum');
+  const t = useTranslations("Forum");
   const params = useParams();
   const locale = params.locale as string;
 
-  const [showReactionSelector, setShowReactionSelector] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [userReaction, setUserReaction] = useState<Reaction | null>(null);
-  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>({
-    like: 0,
-    love: 0,
-    haha: 0,
-    wow: 0,
-    sad: 0,
-    angry: 0
-  });
-  const [totalReactions, setTotalReactions] = useState(0);
-  const [dominantReaction, setDominantReaction] = useState<ReactionType>('like');
-  const [showAnimation, setShowAnimation] = useState<ReactionType | null>(null);
+  const [allReactions, setAllReactions] = useState<Reaction[]>(reactions);
 
-  const target = useRef(null);
-
-  // Calculate reaction counts and user's reaction
+  // Cập nhật danh sách reactions khi props thay đổi
   useEffect(() => {
-    if (!reactions) return;
+    setAllReactions(reactions);
+  }, [reactions]);
 
-    // Reset counts
-    const counts: Record<ReactionType, number> = {
-      like: 0,
-      love: 0,
-      haha: 0,
-      wow: 0,
-      sad: 0,
-      angry: 0
-    };
+  // Kiểm tra xem người dùng hiện tại đã reaction chưa từ danh sách reactions
+  const userReaction = allReactions.find(reaction => {
+    const reactionUserId = reaction.reactionId.split('_')[0];
+    return reactionUserId === (session?.user?.user_id || '');
+  });
 
-    // Count reactions by type
-    reactions.forEach(reaction => {
-      if (reaction.reactionType in counts) {
-        counts[reaction.reactionType as ReactionType]++;
-      }
-
-      // Check if this is the current user's reaction
-      // Note: We don't have userId in the reaction object, so we'll need to check this differently
-      // This would typically be handled by the backend
+  // Log trạng thái hiện tại để debug
+  useEffect(() => {
+    console.log("Current reaction state:", {
+      userReaction: userReaction?.reactionType,
+      allReactionsCount: allReactions.length,
+      reactionCounts: countReactions(),
+      userReactionExists: !!userReaction
     });
+  }, [userReaction, allReactions]);
 
-    // Calculate total and find dominant reaction
-    const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
-    let dominant: ReactionType = 'like';
-    let maxCount = 0;
+  // Đếm số lượng reaction theo loại
+  const countReactions = () => {
+    return allReactions.reduce((counts, reaction) => {
+      const type = reaction.reactionType;
+      counts[type] = (counts[type] || 0) + 1;
+      return counts;
+    }, {} as Record<ReactionType, number>);
+  };
 
-    Object.entries(counts).forEach(([type, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        dominant = type as ReactionType;
-      }
-    });
+  const reactionCounts = countReactions();
 
-    setReactionCounts(counts);
-    setTotalReactions(total);
-    setDominantReaction(dominant);
-
-    // Load user's reaction
-    const loadUserReaction = async () => {
-      if (session?.user?.user_id && forumId) {
-        try {
-          // This is a placeholder - your API might need to be modified to return the user's reaction
-          const result = await ReactionTopicById(
-            session.user.user_id,
-            forumId,
-            '', // We're not sending a reaction type for GET
-            session.user.token || ''
-          );
-
-          // Use the result from the API to find the user's reaction
-          if (result && result.reactionType) {
-            // Find the user's existing reaction in the reactions array if it exists
-            const existingReaction = reactions.find(r =>
-              r.reactionType === result.reactionType &&
-              result.userId === session.user.user_id
-            );
-
-            if (existingReaction) {
-              setUserReaction(existingReaction);
-            } else {
-              // Create a new reaction object if not found in the array
-              const newReaction: Reaction = {
-                reactionId: result.reactionId || Date.now().toString(),
-                reactionType: result.reactionType as ReactionType,
-                createdAt: result.createdAt || new Date().toISOString()
-              };
-              setUserReaction(newReaction);
-            }
-          }
-        } catch (error) {
-          console.error('Error loading user reaction:', error);
-        }
-      }
-    };
-
-    loadUserReaction();
-  }, [reactions, session, forumId]);
-
-  const handleReactionClick = () => {
-    if (!session) {
-      // Redirect to login if not logged in
+  const handleReaction = async (type: ReactionType) => {
+    if (!session?.user?.token || !session?.user?.user_id) {
       window.location.href = `/${locale}/auth/login`;
       return;
     }
 
-    // Always show the reaction selector when clicking the button
-    setShowReactionSelector(!showReactionSelector);
-  };
-
-  const handleAddReaction = async (type: ReactionType) => {
-    if (!session?.user?.token || !session?.user?.user_id) return;
-
     setIsProcessing(true);
-    setShowReactionSelector(false);
+    const userId = session.user.user_id;
+    const token = session.user.token;
 
     try {
-      // Check if user is clicking the same reaction type they already have
-      const isSameReaction = userReaction && userReaction.reactionType === type;
+      console.log(`Handling reaction click: ${type}`);
+      
+      // Kiểm tra xem user đã có reaction này chưa
+      const hasThisReaction = userReaction?.reactionType === type;
+      console.log(`User has this reaction: ${hasThisReaction}`);
+      
+      if (hasThisReaction) {
+        console.log(`User clicked on their own emoji (${type}), removing it`);
+        
+        // Cập nhật danh sách reactions ngay lập tức trong UI
+        const optimisticUpdatedReactions = allReactions.filter(reaction => {
+          const reactionUserId = reaction.reactionId.split('_')[0];
+          return reactionUserId !== userId;
+        });
 
-      console.log(`Adding reaction: ${type} to forum: ${forumId} by user: ${session.user.user_id}`);
-      console.log(`Is same reaction: ${isSameReaction}`);
+        setAllReactions(optimisticUpdatedReactions);
 
-      // Call the ReactionTopic API function
-      const success = await ReactionTopic(
-        session.user.user_id,
-        forumId,
-        type,
-        session.user.token
-      );
+        // Thông báo thay đổi cho component cha
+        if (onReactionChange) {
+          onReactionChange(optimisticUpdatedReactions);
+        }
 
-      if (success) {
-        console.log(`Reaction ${type} added successfully`);
+        // Gọi API để xóa reaction
+        const deleteUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`;
+        console.log("Deleting reaction with direct endpoint:", deleteUrl);
+        
+        // Sử dụng fetch API để gọi DELETE endpoint
+        fetch(deleteUrl, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          console.log("Delete response status:", response.status);
+          if (!response.ok) {
+            console.log("Delete reaction failed, status:", response.status);
+          }
+        })
+        .catch(error => {
+          console.error("Error deleting reaction:", error);
+        });
+      } else {
+        // Nếu chọn emoji khác hoặc chưa có reaction
+        
+        // Nếu đã có reaction trước đó, xóa nó trước
+        if (userReaction) {
+          // Gọi API để xóa reaction cũ
+          const deleteUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`;
+          console.log("Deleting previous reaction:", deleteUrl);
+          
+          await fetch(deleteUrl, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        }
 
-        // Create a new reaction object
+        // Tạo reaction mới cho UI
         const newReaction: Reaction = {
-          reactionId: userReaction?.reactionId || Date.now().toString(), // Keep same ID if updating
+          reactionId: `${userId}_${Date.now()}`,
           reactionType: type,
           createdAt: new Date().toISOString()
         };
 
-        // Update the reactions list
-        let updatedReactions = [...reactions];
+        // Tạo bản sao của danh sách reactions hiện tại
+        let optimisticUpdatedReactions = [...allReactions];
 
-        // If user already had a reaction, replace it
-        if (userReaction) {
-          console.log(`User had previous reaction: ${userReaction.reactionType}, replacing with: ${type}`);
-          // Remove the old reaction first
-          updatedReactions = updatedReactions.filter(r => r.reactionId !== userReaction.reactionId);
+        // Xóa TẤT CẢ reactions của người dùng hiện tại khỏi danh sách
+        optimisticUpdatedReactions = optimisticUpdatedReactions.filter(reaction => {
+          const reactionUserId = reaction.reactionId.split('_')[0];
+          return reactionUserId !== userId;
+        });
 
-          // Always add the new reaction (even if same type)
-          // The backend will handle toggling if needed
-          updatedReactions.push(newReaction);
-          setUserReaction(newReaction);
-        } else {
-          console.log(`Adding new reaction: ${type}`);
-          updatedReactions.push(newReaction);
-          setUserReaction(newReaction);
+        // Thêm reaction mới vào UI
+        optimisticUpdatedReactions.push(newReaction);
+        setAllReactions(optimisticUpdatedReactions);
+
+        // Thông báo thay đổi cho component cha
+        if (onReactionChange) {
+          onReactionChange(optimisticUpdatedReactions);
         }
 
-        // Update state
-        onReactionChange?.(updatedReactions);
-        setShowAnimation(type);
-        setTimeout(() => setShowAnimation(null), 1000);
-      } else {
-        console.log("Failed to add reaction");
+        // Gọi API để thêm reaction mới
+        const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic`;
+        console.log("Adding reaction:", apiUrl);
+        
+        // Sử dụng fetch API để gọi POST endpoint
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId, forumId, reactionType: type })
+        })
+        .then(response => {
+          console.log("Add response status:", response.status);
+          if (!response.ok) {
+            console.log("Add reaction failed, status:", response.status);
+          }
+        })
+        .catch(error => {
+          console.error("Error adding reaction:", error);
+        });
       }
     } catch (error) {
-      console.error('Error handling reaction:', error);
+      console.error("Error handling reaction:", error);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Get button style based on user's reaction
-  const getButtonStyle = () => {
-    if (!userReaction) return 'btn-outline-primary';
-    return `btn-${reactionColors[userReaction.reactionType as ReactionType]}`;
-  };
-
-  // Get button text based on user's reaction
-  const getButtonText = () => {
-    if (!userReaction) return t('likes');
-    return reactionEmojis[userReaction.reactionType as ReactionType] + ' ' + t(userReaction.reactionType);
-  };
-
   return (
-    <div className="reaction-container">
-      {/* Main reaction button */}
-      <button
-        ref={target}
-        className={`btn ${getButtonStyle()} me-2 ${isProcessing ? 'disabled' : ''} reaction-main-btn`}
-        onClick={handleReactionClick}
-        disabled={isProcessing}
-        title={t('clickToReact')}
-      >
-        {userReaction ? (
-          <>
-            <span className={showAnimation === userReaction.reactionType ? reactionAnimations[userReaction.reactionType as ReactionType] : ''}>
-              {reactionEmojis[userReaction.reactionType as ReactionType]}
-            </span> {t(userReaction.reactionType as string)}
-          </>
-        ) : (
-          <>
-            <i className="bi bi-hand-thumbs-up me-1"></i> {t('likes')}
-          </>
-        )}
-        {totalReactions > 0 && ` (${totalReactions})`}
-      </button>
-
-      {/* Reaction selector popover */}
-      <Overlay
-        show={showReactionSelector}
-        target={target.current}
-        placement="top"
-        rootClose={true}
-        onHide={() => setShowReactionSelector(false)}
-      >
-        <Popover id="reaction-popover" className="reaction-popover">
-          <Popover.Body className="d-flex justify-content-between p-2">
-            {Object.entries(reactionEmojis).map(([type, emoji]) => (
-              <button
-                key={type}
-                className={`btn btn-light reaction-emoji-btn mx-1 ${
-                  userReaction?.reactionType === type ? 'active' : ''
-                }`}
-                onClick={() => {
-                  handleAddReaction(type as ReactionType);
-                  setShowReactionSelector(false);
-                }}
-                title={t(type)}
-              >
-                <span className="reaction-emoji fs-4">{emoji}</span>
-              </button>
-            ))}
-          </Popover.Body>
-        </Popover>
-      </Overlay>
-
-      {/* Tooltip showing reaction counts */}
-      {totalReactions > 0 && (
-        <Tooltip id="reaction-counts-tooltip" className="d-none">
-          <div>
-            {Object.entries(reactionCounts)
-              .filter(([_, count]) => count > 0)
-              .map(([type, count]) => (
-                <div key={type}>
-                  {reactionEmojis[type as ReactionType]} {t(type)}: {count}
-                </div>
-              ))}
+    <div className="reaction-container position-relative">
+      {/* Hiển thị trạng thái xử lý */}
+      {isProcessing && (
+        <div className="position-absolute top-0 start-50 translate-middle-x" style={{ zIndex: 10 }}>
+          <div className="badge bg-info text-white py-1 px-2">
+            <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Đang xử lý...
           </div>
-        </Tooltip>
+        </div>
       )}
 
-      {/* Add required CSS for animations */}
-      <style jsx global>{`
-        .reaction-popover {
-          background-color: white !important;
-          border-radius: 30px !important;
-          box-shadow: 0 0 15px rgba(0,0,0,0.3) !important;
-          border: none !important;
-          z-index: 1050 !important;
-        }
+      {/* Hiển thị reaction hiện tại hoặc nút like mặc định */}
+      {userReaction ? (
+        <button
+          className={`btn btn-primary me-2 ${isProcessing ? "disabled" : ""}`}
+          onClick={() => {
+            console.log(`Main button clicked, current reaction: ${userReaction.reactionType}`);
+            handleReaction(userReaction.reactionType);
+          }}
+          disabled={isProcessing}
+          title="Click để bỏ reaction"
+        >
+          {reactionEmojis[userReaction.reactionType]} {t(userReaction.reactionType)}
+          {reactionCounts[userReaction.reactionType] > 0 &&
+            <span className="ms-1 badge bg-light text-primary">
+              {reactionCounts[userReaction.reactionType]}
+            </span>
+          }
+        </button>
+      ) : (
+        <button
+          className={`btn btn-outline-primary me-2 ${isProcessing ? "disabled" : ""}`}
+          onClick={() => handleReaction("like")}
+          disabled={isProcessing}
+        >
+          <i className="bi bi-hand-thumbs-up me-1"></i> {t("like")}
+        </button>
+      )}
 
-        .reaction-popover .popover-body {
-          padding: 10px !important;
-        }
+      {/* Các nút emoji luôn hiển thị */}
+      <div className="d-inline-flex">
+        {Object.entries(reactionEmojis).map(([type, emoji]) => {
+          const reactionType = type as ReactionType;
+          const count = reactionCounts[reactionType] || 0;
 
-        .reaction-emoji-btn {
-          border-radius: 50% !important;
-          width: 45px !important;
-          height: 45px !important;
-          padding: 0 !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          transition: all 0.2s ease !important;
-          margin: 0 5px !important;
-        }
+          // Kiểm tra xem emoji này có phải là reaction của người dùng không
+          const isUserReaction = userReaction?.reactionType === reactionType;
 
-        .reaction-emoji-btn:hover {
-          transform: scale(1.3) !important;
-          z-index: 1 !important;
-          box-shadow: 0 0 10px rgba(0,0,0,0.1) !important;
-        }
+          // Kiểm tra xem emoji này có trong danh sách reactions không
+          const hasReactions = count > 0;
 
-        .reaction-emoji-btn.active {
-          background-color: #e6f2ff !important;
-          border-color: #0d6efd !important;
-        }
+          return (
+            <button
+              key={type}
+              className={`btn mx-1 position-relative ${isUserReaction ? "btn-primary" : "btn-light"} ${hasReactions ? "border-info" : ""}`}
+              onClick={() => handleReaction(reactionType)}
+              disabled={isProcessing}
+              title={`${t(reactionType)} (${count} ${count === 1 ? 'người' : 'người'})`}
+            >
+              {emoji}
+              {hasReactions && (
+                <span className={`position-absolute top-0 start-100 translate-middle badge rounded-pill ${isUserReaction ? "bg-success" : "bg-secondary"}`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-        .reaction-emoji {
-          font-size: 1.5rem !important;
+      {/* CSS cơ bản */}
+      <style jsx>{`
+        .reaction-container {
+          display: flex;
+          align-items: center;
         }
-
-        .reaction-main-btn {
-          position: relative !important;
-          transition: all 0.2s ease !important;
-          border-width: 2px !important;
+        .btn-light, .btn-primary {
+          padding: 5px 10px;
+          font-size: 1.2rem;
         }
-
-        .reaction-main-btn:hover {
-          transform: translateY(-2px) !important;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+        .btn-light.active, .btn-primary {
+          background-color: #e6f2ff;
+          border-color: #0d6efd;
         }
-
-        .reaction-main-btn:active {
-          transform: translateY(0) !important;
-        }
-
-        /* Custom Animation Classes */
-        @keyframes reaction-pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.2); }
-          100% { transform: scale(1); }
-        }
-
-        @keyframes reaction-heartBeat {
-          0% { transform: scale(1); }
-          14% { transform: scale(1.3); }
-          28% { transform: scale(1); }
-          42% { transform: scale(1.3); }
-          70% { transform: scale(1); }
-        }
-
-        @keyframes reaction-bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-10px); }
-          60% { transform: translateY(-5px); }
-        }
-
-        @keyframes reaction-tada {
-          0% { transform: scale(1) rotate(0deg); }
-          10%, 20% { transform: scale(0.9) rotate(-3deg); }
-          30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
-          40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
-          100% { transform: scale(1) rotate(0deg); }
-        }
-
-        @keyframes reaction-shakeY {
-          0%, 100% { transform: translateY(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateY(-4px); }
-          20%, 40%, 60%, 80% { transform: translateY(4px); }
-        }
-
-        @keyframes reaction-headShake {
-          0% { transform: translateX(0); }
-          6.5% { transform: translateX(-6px) rotateY(-9deg); }
-          18.5% { transform: translateX(5px) rotateY(7deg); }
-          31.5% { transform: translateX(-3px) rotateY(-5deg); }
-          43.5% { transform: translateX(2px) rotateY(3deg); }
-          50% { transform: translateX(0); }
-        }
-
-        .reaction-animation-pulse {
-          animation: reaction-pulse 0.8s ease-in-out;
-        }
-
-        .reaction-animation-heartBeat {
-          animation: reaction-heartBeat 1.3s ease-in-out;
-        }
-
-        .reaction-animation-bounce {
-          animation: reaction-bounce 0.8s ease;
-        }
-
-        .reaction-animation-tada {
-          animation: reaction-tada 0.8s ease;
-        }
-
-        .reaction-animation-shakeY {
-          animation: reaction-shakeY 0.8s ease;
-        }
-
-        .reaction-animation-headShake {
-          animation: reaction-headShake 0.8s ease-in-out;
+        .badge {
+          font-size: 0.7rem;
         }
       `}</style>
     </div>

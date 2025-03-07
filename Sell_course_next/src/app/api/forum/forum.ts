@@ -66,7 +66,7 @@ export async function getAllForum(): Promise<Forum[]> {
 export async function getForumById(forumId: string): Promise<Forum | null> {
   try {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_forum_by_id/${forumId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_forum/${forumId}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -195,7 +195,7 @@ export async function ReactionTopic(
     const payload = {
       userId: userId,
       forumId: forumId,
-      reactionType: reactionType
+      reactionType: reactionType,
     };
 
     console.log("Sending reaction data:", payload);
@@ -232,7 +232,37 @@ export async function ReactionTopicById(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${forumId}`,
       {
         params: {
-          userId: userId
+          userId: userId,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Reaction data received:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting reaction topic:", error);
+    return null;
+  }
+}
+
+export async function DeteleReactionTopic(
+  userId: string,
+  forumId: string,
+  reactionType: string,
+  token: string
+): Promise<any> {
+  try {
+    console.log(`Fetching reaction for userId: ${userId}, forumId: ${forumId}`);
+
+    const response = await axios.delete(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`,
+      {
+        params: {
+          userId: userId,
         },
         headers: {
           Authorization: `Bearer ${token}`,

@@ -28,39 +28,168 @@ const ForumDetail: React.FC = () => {
   // Check if current user is the author of the post
   const isAuthor = session?.user?.user_id === forum?.user.user_id;
 
-  useEffect(() => {
-    const fetchForumDetail = async () => {
-      try {
-        setLoading(true);
-        console.log("Fetching forum with ID:", forumId);
-        const forumData = await getForumById(forumId);
-
-        console.log("Forum data received:", forumData);
-
-        if (!forumData) {
-          console.error("Forum data is null or undefined");
-          setError(t('postNotFound'));
-          return;
-        }
-
-        setForum(forumData);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching forum detail:", err);
-        setError(t('errorLoading'));
-      } finally {
+  // Hàm để lấy dữ liệu forum - trả về Promise để có thể sử dụng .then()
+  const fetchForumDetail = async (isPolling = false) => {
+    try {
+      if (!forumId) {
+        console.error("Forum ID is missing");
+        setError(t('postNotFound'));
         setLoading(false);
+        return null;
+      }
+
+      // Chỉ hiển thị loading khi không phải đang polling
+      if (!isPolling && !loading) setLoading(true);
+
+      console.log("Fetching forum with ID:", forumId, isPolling ? "(polling)" : "");
+      const forumData = await getForumById(forumId);
+
+      console.log("Forum data received:", forumData);
+
+      if (!forumData) {
+        console.error("Forum data is null or undefined");
+        setError(t('postNotFound'));
+        return null;
+      }
+
+      // Nếu đang polling, log sự thay đổi trong reactions
+      if (isPolling && forum) {
+        const oldReactions = forum.reactionTopics || [];
+        const newReactions = forumData.reactionTopics || [];
+
+        if (oldReactions.length !== newReactions.length) {
+          console.log("Reactions changed:", {
+            before: oldReactions.length,
+            after: newReactions.length,
+            difference: newReactions.length - oldReactions.length
+          });
+        }
+      }
+
+      setForum(forumData);
+      setError(null);
+      return forumData;
+    } catch (err) {
+      console.error("Error fetching forum detail:", err);
+      // Chỉ hiển thị lỗi khi không phải đang polling
+      if (!isPolling) {
+        setError(t('errorLoading'));
+      }
+      return null;
+    } finally {
+      // Chỉ cập nhật trạng thái loading khi không phải đang polling
+      if (!isPolling) {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Lấy dữ liệu ban đầu
+  useEffect(() => {
+    fetchForumDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forumId, t]);
+
+  // Lắng nghe sự kiện forumReactionChanged để tải lại dữ liệu
+  useEffect(() => {
+    const handleReactionChange = (event: CustomEvent) => {
+      const { forumId: eventForumId } = event.detail;
+
+      // Chỉ tải lại nếu đúng forum hiện tại
+      if (eventForumId === forumId) {
+        console.log("Detected reaction change, silently reloading forum data");
+        fetchForumDetail(true); // Truyền true để chỉ ra đây là silent reload
       }
     };
 
-    if (forumId) {
-      fetchForumDetail();
-    } else {
-      console.error("Forum ID is missing");
-      setError(t('postNotFound'));
-      setLoading(false);
-    }
-  }, [forumId, t]);
+    // Đăng ký lắng nghe sự kiện
+    window.addEventListener('forumReactionChanged', handleReactionChange as EventListener);
+
+    // Cleanup khi component unmount
+    return () => {
+      window.removeEventListener('forumReactionChanged', handleReactionChange as EventListener);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forumId]);
+
+  // Sử dụng state để theo dõi trạng thái polling
+  const [pollingActive, setPollingActive] = useState<boolean>(false);
+
+  // Thiết lập polling chỉ khi cần thiết
+  useEffect(() => {
+    // Chỉ bắt đầu polling khi có tương tác từ người dùng
+    const handleUserInteraction = () => {
+      if (!pollingActive) {
+        console.log("User interaction detected, activating polling");
+        setPollingActive(true);
+      }
+    };
+
+    // Lắng nghe các sự kiện tương tác của người dùng
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('keydown', handleUserInteraction);
+    window.addEventListener('mousemove', handleUserInteraction);
+    window.addEventListener('touchstart', handleUserInteraction);
+
+    // Cleanup khi component unmount
+    return () => {
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('mousemove', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, [pollingActive]);
+
+  // State để theo dõi trạng thái polling hiện tại
+  const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
+
+  // Thực hiện polling khi được kích hoạt
+  useEffect(() => {
+    if (!pollingActive) return;
+
+    console.log("Polling activated for real-time updates");
+
+    // Cập nhật dữ liệu mỗi 3 giây
+    const intervalId = setInterval(() => {
+      // Chỉ cập nhật nếu tab đang được hiển thị
+      if (!document.hidden) {
+        setIsCurrentlyPolling(true); // Đánh dấu đang polling
+        console.log("Polling: Fetching forum data...", new Date().toLocaleTimeString());
+
+        // Gọi API và theo dõi thời gian
+        const startTime = performance.now();
+
+        fetchForumDetail(true) // Truyền true để chỉ ra đây là polling
+          .then(() => {
+            const endTime = performance.now();
+            console.log(`Polling completed in ${Math.round(endTime - startTime)}ms`);
+
+            // So sánh dữ liệu trước và sau khi polling
+            if (forum) {
+              console.log("Reactions count:", forum.reactionTopics.length);
+              console.log("Reaction types:", forum.reactionTopics.map(r => r.reactionType).join(', '));
+            }
+          })
+          .finally(() => {
+            setIsCurrentlyPolling(false); // Đánh dấu đã hoàn thành polling
+          });
+      }
+    }, 3000);
+
+    // Tự động dừng polling sau 2 phút nếu không có tương tác
+    const timeoutId = setTimeout(() => {
+      console.log("No recent interaction, deactivating polling");
+      setPollingActive(false);
+    }, 2 * 60 * 1000); // 2 phút
+
+    // Cleanup khi component unmount hoặc khi polling bị tắt
+    return () => {
+      console.log("Cleaning up polling interval");
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pollingActive, forumId]);
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +249,26 @@ const ForumDetail: React.FC = () => {
 
   return (
     <div className="container py-4">
+      {/* Chỉ báo polling */}
+      {pollingActive && (
+        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1050 }}>
+          <div className={`toast ${isCurrentlyPolling ? 'show' : ''}`} role="alert" aria-live="assertive" aria-atomic="true">
+            <div className="toast-header">
+              <div className={`spinner-border spinner-border-sm me-2 ${isCurrentlyPolling ? '' : 'invisible'}`} role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <strong className="me-auto">Real-time Updates</strong>
+              <small>{new Date().toLocaleTimeString()}</small>
+            </div>
+            <div className="toast-body">
+              {isCurrentlyPolling
+                ? 'Đang cập nhật dữ liệu...'
+                : 'Đang theo dõi thay đổi trong thời gian thực'}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="row">
         <div className="col-lg-8">
           {/* Navigation */}
@@ -210,11 +359,27 @@ const ForumDetail: React.FC = () => {
                       createdAt: reaction.createdAt
                     }))}
                     onReactionChange={(newReactions) => {
-                      // Update local state with new reactions
-                      setForum(prev => prev ? {
-                        ...prev,
-                        reactionTopics: newReactions
-                      } : null);
+                      console.log("Reaction change detected in ForumDetail:", newReactions.length);
+
+                      // Cập nhật state với reactions mới ngay lập tức
+                      setForum(prev => {
+                        if (!prev) return null;
+
+                        const updatedForum = {
+                          ...prev,
+                          reactionTopics: newReactions.map(reaction => ({
+                            reactionId: reaction.reactionId,
+                            reactionType: reaction.reactionType,
+                            createdAt: reaction.createdAt,
+                            userId: reaction.reactionId.split('_')[0] // Lấy userId từ reactionId
+                          }))
+                        };
+
+                        console.log("Updated forum state with new reactions:",
+                          updatedForum.reactionTopics.map(r => r.reactionType).join(', '));
+
+                        return updatedForum;
+                      });
                     }}
                   />
 
