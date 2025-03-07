@@ -25,17 +25,17 @@ export interface UserGetAllCoursePurchase {
   categoryId: string;
   imageInfo: string;
 }
-
 export interface GetUser {
-  user_id: string | null;
-  email: string | null;
-  username: string | null;
-  avatarImg: string | null;
-  gender: string | null;
-  birthDay: string | null;
+  user_id: null;
+  email:  undefined;
+  username: null;
+  avatarImg: null;
+  gender: null;
+  birthDay: null;
   phoneNumber: string;
   role: string;
 }
+
 export interface UserGetAllWishlist {
   user_id: string;
   wishlistId: string;
