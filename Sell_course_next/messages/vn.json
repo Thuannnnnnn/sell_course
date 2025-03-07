@@ -491,5 +491,9 @@
   "wishListPage": {
     "title": "Danh sách mong muốn",
     "noCourse": "Bạn chưa thêm khóa học nào vào danh sách mong muốn"
+  },
+  "orderHistoryPage": {
+    "title": "Lịch sử mua hàng",
+    "noOrder": "Bạn chưa có đơn hàng nào"
   }
 }
