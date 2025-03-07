@@ -1,0 +1,270 @@
+.content-profile {
+    padding: 50px 0px 100px 0px;
+    display: flex;
+    width: 80%;
+    margin: auto;
+}
+
+.form-profile {
+  margin-left: 10%;
+  width: 100%;
+  border-radius: 10px;
+  background-color: none;
+}
+
+.form-profile h2 {
+    padding: 20px 0px 20px 50px;
+    color: black;
+    border-bottom: 2px solid black;
+}
+
+.form-header {
+  margin-left: 10%;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  background-color: white;
+  border-radius: 10px;
+  margin: auto;
+}
+
+.link {
+    display: flex;
+}
+
+h5 {
+    padding: 25px 0px 15px 0px;
+}
+
+.link-profile {
+    text-decoration: none !important;
+    font-size: 20px;
+    padding: 0px 0px 0px 50px;
+    font-weight: 600;
+    color: black;
+    margin-top: 20px;
+}
+
+h6 {
+    font-size: 20px;
+}
+
+h6.active {
+    padding: 0px 10px 15px 10px;
+    border-bottom: 3px solid #0813DC;
+    color: #0813DC;
+    background: white;
+    margin: 0;
+}
+
+
+/* Change Password */
+.change-password {
+    max-width: 100%;
+    margin:  auto;
+    border-radius: 10px;
+    box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+
+  form {
+    padding: 20px 20px 20px 45px;
+    width: 100%;
+  }
+
+  .input-container {
+    margin: 20px 0px 20px 0px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .input-container input {
+    width: 100%;
+    padding: 10px;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    border: none;
+  }
+
+  .submit-button {
+    width: 25%;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .submit-button:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+  }
+
+  .error-message {
+    color: red;
+    margin-bottom: 15px;
+  }
+
+  .dark-bg {
+    background-color: #333;
+    color: white;
+  }
+
+  /*My profile page*/
+  .table-profile {
+    width: 100%;
+    margin-left: 10%;
+  }
+
+  .tabel-content {
+    display: flex;
+  }
+
+  .table-info {
+    padding: 40px 0px 40px 30px;
+    margin-top: 50px;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    background-color: white;
+
+    border-radius: 10px;
+  }
+  .title-info {
+    padding: 15px;
+    background-color: #ddd;
+    border-bottom: 0.5px solid gray;
+    width: 20%;
+    font-size: 16px;
+  }
+
+  .table-contain {
+    padding: 30px;
+    border: 1px solid rgb(90, 86, 86);
+    border-radius: 20px;
+    margin-right: 30px;
+  }
+
+  .table-info .info {
+    padding: 15px;
+    border-bottom: 0.5px solid gray;
+    width: 100%;
+    margin-right: 30px;
+  }
+
+  /*Update profile page*/
+  .form-update {
+    max-width: 100%;
+    margin:  auto;
+    border-radius: 10px;
+    box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    margin-bottom: 50px;
+    padding-top: 50px;
+  }
+
+  .avatar {
+    background-color: #d1d5db;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+ .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    margin: auto;
+  }
+
+  .card-user {
+    display: flex;
+    align-items: center;
+    padding: 40px;
+    background: linear-gradient(to right, #cce4f6, #cdeedd);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    margin: auto;
+  }
+
+  .avatar-upload {
+   margin-top: 5px;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 20px 20px 20px;
+  }
+
+  .input-group label {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .input-group input {
+    width: 100%;
+    border: none;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1), -2px -2px 6px rgba(255, 255, 255, 0.6);
+    margin-top: 0.5rem;
+    padding: 0.7rem;
+  }
+
+  .btn-update {
+    width: 25%;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+
+  .btn-update:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+  }
+
+
+  /* Enrolled Course */
+  .cardAll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4rem;
+    justify-content: flex-start;
+    margin-top: 2rem;
+  }
+  .cardEnrolled {
+    width: calc(20%);
+    border-radius: 20px;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid black;
+    padding: 20px 20px 50px 20px;
+    box-sizing: border-box;
+  }
+  .cardContent .cardImg{
+    width: 100%;
+  }
+
+  .cardInfo {
+    width: 100%;
+  }
+  .cardCategory {
+    background-color: #DCF2F4;
+    border-radius: 40px;
+    margin-top: 10px;
+    width: max-content;
+    padding: 5px;
+    color: #1FA4B9;
+  }
+
+  .cardTitle  {
+    width: 100%;
+  }
+
+  .cardTitle h3{
+    font-size: 20px;
+  }

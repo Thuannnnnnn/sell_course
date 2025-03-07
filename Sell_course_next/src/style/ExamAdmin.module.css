@@ -1,0 +1,257 @@
+.container {
+  background-color: #f4f4f9;
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wrapper {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #3b82f6;
+  letter-spacing: 0.5px;
+}
+
+.button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  margin: 0px 20px 0px 0px;
+}
+
+.primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.success {
+  background-color: #10b981;
+  color: white;
+}
+
+.button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.card {
+  background-color: var(--card);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.modalContent {
+  background-color: var(--background);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translateY(20px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.inputText {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.inputText:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+}
+
+.inputCheckbox {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.addButton {
+  display: block;
+  width: 20%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--primary-foreground);
+  background-color: red;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+}
+
+.addButton:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.answerRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.answerRow label {
+  margin-bottom: 20px;
+}
+
+.questionCard {
+  background-color: #ffffff;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.questionCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.questionCard h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.answers p {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.examList {
+  display: flex;
+  flex-direction: column;
+}
+
+.examCard {
+  background-color: #ffffff;
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.examCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.examCard h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #3b82f6;
+  margin-bottom: 1rem;
+}
+
+.questionSection {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.questionSection h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.questionSection input {
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 1rem;
+  }
+
+  .modalContent {
+    width: 90%;
+  }
+}

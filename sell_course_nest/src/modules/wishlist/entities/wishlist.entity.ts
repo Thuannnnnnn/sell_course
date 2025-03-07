@@ -1,11 +1,21 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  ManyToOne,
+  JoinColumn,
+  Column,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Course } from '../../course/entities/course.entity';
 
 @Entity('wishlist')
 export class Wishlist {
-  @PrimaryColumn({ name: 'wishlist_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'wishlist_id' })
   wishlistId: string;
+
+  @Column()
+  courseId: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })

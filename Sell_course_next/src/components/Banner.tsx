@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import Image from 'next/image';
-import banner_img from '../app/image/banner_img.jpg';
-import '../style/Banner.css'
+import banner_img from '../../public/banner_img.jpg';
+import '../style/Banner.css';
 
 const Banner = () => {
   const t = useTranslations('banner');

@@ -1,5 +1,6 @@
 import { Category } from 'src/modules/category/entities/category.entity';
 import { User } from 'src/modules/user/entities/user.entity';
+import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
 import {
   Entity,
   PrimaryColumn,
@@ -7,6 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
   BeforeInsert,
+  OneToMany,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -50,4 +52,7 @@ export class Course {
       this.courseId = uuidv4();
     }
   }
+
+  @OneToMany(() => Waitlist, (waitlist) => waitlist.user)
+  waitlists: Waitlist[];
 }

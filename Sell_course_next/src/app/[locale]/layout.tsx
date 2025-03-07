@@ -52,19 +52,21 @@ export default async function RootLayout({
 
   return (
     <html lang={params.locale}>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable}`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable}`}
+      >
         <ThemeProvider>
-          <SessionProvider>
-              <NextIntlClientProvider messages={messages}>
-                <Header />
-                <div className="main-container">
-                  <div className="">
-                    <main className="content">{children}</main>
-                  </div>
+          <SessionProvider refetchOnWindowFocus={false}>
+            <NextIntlClientProvider messages={messages}>
+              <Header />
+              <div className="main-container">
+                <div className="">
+                  <main className="content">{children}</main>
                 </div>
-                <Footer />
-                <BottomBar />
-              </NextIntlClientProvider>
+              </div>
+              <Footer />
+              <BottomBar />
+            </NextIntlClientProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>

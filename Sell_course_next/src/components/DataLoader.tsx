@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 interface DataLoaderProps {
-  fetchData: () => Promise<any>;
+  fetchData: () => Promise<unknown>;
   timeout?: number;
-  children: (data: any) => React.ReactNode;
+  children: (data: unknown) => React.ReactNode;
 }
 
 const DataLoader: React.FC<DataLoaderProps> = ({
@@ -11,7 +11,7 @@ const DataLoader: React.FC<DataLoaderProps> = ({
   timeout = 5000,
   children,
 }) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ const DataLoader: React.FC<DataLoaderProps> = ({
     let isMouted = true;
     const timer = setTimeout(() => {
       if (isMouted) {
-        setError("Timeout, Please try again later");
+        setError('Timeout, Please try again later');
         setLoading(false);
       }
     }, timeout);
@@ -31,9 +31,9 @@ const DataLoader: React.FC<DataLoaderProps> = ({
           setData(result);
           setLoading(false);
         }
-      } catch (error) {
+      } catch {
         if (isMouted) {
-          setError("Failed to fetch data");
+          setError('Failed to fetch data');
           setLoading(false);
         }
       }

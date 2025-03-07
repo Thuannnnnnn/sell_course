@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import gifBean from "../app/image/animation/BeanEater.gif";
-import "@/style/PageLoader.css";
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import gifBean from '../../public/animation/BeanEater.gif';
+import '@/style/PageLoader.css';
+import Image from 'next/image';
 
 interface PageLoaderProps {
   rediecrectPath: string;
@@ -28,10 +29,12 @@ const PageLoader: React.FC<PageLoaderProps> = ({
 
   return (
     <div className="pageLoader">
-      <img
-        src={typeof gif === "string" ? gif : gif.src}
+      <Image
+        src={typeof gif === 'string' ? gif : gif.src}
         alt="Loading..."
         className="loadingGif "
+        width={300}
+        height={300}
       />
     </div>
   );

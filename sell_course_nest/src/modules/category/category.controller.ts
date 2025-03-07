@@ -10,14 +10,14 @@ import {
 import { CategoryService } from './category.service';
 import { CategoryRequestDto } from './dto/categoryRequestData.dto';
 import { CategoryResponseDto } from './dto/categoryResponseData.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('Categories')
-@Controller('api/categories')
+@Controller('api/')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Post('createCategory')
+  @Post('admin/categories/create_category')
+  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
     status: 201,
@@ -34,7 +34,7 @@ export class CategoryController {
     return await this.categoryService.createCategory(createCategoryDto);
   }
 
-  @Get('getAll')
+  @Get('admin/categories/view_category')
   @ApiOperation({ summary: 'Get all categories (tree structure)' })
   @ApiResponse({
     status: 200,
@@ -49,7 +49,7 @@ export class CategoryController {
     return await this.categoryService.getAllCategories();
   }
 
-  @Get('getById/:id')
+  @Get('categories/getById/:id')
   @ApiOperation({ summary: 'Get a category by ID' })
   @ApiResponse({
     status: 200,
@@ -66,7 +66,8 @@ export class CategoryController {
     return await this.categoryService.getCategoryById(id);
   }
 
-  @Put('updateCategory/:id')
+  @Put('admin/categories/update_category/:id')
+  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
     status: 200,
@@ -88,8 +89,9 @@ export class CategoryController {
     return await this.categoryService.updateCategory(id, updateCategoryDto);
   }
 
-  @Delete('deleteCategory/:id')
+  @Delete('admin/categories/delete_category/:id')
   @ApiOperation({ summary: 'Delete a category by ID' })
+  @ApiBearerAuth('Authorization')
   @ApiResponse({
     status: 200,
     description: 'The category has been successfully deleted.',

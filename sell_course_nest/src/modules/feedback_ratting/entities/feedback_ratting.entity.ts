@@ -1,10 +1,16 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  Column,
+} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Course } from '../../course/entities/course.entity';
 
 @Entity('feedback_ratting')
 export class FeedbackRatting {
-  @PrimaryColumn({ name: 'feedback_ratting_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'feedback_ratting_id' })
   feedbackRattingId: string;
 
   @ManyToOne(() => User)
@@ -17,6 +23,9 @@ export class FeedbackRatting {
 
   @Column('int')
   star: number;
+
+  @Column({ type: 'text', nullable: true })
+  feedback: string;
 
   @Column({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

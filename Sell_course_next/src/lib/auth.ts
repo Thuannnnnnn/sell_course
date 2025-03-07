@@ -3,6 +3,10 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios, { AxiosError } from "axios";
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  // session: {
+  //   strategy: "jwt",
+  //   maxAge: 0,
+  // },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -19,6 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error("Missing credentials");
           return null;
         }
+
         try {
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
@@ -32,49 +37,94 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               },
             }
           );
+          console.log("Check session o day: " + response.data);
+          console.log("Check user_id: ", response.data?.user_id);
           if (response.data?.token) {
             return {
-              id: response.data.id,
+              token: response.data.token,
+              user_id: response.data.user_id,
               email: response.data.email,
-              name: response.data.username,
+              gender: response.data.gender,
+              birthDay: response.data.birthDay,
+              phoneNumber: response.data.phoneNumber,
+              avatarImg: response.data.avatarImg,
+              username: response.data.username,
               role: response.data.role,
             };
           } else {
-            console.error("Login failed:", response.data.message || "Unknown error");
+            console.error(
+              "Login failed:",
+              response.data.message || "Unknown error"
+            );
             return null;
           }
         } catch (error) {
           const err = error as AxiosError;
-          console.error("Error in authorize function:", err.response?.data || err.message);
+          console.error(
+            "Error in authorize function:",
+            err.response?.data || err.message
+          );
           return null;
         }
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      console.log("SignIn callback initiated with user and account:", { user, account });
+    async jwt({ token, user }) {
+      if (user) {
+        token.email = user.email;
+        token.user_id = user.user_id;
+        token.username = user.username;
+        token.gender = user.gender;
+        token.birthDay = user.birthDay;
+        token.phoneNumber = user.phoneNumber;
+        token.avatarImg = user.avatarImg;
+        token.role = user.role;
+        token.token = user.token;
+      }
+      console.log("Check token user_id in jwt: ", token.user_id);
+      return token;
+    },
 
+    async session({ session, token }) {
+      session.user = {
+        ...session.user,
+        user_id: token.user_id as string,
+        email: token.email as string,
+        role: token.role as string,
+        token: token.token as string,
+        username: token.username as string,
+        avatarImg: token.avatarImg as string,
+        gender: token.gender as string,
+        birthDay: token.birthDay as string,
+        phoneNumber: token.phoneNumber as string,
+      };
+      console.log("Check session user_id: ", session.user.user_id);
+      return session;
+    },
+    async signIn({ user, account }) {
       if (!user || !account) {
-        console.error("Error: User or account is null");
         return false;
       }
 
       if (account.type === "credentials") {
-        console.log("Account type is credentials, sign-in successful");
+        console.log("Check credentials user_id: ", user.user_id);
         return true;
       }
 
       const payload = {
+        token: user.token,
+        user_id: user.user_id,
+        provider: account.provider,
+        avatarImg: user.avatarImg,
         email: user.email,
-        name: user.name,
+        username: user.username,
         picture: user.image,
       };
-      console.log("Payload prepared for API call:", payload);
 
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/oauth`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/callback/oauth`,
           payload,
           {
             headers: {
@@ -82,14 +132,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           }
         );
-        console.log("API response received:", response.data);
 
         if (!response.data) {
           console.error("Error: API response data is null");
           return false;
         }
-
-        console.log("Sign-in successful, response from backend:", response.data);
+        user.token = response.data.token;
+        user.user_id = response.data.user_id || "";
+        user.email = response.data.email || "";
+        user.gender = response.data.gender || null;
+        user.birthDay = response.data.birthDay || null;
+        user.phoneNumber = response.data.phoneNumber || null;
+        user.avatarImg = response.data.avatarImg || "";
+        user.username = response.data.username || "Unknown";
+        user.role = response.data.role || "user";
+        console.log("Check OAuth user_id: ", user.user_id);
         return true;
       } catch (error) {
         console.error("Error during API call in sign-in callback:", error);

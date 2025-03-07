@@ -2,15 +2,17 @@
 import React from "react";
 import { Navbar, Container, Nav, Image, Button } from "react-bootstrap";
 import { useSession, signOut } from "next-auth/react";
-import "../style/Header.css";
+import "../style/header.css";
 import Link from "next/link";
 import LocalSwitcher from "./local-switcher";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { IoIosLogOut } from "react-icons/io";
-import { MdDarkMode } from "react-icons/md";
-import { MdLightMode } from "react-icons/md";
-import { useTheme } from "../contexts/ThemeContext";
+// import { MdDarkMode } from "react-icons/md";
+// import { MdLightMode } from "react-icons/md";
+// import { useTheme } from "../contexts/ThemeContext";
+import { FaRegUser } from "react-icons/fa";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
@@ -18,10 +20,10 @@ const Header: React.FC = () => {
   const t = useTranslations("Header");
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-  };
+  // const toggleTheme = () => {
+  //   const newTheme = theme === "dark" ? "light" : "dark";
+  // };
+  setTheme("light");
   return (
     <Navbar
       expand="lg"
@@ -50,19 +52,27 @@ const Header: React.FC = () => {
         </div>
 
         <Nav className="d-flex align-items-center flex-nowrap">
-          <Link href={`/${localActive}/`} className="nav-link me-4">
+          {session?.user.role == "ADMIN" || session?.user.role == "STAFF" ? (
+            <Link
+              href={`/${localActive}/admin/dashboard`}
+              className="nav-link me-4"
+            >
+              {t("manage")}
+            </Link>
+          ) : null}
+          {/* <Link href={`/${localActive}/`} className="nav-link me-4">
             {t("home")}
-          </Link>
-          <Link href={`/${localActive}/course`} className="nav-link me-4">
+          </Link> */}
+          <Link href={`/${localActive}/showCourse`} className="nav-link me-4">
             {t("course")}
           </Link>
           <Link href={`/${localActive}/cart`} className="nav-link me-4">
             {t("cart")}
           </Link>
-          <Link href={`/${localActive}/news`} className="nav-link me-4">
+          <Link href={`/${localActive}/forum`} className="nav-link me-4">
             {t("forum")}
           </Link>
-          <Button
+          {/* <Button
             onClick={toggleTheme}
             variant={`${theme}`}
             className="btn-signup mx-3"
@@ -72,19 +82,17 @@ const Header: React.FC = () => {
             ) : (
               <MdDarkMode color="black" />
             )}
-          </Button>
+          </Button> */}
           <LocalSwitcher />
           {status === "loading" ? (
             <span className="nav-link mx-4">Loading...</span>
           ) : session ? (
             <>
-              <Link href={`/${localActive}/profile`} className="nav-link">
-                <Image
-                  src={`${session.user?.image}`}
-                  alt="avatar"
-                  className="border rounded-circle"
-                  width="50"
-                />
+              <Link
+                href={`/${localActive}/profile/myProfile`}
+                className="nav-link"
+              >
+                <FaRegUser />
               </Link>
               <Button
                 variant={`${theme}`}

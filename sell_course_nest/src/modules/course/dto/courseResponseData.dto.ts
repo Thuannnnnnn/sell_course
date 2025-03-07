@@ -12,6 +12,9 @@ export class CourseResponseDTO {
     createdAt: Date,
     updatedAt: Date,
     userId: string,
+    userName: string,
+    userAvata: string,
+    categoryName: string,
     categoryId: string,
   ) {
     this.courseId = courseId;
@@ -23,6 +26,9 @@ export class CourseResponseDTO {
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.userId = userId;
+    this.userName = userName;
+    this.userAvata = userAvata;
+    this.categoryName = categoryName;
     this.categoryId = categoryId;
   }
 
@@ -40,10 +46,7 @@ export class CourseResponseDTO {
   @IsString()
   title: string;
 
-  @ApiProperty({
-    description: 'Price of the course in USD',
-    example: 29.99,
-  })
+  @ApiProperty({ description: 'Price of the course in USD', example: 29.99 })
   @IsNumber()
   price: number;
 
@@ -89,6 +92,27 @@ export class CourseResponseDTO {
   })
   @IsUUID()
   userId: string;
+
+  @ApiProperty({
+    description: 'Name of the user who created the course',
+    example: 'John Doe',
+  })
+  @IsString()
+  userName: string;
+
+  @ApiProperty({
+    description: 'The category name of the course',
+    example: 'Web Development',
+  })
+  @IsString()
+  categoryName: string;
+
+  @ApiProperty({
+    description: 'The avata of user',
+    example: 'Web Development',
+  })
+  @IsString()
+  userAvata: string;
 
   @ApiProperty({
     description: 'The ID of the category to which the course belongs',
