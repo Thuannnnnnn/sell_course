@@ -9,7 +9,7 @@ import '../../../../style/UserProfilePage.css';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { fetchWishListCourse } from '@/app/api/wishListCourse/wishListCourse';
-import { UserGetAllWishlist } from '@/app/type/user/User';
+import { GetUser, UserGetAllWishlist } from '@/app/type/user/User';
 
 const WishListPage: React.FC = () => {
   const { data: session, status } = useSession();
@@ -29,7 +29,7 @@ const WishListPage: React.FC = () => {
       return;
     }
 
-    setUser(session.user);
+    setUser({ ...session.user, email: session.user.email ?? null });
   }, [session, status]);
 
   useEffect(() => {
@@ -55,9 +55,12 @@ const WishListPage: React.FC = () => {
   if (error) return <SignIn />;
 
 
+   if (!user) {
+      return <SignIn />;
+   }
   return (
     <>
-       <div>{user ? <BannerUser user={user} /> : <SignIn />}</div>
+       <div>{user ? <BannerUser  user={user as unknown as GetUser}  /> : <SignIn />}</div>
       <div className="content-profile">
         <div className="dashboard">
           <DashBoardUser />

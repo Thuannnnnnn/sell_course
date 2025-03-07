@@ -8,6 +8,7 @@ import SignIn from "../../auth/login/page";
 import "../../../../style/UserProfilePage.css";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { GetUser } from "@/app/type/user/User";
 
 interface Course {
   courseId: string;
@@ -80,9 +81,12 @@ const OrderHistoryPage: React.FC = () => {
     fetchOrders();
   }, [session, email, token]);
 
+   if (!user) {
+      return <SignIn />;
+    }
   return (
     <>
-      <div>{user ? <BannerUser user={user} /> : <SignIn />}</div>
+       <div>{user ? <BannerUser  user={user as unknown as GetUser}  /> : <SignIn />}</div>
       <div className="content-profile">
         <div className="dashboard">
           <DashBoardUser />

@@ -11,6 +11,7 @@ import { User } from 'next-auth';
 import { changePassword, fetchUserDetails } from '@/app/api/auth/User/user';
 import BannerUser from '@/components/BannerUser';
 import DashBoardUser from '@/components/DashBoardUser';
+import { GetUser } from '@/app/type/user/User';
 
 const ChangePasswordPage: React.FC = () => {
   const t = useTranslations('changePassword');
@@ -89,11 +90,12 @@ const ChangePasswordPage: React.FC = () => {
     }
   };
 
+   if (!user) {
+      return <SignIn />;
+  }
   return (
     <>
-      <div>
-        {user ? <BannerUser user={{ ...user, email: user.email || '' }} /> : <SignIn />}
-      </div>
+       <div>{user ? <BannerUser  user={user as unknown as GetUser}  /> : <SignIn />}</div>
       <div className="content-profile">
         <div className="dashboard"><DashBoardUser /></div>
         <div className="form-profile">
