@@ -14,6 +14,7 @@ interface ForumReactionsProps {
   reactions?: Reaction[];
   onReactionChange?: (reactions: Reaction[]) => void;
   onProcessingChange?: (isProcessing: boolean) => void;
+  onDeleteReaction?: (userId: string, forumId: string) => Promise<boolean>;
 }
 
 const ForumReactions: React.FC<ForumReactionsProps> = ({
@@ -21,6 +22,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
   reactions = [],
   onReactionChange,
   onProcessingChange,
+  onDeleteReaction,
 }) => {
   const { data: session } = useSession();
   const t = useTranslations("Forum");
@@ -52,12 +54,13 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
   const reactionCounts = countReactions();
   const userId = session?.user?.user_id || "";
 
-  // Giả định tạm thời reactionId có thể không chứa userId
+  // Check if the user has already reacted to this forum post
   const getUserReaction = (userId: string) => {
     return allReactions.find((reaction) => {
-      const reactionUserId = reaction.reactionId.split("_")[0].trim();
-      console.log(`Checking: ${reactionUserId} === ${reactionUserId}`);
-      return reactionUserId === reactionUserId;
+      // Try to use userId if available, otherwise use reactionId as a fallback
+      const reactionUserId = reaction.userId || reaction.reactionId;
+      console.log(`Checking reaction: ${reactionUserId} === ${userId}`);
+      return reactionUserId === userId;
     });
   };
 
@@ -76,15 +79,22 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       console.log("Before action - allReactions:", allReactions);
       console.log("User ID:", userId);
       console.log("User reaction:", userReaction);
-      const hasUserReaction = !!userReaction;
-      const isSameType = userReaction?.reactionType === type;
-      console.log("Has user reaction:", hasUserReaction);
+
+      // Check if the current user has a reaction by looking for their userId or reactionId
+      const actualUserReaction = allReactions.find(reaction => {
+        const reactionUserId = reaction.userId || reaction.reactionId;
+        return reactionUserId === userId;
+      });
+
+      const hasUserReaction = !!actualUserReaction;
+      const isSameType = actualUserReaction?.reactionType === type;
+      console.log("Has actual user reaction:", hasUserReaction);
       console.log("Is same type:", isSameType);
 
       if (hasUserReaction && isSameType) {
         // Xóa reaction nếu nhấn lại cùng type
         const optimisticUpdatedReactions = allReactions.filter((reaction) => {
-          const reactionUserId = reaction.reactionId.split("_")[0];
+          const reactionUserId = reaction.userId || reaction.reactionId;
           return reactionUserId !== userId;
         });
 
@@ -94,16 +104,24 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
           onReactionChange(optimisticUpdatedReactions);
         }
 
-        const result = await deleteReactionFromTopic(token, userId, forumId);
-        console.log("Delete API result:", result);
-        if (!result.success) {
-          throw new Error(result.error || "Failed to delete reaction");
+        // Use the onDeleteReaction prop if provided, otherwise fall back to the API
+        if (onDeleteReaction) {
+          const success = await onDeleteReaction(userId, forumId);
+          if (!success) {
+            throw new Error("Failed to delete reaction");
+          }
+        } else {
+          const result = await deleteReactionFromTopic(token, userId, forumId);
+          console.log("Delete API result:", result);
+          if (!result.success) {
+            throw new Error(result.error || "Failed to delete reaction");
+          }
         }
       } else {
         // Xóa reaction cũ (nếu có) và thêm reaction mới
         let optimisticUpdatedReactions = hasUserReaction
           ? allReactions.filter((reaction) => {
-              const reactionUserId = reaction.reactionId.split("_")[0];
+              const reactionUserId = reaction.userId || reaction.reactionId;
               return reactionUserId !== userId;
             })
           : [...allReactions];
@@ -123,16 +141,23 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
 
         // Gọi API xóa trước nếu user đã có reaction khác type
         if (hasUserReaction) {
-          const deleteResult = await deleteReactionFromTopic(
-            token,
-            userId,
-            forumId
-          );
-          console.log("Pre-delete API result:", deleteResult);
-          if (!deleteResult.success) {
-            throw new Error(
-              deleteResult.error || "Failed to delete existing reaction"
+          if (onDeleteReaction) {
+            const success = await onDeleteReaction(userId, forumId);
+            if (!success) {
+              throw new Error("Failed to delete existing reaction");
+            }
+          } else {
+            const deleteResult = await deleteReactionFromTopic(
+              token,
+              userId,
+              forumId
             );
+            console.log("Pre-delete API result:", deleteResult);
+            if (!deleteResult.success) {
+              throw new Error(
+                deleteResult.error || "Failed to delete existing reaction"
+              );
+            }
           }
         }
 
@@ -165,6 +190,12 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     }
   };
 
+  // Find the actual user reaction for UI display
+  const actualUserReaction = allReactions.find(reaction => {
+    const reactionUserId = reaction.userId || reaction.reactionId;
+    return reactionUserId === userId;
+  });
+
   return (
     <div className="reaction-container position-relative">
       {isProcessing && (
@@ -182,18 +213,18 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
           </div>
         </div>
       )}
-      {userReaction && (
+      {actualUserReaction && (
         <button
           className={`btn btn-primary me-2 ${isProcessing ? "disabled" : ""}`}
-          onClick={() => handleReaction(userReaction.reactionType)}
+          onClick={() => handleReaction(actualUserReaction.reactionType)}
           disabled={isProcessing}
           title="Click để bỏ reaction"
         >
-          {reactionEmojis[userReaction.reactionType]}{" "}
-          {t(userReaction.reactionType)}
-          {reactionCounts[userReaction.reactionType] > 0 && (
+          {reactionEmojis[actualUserReaction.reactionType]}{" "}
+          {t(actualUserReaction.reactionType)}
+          {reactionCounts[actualUserReaction.reactionType] > 0 && (
             <span className="ms-1 badge bg-light text-primary">
-              {reactionCounts[userReaction.reactionType]}
+              {reactionCounts[actualUserReaction.reactionType]}
             </span>
           )}
         </button>
@@ -202,7 +233,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
         {Object.entries(reactionEmojis).map(([type, emoji]) => {
           const reactionType = type as ReactionType;
           const count = reactionCounts[reactionType] || 0;
-          const isUserReaction = userReaction?.reactionType === reactionType;
+          const isUserReaction = actualUserReaction?.reactionType === reactionType;
           const hasReactions = count > 0;
 
           return (
