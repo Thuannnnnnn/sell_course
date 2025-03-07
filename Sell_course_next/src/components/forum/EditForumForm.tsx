@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { CreateForumDto, Forum, updateForum, getForumById } from "@/app/api/forum/forum";
+import {updateForum, getForumById } from "@/app/api/forum/forum";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { CreateForumDto, Forum } from "@/app/type/forum/forum";
 
 interface EditForumFormProps {
   forumId: string;
@@ -33,25 +34,17 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check if user is logged in
     if (status === "unauthenticated") {
       router.push(`/${locale}/auth/login`);
     }
 
     if (session) {
-      console.log("Session data:", session);
-      // Check possible locations for userId
       if (session.user?.user_id) {
-        console.log("Found user_id in session.user.user_id:", session.user.user_id);
         setUserId(session.user.user_id);
       } else if (session.user?.id) {
-        console.log("Found id in session.user.id:", session.user.id);
         setUserId(session.user.id);
       } else if (session.user_id) {
-        console.log("Found user_id in session.user_id:", session.user_id);
         setUserId(session.user_id);
-      } else {
-        console.error("Could not find user ID in session:", session);
       }
     }
   }, [session, status, router, locale]);
@@ -77,13 +70,11 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
           setImagePreview(forum.image);
         }
 
-        // Check edit permissions
         if (session?.user?.user_id !== forum.user.user_id) {
           setError(t('noPermissionMessage'));
         }
 
       } catch (err) {
-        console.error("Error fetching forum data:", err);
         setError(t('errorUpdatingPost'));
       } finally {
         setLoading(false);
@@ -98,22 +89,18 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (limit 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError(t('imageFormats'));
         return;
       }
 
-      // Check file type
       if (!file.type.startsWith("image/")) {
         setError(t('imageFormats'));
         return;
       }
 
-      // Save original file to state
       setImage(file);
 
-      // Create preview URL for the image
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -134,7 +121,6 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form
     if (!title.trim()) {
       setError(t('titleRequired'));
       return;
@@ -146,15 +132,12 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     }
 
     if (!userId) {
-      console.error("Missing userId. Session:", session);
       setError(t('userIdRequired'));
       return;
     }
 
-    // Check token
     const token = session?.user?.token;
     if (!token) {
-      console.error("Missing token. Session:", session);
       setError(t('tokenRequired'));
       return;
     }
@@ -170,23 +153,17 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
         image: image
       };
 
-      console.log("Sending forum data:", forumData);
-      console.log("Using token:", token);
-
       const result = await updateForum(forumId, forumData, token);
 
       if (result) {
         setSuccess(true);
-        // Redirect after 2 seconds
         setTimeout(() => {
           router.push(`/${locale}/forum/${forumId}`);
         }, 2000);
       } else {
-        console.error("Update forum returned null or undefined");
         setError(t('errorUpdatingPost'));
       }
     } catch (err) {
-      console.error("Error updating forum:", err);
       if (err instanceof Error) {
         setError(`${t('errorUpdatingPost')}: ${err.message}`);
       } else {
@@ -197,7 +174,6 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     }
   };
 
-  // Show loading message
   if (loading) {
     return (
       <div className="container py-4">
@@ -210,7 +186,6 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     );
   }
 
-  // Show login required message
   if (status === "unauthenticated") {
     return (
       <div className="container py-4">
@@ -231,7 +206,6 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     );
   }
 
-  // Show no permission message
   if (originalForum && session?.user?.user_id !== originalForum.user.user_id) {
     return (
       <div className="container py-4">

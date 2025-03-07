@@ -1,49 +1,5 @@
 import axios from "axios";
-
-export interface User {
-  user_id: string;
-  email: string;
-  username: string;
-  password: string;
-  avatarImg: string;
-  gender: string;
-  birthDay: string;
-  phoneNumber: string;
-  role: string;
-  isOAuth: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ReactionTopic {
-  reactionId: string;
-  reactionType: string;
-  createdAt: string;
-}
-
-export interface Discussion {
-  discussionId: string;
-  content: string;
-  createdAt: string;
-}
-
-export interface Forum {
-  forumId: string;
-  title: string;
-  image: string;
-  text: string;
-  createdAt: string;
-  user: User;
-  reactionTopics: ReactionTopic[];
-  discussions: Discussion[];
-}
-
-export interface CreateForumDto {
-  userId: string;
-  title: string;
-  text: string;
-  image?: File | null;
-}
+import { ApiResponse, CreateForumDto, Forum, ReactionType } from "@/app/type/forum/forum";
 
 export async function getAllForum(): Promise<Forum[]> {
   try {
@@ -184,97 +140,76 @@ export async function deleteForum(
   }
 }
 
-export async function ReactionTopic(
+
+export const addReactionToTopic = async (
+  token: string,
   userId: string,
   forumId: string,
-  reactionType: string,
-  token: string
-): Promise<boolean> {
+  reactionType: ReactionType
+): Promise<ApiResponse<void>> => {
   try {
-    // Create the payload exactly as expected by the API
-    const payload = {
-      userId: userId,
-      forumId: forumId,
-      reactionType: reactionType,
+    const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic`;
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, forumId, reactionType }),
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Failed to add reaction. Status: ${response.status}`,
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return {
+      success: false,
+      error: `Error adding reaction: ${errorMessage}`,
     };
-
-    console.log("Sending reaction data:", payload);
-
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("Reaction response:", response.status, response.data);
-    return response.status === 200 || response.status === 201;
-  } catch (error) {
-    console.error("Error reaction topic:", error);
-    return false;
   }
-}
+};
 
-export async function ReactionTopicById(
+/**
+ * Delete a reaction from a forum topic
+ */
+export const deleteReactionFromTopic = async (
+  token: string,
   userId: string,
-  forumId: string,
-  reactionType: string,
-  token: string
-): Promise<any> {
+  forumId: string
+): Promise<ApiResponse<void>> => {
   try {
-    console.log(`Fetching reaction for userId: ${userId}, forumId: ${forumId}`);
+    const deleteUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`;
 
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${forumId}`,
-      {
-        params: {
-          userId: userId,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(deleteUrl, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-    console.log("Reaction data received:", response.data);
-    return response.data;
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Failed to delete reaction. Status: ${response.status}`,
+      };
+    }
+
+    return { success: true };
   } catch (error) {
-    console.error("Error getting reaction topic:", error);
-    return null;
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return {
+      success: false,
+      error: `Error deleting reaction: ${errorMessage}`,
+    };
   }
-}
-
-export async function DeteleReactionTopic(
-  userId: string,
-  forumId: string,
-  reactionType: string,
-  token: string
-): Promise<any> {
-  try {
-    console.log(`Fetching reaction for userId: ${userId}, forumId: ${forumId}`);
-
-    const response = await axios.delete(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`,
-      {
-        params: {
-          userId: userId,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("Reaction data received:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error getting reaction topic:", error);
-    return null;
-  }
-}
+};

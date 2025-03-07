@@ -29,13 +29,11 @@ const DeleteForumButton: React.FC<DeleteForumButtonProps> = ({
   const handleCloseModal = () => setShowModal(false);
 
   const handleDelete = async () => {
-    // Check delete permissions
     if (session?.user?.user_id !== userId) {
       setError(t('noPermissionMessage'));
       return;
     }
 
-    // Check token
     const token = session?.user?.token;
     if (!token) {
       setError(t('tokenRequired'));
@@ -49,14 +47,12 @@ const DeleteForumButton: React.FC<DeleteForumButtonProps> = ({
       const success = await deleteForum(forumId, token);
 
       if (success) {
-        // Redirect to forum page
         router.push(`/${locale}/forum`);
       } else {
         setError(t('errorDeletingPost'));
         handleCloseModal();
       }
     } catch (err) {
-      console.error("Error deleting forum:", err);
       if (err instanceof Error) {
         setError(`${t('errorDeletingPost')}: ${err.message}`);
       } else {
@@ -68,11 +64,10 @@ const DeleteForumButton: React.FC<DeleteForumButtonProps> = ({
     }
   };
 
-  // Check if current user is the author of the post
   const isAuthor = session?.user?.user_id === userId;
 
   if (!isAuthor) {
-    return null; // Don't show delete button if not the author
+    return null;
   }
 
   return (
@@ -85,7 +80,6 @@ const DeleteForumButton: React.FC<DeleteForumButtonProps> = ({
         <i className="bi bi-trash me-1"></i> {t('deletePost')}
       </button>
 
-      {/* Confirmation Modal */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>{t('confirmDelete')}</Modal.Title>

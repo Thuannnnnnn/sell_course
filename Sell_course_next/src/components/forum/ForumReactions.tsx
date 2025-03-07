@@ -4,28 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import { ReactionType, reactionEmojis, Reaction } from "@/app/type/forum/forum";
+import { addReactionToTopic, deleteReactionFromTopic } from "@/app/api/forum/forum";
 
-// Định nghĩa các loại reaction
-type ReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
-
-// Emoji cho từng loại reaction
-const reactionEmojis: Record<ReactionType, string> = {
-  like: "👍",
-  love: "❤️",
-  haha: "😂",
-  wow: "😮",
-  sad: "😢",
-  angry: "😡",
-};
-
-// Định nghĩa interface cho reaction
-interface Reaction {
-  reactionId: string;
-  reactionType: ReactionType;
-  createdAt: string;
-}
-
-// Component ForumReactions
 interface ForumReactionsProps {
   forumId: string;
   reactions?: Reaction[];
@@ -45,28 +26,15 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [allReactions, setAllReactions] = useState<Reaction[]>(reactions);
 
-  // Cập nhật danh sách reactions khi props thay đổi
   useEffect(() => {
     setAllReactions(reactions);
   }, [reactions]);
 
-  // Kiểm tra xem người dùng hiện tại đã reaction chưa từ danh sách reactions
   const userReaction = allReactions.find(reaction => {
     const reactionUserId = reaction.reactionId.split('_')[0];
     return reactionUserId === (session?.user?.user_id || '');
   });
 
-  // Log trạng thái hiện tại để debug
-  useEffect(() => {
-    console.log("Current reaction state:", {
-      userReaction: userReaction?.reactionType,
-      allReactionsCount: allReactions.length,
-      reactionCounts: countReactions(),
-      userReactionExists: !!userReaction
-    });
-  }, [userReaction, allReactions]);
-
-  // Đếm số lượng reaction theo loại
   const countReactions = () => {
     return allReactions.reduce((counts, reaction) => {
       const type = reaction.reactionType;
@@ -88,16 +56,9 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     const token = session.user.token;
 
     try {
-      console.log(`Handling reaction click: ${type}`);
-      
-      // Kiểm tra xem user đã có reaction này chưa
       const hasThisReaction = userReaction?.reactionType === type;
-      console.log(`User has this reaction: ${hasThisReaction}`);
-      
+
       if (hasThisReaction) {
-        console.log(`User clicked on their own emoji (${type}), removing it`);
-        
-        // Cập nhật danh sách reactions ngay lập tức trong UI
         const optimisticUpdatedReactions = allReactions.filter(reaction => {
           const reactionUserId = reaction.reactionId.split('_')[0];
           return reactionUserId !== userId;
@@ -105,100 +66,50 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
 
         setAllReactions(optimisticUpdatedReactions);
 
-        // Thông báo thay đổi cho component cha
         if (onReactionChange) {
           onReactionChange(optimisticUpdatedReactions);
         }
 
-        // Gọi API để xóa reaction
-        const deleteUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`;
-        console.log("Deleting reaction with direct endpoint:", deleteUrl);
-        
-        // Sử dụng fetch API để gọi DELETE endpoint
-        fetch(deleteUrl, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-        .then(response => {
-          console.log("Delete response status:", response.status);
-          if (!response.ok) {
-            console.log("Delete reaction failed, status:", response.status);
-          }
-        })
-        .catch(error => {
-          console.error("Error deleting reaction:", error);
-        });
+        const result = await deleteReactionFromTopic(token, userId, forumId);
+        if (!result.success) {
+          throw new Error(result.error);
+        }
       } else {
-        // Nếu chọn emoji khác hoặc chưa có reaction
-        
-        // Nếu đã có reaction trước đó, xóa nó trước
         if (userReaction) {
-          // Gọi API để xóa reaction cũ
-          const deleteUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`;
-          console.log("Deleting previous reaction:", deleteUrl);
-          
-          await fetch(deleteUrl, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
+          const deleteResult = await deleteReactionFromTopic(token, userId, forumId);
+          if (!deleteResult.success) {
+            throw new Error(deleteResult.error);
+          }
         }
 
-        // Tạo reaction mới cho UI
         const newReaction: Reaction = {
           reactionId: `${userId}_${Date.now()}`,
           reactionType: type,
           createdAt: new Date().toISOString()
         };
 
-        // Tạo bản sao của danh sách reactions hiện tại
         let optimisticUpdatedReactions = [...allReactions];
 
-        // Xóa TẤT CẢ reactions của người dùng hiện tại khỏi danh sách
         optimisticUpdatedReactions = optimisticUpdatedReactions.filter(reaction => {
           const reactionUserId = reaction.reactionId.split('_')[0];
           return reactionUserId !== userId;
         });
 
-        // Thêm reaction mới vào UI
         optimisticUpdatedReactions.push(newReaction);
         setAllReactions(optimisticUpdatedReactions);
 
-        // Thông báo thay đổi cho component cha
         if (onReactionChange) {
           onReactionChange(optimisticUpdatedReactions);
         }
 
-        // Gọi API để thêm reaction mới
-        const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic`;
-        console.log("Adding reaction:", apiUrl);
-        
-        // Sử dụng fetch API để gọi POST endpoint
-        fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ userId, forumId, reactionType: type })
-        })
-        .then(response => {
-          console.log("Add response status:", response.status);
-          if (!response.ok) {
-            console.log("Add reaction failed, status:", response.status);
-          }
-        })
-        .catch(error => {
-          console.error("Error adding reaction:", error);
-        });
+        const addResult = await addReactionToTopic(token, userId, forumId, type);
+        if (!addResult.success) {
+          throw new Error(addResult.error);
+        }
       }
     } catch (error) {
-      console.error("Error handling reaction:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -206,7 +117,6 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
 
   return (
     <div className="reaction-container position-relative">
-      {/* Hiển thị trạng thái xử lý */}
       {isProcessing && (
         <div className="position-absolute top-0 start-50 translate-middle-x" style={{ zIndex: 10 }}>
           <div className="badge bg-info text-white py-1 px-2">
@@ -215,15 +125,10 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
           </div>
         </div>
       )}
-
-      {/* Hiển thị reaction hiện tại hoặc nút like mặc định */}
-      {userReaction ? (
+      {userReaction && (
         <button
           className={`btn btn-primary me-2 ${isProcessing ? "disabled" : ""}`}
-          onClick={() => {
-            console.log(`Main button clicked, current reaction: ${userReaction.reactionType}`);
-            handleReaction(userReaction.reactionType);
-          }}
+          onClick={() => handleReaction(userReaction.reactionType)}
           disabled={isProcessing}
           title="Click để bỏ reaction"
         >
@@ -234,32 +139,18 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
             </span>
           }
         </button>
-      ) : (
-        <button
-          className={`btn btn-outline-primary me-2 ${isProcessing ? "disabled" : ""}`}
-          onClick={() => handleReaction("like")}
-          disabled={isProcessing}
-        >
-          <i className="bi bi-hand-thumbs-up me-1"></i> {t("like")}
-        </button>
       )}
-
-      {/* Các nút emoji luôn hiển thị */}
-      <div className="d-inline-flex">
+      <div className="d-flex flex-wrap">
         {Object.entries(reactionEmojis).map(([type, emoji]) => {
           const reactionType = type as ReactionType;
           const count = reactionCounts[reactionType] || 0;
-
-          // Kiểm tra xem emoji này có phải là reaction của người dùng không
           const isUserReaction = userReaction?.reactionType === reactionType;
-
-          // Kiểm tra xem emoji này có trong danh sách reactions không
           const hasReactions = count > 0;
 
           return (
             <button
               key={type}
-              className={`btn mx-1 position-relative ${isUserReaction ? "btn-primary" : "btn-light"} ${hasReactions ? "border-info" : ""}`}
+              className={`btn mx-1 mb-1 position-relative ${isUserReaction ? "btn-primary" : "btn-light"} ${hasReactions ? "border-info" : ""}`}
               onClick={() => handleReaction(reactionType)}
               disabled={isProcessing}
               title={`${t(reactionType)} (${count} ${count === 1 ? 'người' : 'người'})`}
@@ -274,8 +165,6 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
           );
         })}
       </div>
-
-      {/* CSS cơ bản */}
       <style jsx>{`
         .reaction-container {
           display: flex;
@@ -291,6 +180,16 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
         }
         .badge {
           font-size: 0.7rem;
+        }
+        .btn-light:hover {
+          background-color: #f8f9fa;
+          border-color: #dae0e5;
+          transform: scale(1.05);
+          transition: transform 0.2s;
+        }
+        .btn-primary:hover {
+          transform: scale(1.05);
+          transition: transform 0.2s;
         }
       `}</style>
     </div>

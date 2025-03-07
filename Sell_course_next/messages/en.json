@@ -430,6 +430,8 @@
     "wow": "Wow",
     "sad": "Sad",
     "angry": "Angry",
+    "reaction": "reaction",
+    "reactions": "reactions",
     "clickToReact": "Click to react",
     "postDetails": "Post Details",
     "author": "Author",

@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Forum } from "@/app/api/forum/forum";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import ForumReactions from "./ForumReactions";
+import ForumReactionsReadOnly from "./ForumReactionsReadOnly";
+import { validateReactionType } from "@/app/type/forum/forum";
+import { Forum } from "@/app/type/forum/forum";
 
 interface ForumCardProps {
   forum: Forum;
@@ -17,10 +18,10 @@ interface ForumCardProps {
 const ForumCard: React.FC<ForumCardProps> = ({ forum }) => {
   const params = useParams();
   const locale = params.locale as string;
-  const t = useTranslations('Forum');
-  const [forumState, setForumState] = useState<Forum>(forum);
+  const t = useTranslations("Forum");
+  const [forumState] = useState<Forum>(forum);
 
-  const dateLocale = locale === 'vi' ? vi : enUS;
+  const dateLocale = locale === "vi" ? vi : enUS;
 
   const formattedDate = formatDistanceToNow(new Date(forumState.createdAt), {
     addSuffix: true,
@@ -66,7 +67,10 @@ const ForumCard: React.FC<ForumCardProps> = ({ forum }) => {
 
           {forumState.image && (
             <div className="forum-image mb-3">
-              <div className="img-thumbnail w-100" style={{ position: "relative", height: "300px" }}>
+              <div
+                className="img-thumbnail w-100"
+                style={{ position: "relative", height: "300px" }}
+              >
                 <Image
                   src={forumState.image}
                   alt={forumState.title}
@@ -92,22 +96,15 @@ const ForumCard: React.FC<ForumCardProps> = ({ forum }) => {
       <div className="card-footer bg-white d-flex justify-content-between py-2">
         <div>
           <i className="bi bi-chat-left-text me-1"></i>
-          {forumState.discussions.length} {t('comments')}
+          {forumState.discussions.length} {t("comments")}
         </div>
         <div className="reaction-summary">
-          <ForumReactions
-            forumId={forumState.forumId}
-            reactions={forumState.reactionTopics.map(reaction => ({
+          <ForumReactionsReadOnly
+            reactions={forumState.reactionTopics.map((reaction) => ({
               reactionId: reaction.reactionId,
-              reactionType: reaction.reactionType as any,
-              createdAt: reaction.createdAt
+              reactionType: validateReactionType(reaction.reactionType),
+              createdAt: reaction.createdAt,
             }))}
-            onReactionChange={(newReactions) => {
-              setForumState({
-                ...forumState,
-                reactionTopics: newReactions
-              });
-            }}
           />
         </div>
       </div>

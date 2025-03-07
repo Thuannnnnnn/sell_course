@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { CreateForumDto, createForum } from "@/app/api/forum/forum";
+
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { CreateForumDto } from "@/app/type/forum/forum";
+import { createForum } from "@/app/api/forum/forum";
 
 const CreateForumForm: React.FC = () => {
   const router = useRouter();
@@ -27,25 +29,25 @@ const CreateForumForm: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check if user is logged in
+
     if (status === "unauthenticated") {
       router.push(`/${locale}/auth/login`);
     }
 
     if (session) {
-      console.log("Session data:", session);
-      // Check possible locations for userId
+
+
       if (session.user?.user_id) {
-        console.log("Found user_id in session.user.user_id:", session.user.user_id);
+
         setUserId(session.user.user_id);
       } else if (session.user?.id) {
-        console.log("Found id in session.user.id:", session.user.id);
+
         setUserId(session.user.id);
       } else if (session.user_id) {
-        console.log("Found user_id in session.user_id:", session.user_id);
+
         setUserId(session.user_id);
-      } else {
-        console.error("Could not find user ID in session:", session);
+
+
       }
     }
   }, [session, status, router, locale]);
@@ -53,22 +55,22 @@ const CreateForumForm: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (limit 5MB)
+
       if (file.size > 5 * 1024 * 1024) {
         setError(t('imageFormats'));
         return;
       }
 
-      // Check file type
+
       if (!file.type.startsWith("image/")) {
         setError(t('imageFormats'));
         return;
       }
 
-      // Save original file to state
+
       setImage(file);
 
-      // Create preview URL for the image
+
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -89,7 +91,7 @@ const CreateForumForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form
+
     if (!title.trim()) {
       setError(t('titleRequired'));
       return;
@@ -101,15 +103,15 @@ const CreateForumForm: React.FC = () => {
     }
 
     if (!userId) {
-      console.error("Missing userId. Session:", session);
+
       setError(t('userIdRequired'));
       return;
     }
 
-    // Check token
+
     const token = session?.user?.token;
     if (!token) {
-      console.error("Missing token. Session:", session);
+
       setError(t('tokenRequired'));
       return;
     }
@@ -125,23 +127,23 @@ const CreateForumForm: React.FC = () => {
         image: image || undefined,
       };
 
-      console.log("Sending forum data:", forumData);
-      console.log("Using token:", token);
+
+
 
       const result = await createForum(forumData, token);
 
       if (result) {
         setSuccess(true);
-        // Redirect after 2 seconds
+
         setTimeout(() => {
           router.push(`/${locale}/forum`);
         }, 2000);
       } else {
-        console.error("Create forum returned null or undefined");
+
         setError(t('errorCreatingPost'));
       }
     } catch (err) {
-      console.error("Error creating forum:", err);
+
       if (err instanceof Error) {
         setError(`${t('errorCreatingPost')}: ${err.message}`);
       } else {
@@ -152,7 +154,7 @@ const CreateForumForm: React.FC = () => {
     }
   };
 
-  // Show loading message
+
   if (status === "loading") {
     return (
       <div className="container py-4">
@@ -165,7 +167,7 @@ const CreateForumForm: React.FC = () => {
     );
   }
 
-  // Show login required message
+
   if (status === "unauthenticated") {
     return (
       <div className="container py-4">
