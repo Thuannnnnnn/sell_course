@@ -1,25 +1,28 @@
-'use client';
+"use client";
 
-import React from 'react';
-import '@/style/courseAdmin.css';
-import { Course } from '@/app/type/course/Course';
-import { deleteCourse } from '@/app/api/course/CourseAPI';
-import { Container } from 'react-bootstrap';
-import { useLocale, useTranslations } from 'next-intl';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import React from "react";
+import "@/style/courseAdmin.css";
+import { Course } from "@/app/type/course/Course";
+import { deleteCourse } from "@/app/api/course/CourseAPI";
+import { Container } from "react-bootstrap";
+import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+
 interface CourseListProps {
   courses: Course[];
   setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
 }
 
 const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
-  const t = useTranslations('courses');
+  const t = useTranslations("courses");
   const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
-  const handleDelete = async (courseId: string) => {
+
+  const handleDelete = async (e: React.MouseEvent, courseId: string) => {
+    e.stopPropagation(); // Ngăn sự kiện click lan truyền lên <tr>
     try {
       if (!session?.user.token) {
         return;
@@ -29,9 +32,14 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
         prev.filter((course) => course.courseId !== courseId)
       );
     } catch (error) {
-      console.error('Failed to delete course: ', error);
-      alert('Failed to delete course.');
+      console.error("Failed to delete course: ", error);
+      alert("Failed to delete course.");
     }
+  };
+
+  const handleEdit = (e: React.MouseEvent, courseId: string) => {
+    e.stopPropagation(); // Ngăn sự kiện click lan truyền lên <tr>
+    router.push(`/${locale}/admin/courseAdmin/edit/${courseId}`);
   };
 
   return (
@@ -40,17 +48,24 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
         <thead>
           <tr>
             <th></th>
-            <th>{t('thumbnail')}</th>
-            <th>{t('title')}</th>
-            <th>{t('category')}</th>
-            <th>{t('author')}</th>
-            <th>{t('dateCreated')}</th>
-            <th>{t('actions')}</th>
+            <th>{t("thumbnail")}</th>
+            <th>{t("title")}</th>
+            <th>{t("category")}</th>
+            <th>{t("author")}</th>
+            <th>{t("dateCreated")}</th>
+            <th>{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
           {courses.map((course, index) => (
-            <tr key={course.courseId} onClick={() => router.push(`/${locale}/admin/courseAdmin/lesson?courseId=${course.courseId}`)}>
+            <tr
+              key={course.courseId}
+              onClick={() =>
+                router.push(
+                  `/${locale}/admin/courseAdmin/lesson?courseId=${course.courseId}`
+                )
+              }
+            >
               <td>{index + 1}</td>
               <td>
                 {course.imageInfo ? (
@@ -59,26 +74,25 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
                     alt="Course Thumbnail"
                     width={50}
                     height={50}
-                    style={{ objectFit: 'cover' }}
+                    style={{ objectFit: "cover" }}
                   />
                 ) : (
-                  'N/A'
+                  "N/A"
                 )}
               </td>
               <td>{course.title}</td>
-              <td>{course.categoryName || 'N/A'}</td>
-              <td>{course.userName || 'N/A'}</td>
+              <td>{course.categoryName || "N/A"}</td>
+              <td>{course.userName || "N/A"}</td>
               <td>
                 {course.createdAt
                   ? new Date(course.createdAt).toLocaleDateString()
-                  : 'N/A'}
+                  : "N/A"}
               </td>
               <td>
                 <button
-                  onClick={() =>
-                    router.push(`/${locale}/admin/courseAdmin/edit/${course.courseId}`)
-                  }
-                  style={{ marginRight: '10px' }}
+                  title="Edit"
+                  onClick={(e) => handleEdit(e, course.courseId)}
+                  style={{ marginRight: "10px" }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +106,10 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
                     <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
                   </svg>
                 </button>
-                <button onClick={() => handleDelete(course.courseId)}>
+                <button
+                  title="Delete"
+                  onClick={(e) => handleDelete(e, course.courseId)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"

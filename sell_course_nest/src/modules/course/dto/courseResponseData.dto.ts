@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsDateString, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsDateString,
+  IsUUID,
+  IsBoolean,
+} from 'class-validator';
 
 export class CourseResponseDTO {
   constructor(
@@ -16,6 +22,7 @@ export class CourseResponseDTO {
     userAvata: string,
     categoryName: string,
     categoryId: string,
+    isPublic: boolean, // Added isPublic parameter
   ) {
     this.courseId = courseId;
     this.title = title;
@@ -30,6 +37,7 @@ export class CourseResponseDTO {
     this.userAvata = userAvata;
     this.categoryName = categoryName;
     this.categoryId = categoryId;
+    this.isPublic = isPublic; // Assign isPublic
   }
 
   @ApiProperty({
@@ -108,8 +116,8 @@ export class CourseResponseDTO {
   categoryName: string;
 
   @ApiProperty({
-    description: 'The avata of user',
-    example: 'Web Development',
+    description: 'The avatar of user',
+    example: 'https://example.com/avatar.jpg', // Fixed example to be more appropriate
   })
   @IsString()
   userAvata: string;
@@ -120,4 +128,11 @@ export class CourseResponseDTO {
   })
   @IsUUID()
   categoryId: string;
+
+  @ApiProperty({
+    description: 'Indicates if the course is publicly accessible',
+    example: true,
+  })
+  @IsBoolean()
+  isPublic: boolean;
 }

@@ -5,8 +5,10 @@ import {
   IsDateString,
   IsUUID,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 import { Express } from 'express';
+
 export class CourseRequestDTO {
   @ApiProperty({
     description: 'Title of the course',
@@ -65,4 +67,13 @@ export class CourseRequestDTO {
   })
   @IsUUID()
   categoryId: string;
+
+  @ApiProperty({
+    description: 'Indicates if the course is publicly accessible',
+    example: true,
+    default: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  isPublic?: boolean;
 }

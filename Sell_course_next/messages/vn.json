@@ -248,7 +248,9 @@
     "back": "về trang trước",
     "enterCourse": "nhập tiêu đề khóa học",
     "enterDescription": "nhập tiêu đề ngắn",
-    "enterURL": "nhập địa chỉ URL"
+    "enterURL": "nhập địa chỉ URL",
+    "visibility": "Hiển thị",
+    "publicCourse": "Khóa học công khai"
   },
   "updateProfile": {
     "title": "Cài Đặt",
@@ -395,7 +397,7 @@
     "title_length_error": "Tên tài liệu phải có ít nhất 3 ký tự",
     "title_exists_error": "Tên tài liệu đã tồn tại",
     "upload_error": "Có lỗi xảy ra khi tải tài liệu lên",
-    "file_status" : "Tệp tin đã có sẵn"
+    "file_status": "Tệp tin đã có sẵn"
   },
   "Forum": {
     "title": "Diễn đàn",
@@ -474,8 +476,8 @@
     "addContent": "Thêm nội dung",
     "contentName": "Tên nội dung",
     "contentType": "Loại nội dung",
-    "updateLesson" : "Cập nhật bài Học",
-    "updateContent" : "Cập nhật nội dung",
+    "updateLesson": "Cập nhật bài Học",
+    "updateContent": "Cập nhật nội dung",
     "video": "Video",
     "document": "Tài liệu",
     "quiz": "Câu hỏi",

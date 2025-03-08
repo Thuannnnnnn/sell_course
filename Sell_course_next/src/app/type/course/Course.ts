@@ -12,4 +12,5 @@ export interface Course {
   categoryName: string;
   categoryId: string;
   userId: string;
+  isPublic: boolean;
 }

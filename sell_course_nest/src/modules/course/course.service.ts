@@ -44,6 +44,7 @@ export class CourseService {
         course.user.avatarImg,
         course.category.name,
         course.category.categoryId,
+        course.isPublic, // Added isPublic
       );
     });
 
@@ -76,9 +77,11 @@ export class CourseService {
       course.user.avatarImg,
       course.category.name,
       course.category.categoryId,
+      course.isPublic, // Added isPublic
     );
     return courseResponseDTO;
   }
+
   async createCourse(
     course: CourseRequestDTO,
     files?: {
@@ -86,7 +89,7 @@ export class CourseService {
       imageInfo?: Express.Multer.File[];
     },
   ): Promise<CourseResponseDTO> {
-    const { userId, categoryId, title } = course;
+    const { userId, categoryId, title, isPublic } = course;
 
     const userData = await this.userRepository.findOne({
       where: { user_id: userId },
@@ -141,6 +144,7 @@ export class CourseService {
       user: userData,
       createdAt: new Date(),
       updatedAt: new Date(),
+      isPublic: isPublic ?? true, // Added isPublic with fallback to true
     });
 
     return {
@@ -150,6 +154,7 @@ export class CourseService {
       userAvata: userData.avatarImg,
       categoryId: categoryData.categoryId,
       categoryName: categoryData.name,
+      isPublic: newCourse.isPublic, // Added isPublic
     } as CourseResponseDTO;
   }
 
@@ -165,7 +170,7 @@ export class CourseService {
       where: { courseId },
       relations: ['user', 'category'],
     });
-    const { userId, categoryId } = updateData;
+    const { userId, categoryId, isPublic } = updateData;
 
     if (!course) {
       throw new HttpException(
@@ -207,6 +212,7 @@ export class CourseService {
       videoInfo: videoUrl,
       imageInfo: imageUrl,
       updatedAt: new Date(),
+      isPublic: isPublic !== undefined ? isPublic : course.isPublic, // Added isPublic handling
     });
 
     const updatedCourse = await this.CourseRepository.save(course);
@@ -217,8 +223,10 @@ export class CourseService {
       userAvata: userData.avatarImg,
       categoryId: categoryData?.categoryId || updateData.categoryId,
       categoryName: categoryData.name,
+      isPublic: updatedCourse.isPublic, // Added isPublic
     } as CourseResponseDTO;
   }
+
   async deleteCourse(courseId: string): Promise<void> {
     const course = await this.CourseRepository.findOne({
       where: { courseId },
