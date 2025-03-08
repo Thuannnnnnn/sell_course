@@ -373,7 +373,7 @@ const CourseForm = () => {
           {courseId ? t("editCourse") : t("create")}
         </button>
 
-        <button className="" onClick={() => router.back()}>
+        <button className="" onClick={() => router.back()} title={t("goBack")}>
           <IoMdArrowBack />
         </button>
       </form>
