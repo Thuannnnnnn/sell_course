@@ -1,5 +1,11 @@
 import axios from "axios";
-import { ApiResponse, CreateForumDto, Forum, ReactionType } from "@/app/type/forum/forum";
+import {
+  ApiResponse,
+  CreateForumDto,
+  Forum,
+  Reaction,
+  ReactionType,
+} from "@/app/type/forum/forum";
 
 export async function getAllForum(): Promise<Forum[]> {
   try {
@@ -140,16 +146,14 @@ export async function deleteForum(
   }
 }
 
-
 export const addReactionToTopic = async (
   token: string,
   userId: string,
   forumId: string,
   reactionType: ReactionType
-): Promise<ApiResponse<void>> => {
+): Promise<ApiResponse<Reaction>> => {
   try {
     const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic`;
-
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
@@ -159,27 +163,31 @@ export const addReactionToTopic = async (
       body: JSON.stringify({ userId, forumId, reactionType }),
     });
 
+    const responseData = await response.json();
     if (!response.ok) {
       return {
         success: false,
-        error: `Failed to add reaction. Status: ${response.status}`,
+        error:
+          responseData.message ||
+          `Failed to add reaction. Status: ${response.status}`,
       };
     }
 
-    return { success: true };
+    // Ensure the response data includes the userId property
+    const processedData: Reaction = {
+      ...responseData,
+      userId: responseData.userId || userId, // Use the userId from the response or the one provided in the request
+    };
+
+    return { success: true, data: processedData };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
-    return {
-      success: false,
-      error: `Error adding reaction: ${errorMessage}`,
-    };
+    return { success: false, error: `Error adding reaction: ${errorMessage}` };
   }
 };
 
-/**
- * Delete a reaction from a forum topic
- */
+// Xóa reaction khỏi topic
 export const deleteReactionFromTopic = async (
   token: string,
   userId: string,
@@ -187,7 +195,6 @@ export const deleteReactionFromTopic = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const deleteUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`;
-
     const response = await fetch(deleteUrl, {
       method: "DELETE",
       headers: {
@@ -196,10 +203,13 @@ export const deleteReactionFromTopic = async (
       },
     });
 
-    if (!response.ok) {
+    if (response.status !== 204) {
+      const responseData = await response.json();
       return {
         success: false,
-        error: `Failed to delete reaction. Status: ${response.status}`,
+        error:
+          responseData.message ||
+          `Failed to delete reaction. Status: ${response.status}`,
       };
     }
 
@@ -210,6 +220,52 @@ export const deleteReactionFromTopic = async (
     return {
       success: false,
       error: `Error deleting reaction: ${errorMessage}`,
+    };
+  }
+};
+
+// Lấy danh sách reaction theo forumId
+export const getReactionsByTopic = async (
+  token: string,
+  forumId: string
+): Promise<ApiResponse<Reaction[]>> => {
+  try {
+    const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${forumId}`;
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const responseData = await response.json();
+      return {
+        success: false,
+        error:
+          responseData.message ||
+          `Failed to fetch reactions. Status: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+
+    // Ensure each reaction in the response has the userId property
+    const processedData = Array.isArray(data)
+      ? data.map((reaction) => ({
+          ...reaction,
+          userId: reaction.userId || reaction.user?.user_id || "", // Use userId from response or extract from user object
+        }))
+      : [];
+
+    return { success: true, data: processedData as Reaction[] };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return {
+      success: false,
+      error: `Error fetching reactions: ${errorMessage}`,
     };
   }
 };

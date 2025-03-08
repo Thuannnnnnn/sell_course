@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { formatDistanceToNow, format } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
@@ -10,7 +10,7 @@ import DeleteForumButton from "./DeleteForumButton";
 import ForumReactions from "./ForumReactions";
 import { useTranslations } from "next-intl";
 import { Forum } from "@/app/type/forum/forum";
-import { getForumById, deleteReactionFromTopic } from "@/app/api/forum/forum";
+import { getForumById } from "@/app/api/forum/forum";
 
 const ForumDetail: React.FC = () => {
   const params = useParams();
@@ -26,95 +26,54 @@ const ForumDetail: React.FC = () => {
   const [pollingActive, setPollingActive] = useState<boolean>(false);
   const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
   const [reactionProcessing, setReactionProcessing] = useState<boolean>(false);
-  const [showDeleteButton, setShowDeleteButton] = useState<boolean>(false);
 
   const fetchForumDetail = async (isPolling = false) => {
-    // Don't fetch during reaction processing if it's a polling request
-    if (reactionProcessing && isPolling) return null;
+    if (reactionProcessing && isPolling) return;
     try {
       if (!forumId) {
         setError(t("postNotFound"));
         setLoading(false);
-        return null;
+        return;
       }
-      // Only set loading state if we're not processing a reaction
-      // This prevents the delete button from disappearing during loading
-      if (!isPolling && !loading && !reactionProcessing) setLoading(true);
+      if (!isPolling) setLoading(true);
       const forumData = await getForumById(forumId);
       if (!forumData) {
         setError(t("postNotFound"));
-        return null;
+        return;
       }
-
-      // Update forum data but preserve button state during reaction processing
-      setForum(forumData);
+      // Đảm bảo reactions luôn là mảng, tránh undefined
+      setForum({ ...forumData, reactions: forumData.reactions || [] });
       setError(null);
-      return forumData;
     } catch (err) {
-      if (!isPolling) {
-        setError(t("errorLoading"));
-      }
-      return null;
+      if (!isPolling) setError(t("errorLoading"));
     } finally {
-      if (!isPolling) {
-        setLoading(false);
-      }
+      if (!isPolling) setLoading(false);
     }
   };
 
-  // Initialize states when forum data is loaded
   useEffect(() => {
-    fetchForumDetail().then((forumData) => {
-      if (forumData && session?.user?.user_id) {
-        const hasReaction = forumData.reactionTopics.some(
-          (reaction) => reaction.userId === session.user.user_id
-        );
-        setHadUserReaction(hasReaction);
-        setShowDeleteButton(hasReaction);
-      }
-    });
-  }, [forumId, t, session?.user?.user_id]);
+    fetchForumDetail();
+  }, [forumId, t]);
 
   useEffect(() => {
     const handleReactionChange = (event: CustomEvent) => {
-      const { forumId: eventForumId } = event.detail;
-      if (eventForumId === forumId) {
-        fetchForumDetail(true).then((forumData) => {
-          if (forumData && session?.user?.user_id) {
-            const hasReaction = forumData.reactionTopics.some(
-              (reaction) => reaction.userId === session.user.user_id
-            );
-            setHadUserReaction(hasReaction);
-
-            // Only update showDeleteButton if we're not in processing state
-            if (!reactionProcessing) {
-              setShowDeleteButton(hasReaction);
-            } else {
-              // During processing, keep the button visible regardless of server state
-              setShowDeleteButton(true);
-            }
-          }
-        });
+      if (event.detail.forumId === forumId) {
+        fetchForumDetail(true);
       }
     };
     window.addEventListener(
       "forumReactionChanged",
       handleReactionChange as EventListener
     );
-    return () => {
+    return () =>
       window.removeEventListener(
         "forumReactionChanged",
         handleReactionChange as EventListener
       );
-    };
-  }, [forumId, session?.user?.user_id, reactionProcessing]);
+  }, [forumId]);
 
   useEffect(() => {
-    const handleUserInteraction = () => {
-      if (!pollingActive) {
-        setPollingActive(true);
-      }
-    };
+    const handleUserInteraction = () => setPollingActive(true);
     window.addEventListener("click", handleUserInteraction);
     window.addEventListener("keydown", handleUserInteraction);
     window.addEventListener("mousemove", handleUserInteraction);
@@ -125,25 +84,19 @@ const ForumDetail: React.FC = () => {
       window.removeEventListener("mousemove", handleUserInteraction);
       window.removeEventListener("touchstart", handleUserInteraction);
     };
-  }, [pollingActive]);
+  }, []);
 
   useEffect(() => {
-    // Completely stop polling during reaction processing
     if (!pollingActive || reactionProcessing) return;
 
     const intervalId = setInterval(() => {
-      // Only poll if not processing reactions and page is visible
       if (!document.hidden && !reactionProcessing) {
         setIsCurrentlyPolling(true);
-        fetchForumDetail(true).finally(() => {
-          setIsCurrentlyPolling(false);
-        });
+        fetchForumDetail(true).finally(() => setIsCurrentlyPolling(false));
       }
     }, 3000);
 
-    const timeoutId = setTimeout(() => {
-      setPollingActive(false);
-    }, 2 * 60 * 1000);
+    const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
 
     return () => {
       clearInterval(intervalId);
@@ -160,106 +113,13 @@ const ForumDetail: React.FC = () => {
     setReactionProcessing(isProcessing);
   };
 
-  const handleDeleteReaction = async (userId: string, forumId: string) => {
-    if (!session?.user?.token) {
-      console.error("No token available for deleting reaction");
-      router.push(`/${locale}/auth/login`);
-      return false;
-    }
-
-    // First, ensure the delete button is visible
-    setShowDeleteButton(true);
-    // Then set processing state to prevent polling
-    setReactionProcessing(true);
-
-    try {
-      const token = session.user.token;
-      console.log(
-        `ForumDetail: Deleting reaction for user ${userId} on forum ${forumId}`
-      );
-      const result = await deleteReactionFromTopic(token, userId, forumId);
-
-      if (!result.success) {
-        console.error("Failed to delete reaction:", result.error);
-        return false;
-      }
-
-      console.log("ForumDetail: Successfully deleted reaction");
-
-      // Update the forum state but keep hadUserReaction true until processing is complete
-      setForum((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          reactionTopics: prev.reactionTopics.filter(
-            (reaction) => reaction.userId !== userId
-          ),
-        };
-      });
-
-      // Dispatch event after state update
-      window.dispatchEvent(
-        new CustomEvent("forumReactionChanged", { detail: { forumId } })
-      );
-
-      // Only update states after processing is complete
-      setHadUserReaction(false);
-      // We'll keep the button visible until processing is fully complete
-      return true;
-    } catch (error) {
-      console.error("Error deleting reaction:", error);
-      return false;
-    } finally {
-      // Clear processing state after everything is done
-      setTimeout(() => {
-        // First clear the processing state to allow polling again
-        setReactionProcessing(false);
-
-        // Then after a small additional delay, update the button visibility
-        // This ensures the button doesn't disappear immediately
-        setTimeout(() => {
-          // Only update the button state if we're not in the middle of another operation
-          if (!reactionProcessing) {
-            // Check if the user still has a reaction before hiding the button
-            const stillHasReaction = forum?.reactionTopics.some(
-              (reaction) => reaction.userId === session?.user?.user_id
-            );
-            setShowDeleteButton(stillHasReaction);
-          }
-        }, 300);
-      }, 500); // Longer delay to ensure UI updates properly
-    }
-  };
-
-  // Track if user had a reaction before deletion process started
-  const [hadUserReaction, setHadUserReaction] = useState<boolean>(false);
-
   const hasUserReaction = () => {
-    // If there's no forum data yet, use the stored state
-    if (!forum) return hadUserReaction;
-
-    const hasReaction = forum.reactionTopics.some(
-      (reaction) => reaction.userId === session?.user?.user_id
+    if (!forum || !session?.user?.user_id) return false;
+    return forum.reactions.some(
+      (reaction) => reaction.userId === session.user.user_id
     );
-
-    // Update the state when reaction status changes and not in processing state
-    if (!reactionProcessing && hasReaction !== hadUserReaction) {
-      setHadUserReaction(hasReaction);
-      // Only update showDeleteButton if we're not in processing state
-      if (!reactionProcessing) {
-        setShowDeleteButton(hasReaction);
-      }
-    } else if (reactionProcessing) {
-      // During processing, always ensure the button is visible
-      setShowDeleteButton(true);
-    }
-
-    // During processing, use the stored state to maintain UI consistency
-    return reactionProcessing ? hadUserReaction : hasReaction;
   };
 
-  // If we're in the middle of a reaction processing, don't show the loading spinner
-  // This prevents the delete button from disappearing during page refresh
   if (loading && !reactionProcessing) {
     return (
       <div className="container py-4">
@@ -270,29 +130,6 @@ const ForumDetail: React.FC = () => {
                 <span className="visually-hidden">{t("loading")}</span>
               </div>
             </div>
-          </div>
-          <div className="col-lg-4">
-            {/* Always show the delete button, even during loading */}
-            {session?.user?.user_id && (
-              <div className="card shadow-sm mb-4">
-                <div className="card-header bg-white">
-                  <h5 className="mb-0">{t("actions")}</h5>
-                </div>
-                <div className="card-body">
-                  <button
-                    className="btn btn-danger btn-sm d-flex align-items-center gap-1 w-100"
-                    onClick={() =>
-                      handleDeleteReaction(session.user.user_id, forumId)
-                    }
-                    disabled={!hadUserReaction}
-                    title={t("deleteReaction")}
-                  >
-                    <i className="bi bi-trash me-1"></i>
-                    {t("deleteReaction")}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -316,29 +153,6 @@ const ForumDetail: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="col-lg-4">
-            {/* Always show the delete button, even during errors */}
-            {session?.user?.user_id && (
-              <div className="card shadow-sm mb-4">
-                <div className="card-header bg-white">
-                  <h5 className="mb-0">{t("actions")}</h5>
-                </div>
-                <div className="card-body">
-                  <button
-                    className="btn btn-danger btn-sm d-flex align-items-center gap-1 w-100"
-                    onClick={() =>
-                      handleDeleteReaction(session.user.user_id, forumId)
-                    }
-                    disabled={!hadUserReaction}
-                    title={t("deleteReaction")}
-                  >
-                    <i className="bi bi-trash me-1"></i>
-                    {t("deleteReaction")}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     );
@@ -358,29 +172,6 @@ const ForumDetail: React.FC = () => {
                 {t("backToForum")}
               </button>
             </div>
-          </div>
-          <div className="col-lg-4">
-            {/* Always show the delete button, even when forum is not found */}
-            {session?.user?.user_id && (
-              <div className="card shadow-sm mb-4">
-                <div className="card-header bg-white">
-                  <h5 className="mb-0">{t("actions")}</h5>
-                </div>
-                <div className="card-body">
-                  <button
-                    className="btn btn-danger btn-sm d-flex align-items-center gap-1 w-100"
-                    onClick={() =>
-                      handleDeleteReaction(session.user.user_id, forumId)
-                    }
-                    disabled={!hadUserReaction}
-                    title={t("deleteReaction")}
-                  >
-                    <i className="bi bi-trash me-1"></i>
-                    {t("deleteReaction")}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -504,57 +295,14 @@ const ForumDetail: React.FC = () => {
                 <div className="d-flex align-items-center gap-2">
                   <ForumReactions
                     forumId={forumId}
-                    reactions={forum.reactionTopics.map((reaction) => ({
-                      userId: reaction.userId,
-                      reactionId: reaction.reactionId,
-                      reactionType: reaction.reactionType as any,
-                      createdAt: reaction.createdAt,
-                    }))}
+                    reactions={forum.reactions}
                     onReactionChange={(newReactions) => {
-                      setForum((prev) => {
-                        if (!prev) return null;
-                        return {
-                          ...prev,
-                          reactionTopics: newReactions.map((reaction) => ({
-                            reactionId: reaction.reactionId,
-                            reactionType: reaction.reactionType,
-                            createdAt: reaction.createdAt,
-                            userId: reaction.userId || reaction.reactionId,
-                          })),
-                        };
-                      });
+                      setForum((prev) =>
+                        prev ? { ...prev, reactions: newReactions } : null
+                      );
                     }}
                     onProcessingChange={handleReactionProcessing}
-                    onDeleteReaction={handleDeleteReaction}
                   />
-                  {/* Always show the delete button, regardless of state */}
-                  <button
-                    className="btn btn-danger btn-sm d-flex align-items-center gap-1"
-                    onClick={() =>
-                      handleDeleteReaction(
-                        session?.user?.user_id || "",
-                        forumId
-                      )
-                    }
-                    disabled={reactionProcessing || !hasUserReaction()}
-                    title={t("deleteReaction")}
-                  >
-                    {reactionProcessing ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-1"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        {t("processing")}
-                      </>
-                    ) : (
-                      <>
-                        <i className="bi bi-trash"></i>
-                        {t("deleteReaction")}
-                      </>
-                    )}
-                  </button>
                   {session?.user?.user_id === forum.user.user_id && (
                     <>
                       <Link
@@ -595,7 +343,7 @@ const ForumDetail: React.FC = () => {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     required
-                  ></textarea>
+                  />
                 </div>
                 <button type="submit" className="btn btn-primary">
                   {t("sendComment")}
@@ -625,10 +373,7 @@ const ForumDetail: React.FC = () => {
                           <div className="text-muted small">
                             {formatDistanceToNow(
                               new Date(discussion.createdAt),
-                              {
-                                addSuffix: true,
-                                locale: dateLocale,
-                              }
+                              { addSuffix: true, locale: dateLocale }
                             )}
                           </div>
                         </div>
@@ -691,7 +436,7 @@ const ForumDetail: React.FC = () => {
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                   <span>{t("likes")}</span>
                   <span className="badge bg-primary rounded-pill">
-                    {forum.reactionTopics.length}
+                    {forum.reactions?.length || 0}
                   </span>
                 </li>
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">

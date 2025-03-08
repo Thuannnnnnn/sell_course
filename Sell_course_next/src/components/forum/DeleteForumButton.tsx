@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { deleteForum } from "@/app/api/forum/forum";
+
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Modal, Button } from "react-bootstrap";
 import { useTranslations } from "next-intl";
+import { deleteForum } from "@/app/api/forum/forum";
 
 interface DeleteForumButtonProps {
   forumId: string;
