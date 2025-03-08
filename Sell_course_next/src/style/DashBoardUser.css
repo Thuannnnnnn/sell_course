@@ -24,7 +24,6 @@
   }
 
   .sidebar {
-    height: 500px;
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
     width: 300px;
@@ -50,7 +49,7 @@
 
 
   .sidebar ul li:hover {
-    background-color: #f0f0f0; /* Hiệu ứng hover */
+    background-color: #f0f0f0;
   }
 
   .sidebar ul li .icon-sidebar {
@@ -66,7 +65,7 @@
     margin: 15px;
     cursor: pointer;
     transition: color 0.3s;
-    margin-bottom: 25px;
+    margin-bottom: 35px;
   }
 
   .sidebar li:nth-child(8) {
