@@ -73,8 +73,58 @@ const ForumList: React.FC = () => {
 
   if (forums.length === 0) {
     return (
-      <div className="text-center my-5">
-        <p className="fs-5">{t('noPosts')}</p>
+      <div className="container-sm py-4">
+        <h2 className="mb-4">{t('title')}</h2>
+        <div className="row">
+          <div className="col-md-8">
+            <h4 className="mb-3">{t('latestPosts')}</h4>
+            <div className="text-center my-5 p-4 border rounded bg-light">
+              <p className="fs-5 mb-3">{t('noPosts')}</p>
+              <p className="mb-4">{t('forumInfoDesc')}</p>
+              <Link
+                href={`/${locale}/forum/create`}
+                className="btn btn-primary">
+                <i className="bi bi-plus-circle me-2"></i>
+                {t('createPost')}
+              </Link>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card shadow-sm mb-4">
+              <div className="card-header bg-primary text-white">
+                <h5 className="mb-0">{t('forumInfo')}</h5>
+              </div>
+              <div className="card-body">
+                <p>{t('forumInfoDesc')}</p>
+                <Link
+                  href={`/${locale}/forum/create`}
+                  className="btn btn-primary w-100">
+                  <i className="bi bi-plus-circle me-2"></i>
+                  {t('createPost')}
+                </Link>
+              </div>
+            </div>
+            <div className="card shadow-sm">
+              <div className="card-header bg-info text-white">
+                <h5 className="mb-0">{t('statistics')}</h5>
+              </div>
+              <div className="card-body">
+                <p className="mb-2">
+                  <i className="bi bi-file-earmark-text me-2"></i>
+                  {t('totalPosts')}: <strong>0</strong>
+                </p>
+                <p className="mb-2">
+                  <i className="bi bi-chat-left-text me-2"></i>
+                  {t('totalComments')}: <strong>0</strong>
+                </p>
+                <p className="mb-0">
+                  <i className="bi bi-hand-thumbs-up me-2"></i>
+                  {t('totalReactions')}: <strong>0</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
