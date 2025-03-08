@@ -332,7 +332,10 @@
     "questionsAndAnswers": "Questions and Answers",
     "reply": "Reply",
     "noQuestionsYet": "No Question",
-    "enterDescription": "Enter your question"
+    "enterDescription": "Enter your question",
+    "addedToWaitListSuccess": "Course successfully added to wishlist!",
+    "addedToWaitListFail": "Failed to add course to wishlist.",
+    "addToWaitList": "Add to Wishlist"
   },
   "forgotPasswordPage": {
     "title": "Forgot Password",
@@ -489,5 +492,9 @@
   "orderHistoryPage": {
     "title": "Order History",
     "noOrder": "You don't have any order"
+  },
+  "waitListPage": {
+    "title": "Wait List",
+    "noCourse": "You don't have any course in your waitlist"
   }
 }

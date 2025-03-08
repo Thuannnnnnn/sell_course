@@ -403,3 +403,7 @@ body {
 .textQuestion{
   margin-bottom: 10px;
 }
+
+.waitListCourse {
+  background: #e8fdf8;
+}
