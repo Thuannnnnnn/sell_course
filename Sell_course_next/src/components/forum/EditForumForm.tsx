@@ -18,7 +18,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
   const params = useParams();
   const locale = params.locale as string;
   const { data: session, status } = useSession();
-  const t = useTranslations('Forum');
+  const t = useTranslations("Forum");
 
   const [title, setTitle] = useState<string>("");
   const [text, setText] = useState<string>("");
@@ -58,7 +58,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
         const forum = await getForumById(forumId);
 
         if (!forum) {
-          setError(t('postNotFound'));
+          setError(t("postNotFound"));
           return;
         }
 
@@ -71,9 +71,8 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
         }
 
         if (session?.user?.user_id !== forum.user.user_id) {
-          setError(t('noPermissionMessage'));
+          setError(t("noPermissionMessage"));
         }
-
       } catch (err) {
         setError(t('errorUpdatingPost'));
       } finally {
@@ -90,12 +89,12 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError(t('imageFormats'));
+        setError(t("imageFormats"));
         return;
       }
 
       if (!file.type.startsWith("image/")) {
-        setError(t('imageFormats'));
+        setError(t("imageFormats"));
         return;
       }
 
@@ -122,12 +121,12 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     e.preventDefault();
 
     if (!title.trim()) {
-      setError(t('titleRequired'));
+      setError(t("titleRequired"));
       return;
     }
 
     if (!text.trim()) {
-      setError(t('contentRequired'));
+      setError(t("contentRequired"));
       return;
     }
 
@@ -150,7 +149,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
         userId: userId,
         title: title.trim(),
         text: text.trim(),
-        image: image
+        image: image,
       };
 
       const result = await updateForum(forumId, forumData, token);
@@ -165,9 +164,9 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
       }
     } catch (err) {
       if (err instanceof Error) {
-        setError(`${t('errorUpdatingPost')}: ${err.message}`);
+        setError(`${t("errorUpdatingPost")}: ${err.message}`);
       } else {
-        setError(t('errorUpdatingPost'));
+        setError(t("errorUpdatingPost"));
       }
     } finally {
       setIsSubmitting(false);
@@ -179,7 +178,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
       <div className="container py-4">
         <div className="d-flex justify-content-center my-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">{t('loading')}</span>
+            <span className="visually-hidden">{t("loading")}</span>
           </div>
         </div>
       </div>
@@ -190,15 +189,15 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     return (
       <div className="container py-4">
         <div className="alert alert-warning" role="alert">
-          <h4 className="alert-heading">{t('loginRequired')}</h4>
-          <p>{t('loginRequiredMessage')}</p>
+          <h4 className="alert-heading">{t("loginRequired")}</h4>
+          <p>{t("loginRequiredMessage")}</p>
           <hr />
           <div className="d-flex justify-content-end">
             <button
               className="btn btn-primary"
               onClick={() => router.push(`/${locale}/auth/login`)}
             >
-              {t('loginRequired')}
+              {t("loginRequired")}
             </button>
           </div>
         </div>
@@ -210,15 +209,15 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     return (
       <div className="container py-4">
         <div className="alert alert-danger" role="alert">
-          <h4 className="alert-heading">{t('noPermission')}</h4>
-          <p>{t('noPermissionMessage')}</p>
+          <h4 className="alert-heading">{t("noPermission")}</h4>
+          <p>{t("noPermissionMessage")}</p>
           <hr />
           <div className="d-flex justify-content-end">
             <button
               className="btn btn-primary"
               onClick={() => router.push(`/${locale}/forum/${forumId}`)}
             >
-              {t('backToForum')}
+              {t("backToForum")}
             </button>
           </div>
         </div>
@@ -232,13 +231,13 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
         <div className="col-lg-8">
           <div className="card shadow">
             <div className="card-header bg-primary text-white">
-              <h4 className="mb-0">{t('editPost')}</h4>
+              <h4 className="mb-0">{t("editPost")}</h4>
             </div>
             <div className="card-body">
               {success ? (
                 <div className="alert alert-success" role="alert">
-                  <h4 className="alert-heading">{t('postUpdatedSuccess')}</h4>
-                  <p>{t('postUpdatedMessage')}</p>
+                  <h4 className="alert-heading">{t("postUpdatedSuccess")}</h4>
+                  <p>{t("postUpdatedMessage")}</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit}>
@@ -250,7 +249,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
 
                   <div className="mb-3">
                     <label htmlFor="title" className="form-label">
-                      {t('postTitle')} <span className="text-danger">*</span>
+                      {t("postTitle")} <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -258,14 +257,14 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
                       id="title"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder={t('postTitle')}
+                      placeholder={t("postTitle")}
                       required
                     />
                   </div>
 
                   <div className="mb-3">
                     <label htmlFor="content" className="form-label">
-                      {t('postContent')} <span className="text-danger">*</span>
+                      {t("postContent")} <span className="text-danger">*</span>
                     </label>
                     <textarea
                       className="form-control"
@@ -273,14 +272,14 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
                       rows={6}
                       value={text}
                       onChange={(e) => setText(e.target.value)}
-                      placeholder={t('postContent')}
+                      placeholder={t("postContent")}
                       required
                     ></textarea>
                   </div>
 
                   <div className="mb-4">
                     <label htmlFor="image" className="form-label">
-                      {t('postImage')}
+                      {t("postImage")}
                     </label>
                     <input
                       type="file"
@@ -290,9 +289,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
                       onChange={handleImageChange}
                       ref={fileInputRef}
                     />
-                    <div className="form-text">
-                      {t('imageFormats')}
-                    </div>
+                    <div className="form-text">{t("imageFormats")}</div>
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
@@ -305,6 +302,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
                           />
                         </div>
                         <button
+                          title="Remove image"
                           type="button"
                           className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
                           onClick={handleRemoveImage}
@@ -321,7 +319,8 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
                       className="btn btn-outline-secondary"
                       onClick={() => router.push(`/${locale}/forum/${forumId}`)}
                     >
-                      <i className="bi bi-arrow-left me-1"></i> {t('backButton')}
+                      <i className="bi bi-arrow-left me-1"></i>{" "}
+                      {t("backButton")}
                     </button>
                     <button
                       type="submit"
@@ -330,12 +329,16 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
                     >
                       {isSubmitting ? (
                         <>
-                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          {t('processing')}
+                          <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          {t("processing")}
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-save me-1"></i> {t('saveChanges')}
+                          <i className="bi bi-save me-1"></i> {t("saveChanges")}
                         </>
                       )}
                     </button>

@@ -1,5 +1,8 @@
 import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
-import { createWishListCourse, fetchWishListCourse } from "@/app/api/wishListCourse/wishListCourse";
+import {
+  createWishListCourse,
+  fetchWishListCourse,
+} from "@/app/api/wishListCourse/wishListCourse";
 import "@/style/CourseCard.css";
 import { useSession } from "next-auth/react";
 import { useLocale } from "next-intl";
@@ -37,7 +40,9 @@ export default function CourseCard({ course }: CourseCardProps) {
       try {
         const wishlist = await fetchWishListCourse(session.user.user_id);
         if (Array.isArray(wishlist)) {
-          const isCourseWishlisted = wishlist.some((item) => item.courseId === course.courseId);
+          const isCourseWishlisted = wishlist.some(
+            (item) => item.courseId === course.courseId
+          );
           setIsWishlisted(isCourseWishlisted);
         }
       } catch (error) {
@@ -57,7 +62,11 @@ export default function CourseCard({ course }: CourseCardProps) {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        console.error("Error deleting wish list course:", error.response.status, error.response.data);
+        console.error(
+          "Error deleting wish list course:",
+          error.response.status,
+          error.response.data
+        );
       } else {
         console.error("Unknown error:", error);
       }
@@ -89,7 +98,10 @@ export default function CourseCard({ course }: CourseCardProps) {
     if (!session?.user.email) return;
 
     try {
-      const data = await CoursePurchaseAPI.getCoursePurchaseById(courseId, session?.user.email);
+      const data = await CoursePurchaseAPI.getCoursePurchaseById(
+        courseId,
+        session?.user.email
+      );
       if (data === 200) {
         router.push(`/${localActive}/courseInfo/${courseId}`);
         return;
@@ -102,16 +114,30 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   return (
     <div className="card">
-      <div className="header" onClick={() => handleCoursePurchase(course.courseId)}>
-        <Image src={course.userAvata || ""} alt="Avatar" width={30} height={30} className="avatarImage" />
+      <div className="header">
+        <Image
+          src={course.userAvata || ""}
+          alt="Avatar"
+          width={30}
+          height={30}
+          className="avatarImage"
+        />
         <span className="name">{course.userName}</span>
       </div>
-
-      <div className="image-wrapper">
-        <Image src={course.imageInfo} alt="Course Thumbnail" width={250} height={140} className="image" />
+      <div
+        className="image-wrapper"
+        onClick={() => handleCoursePurchase(course.courseId)}
+      >
+        <Image
+          src={course.imageInfo}
+          alt="Course Thumbnail"
+          width={250}
+          height={140}
+          className="image"
+        />
       </div>
 
-      <div className="content">
+      <div className="content-courseCard">
         <div className="tt">
           <span className="category">{course.categoryName}</span>
           <p className="lessons">12 Lessons</p>
@@ -122,12 +148,20 @@ export default function CourseCard({ course }: CourseCardProps) {
       <div className="footer">
         <div className="rating">
           {[...Array(5)].map((_, index) =>
-            index < 4 ? <AiFillStar key={index} className="star" /> : <AiOutlineStar key={index} className="star" />
+            index < 4 ? (
+              <AiFillStar key={index} className="star" />
+            ) : (
+              <AiOutlineStar key={index} className="star" />
+            )
           )}
         </div>
         <div className="price-like">
           <div className="like" onClick={handleWishlistToggle}>
-            {isWishlisted ? <FaHeart className="wishlist-active" /> : <FaRegHeart  />}
+            {isWishlisted ? (
+              <FaHeart className="wishlist-active" />
+            ) : (
+              <FaRegHeart />
+            )}
           </div>
           <p className="price">${course.price}</p>
         </div>

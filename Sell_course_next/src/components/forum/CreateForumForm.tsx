@@ -15,7 +15,7 @@ const CreateForumForm: React.FC = () => {
   const params = useParams();
   const locale = params.locale as string;
   const { data: session, status } = useSession();
-  const t = useTranslations('Forum');
+  const t = useTranslations("Forum");
 
   const [title, setTitle] = useState<string>("");
   const [text, setText] = useState<string>("");
@@ -38,7 +38,6 @@ const CreateForumForm: React.FC = () => {
 
 
       if (session.user?.user_id) {
-
         setUserId(session.user.user_id);
       } else if (session.user?.id) {
 
@@ -57,13 +56,13 @@ const CreateForumForm: React.FC = () => {
     if (file) {
 
       if (file.size > 5 * 1024 * 1024) {
-        setError(t('imageFormats'));
+        setError(t("imageFormats"));
         return;
       }
 
 
       if (!file.type.startsWith("image/")) {
-        setError(t('imageFormats'));
+        setError(t("imageFormats"));
         return;
       }
 
@@ -93,12 +92,12 @@ const CreateForumForm: React.FC = () => {
 
 
     if (!title.trim()) {
-      setError(t('titleRequired'));
+      setError(t("titleRequired"));
       return;
     }
 
     if (!text.trim()) {
-      setError(t('contentRequired'));
+      setError(t("contentRequired"));
       return;
     }
 
@@ -145,9 +144,9 @@ const CreateForumForm: React.FC = () => {
     } catch (err) {
 
       if (err instanceof Error) {
-        setError(`${t('errorCreatingPost')}: ${err.message}`);
+        setError(`${t("errorCreatingPost")}: ${err.message}`);
       } else {
-        setError(t('errorCreatingPost'));
+        setError(t("errorCreatingPost"));
       }
     } finally {
       setIsSubmitting(false);
@@ -160,7 +159,7 @@ const CreateForumForm: React.FC = () => {
       <div className="container py-4">
         <div className="d-flex justify-content-center my-5">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">{t('loading')}</span>
+            <span className="visually-hidden">{t("loading")}</span>
           </div>
         </div>
       </div>
@@ -172,15 +171,15 @@ const CreateForumForm: React.FC = () => {
     return (
       <div className="container py-4">
         <div className="alert alert-warning" role="alert">
-          <h4 className="alert-heading">{t('loginRequired')}</h4>
-          <p>{t('loginRequiredMessage')}</p>
+          <h4 className="alert-heading">{t("loginRequired")}</h4>
+          <p>{t("loginRequiredMessage")}</p>
           <hr />
           <div className="d-flex justify-content-end">
             <button
               className="btn btn-primary"
               onClick={() => router.push(`/${locale}/auth/login`)}
             >
-              {t('loginRequired')}
+              {t("loginRequired")}
             </button>
           </div>
         </div>
@@ -194,13 +193,13 @@ const CreateForumForm: React.FC = () => {
         <div className="col-lg-8">
           <div className="card shadow">
             <div className="card-header bg-primary text-white">
-              <h4 className="mb-0">{t('createNewPost')}</h4>
+              <h4 className="mb-0">{t("createNewPost")}</h4>
             </div>
             <div className="card-body">
               {success ? (
                 <div className="alert alert-success" role="alert">
-                  <h4 className="alert-heading">{t('postCreatedSuccess')}</h4>
-                  <p>{t('postCreatedMessage')}</p>
+                  <h4 className="alert-heading">{t("postCreatedSuccess")}</h4>
+                  <p>{t("postCreatedMessage")}</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit}>
@@ -212,7 +211,7 @@ const CreateForumForm: React.FC = () => {
 
                   <div className="mb-3">
                     <label htmlFor="title" className="form-label">
-                      {t('postTitle')} <span className="text-danger">*</span>
+                      {t("postTitle")} <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -220,14 +219,14 @@ const CreateForumForm: React.FC = () => {
                       id="title"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder={t('postTitle')}
+                      placeholder={t("postTitle")}
                       required
                     />
                   </div>
 
                   <div className="mb-3">
                     <label htmlFor="content" className="form-label">
-                      {t('postContent')} <span className="text-danger">*</span>
+                      {t("postContent")} <span className="text-danger">*</span>
                     </label>
                     <textarea
                       className="form-control"
@@ -235,14 +234,14 @@ const CreateForumForm: React.FC = () => {
                       rows={6}
                       value={text}
                       onChange={(e) => setText(e.target.value)}
-                      placeholder={t('postContent')}
+                      placeholder={t("postContent")}
                       required
                     ></textarea>
                   </div>
 
                   <div className="mb-4">
                     <label htmlFor="image" className="form-label">
-                      {t('postImage')}
+                      {t("postImage")}
                     </label>
                     <input
                       type="file"
@@ -252,9 +251,7 @@ const CreateForumForm: React.FC = () => {
                       onChange={handleImageChange}
                       ref={fileInputRef}
                     />
-                    <div className="form-text">
-                      {t('imageFormats')}
-                    </div>
+                    <div className="form-text">{t("imageFormats")}</div>
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
@@ -267,6 +264,7 @@ const CreateForumForm: React.FC = () => {
                           />
                         </div>
                         <button
+                          title="Remove image"
                           type="button"
                           className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
                           onClick={handleRemoveImage}
@@ -283,7 +281,8 @@ const CreateForumForm: React.FC = () => {
                       className="btn btn-outline-secondary"
                       onClick={() => router.push(`/${locale}/forum`)}
                     >
-                      <i className="bi bi-arrow-left me-1"></i> {t('backButton')}
+                      <i className="bi bi-arrow-left me-1"></i>{" "}
+                      {t("backButton")}
                     </button>
                     <button
                       type="submit"
@@ -292,12 +291,16 @@ const CreateForumForm: React.FC = () => {
                     >
                       {isSubmitting ? (
                         <>
-                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          {t('processing')}
+                          <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          {t("processing")}
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-send me-1"></i> {t('submitPost')}
+                          <i className="bi bi-send me-1"></i> {t("submitPost")}
                         </>
                       )}
                     </button>
@@ -311,37 +314,39 @@ const CreateForumForm: React.FC = () => {
         <div className="col-lg-4">
           <div className="card shadow mb-4">
             <div className="card-header bg-light">
-              <h5 className="mb-0">{t('guidelines')}</h5>
+              <h5 className="mb-0">{t("guidelines")}</h5>
             </div>
             <div className="card-body">
-              <h6 className="card-subtitle mb-2 text-muted">{t('postingRules')}</h6>
+              <h6 className="card-subtitle mb-2 text-muted">
+                {t("postingRules")}
+              </h6>
               <ul className="list-group list-group-flush mb-3">
                 <li className="list-group-item px-0">
                   <i className="bi bi-check-circle-fill text-success me-2"></i>
-                  {t('rule1')}
+                  {t("rule1")}
                 </li>
                 <li className="list-group-item px-0">
                   <i className="bi bi-check-circle-fill text-success me-2"></i>
-                  {t('rule2')}
+                  {t("rule2")}
                 </li>
                 <li className="list-group-item px-0">
                   <i className="bi bi-check-circle-fill text-success me-2"></i>
-                  {t('rule3')}
+                  {t("rule3")}
                 </li>
                 <li className="list-group-item px-0">
                   <i className="bi bi-check-circle-fill text-success me-2"></i>
-                  {t('rule4')}
+                  {t("rule4")}
                 </li>
               </ul>
 
-              <h6 className="card-subtitle mb-2 text-muted">{t('formatting')}</h6>
-              <p className="small">
-                {t('formattingTip')}
-              </p>
+              <h6 className="card-subtitle mb-2 text-muted">
+                {t("formatting")}
+              </h6>
+              <p className="small">{t("formattingTip")}</p>
               <ul className="small">
-                <li>{t('boldFormat')}</li>
-                <li>{t('italicFormat')}</li>
-                <li>{t('headingFormat')}</li>
+                <li>{t("boldFormat")}</li>
+                <li>{t("italicFormat")}</li>
+                <li>{t("headingFormat")}</li>
               </ul>
             </div>
           </div>
@@ -353,7 +358,7 @@ const CreateForumForm: React.FC = () => {
               onClick={() => router.push(`/${locale}/forum`)}
             >
               <i className="bi bi-arrow-left me-2"></i>
-              {t('backToForum')}
+              {t("backToForum")}
             </button>
           </div>
         </div>

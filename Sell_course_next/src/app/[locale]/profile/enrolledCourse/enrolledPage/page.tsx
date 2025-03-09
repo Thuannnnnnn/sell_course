@@ -1,7 +1,7 @@
 'use client';
 
 import { fetchCoursePurchased, fetchUserDetails } from '@/app/api/auth/User/user';
-import { UserGetAllCoursePurchase } from '@/app/type/user/User';
+import { GetUser, UserGetAllCoursePurchase } from '@/app/type/user/User';
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -87,9 +87,12 @@ const CoursePurchase: React.FC = () => {
     );
   }
 
+   if (!user) {
+      return <SignIn />;
+  }
   return (
     <>
-      <div>{user ? <BannerUser user={user} /> : <SignIn />}</div>
+       <div>{user ? <BannerUser  user={user as unknown as GetUser}  /> : <SignIn />}</div>
       <div className="content-profile">
         <div className="dashboard">
           <DashBoardUser />

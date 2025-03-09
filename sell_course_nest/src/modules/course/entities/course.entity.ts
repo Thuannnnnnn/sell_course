@@ -46,6 +46,9 @@ export class Course {
   @Column({ name: 'update_at', type: 'timestamp' })
   updatedAt: Date;
 
+  @Column({ name: 'is_public', type: 'boolean', default: true })
+  isPublic: boolean;
+
   @BeforeInsert()
   prePersist() {
     if (!this.courseId) {

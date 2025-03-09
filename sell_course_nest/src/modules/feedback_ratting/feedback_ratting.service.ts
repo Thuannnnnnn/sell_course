@@ -7,7 +7,6 @@ import { CreateFeedbackRattingDto } from './dto/create-feedback-ratting.dto';
 import { UpdateFeedbackRattingDto } from './dto/update-feedback-ratting.dto';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
-
 @Injectable()
 export class FeedbackRattingService {
   constructor(
@@ -18,18 +17,14 @@ export class FeedbackRattingService {
     @InjectRepository(Course)
     private courseRepository: Repository<Course>,
   ) {}
-
   async create(
     createFeedbackRattingDto: CreateFeedbackRattingDto,
   ): Promise<FeedbackRatting> {
     const { user_id, courseId, star, feedback } = createFeedbackRattingDto;
-
     const user = await this.userRepository.findOne({ where: { user_id } });
     if (!user) throw new Error('User not found');
-
     const course = await this.courseRepository.findOne({ where: { courseId } });
     if (!course) throw new Error('Course not found');
-
     const feedbackRatting = this.feedbackRattingRepository.create({
       user,
       course,
@@ -37,16 +32,13 @@ export class FeedbackRattingService {
       feedback,
       createdAt: new Date(),
     });
-
     return this.feedbackRattingRepository.save(feedbackRatting);
   }
-
   async findAll(): Promise<FeedbackRatting[]> {
     return this.feedbackRattingRepository.find({
       relations: ['user', 'course'],
     });
   }
-
   async findOne(courseId: string): Promise<FeedbackRatting> {
     const feedback = await this.feedbackRattingRepository.findOne({
       where: { course: { courseId } },
@@ -55,26 +47,25 @@ export class FeedbackRattingService {
     if (!feedback) throw new Error('Feedback not found');
     return feedback;
   }
-
   async update(
     id: string,
     updateFeedbackRattingDto: UpdateFeedbackRattingDto,
   ): Promise<FeedbackRatting> {
-    const feedback = await this.findOne(id);
-
+    const feedback = await this.feedbackRattingRepository.findOne({
+      where: { feedbackRattingId: id },
+    });
     if (updateFeedbackRattingDto.star !== undefined) {
       feedback.star = updateFeedbackRattingDto.star;
     }
     if (updateFeedbackRattingDto.feedback !== undefined) {
       feedback.feedback = updateFeedbackRattingDto.feedback;
     }
-
     return this.feedbackRattingRepository.save(feedback);
   }
-
-  // New delete method
   async remove(id: string): Promise<void> {
-    const feedback = await this.findOne(id); // Check if exists
+    const feedback = await this.feedbackRattingRepository.findOne({
+      where: { feedbackRattingId: id },
+    });
     await this.feedbackRattingRepository.remove(feedback);
   }
 }
