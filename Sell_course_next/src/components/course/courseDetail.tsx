@@ -17,6 +17,7 @@ import "react-notifications/lib/notifications.css";
 import { ResponseQaDto } from "@/app/type/qa/Qa";
 import { createQa, deleteQa, getAllQa } from "@/app/api/qa/Qa";
 import ReactQuill from "react-quill";
+import { creatWaitingList } from "@/app/api/waitingList/waitingList";
 
 // const getRelativeTime = (dateString: string) => {
 //   const now = new Date();
@@ -176,6 +177,31 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
     router.push(`/${locale}/payment?data=${encodedData}`);
   };
+
+  const handleCreatWaitList = async () => {
+    try {
+        const token = session?.user.token;
+        const userId = session?.user.user_id;
+        if (!token || !userId) {
+            NotificationManager.warning("Login required", "Warning", 2000);
+            return;
+        }
+
+        const response = await creatWaitingList(token, userId, courseId);
+        console.log("📩 API Response:", response);
+
+        // Sửa kiểm tra status đúng với Axios
+        if (response && response.waitlistId) {
+            NotificationManager.success("Added to waitlist", "Success", 2000);
+        } else {
+            NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+        }
+    } catch {
+        NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+    }
+};
+
+
   const handleCreateQa = async () => {
     if (!text.trim()) {
       setError("Nội dung câu hỏi không được để trống!");
@@ -449,6 +475,11 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           <button className="btn buy-course" onClick={() => handleCheckOut()}>
             {t("buyCourse")}
           </button>
+          {courses?.isPublic && (
+              <button className="btn waitListCourse" onClick={() => handleCreatWaitList()}>
+                {t("addToWaitList")}
+              </button>
+            )}
 
           <div className="course-details">
             <div className="row"></div>

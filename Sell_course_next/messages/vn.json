@@ -340,7 +340,10 @@
     "questionsAndAnswers": "Questions and Answers",
     "reply": "trả lời",
     "noQuestionsYet": "Chưa có câu hỏi",
-    "enterDescription": "Nhập câu hỏi"
+    "enterDescription": "Nhập câu hỏi",
+    "addToWaitList": "Thêm khóa mong muốn",
+    "addedToWaitListSuccess": "Khóa học đã được thêm vào danh sách mong muốn!",
+    "addedToWaitListFail": "Không thể thêm khóa học vào danh sách mong muốn."
   },
   "forgotPasswordPage": {
     "title": "Quên Mật Khẩu",
@@ -497,5 +500,9 @@
   "orderHistoryPage": {
     "title": "Lịch sử mua hàng",
     "noOrder": "Bạn chưa có đơn hàng nào"
+  },
+  "waitListPage": {
+    "title": "Danh sách chờ",
+    "noCourse": "Bạn chưa thêm khóa học nào vào danh sách chờ"
   }
 }

@@ -1,61 +1,139 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Image from 'react-bootstrap/Image';
+"use client";
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import DashBoardUser from "@/components/DashBoardUser";
+import BannerUser from "@/components/BannerUser";
+import "../../../style/UserProfilePage.css";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { GetUser } from "@/app/type/user/User";
+import SignIn from "../auth/login/page";
+import { deleteWaitingList, fetchWaitingList } from "@/app/api/waitingList/waitingList";
+import { FaTrash } from "react-icons/fa";
 
-// Define the type for the user
-interface User {
-  username?: string;
-  email?: string | null;
-  avatarImg?: string;
+interface Course {
+  courseId: string;
+  title: string;
+  description: string;
+  imageInfo: string;
+  price: number;
+  videoInfo: string;
+  categoryName: string;
 }
 
-const ProfilePage: React.FC = () => {
+interface WaitingList {
+  waitlistId: string;
+  createdAt: string;
+  course: Course;
+}
+
+const DashBoardPage: React.FC = () => {
   const { data: session, status } = useSession();
-  const router = useRouter();
+  const [waitList, setWaitList] = useState<WaitingList[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState(session?.user || null);
+  const t = useTranslations('waitListPage');
 
-  const [user] = useState<User | undefined>(session?.user);
-
-  // Update the session in case of changes
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
+    if (status === "loading") return;
+    if (!session?.user) {
+      setUser(null);
+      setLoading(false);
+      return;
     }
-  }, [status, router]);
+    setUser(session.user);
+  }, [session, status]);
 
-  // Fetch updated session if user details are updated
-  // const updateSession = async () => {
-  //   const updatedSession = await getSession();
-  //   setUser(updatedSession?.user);
-  // };
+  useEffect(() => {
+    const fetchWaitCourse = async () => {
+      if (!session?.user?.token || !session.user.user_id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchWaitingList(session.user.token, session.user.user_id);
+        setWaitList(data.length ? data : null);
+      } catch {
+        setError("Failed to load waiting list. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWaitCourse();
+  }, [session]);
 
-  if (status === 'loading') {
-    return <div>Loading...</div>;
+  const handleDelete = async (waitlistId: string) => {
+    if (!session?.user?.token) return;
+    try {
+      const data = await deleteWaitingList(session.user.token, waitlistId);
+      console.log("API Response:", data);
+      setWaitList((prev) => prev?.filter((item) => item.waitlistId !== waitlistId) || null);
+    } catch (error) {
+      console.error("Error deleting waitlist:", error);
+      setError("Failed to delete item.");
+    }
+  };
+
+  if (status === "loading") {
+    return <div className="text-center py-5 fs-5">Loading...</div>;
   }
 
-  return (
-    <div>
-      <h1>Welcome to the Dashboard</h1>
-      <pre>{JSON.stringify(session, null, 2)}</pre>
+  if (!user) return <SignIn />;
 
-      {user ? (
-        <>
-          <span className="nav-link m-4">Name: {user?.username}</span>
-          <span className="nav-link m-4">Email: {user?.email}</span>
-          {user?.avatarImg && (
-            <Image
-              src={user?.avatarImg}
-              alt="User profile picture"
-              width={100}
-              height={100}
-              className="rounded ms-4"
-            />
+  return (
+    <>
+      <BannerUser user={user as unknown as GetUser} />
+      <div className="content-profile">
+        <div className="dashboard">
+          <DashBoardUser />
+        </div>
+        <div className="table-profile container">
+          <h1>{t('title')}</h1>
+
+          {error && <div className="alert alert-danger text-center">{error}</div>}
+
+          {loading ? (
+            <div className="d-flex justify-content-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : waitList && waitList.length > 0 ? (
+            <div className="row g-4">
+              {waitList.map((waitlist) => (
+                <div key={waitlist.waitlistId} className="col-md-6 col-lg-4">
+                  <div className="card border-0 shadow-lg rounded-4 overflow-hidden h-100 hover-effect position-relative">
+                    <Image
+                      src={waitlist.course.imageInfo}
+                      alt="Course Thumbnail"
+                      width={300}
+                      height={160}
+                      className="card-img-top object-fit-cover"
+                    />
+                    <div className="card-body">
+                      <h5 className="card-title text-truncate fw-bold text-dark">{waitlist.course.title}</h5>
+                      <p className="card-text text-muted small">
+                        <strong className="text-primary">Price:</strong> ${waitlist.course.price} <br />
+                        <strong className="text-success">Description:</strong> {waitlist.course.description}
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-danger position-absolute top-0 end-0 m-2 rounded-circle"
+                      onClick={() => handleDelete(waitlist.waitlistId)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted fs-5">{t('noCourse')}</p>
           )}
-        </>
-      ) : null}
-    </div>
+        </div>
+      </div>
+    </>
   );
 };
 
-export default ProfilePage;
+export default DashBoardPage;
