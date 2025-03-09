@@ -78,9 +78,6 @@ export const validateReactionType = (type: string): ReactionType => {
     : "like";
 };
 
-// This interface is now merged with the Discussion interface above
-// Keeping this comment for reference in case any code was using this interface
-
 export interface CreateDiscussionDto {
   userId: string;
   forumId: string;

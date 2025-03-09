@@ -17,10 +17,8 @@ export async function getAllForum(): Promise<Forum[]> {
         },
       }
     );
-    console.log("Raw data from API /api/forum/get_all_forum:", response.data); // Log dữ liệu thô
     return response.data;
   } catch (error) {
-    console.error("Error fetching forum data:", error);
     throw error;
   }
 }
@@ -38,7 +36,6 @@ export async function getForumById(forumId: string): Promise<Forum | null> {
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching forum by ID:", error);
     try {
       const allForumsResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_all_forum`,
@@ -56,7 +53,6 @@ export async function getForumById(forumId: string): Promise<Forum | null> {
 
       return foundForum || null;
     } catch (backupError) {
-      console.error("Error in backup method:", backupError);
       return null;
     }
   }
@@ -88,7 +84,6 @@ export async function createForum(
 
     return response.data;
   } catch (error) {
-    console.error("Error creating forum:", error);
     return null;
   }
 }
@@ -120,7 +115,6 @@ export async function updateForum(
 
     return response.data;
   } catch (error) {
-    console.error("Error updating forum:", error);
     return null;
   }
 }
@@ -141,7 +135,6 @@ export async function deleteForum(
 
     return response.status === 200;
   } catch (error) {
-    console.error("Error deleting forum:", error);
     return false;
   }
 }
@@ -173,10 +166,9 @@ export const addReactionToTopic = async (
       };
     }
 
-    // Ensure the response data includes the userId property
     const processedData: Reaction = {
       ...responseData,
-      userId: responseData.userId || userId, // Use the userId from the response or the one provided in the request
+      userId: responseData.userId || userId,
     };
 
     return { success: true, data: processedData };
@@ -187,7 +179,6 @@ export const addReactionToTopic = async (
   }
 };
 
-// Xóa reaction khỏi topic
 export const deleteReactionFromTopic = async (
   token: string,
   userId: string,
@@ -224,7 +215,6 @@ export const deleteReactionFromTopic = async (
   }
 };
 
-// Lấy danh sách reaction theo forumId
 export const getReactionsByTopic = async (
   token: string,
   forumId: string
@@ -251,11 +241,10 @@ export const getReactionsByTopic = async (
 
     const data = await response.json();
 
-    // Ensure each reaction in the response has the userId property
     const processedData = Array.isArray(data)
       ? data.map((reaction) => ({
           ...reaction,
-          userId: reaction.userId || reaction.user?.user_id || "", // Use userId from response or extract from user object
+          userId: reaction.userId || reaction.user?.user_id || "",
         }))
       : [];
 
