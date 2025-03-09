@@ -30,14 +30,11 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
   const { data: session } = useSession();
   const t = useTranslations("Forum");
   const [comment, setComment] = useState<string>("");
-  const [editingDiscussion, setEditingDiscussion] = useState<string | null>(
-    null
-  );
+  const [editingDiscussion, setEditingDiscussion] = useState<string | null>(null);
   const [editContent, setEditContent] = useState<string>("");
   const [pollingActive, setPollingActive] = useState<boolean>(false);
   const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
 
-  // Lấy danh sách discussion (dùng trong polling)
   const fetchDiscussions = async () => {
     if (!session?.user?.token || !forumId) return;
     try {
@@ -47,12 +44,10 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
       );
       onDiscussionsChange(discussionData ?? []);
     } catch (error) {
-      console.error("Failed to fetch discussions:", error);
       onDiscussionsChange([]);
     }
   };
 
-  // Gửi bình luận mới
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user?.token || !comment.trim()) return;
@@ -77,7 +72,6 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     }
   };
 
-  // Xóa bình luận
   const handleDeleteDiscussion = async (discussionId: string) => {
     if (!session?.user?.token) return;
     const success = await deleteDiscussion(
@@ -96,19 +90,16 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     }
   };
 
-  // Bắt đầu chỉnh sửa bình luận
   const startEditingDiscussion = (discussion: Discussion) => {
     setEditingDiscussion(discussion.discussionId);
     setEditContent(discussion.content);
   };
 
-  // Hủy chỉnh sửa bình luận
   const cancelEditingDiscussion = () => {
     setEditingDiscussion(null);
     setEditContent("");
   };
 
-  // Lưu chỉnh sửa bình luận
   const saveEditedDiscussion = async (discussionId: string) => {
     if (!session?.user?.token || !editContent.trim()) return;
 
@@ -138,7 +129,6 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     }
   };
 
-  // Kích hoạt polling khi có tương tác người dùng
   useEffect(() => {
     const handleUserInteraction = () => setPollingActive(true);
     window.addEventListener("click", handleUserInteraction);
@@ -153,7 +143,6 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     };
   }, []);
 
-  // Polling để cập nhật discussion theo thời gian thực
   useEffect(() => {
     if (!pollingActive) return;
 
@@ -172,7 +161,6 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     };
   }, [pollingActive, forumId]);
 
-  // Lắng nghe sự kiện discussion thay đổi từ nơi khác
   useEffect(() => {
     const handleDiscussionChange = (event: CustomEvent) => {
       if (event.detail.forumId === forumId) {
@@ -285,7 +273,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
                             onClick={() => startEditingDiscussion(discussion)}
                             title={t("edit")}
                           >
-                            <FaPencilAlt /> {/* Icon bút chì */}
+                            <FaPencilAlt />
                           </button>
                           <button
                             className="btn btn-sm btn-outline-danger"
@@ -294,7 +282,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
                             }
                             title={t("delete")}
                           >
-                            <FaTrash /> {/* Icon thùng rác */}
+                            <FaTrash />
                           </button>
                         </div>
                       )}

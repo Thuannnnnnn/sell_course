@@ -14,7 +14,6 @@ import { Forum, Discussion } from "@/app/type/forum/forum";
 import { getForumById } from "@/app/api/forum/forum";
 import { getDiscussionsByForumId } from "@/app/api/discussion/Discussion";
 
-
 const ForumDetail: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -30,7 +29,6 @@ const ForumDetail: React.FC = () => {
   const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
   const [reactionProcessing, setReactionProcessing] = useState<boolean>(false);
 
-  // Lấy dữ liệu forum
   const fetchForumDetail = async (isPolling = false) => {
     if (reactionProcessing && isPolling) return;
     try {
@@ -45,7 +43,10 @@ const ForumDetail: React.FC = () => {
         setError(t("postNotFound"));
         return;
       }
-      setForum({ ...forumData, reactions: forumData.reactions || [] });
+      setForum({
+        ...forumData,
+        reactionTopics: forumData.reactionTopics || [],
+      });
       setError(null);
     } catch (err) {
       if (!isPolling) setError(t("errorLoading"));
@@ -54,7 +55,6 @@ const ForumDetail: React.FC = () => {
     }
   };
 
-  // Lấy danh sách discussion
   const fetchDiscussions = async () => {
     if (!session?.user?.token || !forumId) return;
     const discussionData = await getDiscussionsByForumId(
@@ -66,15 +66,11 @@ const ForumDetail: React.FC = () => {
     }
   };
 
-
-
-  // Khởi tạo dữ liệu
   useEffect(() => {
     fetchForumDetail();
     fetchDiscussions();
   }, [forumId, session?.user?.token]);
 
-  // Lắng nghe sự kiện reaction thay đổi
   useEffect(() => {
     const handleReactionChange = (event: CustomEvent) => {
       if (event.detail.forumId === forumId) {
@@ -92,7 +88,6 @@ const ForumDetail: React.FC = () => {
       );
   }, [forumId]);
 
-  // Polling và tương tác người dùng
   useEffect(() => {
     const handleUserInteraction = () => setPollingActive(true);
     window.addEventListener("click", handleUserInteraction);
@@ -133,7 +128,7 @@ const ForumDetail: React.FC = () => {
 
   const hasUserReaction = () => {
     if (!forum || !session?.user?.user_id) return false;
-    return forum.reactions.some(
+    return forum.reactionTopics.some(
       (reaction) => reaction.userId === session.user.user_id
     );
   };
@@ -313,7 +308,7 @@ const ForumDetail: React.FC = () => {
                 <div className="d-flex align-items-center gap-2">
                   <ForumReactions
                     forumId={forumId}
-                    reactions={forum.reactions}
+                    reactions={forum.reactionTopics}
                     onReactionChange={(newReactions) => {
                       setForum((prev) =>
                         prev ? { ...prev, reactions: newReactions } : null
@@ -399,7 +394,7 @@ const ForumDetail: React.FC = () => {
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                   <span>{t("likes")}</span>
                   <span className="badge bg-primary rounded-pill">
-                    {forum.reactions?.length || 0}
+                    {forum.reactionTopics?.length || 0}
                   </span>
                 </li>
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">

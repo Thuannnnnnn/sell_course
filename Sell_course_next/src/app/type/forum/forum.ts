@@ -53,7 +53,7 @@ export interface Forum {
   text: string;
   createdAt: string;
   user: User;
-  reactions: Reaction[];
+  reactionTopics: Reaction[];
   discussions: Discussion[];
 }
 

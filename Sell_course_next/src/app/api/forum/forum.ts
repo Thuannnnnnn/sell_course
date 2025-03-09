@@ -17,7 +17,7 @@ export async function getAllForum(): Promise<Forum[]> {
         },
       }
     );
-
+    console.log("Raw data from API /api/forum/get_all_forum:", response.data); // Log dữ liệu thô
     return response.data;
   } catch (error) {
     console.error("Error fetching forum data:", error);

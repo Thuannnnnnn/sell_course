@@ -32,31 +32,25 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [allReactions, setAllReactions] = useState<Reaction[]>(reactions);
 
-  // Hàm đồng bộ reactions từ server
   const syncReactions = async () => {
     if (!session?.user?.token) return null;
     const result = await getReactionsByTopic(session.user.token, forumId);
-    console.log("Dữ liệu từ server:", result);
     if (result.success && Array.isArray(result.data)) {
       setAllReactions(result.data);
-      // Không gọi onReactionChange ở đây để tránh vòng lặp
       return result.data;
     }
-    console.error("Lỗi đồng bộ reactions:", result.error);
     return null;
   };
 
-  // Chỉ đồng bộ khi forumId hoặc token thay đổi
   useEffect(() => {
     syncReactions();
-  }, [forumId, session?.user?.token]); // Loại bỏ `reactions` khỏi dependencies
+  }, [forumId, session?.user?.token]);
 
   useEffect(
     () => onProcessingChange?.(isProcessing),
     [isProcessing, onProcessingChange]
   );
 
-  // Tính số lượng reaction theo loại
   const reactionCounts = useMemo(() => {
     return allReactions.reduce((counts, reaction) => {
       counts[reaction.reactionType] = (counts[reaction.reactionType] || 0) + 1;
@@ -64,14 +58,10 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     }, {} as Record<ReactionType, number>);
   }, [allReactions]);
 
-  // Tìm reaction của người dùng hiện tại
   const userReaction = useMemo(() => {
-    const reaction = allReactions.find((r) => r.user?.user_id === userId);
-    console.log("Reaction của người dùng:", reaction);
-    return reaction;
+    return allReactions.find((r) => r.user?.user_id === userId);
   }, [allReactions, userId]);
 
-  // Xử lý khi người dùng bấm reaction
   const handleReaction = async (type: ReactionType) => {
     if (!session?.user?.token) {
       window.location.href = `/${locale}/auth/login`;
@@ -82,35 +72,24 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     const token = session.user.token;
 
     try {
-      // Lấy dữ liệu hiện tại từ state
       const currentReactions = allReactions;
-      console.log("Reactions hiện tại:", currentReactions);
-
-      // Tìm reaction của người dùng
       const currentUserReaction = currentReactions.find(
         (r) => r.user?.user_id === userId
       );
-      console.log("Reaction hiện tại của người dùng:", currentUserReaction);
-
       const hasUserReaction = !!currentUserReaction;
       const isSameType = currentUserReaction?.reactionType === type;
 
       let updatedReactions;
 
       if (hasUserReaction && isSameType) {
-        // Xóa reaction nếu đã tồn tại và cùng loại
-        console.log("Đang xóa reaction...");
         updatedReactions = currentReactions.filter(
           (r) => r.user?.user_id !== userId
         );
         setAllReactions(updatedReactions);
 
         const result = await deleteReactionFromTopic(token, userId, forumId);
-        console.log("Kết quả xóa reaction:", result);
         if (!result.success) throw new Error("Không thể xóa reaction");
       } else {
-        // Thêm hoặc cập nhật reaction
-        console.log("Đang thêm/cập nhật reaction...");
         updatedReactions = hasUserReaction
           ? currentReactions.filter((r) => r.user?.user_id !== userId)
           : [...currentReactions];
@@ -121,7 +100,6 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
             userId,
             forumId
           );
-          console.log("Kết quả xóa reaction cũ:", deleteResult);
           if (!deleteResult.success)
             throw new Error("Không thể xóa reaction cũ");
         }
@@ -136,24 +114,16 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
         updatedReactions.push(tempReaction);
         setAllReactions(updatedReactions);
 
-        const addResult = await addReactionToTopic(
-          token,
-          userId,
-          forumId,
-          type
-        );
-        console.log("Kết quả thêm reaction:", addResult);
+        const addResult = await addReactionToTopic(token, userId, forumId, type);
         if (!addResult.success) throw new Error("Không thể thêm reaction");
       }
 
-      // Đồng bộ lại dữ liệu từ server sau khi xử lý
       const finalReactions = await syncReactions();
       if (finalReactions) {
-        onReactionChange?.(finalReactions); // Chỉ gọi onReactionChange sau khi đồng bộ
+        onReactionChange?.(finalReactions);
       }
     } catch (error) {
-      console.error("Lỗi xử lý reaction:", error);
-      setAllReactions(reactions); // Rollback nếu có lỗi
+      setAllReactions(reactions);
       onReactionChange?.(reactions);
       await syncReactions();
     } finally {
