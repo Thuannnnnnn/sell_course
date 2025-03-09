@@ -127,17 +127,12 @@ export class ForumService {
     if (!forum) {
       throw new Error('Forum not found');
     }
-
-    // Delete related reaction_topic records first
     await this.reactionTopicRepository.delete({ forum: { forumId: id } });
     await this.discussionRepository.delete({ forum: { forumId: id } });
-
-    // Delete the forum image if it exists
     if (forum.image) {
       const blob = extractBlobName(forum.image);
       await azureDelete(blob);
     }
-
     await this.forumRepository.delete(id);
   }
 }
