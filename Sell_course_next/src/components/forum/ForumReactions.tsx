@@ -39,18 +39,17 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     console.log("Dữ liệu từ server:", result);
     if (result.success && Array.isArray(result.data)) {
       setAllReactions(result.data);
-      onReactionChange?.(result.data);
+      // Không gọi onReactionChange ở đây để tránh vòng lặp
       return result.data;
     }
     console.error("Lỗi đồng bộ reactions:", result.error);
     return null;
   };
 
-  // Đồng bộ dữ liệu khi component khởi tạo hoặc forumId thay đổi
+  // Chỉ đồng bộ khi forumId hoặc token thay đổi
   useEffect(() => {
-    setAllReactions(reactions);
     syncReactions();
-  }, [forumId, session?.user?.token, reactions]);
+  }, [forumId, session?.user?.token]); // Loại bỏ `reactions` khỏi dependencies
 
   useEffect(
     () => onProcessingChange?.(isProcessing),
@@ -83,9 +82,8 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     const token = session.user.token;
 
     try {
-      // Đồng bộ dữ liệu mới nhất từ server
-      const latestReactions = await syncReactions();
-      const currentReactions = latestReactions || allReactions;
+      // Lấy dữ liệu hiện tại từ state
+      const currentReactions = allReactions;
       console.log("Reactions hiện tại:", currentReactions);
 
       // Tìm reaction của người dùng
@@ -97,14 +95,15 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       const hasUserReaction = !!currentUserReaction;
       const isSameType = currentUserReaction?.reactionType === type;
 
+      let updatedReactions;
+
       if (hasUserReaction && isSameType) {
         // Xóa reaction nếu đã tồn tại và cùng loại
         console.log("Đang xóa reaction...");
-        const updatedReactions = currentReactions.filter(
+        updatedReactions = currentReactions.filter(
           (r) => r.user?.user_id !== userId
         );
         setAllReactions(updatedReactions);
-        onReactionChange?.(updatedReactions);
 
         const result = await deleteReactionFromTopic(token, userId, forumId);
         console.log("Kết quả xóa reaction:", result);
@@ -112,12 +111,11 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       } else {
         // Thêm hoặc cập nhật reaction
         console.log("Đang thêm/cập nhật reaction...");
-        let updatedReactions = hasUserReaction
+        updatedReactions = hasUserReaction
           ? currentReactions.filter((r) => r.user?.user_id !== userId)
           : [...currentReactions];
 
         if (hasUserReaction) {
-          // Xóa reaction cũ trước khi thêm mới
           const deleteResult = await deleteReactionFromTopic(
             token,
             userId,
@@ -137,7 +135,6 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
         };
         updatedReactions.push(tempReaction);
         setAllReactions(updatedReactions);
-        onReactionChange?.(updatedReactions);
 
         const addResult = await addReactionToTopic(
           token,
@@ -149,8 +146,11 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
         if (!addResult.success) throw new Error("Không thể thêm reaction");
       }
 
-      // Đồng bộ lại dữ liệu sau hành động
-      await syncReactions();
+      // Đồng bộ lại dữ liệu từ server sau khi xử lý
+      const finalReactions = await syncReactions();
+      if (finalReactions) {
+        onReactionChange?.(finalReactions); // Chỉ gọi onReactionChange sau khi đồng bộ
+      }
     } catch (error) {
       console.error("Lỗi xử lý reaction:", error);
       setAllReactions(reactions); // Rollback nếu có lỗi

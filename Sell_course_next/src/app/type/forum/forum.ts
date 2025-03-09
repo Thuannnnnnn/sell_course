@@ -1,9 +1,5 @@
-// types/forum.ts (hoặc tên file tương ứng)
-
-// ReactionType
 export type ReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
 
-// Reaction Emojis
 export const reactionEmojis: Record<ReactionType, string> = {
   like: "👍",
   love: "❤️",
@@ -13,23 +9,20 @@ export const reactionEmojis: Record<ReactionType, string> = {
   angry: "😡",
 };
 
-// Reaction Interface (Gộp ReactionTopic vào đây)
 export interface Reaction {
   userId: string;
   reactionId: string;
   reactionType: ReactionType;
   createdAt: string;
-  user?: Partial<User>; // Optional nếu cần thông tin user từ backend
+  user?: Partial<User>;
 }
 
-// API Response Interface
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
 }
 
-// User Interface
 export interface User {
   user_id: string;
   email: string;
@@ -45,14 +38,14 @@ export interface User {
   updatedAt: string;
 }
 
-// Discussion Interface
 export interface Discussion {
   discussionId: string;
   content: string;
   createdAt: string;
+  user: User;
+  forum?: Forum;
 }
 
-// Forum Interface (Sử dụng Reaction thay vì ReactionTopic)
 export interface Forum {
   forumId: string;
   title: string;
@@ -60,11 +53,10 @@ export interface Forum {
   text: string;
   createdAt: string;
   user: User;
-  reactions: Reaction[]; // Thay reactionTopics bằng reactions
+  reactions: Reaction[];
   discussions: Discussion[];
 }
 
-// CreateForumDto Interface
 export interface CreateForumDto {
   userId: string;
   title: string;
@@ -72,7 +64,6 @@ export interface CreateForumDto {
   image?: File | null;
 }
 
-// Validate ReactionType Utility
 export const validateReactionType = (type: string): ReactionType => {
   const validTypes: ReactionType[] = [
     "like",
@@ -86,3 +77,16 @@ export const validateReactionType = (type: string): ReactionType => {
     ? (type as ReactionType)
     : "like";
 };
+
+// This interface is now merged with the Discussion interface above
+// Keeping this comment for reference in case any code was using this interface
+
+export interface CreateDiscussionDto {
+  userId: string;
+  forumId: string;
+  content: string;
+}
+
+export interface UpdateDiscussionDto {
+  content?: string;
+}

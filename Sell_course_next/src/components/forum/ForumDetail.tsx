@@ -8,9 +8,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import DeleteForumButton from "./DeleteForumButton";
 import ForumReactions from "./ForumReactions";
+import ForumDiscussions from "./ForumDiscussions";
 import { useTranslations } from "next-intl";
-import { Forum } from "@/app/type/forum/forum";
+import { Forum, Discussion } from "@/app/type/forum/forum";
 import { getForumById } from "@/app/api/forum/forum";
+import { getDiscussionsByForumId } from "@/app/api/discussion/Discussion";
+
 
 const ForumDetail: React.FC = () => {
   const params = useParams();
@@ -20,13 +23,14 @@ const ForumDetail: React.FC = () => {
   const { data: session } = useSession();
   const t = useTranslations("Forum");
   const [forum, setForum] = useState<Forum | null>(null);
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [comment, setComment] = useState<string>("");
   const [pollingActive, setPollingActive] = useState<boolean>(false);
   const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
   const [reactionProcessing, setReactionProcessing] = useState<boolean>(false);
 
+  // Lấy dữ liệu forum
   const fetchForumDetail = async (isPolling = false) => {
     if (reactionProcessing && isPolling) return;
     try {
@@ -41,7 +45,6 @@ const ForumDetail: React.FC = () => {
         setError(t("postNotFound"));
         return;
       }
-      // Đảm bảo reactions luôn là mảng, tránh undefined
       setForum({ ...forumData, reactions: forumData.reactions || [] });
       setError(null);
     } catch (err) {
@@ -51,10 +54,27 @@ const ForumDetail: React.FC = () => {
     }
   };
 
+  // Lấy danh sách discussion
+  const fetchDiscussions = async () => {
+    if (!session?.user?.token || !forumId) return;
+    const discussionData = await getDiscussionsByForumId(
+      forumId,
+      session.user.token
+    );
+    if (discussionData) {
+      setDiscussions(discussionData);
+    }
+  };
+
+
+
+  // Khởi tạo dữ liệu
   useEffect(() => {
     fetchForumDetail();
-  }, [forumId, t]);
+    fetchDiscussions();
+  }, [forumId, session?.user?.token]);
 
+  // Lắng nghe sự kiện reaction thay đổi
   useEffect(() => {
     const handleReactionChange = (event: CustomEvent) => {
       if (event.detail.forumId === forumId) {
@@ -72,6 +92,7 @@ const ForumDetail: React.FC = () => {
       );
   }, [forumId]);
 
+  // Polling và tương tác người dùng
   useEffect(() => {
     const handleUserInteraction = () => setPollingActive(true);
     window.addEventListener("click", handleUserInteraction);
@@ -92,7 +113,9 @@ const ForumDetail: React.FC = () => {
     const intervalId = setInterval(() => {
       if (!document.hidden && !reactionProcessing) {
         setIsCurrentlyPolling(true);
-        fetchForumDetail(true).finally(() => setIsCurrentlyPolling(false));
+        Promise.all([fetchForumDetail(true), fetchDiscussions()]).finally(() =>
+          setIsCurrentlyPolling(false)
+        );
       }
     }, 3000);
 
@@ -103,11 +126,6 @@ const ForumDetail: React.FC = () => {
       clearTimeout(timeoutId);
     };
   }, [pollingActive, forumId, reactionProcessing]);
-
-  const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setComment("");
-  };
 
   const handleReactionProcessing = (isProcessing: boolean) => {
     setReactionProcessing(isProcessing);
@@ -322,72 +340,17 @@ const ForumDetail: React.FC = () => {
                 </div>
                 <div className="text-muted small">
                   <i className="bi bi-chat-left-text me-1"></i>
-                  {forum.discussions.length} {t("comments")}
+                  {discussions.length} {t("comments")}
                 </div>
               </div>
             </div>
           </div>
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-white">
-              <h5 className="mb-0">
-                {t("comments")} ({forum.discussions.length})
-              </h5>
-            </div>
-            <div className="card-body">
-              <form onSubmit={handleCommentSubmit} className="mb-4">
-                <div className="mb-3">
-                  <textarea
-                    className="form-control"
-                    rows={3}
-                    placeholder={t("writeComment")}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    required
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary">
-                  {t("sendComment")}
-                </button>
-              </form>
-              {forum.discussions.length > 0 ? (
-                <div className="comments-list">
-                  {forum.discussions.map((discussion) => (
-                    <div
-                      key={discussion.discussionId}
-                      className="comment mb-3 pb-3 border-bottom"
-                    >
-                      <div className="d-flex">
-                        <div className="me-3">
-                          <div
-                            className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
-                            style={{ width: "40px", height: "40px" }}
-                          >
-                            U
-                          </div>
-                        </div>
-                        <div>
-                          <div className="fw-bold mb-1">{t("author")}</div>
-                          <div className="comment-content mb-1">
-                            {discussion.content}
-                          </div>
-                          <div className="text-muted small">
-                            {formatDistanceToNow(
-                              new Date(discussion.createdAt),
-                              { addSuffix: true, locale: dateLocale }
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-muted mb-0">{t("noComments")}</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <ForumDiscussions
+            forumId={forumId}
+            locale={locale}
+            discussions={discussions}
+            onDiscussionsChange={setDiscussions}
+          />
         </div>
         <div className="col-lg-4">
           <div className="card shadow-sm mb-4">
@@ -442,7 +405,7 @@ const ForumDetail: React.FC = () => {
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                   <span>{t("comments")}</span>
                   <span className="badge bg-primary rounded-pill">
-                    {forum.discussions.length}
+                    {discussions.length}
                   </span>
                 </li>
               </ul>

@@ -1,8 +1,13 @@
-import type { createDiscussion, Discussion } from "@/app/type/forum/forum";
 import axios from "axios";
+import {
+  Discussion,
+  CreateDiscussionDto,
+  UpdateDiscussionDto,
+} from "@/app/type/forum/forum";
 
+// Tạo discussion
 export async function createDiscussion(
-  createDiscussionDto: createDiscussion,
+  createDiscussionDto: CreateDiscussionDto,
   token: string
 ): Promise<Discussion | undefined> {
   console.log("API: Creating discussion with data:", createDiscussionDto);
@@ -11,25 +16,14 @@ export async function createDiscussion(
     const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/discussion`;
     console.log(`API: POST request to ${url}`);
 
-    const response = await axios.post(
-      url,
-      createDiscussionDto,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.post(url, createDiscussionDto, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     console.log("API: Discussion created successfully:", response.data);
-
-    // Ensure the userId is preserved in the returned data
-    const result = {
-      ...response.data,
-      userId: createDiscussionDto.userId // Ensure userId is preserved
-    };
-
-    return result;
+    return response.data as Discussion;
   } catch (error) {
     console.error("API: Error creating discussion:", error);
     if (axios.isAxiosError(error)) {
@@ -40,40 +34,30 @@ export async function createDiscussion(
   }
 }
 
+// Lấy danh sách discussion theo forumId
 export async function getDiscussionsByForumId(
   forumId: string,
   token: string,
   userId?: string
 ): Promise<Discussion[] | undefined> {
-  console.log(`API: Getting discussions for forumId: ${forumId}, userId: ${userId || 'not provided'}`);
+  console.log(
+    `API: Getting discussions for forumId: ${forumId}, userId: ${
+      userId || "not provided"
+    }`
+  );
 
   try {
     const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/discussion/forum/${forumId}`;
     console.log(`API: GET request to ${url}`);
 
-    const response = await axios.get(
-      url,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     console.log(`API: Retrieved ${response.data?.length || 0} discussions`);
-
-    // If userId is provided, ensure each discussion has the userId
-    if (userId && response.data) {
-      const processedData = response.data.map((discussion: Discussion) => ({
-        ...discussion,
-        userId: discussion.userId || userId
-      }));
-
-      console.log("API: Processed discussions with userId:", processedData);
-      return processedData;
-    }
-
-    return response.data;
+    return response.data as Discussion[];
   } catch (error) {
     console.error("API: Error fetching discussions by forum ID:", error);
     if (axios.isAxiosError(error)) {
@@ -84,12 +68,17 @@ export async function getDiscussionsByForumId(
   }
 }
 
+// Xóa discussion
 export async function deleteDiscussion(
   discussionId: string,
   token: string,
   userId?: string
 ): Promise<boolean> {
-  console.log(`API: Deleting discussion with id: ${discussionId}, userId: ${userId || 'not provided'}`);
+  console.log(
+    `API: Deleting discussion with id: ${discussionId}, userId: ${
+      userId || "not provided"
+    }`
+  );
 
   try {
     const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/discussion/${discussionId}`;
@@ -98,22 +87,16 @@ export async function deleteDiscussion(
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
     };
+    if (userId) headers["User-Id"] = userId;
 
-    if (userId) {
-      headers['User-Id'] = userId;
-      console.log(`API: Including User-Id header: ${userId}`);
-    }
-
-    const response = await axios.delete(
-      url,
-      {
-        headers,
-      }
-    );
+    const response = await axios.delete(url, { headers });
 
     const success = response.status === 200;
-    console.log(`API: Delete discussion result: ${success ? 'success' : 'failed'}, status: ${response.status}`);
-
+    console.log(
+      `API: Delete discussion result: ${
+        success ? "success" : "failed"
+      }, status: ${response.status}`
+    );
     return success;
   } catch (error) {
     console.error("API: Error deleting discussion:", error);
@@ -125,13 +108,18 @@ export async function deleteDiscussion(
   }
 }
 
+// Cập nhật discussion
 export async function updateDiscussion(
   discussionId: string,
-  updateDiscussionDto: Partial<Discussion>,
+  updateDiscussionDto: UpdateDiscussionDto,
   token: string,
   userId?: string
 ): Promise<Discussion | undefined> {
-  console.log(`API: Updating discussion with id: ${discussionId}, userId: ${userId || 'not provided'}`);
+  console.log(
+    `API: Updating discussion with id: ${discussionId}, userId: ${
+      userId || "not provided"
+    }`
+  );
   console.log("API: Update data:", updateDiscussionDto);
 
   try {
@@ -141,34 +129,12 @@ export async function updateDiscussion(
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
     };
+    if (userId) headers["User-Id"] = userId;
 
-    if (userId) {
-      headers['User-Id'] = userId;
-      console.log(`API: Including User-Id header: ${userId}`);
-    }
-
-    const response = await axios.put(
-      url,
-      updateDiscussionDto,
-      {
-        headers,
-      }
-    );
+    const response = await axios.patch(url, updateDiscussionDto, { headers });
 
     console.log("API: Discussion updated successfully:", response.data);
-
-    // If userId is provided, ensure the returned discussion has the userId
-    if (userId && response.data) {
-      const result = {
-        ...response.data,
-        userId: response.data.userId || userId
-      };
-
-      console.log("API: Processed updated discussion with userId:", result);
-      return result;
-    }
-
-    return response.data;
+    return response.data as Discussion;
   } catch (error) {
     console.error("API: Error updating discussion:", error);
     if (axios.isAxiosError(error)) {
@@ -179,33 +145,31 @@ export async function updateDiscussion(
   }
 }
 
+// Lấy discussion theo ID
 export async function getDiscussionById(
   discussionId: string,
   token: string,
   userId?: string
 ): Promise<Discussion | undefined> {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/discussion/${discussionId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...(userId && { 'User-Id': userId })
-        },
-      }
-    );
+    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/discussion/${discussionId}`;
+    console.log(`API: GET request to ${url}`);
 
-    // If userId is provided, ensure the returned discussion has the userId
-    if (userId && response.data) {
-      return {
-        ...response.data,
-        userId: response.data.userId || userId
-      };
-    }
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+    };
+    if (userId) headers["User-Id"] = userId;
 
-    return response.data;
+    const response = await axios.get(url, { headers });
+
+    console.log("API: Retrieved discussion:", response.data);
+    return response.data as Discussion;
   } catch (error) {
-    console.error("Error fetching discussion by ID:", error);
+    console.error("API: Error fetching discussion by ID:", error);
+    if (axios.isAxiosError(error)) {
+      console.error("API: Response data:", error.response?.data);
+      console.error("API: Response status:", error.response?.status);
+    }
     return undefined;
   }
 }
