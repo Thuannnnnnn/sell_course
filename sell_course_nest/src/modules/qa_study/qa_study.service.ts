@@ -6,6 +6,7 @@ import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { CreateQaDto } from './dto/create-qa.dto';
 import { ResponseQaDto } from './dto/response-qa.dto';
+import { ReactionQa } from './entities/reaction_qa.entity';
 @Injectable()
 export class QaStudyService {
   constructor(
@@ -14,6 +15,8 @@ export class QaStudyService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @InjectRepository(ReactionQa)
+    private readonly reactionQaRepository: Repository<ReactionQa>,
   ) {}
 
   async createQa(qaData: CreateQaDto): Promise<QaStudy> {
@@ -81,6 +84,7 @@ export class QaStudyService {
   }
 
   async remove(id: string): Promise<void> {
+    await this.reactionQaRepository.delete({ qa: { qaStudyId: id } });
     const result = await this.qaRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException('QA not found');

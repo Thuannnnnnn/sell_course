@@ -10,12 +10,18 @@ import {
   azureEdit,
   azureDelete,
 } from 'src/utilities/azure.service';
+import { ReactionTopic } from './entities/reaction_topic.entity';
+import { Discussion } from './entities/discussion.entity';
 
 @Injectable()
 export class ForumService {
   constructor(
     @InjectRepository(Forum)
     private readonly forumRepository: Repository<Forum>,
+    @InjectRepository(ReactionTopic)
+    private readonly reactionTopicRepository: Repository<ReactionTopic>,
+    @InjectRepository(Discussion)
+    private readonly discussionRepository: Repository<Discussion>,
   ) {}
 
   async create(
@@ -121,14 +127,20 @@ export class ForumService {
     if (!forum) {
       throw new Error('Forum not found');
     }
+
+    // Delete related reaction_topic records first
+    await this.reactionTopicRepository.delete({ forum: { forumId: id } });
+    await this.discussionRepository.delete({ forum: { forumId: id } });
+
+    // Delete the forum image if it exists
     if (forum.image) {
       const blob = extractBlobName(forum.image);
       await azureDelete(blob);
     }
+
     await this.forumRepository.delete(id);
   }
 }
-
 function extractBlobName(url: string): string {
   const parts = url.split('/');
   return parts.slice(4).join('/');
