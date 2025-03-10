@@ -10,6 +10,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { fetchWishListCourse } from '@/app/api/wishListCourse/wishListCourse';
 import { GetUser, UserGetAllWishlist } from '@/app/type/user/User';
+import { CiShare2 } from "react-icons/ci";
+import { AiOutlineSearch } from "react-icons/ai";
 
 const WishListPage: React.FC = () => {
   const { data: session, status } = useSession();
@@ -19,7 +21,8 @@ const WishListPage: React.FC = () => {
   const [user, setUser] = useState(session?.user || null);
   const [wishList, setWishList] = useState<UserGetAllWishlist[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -51,6 +54,19 @@ const WishListPage: React.FC = () => {
     fetchCourses();
   }, [user]);
 
+  const handleShare = (courseId: string) => {
+    const shareUrl = `${window.location.origin}/${localActive}/courseDetail/${courseId}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('Course link copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy link.');
+    });
+  };
+
+  const filteredWishList = wishList.filter((wishlistItem) =>
+    wishlistItem.course?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) return <div>Loading...</div>;
   if (error) return <SignIn />;
 
@@ -67,50 +83,66 @@ const WishListPage: React.FC = () => {
         </div>
         <div className="table-profile">
             <h1>{t('title')}</h1>
+            <div className="position-relative mb-3">
+              <input
+                type="text"
+                className="form-control pe-5"
+                placeholder="Search by title..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <AiOutlineSearch className="position-absolute top-50 end-0 translate-middle-y me-3 text-muted" size={20} />
+            </div>
           {error && <div className="error-message">{error}</div>}
           <div>
-            {wishList.length > 0 ? (
-              <div className="cardAll">
-                {wishList.map((wishlistItem) => {
-                  const { course } = wishlistItem;
-                  if (!course) return null;
+            {filteredWishList.length > 0 ? (
+                <div className="row">
+                  {filteredWishList.map((wishlistItem) => {
+                    const { course } = wishlistItem;
+                    if (!course) return null;
 
-                  return (
-                    <div className="cardEnrolled" key={course.courseId}>
-                      <div
-                        onClick={() => (window.location.href = `/${localActive}/showCourse`)}
-                        className="cardContent"
-                      >
-                        {course.imageInfo ? (
-                          <Image
-                            src={course.imageInfo}
-                            alt={course.title}
-                            className="cardImg"
-                            width={100}
-                            height={100}
-                          />
-                        ) : (
-                          <div className="cardImgPlaceholder">No Image</div>
-                        )}
-                        <div className="cardInfo">
-                          <p className="cardCategory">{course.categoryName || 'No Category'}</p>
-                          <div className="cardTitle">
-                            <h3>{course.title || 'No Title'}</h3>
+                    return (
+                      <div className="col-md-4 mb-4" key={course.courseId}>
+                        <div className="card position-relative">
+                          <button
+                            className="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle" 
+                            onClick={() => handleShare(course.courseId)}
+                          >
+                            <CiShare2 size={20} />
+                          </button>
+                          <div
+                            onClick={() => (window.location.href = `/${localActive}/showCourse/${course.courseId}`)}
+                            className="card-body text-center cursor-pointer"
+                          >
+                            {course.imageInfo ? (
+                              <Image
+                                src={course.imageInfo}
+                                alt={course.title}
+                                className="card-img-top"
+                                width={100}
+                                height={100}
+                              />
+                            ) : (
+                              <div className="card-img-placeholder">No Image</div>
+                            )}
+                            <div className="mt-3">
+                              <h5 className="card-title">{course.title || 'No Title'}</h5>
+                              <p className="card-text">{course.description || 'No Description'}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600">{t('noCourse')}</p>
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-5">
+                  <p className="text-muted">{t('noCourse')}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
     </>
   );
 };
