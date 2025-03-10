@@ -1,49 +1,11 @@
 import axios from "axios";
-
-export interface User {
-  user_id: string;
-  email: string;
-  username: string;
-  password: string;
-  avatarImg: string;
-  gender: string;
-  birthDay: string;
-  phoneNumber: string;
-  role: string;
-  isOAuth: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ReactionTopic {
-  reactionId: string;
-  reactionType: string;
-  createdAt: string;
-}
-
-export interface Discussion {
-  discussionId: string;
-  content: string;
-  createdAt: string;
-}
-
-export interface Forum {
-  forumId: string;
-  title: string;
-  image: string;
-  text: string;
-  createdAt: string;
-  user: User;
-  reactionTopics: ReactionTopic[];
-  discussions: Discussion[];
-}
-
-export interface CreateForumDto {
-  userId: string;
-  title: string;
-  text: string;
-  image?: File | null;
-}
+import {
+  ApiResponse,
+  CreateForumDto,
+  Forum,
+  Reaction,
+  ReactionType,
+} from "@/app/type/forum/forum";
 
 export async function getAllForum(): Promise<Forum[]> {
   try {
@@ -55,10 +17,8 @@ export async function getAllForum(): Promise<Forum[]> {
         },
       }
     );
-
     return response.data;
   } catch (error) {
-    console.error("Error fetching forum data:", error);
     throw error;
   }
 }
@@ -66,7 +26,7 @@ export async function getAllForum(): Promise<Forum[]> {
 export async function getForumById(forumId: string): Promise<Forum | null> {
   try {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_forum_by_id/${forumId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_forum/${forumId}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -76,9 +36,6 @@ export async function getForumById(forumId: string): Promise<Forum | null> {
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching forum by ID:", error);
-
-    // Thử phương án dự phòng - lấy tất cả bài đăng và lọc theo ID
     try {
       const allForumsResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_all_forum`,
@@ -96,7 +53,6 @@ export async function getForumById(forumId: string): Promise<Forum | null> {
 
       return foundForum || null;
     } catch (backupError) {
-      console.error("Error in backup method:", backupError);
       return null;
     }
   }
@@ -128,7 +84,6 @@ export async function createForum(
 
     return response.data;
   } catch (error) {
-    console.error("Error creating forum:", error);
     return null;
   }
 }
@@ -160,7 +115,6 @@ export async function updateForum(
 
     return response.data;
   } catch (error) {
-    console.error("Error updating forum:", error);
     return null;
   }
 }
@@ -181,7 +135,126 @@ export async function deleteForum(
 
     return response.status === 200;
   } catch (error) {
-    console.error("Error deleting forum:", error);
     return false;
   }
 }
+
+export const addReactionToTopic = async (
+  token: string,
+  userId: string,
+  forumId: string,
+  reactionType: ReactionType
+): Promise<ApiResponse<Reaction>> => {
+  try {
+    const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic`;
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, forumId, reactionType }),
+    });
+
+    const responseData = await response.json();
+    if (!response.ok) {
+      return {
+        success: false,
+        error:
+          responseData.message ||
+          `Failed to add reaction. Status: ${response.status}`,
+      };
+    }
+
+    const processedData: Reaction = {
+      ...responseData,
+      userId: responseData.userId || userId,
+    };
+
+    return { success: true, data: processedData };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return { success: false, error: `Error adding reaction: ${errorMessage}` };
+  }
+};
+
+export const deleteReactionFromTopic = async (
+  token: string,
+  userId: string,
+  forumId: string
+): Promise<ApiResponse<void>> => {
+  try {
+    const deleteUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${userId}/${forumId}`;
+    const response = await fetch(deleteUrl, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.status !== 204) {
+      const responseData = await response.json();
+      return {
+        success: false,
+        error:
+          responseData.message ||
+          `Failed to delete reaction. Status: ${response.status}`,
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return {
+      success: false,
+      error: `Error deleting reaction: ${errorMessage}`,
+    };
+  }
+};
+
+export const getReactionsByTopic = async (
+  token: string,
+  forumId: string
+): Promise<ApiResponse<Reaction[]>> => {
+  try {
+    const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/reaction-topic/${forumId}`;
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const responseData = await response.json();
+      return {
+        success: false,
+        error:
+          responseData.message ||
+          `Failed to fetch reactions. Status: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+
+    const processedData = Array.isArray(data)
+      ? data.map((reaction) => ({
+          ...reaction,
+          userId: reaction.userId || reaction.user?.user_id || "",
+        }))
+      : [];
+
+    return { success: true, data: processedData as Reaction[] };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return {
+      success: false,
+      error: `Error fetching reactions: ${errorMessage}`,
+    };
+  }
+};

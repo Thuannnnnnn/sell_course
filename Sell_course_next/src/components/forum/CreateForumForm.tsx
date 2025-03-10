@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { CreateForumDto, createForum } from "@/app/api/forum/forum";
+
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { CreateForumDto } from "@/app/type/forum/forum";
+import { createForum } from "@/app/api/forum/forum";
+
 const CreateForumForm: React.FC = () => {
   const router = useRouter();
   const params = useParams();
@@ -26,26 +29,24 @@ const CreateForumForm: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+
     if (status === "unauthenticated") {
       router.push(`/${locale}/auth/login`);
     }
 
     if (session) {
-      console.log("Session data:", session);
+
+
       if (session.user?.user_id) {
-        console.log(
-          "Found user_id in session.user.user_id:",
-          session.user.user_id
-        );
         setUserId(session.user.user_id);
       } else if (session.user?.id) {
-        console.log("Found id in session.user.id:", session.user.id);
+
         setUserId(session.user.id);
       } else if (session.user_id) {
-        console.log("Found user_id in session.user_id:", session.user_id);
+
         setUserId(session.user_id);
-      } else {
-        console.error("Could not find user ID in session:", session);
+
+
       }
     }
   }, [session, status, router, locale]);
@@ -53,17 +54,21 @@ const CreateForumForm: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+
       if (file.size > 5 * 1024 * 1024) {
         setError(t("imageFormats"));
         return;
       }
+
 
       if (!file.type.startsWith("image/")) {
         setError(t("imageFormats"));
         return;
       }
 
+
       setImage(file);
+
 
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -85,6 +90,7 @@ const CreateForumForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+
     if (!title.trim()) {
       setError(t("titleRequired"));
       return;
@@ -96,15 +102,16 @@ const CreateForumForm: React.FC = () => {
     }
 
     if (!userId) {
-      console.error("Missing userId. Session:", session);
-      setError(t("userIdRequired"));
+
+      setError(t('userIdRequired'));
       return;
     }
 
+
     const token = session?.user?.token;
     if (!token) {
-      console.error("Missing token. Session:", session);
-      setError(t("tokenRequired"));
+
+      setError(t('tokenRequired'));
       return;
     }
 
@@ -119,22 +126,23 @@ const CreateForumForm: React.FC = () => {
         image: image || undefined,
       };
 
-      console.log("Sending forum data:", forumData);
-      console.log("Using token:", token);
+
+
 
       const result = await createForum(forumData, token);
 
       if (result) {
         setSuccess(true);
+
         setTimeout(() => {
           router.push(`/${locale}/forum`);
         }, 2000);
       } else {
-        console.error("Create forum returned null or undefined");
-        setError(t("errorCreatingPost"));
+
+        setError(t('errorCreatingPost'));
       }
     } catch (err) {
-      console.error("Error creating forum:", err);
+
       if (err instanceof Error) {
         setError(`${t("errorCreatingPost")}: ${err.message}`);
       } else {
@@ -144,6 +152,7 @@ const CreateForumForm: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
 
   if (status === "loading") {
     return (
@@ -156,6 +165,7 @@ const CreateForumForm: React.FC = () => {
       </div>
     );
   }
+
 
   if (status === "unauthenticated") {
     return (
@@ -245,12 +255,14 @@ const CreateForumForm: React.FC = () => {
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
-                        <Image
-                          src={imagePreview}
-                          alt="Preview"
-                          className="img-thumbnail"
-                          style={{ maxHeight: "200px" }}
-                        />
+                        <div className="img-thumbnail" style={{ maxHeight: "200px", position: "relative", width: "100%", height: "200px" }}>
+                          <Image
+                            src={imagePreview}
+                            alt="Preview"
+                            fill
+                            style={{ objectFit: "contain" }}
+                          />
+                        </div>
                         <button
                           title="Remove image"
                           type="button"

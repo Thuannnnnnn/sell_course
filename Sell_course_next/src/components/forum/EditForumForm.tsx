@@ -1,17 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  CreateForumDto,
-  Forum,
-  updateForum,
-  getForumById,
-} from "@/app/api/forum/forum";
+import {updateForum, getForumById } from "@/app/api/forum/forum";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { CreateForumDto, Forum } from "@/app/type/forum/forum";
+
 interface EditForumFormProps {
   forumId: string;
 }
@@ -42,21 +39,12 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     }
 
     if (session) {
-      console.log("Session data:", session);
       if (session.user?.user_id) {
-        console.log(
-          "Found user_id in session.user.user_id:",
-          session.user.user_id
-        );
         setUserId(session.user.user_id);
       } else if (session.user?.id) {
-        console.log("Found id in session.user.id:", session.user.id);
         setUserId(session.user.id);
       } else if (session.user_id) {
-        console.log("Found user_id in session.user_id:", session.user_id);
         setUserId(session.user_id);
-      } else {
-        console.error("Could not find user ID in session:", session);
       }
     }
   }, [session, status, router, locale]);
@@ -86,8 +74,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
           setError(t("noPermissionMessage"));
         }
       } catch (err) {
-        console.error("Error fetching forum data:", err);
-        setError(t("errorUpdatingPost"));
+        setError(t('errorUpdatingPost'));
       } finally {
         setLoading(false);
       }
@@ -144,15 +131,13 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     }
 
     if (!userId) {
-      console.error("Missing userId. Session:", session);
-      setError(t("userIdRequired"));
+      setError(t('userIdRequired'));
       return;
     }
 
     const token = session?.user?.token;
     if (!token) {
-      console.error("Missing token. Session:", session);
-      setError(t("tokenRequired"));
+      setError(t('tokenRequired'));
       return;
     }
 
@@ -167,9 +152,6 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
         image: image,
       };
 
-      console.log("Sending forum data:", forumData);
-      console.log("Using token:", token);
-
       const result = await updateForum(forumId, forumData, token);
 
       if (result) {
@@ -178,11 +160,9 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
           router.push(`/${locale}/forum/${forumId}`);
         }, 2000);
       } else {
-        console.error("Update forum returned null or undefined");
-        setError(t("errorUpdatingPost"));
+        setError(t('errorUpdatingPost'));
       }
     } catch (err) {
-      console.error("Error updating forum:", err);
       if (err instanceof Error) {
         setError(`${t("errorUpdatingPost")}: ${err.message}`);
       } else {
@@ -313,12 +293,14 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
-                        <Image
-                          src={imagePreview}
-                          alt="Preview"
-                          className="img-thumbnail"
-                          style={{ maxHeight: "200px" }}
-                        />
+                        <div className="img-thumbnail" style={{ maxHeight: "200px", position: "relative", width: "100%", height: "200px" }}>
+                          <Image
+                            src={imagePreview}
+                            alt="Preview"
+                            fill
+                            style={{ objectFit: "contain" }}
+                          />
+                        </div>
                         <button
                           title="Remove image"
                           type="button"

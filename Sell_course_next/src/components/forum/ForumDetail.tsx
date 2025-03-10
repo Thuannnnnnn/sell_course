@@ -1,7 +1,5 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
-import { Forum, getForumById } from "@/app/api/forum/forum";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { formatDistanceToNow, format } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
@@ -9,7 +7,12 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import DeleteForumButton from "./DeleteForumButton";
+import ForumReactions from "./ForumReactions";
+import ForumDiscussions from "./ForumDiscussions";
 import { useTranslations } from "next-intl";
+import { Forum, Discussion } from "@/app/type/forum/forum";
+import { getForumById } from "@/app/api/forum/forum";
+import { getDiscussionsByForumId } from "@/app/api/discussion/Discussion";
 
 const ForumDetail: React.FC = () => {
   const params = useParams();
@@ -18,63 +21,129 @@ const ForumDetail: React.FC = () => {
   const forumId = params.forumId as string;
   const { data: session } = useSession();
   const t = useTranslations("Forum");
-
   const [forum, setForum] = useState<Forum | null>(null);
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [comment, setComment] = useState<string>("");
+  const [pollingActive, setPollingActive] = useState<boolean>(false);
+  const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
+  const [reactionProcessing, setReactionProcessing] = useState<boolean>(false);
 
-  const isAuthor = session?.user?.user_id === forum?.user.user_id;
+  const fetchForumDetail = async (isPolling = false) => {
+    if (reactionProcessing && isPolling) return;
+    try {
+      if (!forumId) {
+        setError(t("postNotFound"));
+        setLoading(false);
+        return;
+      }
+      if (!isPolling) setLoading(true);
+      const forumData = await getForumById(forumId);
+      if (!forumData) {
+        setError(t("postNotFound"));
+        return;
+      }
+      setForum({
+        ...forumData,
+        reactionTopics: forumData.reactionTopics || [],
+      });
+      setError(null);
+    } catch (err) {
+      if (!isPolling) setError(t("errorLoading"));
+    } finally {
+      if (!isPolling) setLoading(false);
+    }
+  };
+
+  const fetchDiscussions = async () => {
+    if (!session?.user?.token || !forumId) return;
+    const discussionData = await getDiscussionsByForumId(
+      forumId,
+      session.user.token
+    );
+    if (discussionData) {
+      setDiscussions(discussionData);
+    }
+  };
 
   useEffect(() => {
-    const fetchForumDetail = async () => {
-      try {
-        setLoading(true);
-        console.log("Fetching forum with ID:", forumId);
-        const forumData = await getForumById(forumId);
+    fetchForumDetail();
+    fetchDiscussions();
+  }, [forumId, session?.user?.token]);
 
-        console.log("Forum data received:", forumData);
-
-        if (!forumData) {
-          console.error("Forum data is null or undefined");
-          setError(t("postNotFound"));
-          return;
-        }
-
-        setForum(forumData);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching forum detail:", err);
-        setError(t("errorLoading"));
-      } finally {
-        setLoading(false);
+  useEffect(() => {
+    const handleReactionChange = (event: CustomEvent) => {
+      if (event.detail.forumId === forumId) {
+        fetchForumDetail(true);
       }
     };
+    window.addEventListener(
+      "forumReactionChanged",
+      handleReactionChange as EventListener
+    );
+    return () =>
+      window.removeEventListener(
+        "forumReactionChanged",
+        handleReactionChange as EventListener
+      );
+  }, [forumId]);
 
-    if (forumId) {
-      fetchForumDetail();
-    } else {
-      console.error("Forum ID is missing");
-      setError(t("postNotFound"));
-      setLoading(false);
-    }
-  }, [forumId, t]);
+  useEffect(() => {
+    const handleUserInteraction = () => setPollingActive(true);
+    window.addEventListener("click", handleUserInteraction);
+    window.addEventListener("keydown", handleUserInteraction);
+    window.addEventListener("mousemove", handleUserInteraction);
+    window.addEventListener("touchstart", handleUserInteraction);
+    return () => {
+      window.removeEventListener("click", handleUserInteraction);
+      window.removeEventListener("keydown", handleUserInteraction);
+      window.removeEventListener("mousemove", handleUserInteraction);
+      window.removeEventListener("touchstart", handleUserInteraction);
+    };
+  }, []);
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Comment submitted:", comment);
-    setComment("");
+  useEffect(() => {
+    if (!pollingActive || reactionProcessing) return;
+
+    const intervalId = setInterval(() => {
+      if (!document.hidden && !reactionProcessing) {
+        setIsCurrentlyPolling(true);
+        Promise.all([fetchForumDetail(true), fetchDiscussions()]).finally(() =>
+          setIsCurrentlyPolling(false)
+        );
+      }
+    }, 3000);
+
+    const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
+
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [pollingActive, forumId, reactionProcessing]);
+
+  const handleReactionProcessing = (isProcessing: boolean) => {
+    setReactionProcessing(isProcessing);
   };
 
-  const handleReaction = () => {
-    console.log("Reaction added");
+  const hasUserReaction = () => {
+    if (!forum || !session?.user?.user_id) return false;
+    return forum.reactionTopics.some(
+      (reaction) => reaction.userId === session.user.user_id
+    );
   };
 
-  if (loading) {
+  if (loading && !reactionProcessing) {
     return (
-      <div className="d-flex justify-content-center my-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">{t("loading")}</span>
+      <div className="container py-4">
+        <div className="row">
+          <div className="col-lg-8">
+            <div className="d-flex justify-content-center my-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">{t("loading")}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -82,15 +151,21 @@ const ForumDetail: React.FC = () => {
 
   if (error) {
     return (
-      <div className="alert alert-danger" role="alert">
-        {error}
-        <div className="mt-3">
-          <button
-            className="btn btn-outline-primary"
-            onClick={() => router.push(`/${locale}/forum`)}
-          >
-            {t("backToForum")}
-          </button>
+      <div className="container py-4">
+        <div className="row">
+          <div className="col-lg-8">
+            <div className="alert alert-danger" role="alert">
+              {error}
+              <div className="mt-3">
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => router.push(`/${locale}/forum`)}
+                >
+                  {t("backToForum")}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -98,29 +173,64 @@ const ForumDetail: React.FC = () => {
 
   if (!forum) {
     return (
-      <div className="text-center my-5">
-        <p className="fs-5">{t("postNotFound")}</p>
-        <button
-          className="btn btn-primary mt-3"
-          onClick={() => router.push(`/${locale}/forum`)}
-        >
-          {t("backToForum")}
-        </button>
+      <div className="container py-4">
+        <div className="row">
+          <div className="col-lg-8">
+            <div className="text-center my-5">
+              <p className="fs-5">{t("postNotFound")}</p>
+              <button
+                className="btn btn-primary mt-3"
+                onClick={() => router.push(`/${locale}/forum`)}
+              >
+                {t("backToForum")}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   const dateLocale = locale === "vi" ? vi : enUS;
-
   const formattedDate = formatDistanceToNow(new Date(forum.createdAt), {
     addSuffix: true,
     locale: dateLocale,
   });
-
   const exactDate = format(new Date(forum.createdAt), "dd/MM/yyyy HH:mm");
 
   return (
     <div className="container py-4">
+      {pollingActive && (
+        <div
+          className="position-fixed bottom-0 end-0 p-3"
+          style={{ zIndex: 1050 }}
+        >
+          <div
+            className={`toast ${isCurrentlyPolling ? "show" : ""}`}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <div className="toast-header">
+              <div
+                className={`spinner-border spinner-border-sm me-2 ${
+                  isCurrentlyPolling ? "" : "invisible"
+                }`}
+                role="status"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <strong className="me-auto">Real-time Updates</strong>
+              <small>{new Date().toLocaleTimeString()}</small>
+            </div>
+            <div className="toast-body">
+              {isCurrentlyPolling
+                ? "Đang cập nhật dữ liệu..."
+                : "Đang theo dõi thay đổi trong thời gian thực"}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="row">
         <div className="col-lg-8">
           <nav aria-label="breadcrumb" className="mb-4">
@@ -138,7 +248,6 @@ const ForumDetail: React.FC = () => {
               </li>
             </ol>
           </nav>
-
           <div className="card shadow-sm mb-4">
             <div className="card-header bg-white border-0">
               <div className="d-flex align-items-center">
@@ -161,7 +270,6 @@ const ForumDetail: React.FC = () => {
                     </div>
                   )}
                 </div>
-
                 <div>
                   <h6 className="mb-0 fw-bold">{forum.user.username}</h6>
                   <small className="text-muted" title={exactDate}>
@@ -170,42 +278,45 @@ const ForumDetail: React.FC = () => {
                 </div>
               </div>
             </div>
-
             <div className="card-body">
               <h4 className="card-title mb-3">{forum.title}</h4>
-
               {forum.image && (
                 <div className="forum-image mb-4">
-                  <Image
-                    src={forum.image}
-                    alt={forum.title}
-                    className="img-fluid rounded"
+                  <div
+                    className="rounded"
                     style={{
-                      maxHeight: "500px",
+                      position: "relative",
                       width: "100%",
-                      objectFit: "contain",
+                      height: "500px",
                     }}
-                  />
+                  >
+                    <Image
+                      src={forum.image}
+                      alt={forum.title}
+                      fill
+                      style={{ objectFit: "contain" }}
+                    />
+                  </div>
                 </div>
               )}
-
               <div className="forum-content mb-4">
                 <p className="card-text" style={{ whiteSpace: "pre-line" }}>
                   {forum.text}
                 </p>
               </div>
-
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                  <button
-                    className="btn btn-outline-primary me-2"
-                    onClick={handleReaction}
-                  >
-                    <i className="bi bi-hand-thumbs-up me-1"></i>
-                    {t("likes")} ({forum.reactionTopics.length})
-                  </button>
-
-                  {isAuthor && (
+                <div className="d-flex align-items-center gap-2">
+                  <ForumReactions
+                    forumId={forumId}
+                    reactions={forum.reactionTopics}
+                    onReactionChange={(newReactions) => {
+                      setForum((prev) =>
+                        prev ? { ...prev, reactions: newReactions } : null
+                      );
+                    }}
+                    onProcessingChange={handleReactionProcessing}
+                  />
+                  {session?.user?.user_id === forum.user.user_id && (
                     <>
                       <Link
                         href={`/${locale}/forum/edit/${forumId}`}
@@ -214,7 +325,6 @@ const ForumDetail: React.FC = () => {
                         <i className="bi bi-pencil me-1"></i>
                         {t("editPost")}
                       </Link>
-
                       <DeleteForumButton
                         forumId={forumId}
                         userId={forum.user.user_id}
@@ -225,79 +335,18 @@ const ForumDetail: React.FC = () => {
                 </div>
                 <div className="text-muted small">
                   <i className="bi bi-chat-left-text me-1"></i>
-                  {forum.discussions.length} {t("comments")}
+                  {discussions.length} {t("comments")}
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-white">
-              <h5 className="mb-0">
-                {t("comments")} ({forum.discussions.length})
-              </h5>
-            </div>
-            <div className="card-body">
-              <form onSubmit={handleCommentSubmit} className="mb-4">
-                <div className="mb-3">
-                  <textarea
-                    className="form-control"
-                    rows={3}
-                    placeholder={t("writeComment")}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    required
-                  ></textarea>
-                </div>
-                <button type="submit" className="btn btn-primary">
-                  {t("sendComment")}
-                </button>
-              </form>
-
-              {forum.discussions.length > 0 ? (
-                <div className="comments-list">
-                  {forum.discussions.map((discussion) => (
-                    <div
-                      key={discussion.discussionId}
-                      className="comment mb-3 pb-3 border-bottom"
-                    >
-                      <div className="d-flex">
-                        <div className="me-3">
-                          <div
-                            className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
-                            style={{ width: "40px", height: "40px" }}
-                          >
-                            U
-                          </div>
-                        </div>
-                        <div>
-                          <div className="fw-bold mb-1">{t("author")}</div>
-                          <div className="comment-content mb-1">
-                            {discussion.content}
-                          </div>
-                          <div className="text-muted small">
-                            {formatDistanceToNow(
-                              new Date(discussion.createdAt),
-                              {
-                                addSuffix: true,
-                                locale: dateLocale,
-                              }
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-muted mb-0">{t("noComments")}</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <ForumDiscussions
+            forumId={forumId}
+            locale={locale}
+            discussions={discussions}
+            onDiscussionsChange={setDiscussions}
+          />
         </div>
-
         <div className="col-lg-4">
           <div className="card shadow-sm mb-4">
             <div className="card-header bg-white">
@@ -332,7 +381,6 @@ const ForumDetail: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="card shadow-sm mb-4">
             <div className="card-header bg-white">
               <h5 className="mb-0">{t("postStats")}</h5>
@@ -346,19 +394,18 @@ const ForumDetail: React.FC = () => {
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                   <span>{t("likes")}</span>
                   <span className="badge bg-primary rounded-pill">
-                    {forum.reactionTopics.length}
+                    {forum.reactionTopics?.length || 0}
                   </span>
                 </li>
                 <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                   <span>{t("comments")}</span>
                   <span className="badge bg-primary rounded-pill">
-                    {forum.discussions.length}
+                    {discussions.length}
                   </span>
                 </li>
               </ul>
             </div>
           </div>
-
           <div className="d-grid gap-2">
             <Link href={`/${locale}/forum`} className="btn btn-outline-primary">
               <i className="bi bi-arrow-left me-2"></i>
