@@ -44,6 +44,7 @@ export interface UserGetAllWishlist {
     imageInfo?: string;
     title: string;
     categoryName?: string;
+    description: string;
   };
 }
 
