@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReactionQa } from './entities/reaction_qa.entity';
 import { CreateReactionQaDto } from './dto/reaction_qa.dto';
 import { User } from '../user/entities/user.entity';
 import { QaStudy } from './entities/qa.entity';
+import { QaGateway } from './qa_study.gateway';
 
 @Injectable()
 export class ReactionQaService {
@@ -15,6 +21,8 @@ export class ReactionQaService {
     private userRepository: Repository<User>,
     @InjectRepository(QaStudy)
     private qaStudyRepository: Repository<QaStudy>,
+    @Inject(forwardRef(() => QaGateway)) // Xử lý circular dependency
+    private readonly qaGateway: QaGateway,
   ) {}
 
   async createReaction(
@@ -36,20 +44,33 @@ export class ReactionQaService {
     const existingReaction = await this.reactionQaRepository.findOne({
       where: { user: { user_id: userId }, qa: { qaStudyId } },
     });
-
+    let reaction: ReactionQa;
     if (existingReaction) {
       if (existingReaction.reactionType !== reactionType) {
         existingReaction.reactionType = reactionType;
-        return this.reactionQaRepository.save(existingReaction);
+        reaction = await this.reactionQaRepository.save(existingReaction);
+        await this.qaGateway.broadcastReactionChange({
+          qaId: qaStudyId,
+          userId,
+          reactionType,
+        });
+      } else {
+        return existingReaction;
       }
-      return existingReaction;
+    } else {
+      reaction = this.reactionQaRepository.create({
+        user,
+        qa: qaStudy,
+        reactionType,
+      });
+      reaction = await this.reactionQaRepository.save(reaction);
+      await this.qaGateway.broadcastReactionChange({
+        qaId: qaStudyId,
+        userId,
+        reactionType,
+      });
     }
-    const reaction = this.reactionQaRepository.create({
-      user,
-      qa: qaStudy,
-      reactionType,
-    });
-    return this.reactionQaRepository.save(reaction);
+    return reaction;
   }
   async findReactionsByQa(qaStudyId: string): Promise<ReactionQa[]> {
     const reactions = await this.reactionQaRepository.find({

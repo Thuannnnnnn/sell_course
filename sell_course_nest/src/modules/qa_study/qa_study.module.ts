@@ -10,6 +10,7 @@ import { CourseModule } from '../course/course.module';
 import { ReactionQaService } from './reaction_qa.service';
 import { ReactionQaController } from './reaction_qa.controller';
 import { ReactionQa } from './entities/reaction_qa.entity';
+import { QaGateway } from './qa_study.gateway';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { ReactionQa } from './entities/reaction_qa.entity';
     UserModule,
     CourseModule,
   ],
-  providers: [QaStudyService, ReactionQaService],
+  providers: [QaStudyService, ReactionQaService, QaGateway],
   controllers: [QaStudyController, ReactionQaController],
+  exports: [QaStudyService],
 })
 export class QaStudyModule {}
