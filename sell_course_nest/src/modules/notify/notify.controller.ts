@@ -19,7 +19,7 @@ import { CreateNotifyDto, UpdateNotifyDto } from './dto/notify.dto';
 import { Notify } from './entities/notify.entity';
 
 @ApiTags('Notifications')
-@Controller('/notify/')
+@Controller('api/admin/notify/')
 export class NotifyController {
   constructor(private readonly notifyService: NotifyService) {}
 
