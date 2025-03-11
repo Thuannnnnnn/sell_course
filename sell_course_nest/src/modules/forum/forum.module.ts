@@ -10,10 +10,16 @@ import { ReactionTopic } from './entities/reaction_topic.entity';
 import { Discussion } from './entities/discussion.entity';
 import { DiscussionController } from './discussion.controller';
 import { DiscussionService } from './discussion.service';
+import { ForumGateway } from './forum.gateway';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Forum, User, ReactionTopic, Discussion])],
   controllers: [ForumController, ReactionTopicController, DiscussionController],
-  providers: [ForumService, ReactionTopicService, DiscussionService],
+  providers: [
+    ForumService,
+    ReactionTopicService,
+    DiscussionService,
+    ForumGateway,
+  ],
 })
 export class ForumModule {}

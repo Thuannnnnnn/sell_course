@@ -5,6 +5,8 @@ import { ReactionTopic } from './entities/reaction_topic.entity';
 import { CreateReactionTopicDto } from './dto/reaction-topic.dto';
 import { User } from '../user/entities/user.entity';
 import { Forum } from '../forum/entities/forum.entity';
+import { ForumGateway } from './forum.gateway';
+import { ForumService } from './forum.service';
 
 @Injectable()
 export class ReactionTopicService {
@@ -15,6 +17,8 @@ export class ReactionTopicService {
     private userRepository: Repository<User>,
     @InjectRepository(Forum)
     private forumRepository: Repository<Forum>,
+    private readonly forumGateway: ForumGateway,
+    private readonly forumService: ForumService,
   ) {}
 
   async createReaction(
@@ -40,19 +44,25 @@ export class ReactionTopicService {
       where: { user: { user_id: userId }, forum: { forumId } },
     });
 
+    let reaction;
     if (existingReaction) {
       if (existingReaction.reactionType !== reactionType) {
         existingReaction.reactionType = reactionType;
-        return this.reactionTopicRepository.save(existingReaction);
+        reaction = await this.reactionTopicRepository.save(existingReaction);
+      } else {
+        reaction = existingReaction;
       }
-      return existingReaction;
+    } else {
+      reaction = this.reactionTopicRepository.create({
+        user,
+        forum,
+        reactionType,
+      });
+      reaction = await this.reactionTopicRepository.save(reaction);
     }
-    const reaction = this.reactionTopicRepository.create({
-      user,
-      forum,
-      reactionType,
-    });
-    return this.reactionTopicRepository.save(reaction);
+    const forums = await this.forumService.findAll();
+    this.forumGateway.notifyForumUpdate(forums);
+    return reaction;
   }
   async findReactionsByForum(forumId: string): Promise<ReactionTopic[]> {
     const reactions = await this.reactionTopicRepository.find({
@@ -77,5 +87,7 @@ export class ReactionTopicService {
     }
 
     await this.reactionTopicRepository.remove(reaction);
+    const forums = await this.forumService.findAll();
+    this.forumGateway.notifyForumUpdate(forums);
   }
 }

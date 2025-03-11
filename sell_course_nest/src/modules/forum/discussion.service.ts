@@ -6,6 +6,8 @@ import { CreateDiscussionDto } from './dto/discussion.dto';
 import { UpdateDiscussionDto } from './dto/discussion.dto';
 import { User } from '../user/entities/user.entity';
 import { Forum } from '../forum/entities/forum.entity';
+import { ForumGateway } from './forum.gateway';
+import { ForumService } from './forum.service';
 
 @Injectable()
 export class DiscussionService {
@@ -16,9 +18,10 @@ export class DiscussionService {
     private userRepository: Repository<User>,
     @InjectRepository(Forum)
     private forumRepository: Repository<Forum>,
+    private readonly forumGateway: ForumGateway,
+    private readonly forumService: ForumService,
   ) {}
 
-  // Create
   async create(createDiscussionDto: CreateDiscussionDto): Promise<Discussion> {
     const { userId, forumId, content } = createDiscussionDto;
 
@@ -38,10 +41,13 @@ export class DiscussionService {
       content,
     });
 
-    return this.discussionRepository.save(discussion);
+    const savedDiscussion = await this.discussionRepository.save(discussion);
+    const forums = await this.forumService.findAll();
+    this.forumGateway.notifyForumUpdate(forums);
+
+    return savedDiscussion;
   }
 
-  // Read: Get all discussions by forum
   async findByForum(forumId: string): Promise<Discussion[]> {
     const discussions = await this.discussionRepository.find({
       where: { forum: { forumId } },
@@ -56,7 +62,6 @@ export class DiscussionService {
     return discussions;
   }
 
-  // Read: Get one discussion by ID
   async findOne(discussionId: string): Promise<Discussion> {
     const discussion = await this.discussionRepository.findOne({
       where: { discussionId },
@@ -71,13 +76,11 @@ export class DiscussionService {
 
     return discussion;
   }
-
-  // Update
   async update(
     discussionId: string,
     updateDiscussionDto: UpdateDiscussionDto,
   ): Promise<Discussion> {
-    const discussion = await this.findOne(discussionId); // Reuse findOne to check existence
+    const discussion = await this.findOne(discussionId);
 
     if (updateDiscussionDto.content) {
       discussion.content = updateDiscussionDto.content;
@@ -86,9 +89,10 @@ export class DiscussionService {
     return this.discussionRepository.save(discussion);
   }
 
-  // Delete
   async delete(discussionId: string): Promise<void> {
-    const discussion = await this.findOne(discussionId); // Reuse findOne to check existence
+    const discussion = await this.findOne(discussionId);
     await this.discussionRepository.remove(discussion);
+    const forums = await this.forumService.findAll();
+    this.forumGateway.notifyForumUpdate(forums);
   }
 }
