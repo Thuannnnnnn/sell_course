@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
@@ -30,12 +30,14 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
   const { data: session } = useSession();
   const t = useTranslations("Forum");
   const [comment, setComment] = useState<string>("");
-  const [editingDiscussion, setEditingDiscussion] = useState<string | null>(null);
+  const [editingDiscussion, setEditingDiscussion] = useState<string | null>(
+    null
+  );
   const [editContent, setEditContent] = useState<string>("");
   const [pollingActive, setPollingActive] = useState<boolean>(false);
   const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
 
-  const fetchDiscussions = async () => {
+  const fetchDiscussions = useCallback(async () => {
     if (!session?.user?.token || !forumId) return;
     try {
       const discussionData = await getDiscussionsByForumId(
@@ -43,10 +45,10 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
         session.user.token
       );
       onDiscussionsChange(discussionData ?? []);
-    } catch (error) {
+    } catch {
       onDiscussionsChange([]);
     }
-  };
+  }, [forumId, session?.user?.token, onDiscussionsChange]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,7 +161,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
       clearInterval(intervalId);
       clearTimeout(timeoutId);
     };
-  }, [pollingActive, forumId]);
+  }, [pollingActive, forumId, fetchDiscussions]);
 
   useEffect(() => {
     const handleDiscussionChange = (event: CustomEvent) => {
@@ -176,7 +178,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
         "forumDiscussionChanged",
         handleDiscussionChange as EventListener
       );
-  }, [forumId]);
+  }, [forumId, fetchDiscussions]);
 
   const dateLocale = locale === "vi" ? vi : enUS;
 

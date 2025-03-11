@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {updateForum, getForumById } from "@/app/api/forum/forum";
+import { updateForum, getForumById } from "@/app/api/forum/forum";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -73,8 +73,8 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
         if (session?.user?.user_id !== forum.user.user_id) {
           setError(t("noPermissionMessage"));
         }
-      } catch (err) {
-        setError(t('errorUpdatingPost'));
+      } catch {
+        setError(t("errorUpdatingPost"));
       } finally {
         setLoading(false);
       }
@@ -131,13 +131,13 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
     }
 
     if (!userId) {
-      setError(t('userIdRequired'));
+      setError(t("userIdRequired"));
       return;
     }
 
     const token = session?.user?.token;
     if (!token) {
-      setError(t('tokenRequired'));
+      setError(t("tokenRequired"));
       return;
     }
 
@@ -160,7 +160,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
           router.push(`/${locale}/forum/${forumId}`);
         }, 2000);
       } else {
-        setError(t('errorUpdatingPost'));
+        setError(t("errorUpdatingPost"));
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -293,7 +293,15 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
-                        <div className="img-thumbnail" style={{ maxHeight: "200px", position: "relative", width: "100%", height: "200px" }}>
+                        <div
+                          className="img-thumbnail"
+                          style={{
+                            maxHeight: "200px",
+                            position: "relative",
+                            width: "100%",
+                            height: "200px",
+                          }}
+                        >
                           <Image
                             src={imagePreview}
                             alt="Preview"

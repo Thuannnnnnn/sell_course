@@ -46,7 +46,7 @@ const ForumList: React.FC = () => {
         });
         setTopForums(sortedByEngagement.slice(0, 3));
         setError(null);
-      } catch (err) {
+      } catch {
         setError(t('errorLoading'));
       } finally {
         setLoading(false);

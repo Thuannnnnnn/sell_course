@@ -1,7 +1,6 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { Reaction, reactionEmojis, ReactionType } from "@/app/type/forum/forum";
 import {
@@ -24,7 +23,6 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
   onProcessingChange,
 }) => {
   const { data: session } = useSession();
-  const t = useTranslations("Forum");
   const params = useParams();
   const locale = params.locale as string;
   const userId = session?.user?.user_id || "";
@@ -32,7 +30,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [allReactions, setAllReactions] = useState<Reaction[]>(reactions);
 
-  const syncReactions = async () => {
+  const syncReactions = useCallback(async () => {
     if (!session?.user?.token) return null;
     const result = await getReactionsByTopic(session.user.token, forumId);
     if (result.success && Array.isArray(result.data)) {
@@ -40,11 +38,11 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       return result.data;
     }
     return null;
-  };
+  }, [forumId, session?.user?.token, setAllReactions]);
 
   useEffect(() => {
     syncReactions();
-  }, [forumId, session?.user?.token]);
+  }, [forumId, session?.user?.token, syncReactions]);
 
   useEffect(
     () => onProcessingChange?.(isProcessing),
@@ -114,7 +112,12 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
         updatedReactions.push(tempReaction);
         setAllReactions(updatedReactions);
 
-        const addResult = await addReactionToTopic(token, userId, forumId, type);
+        const addResult = await addReactionToTopic(
+          token,
+          userId,
+          forumId,
+          type
+        );
         if (!addResult.success) throw new Error("Không thể thêm reaction");
       }
 
@@ -122,7 +125,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       if (finalReactions) {
         onReactionChange?.(finalReactions);
       }
-    } catch (error) {
+    } catch {
       setAllReactions(reactions);
       onReactionChange?.(reactions);
       await syncReactions();
