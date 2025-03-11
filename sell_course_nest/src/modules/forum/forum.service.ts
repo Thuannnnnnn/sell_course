@@ -12,6 +12,7 @@ import {
 } from 'src/utilities/azure.service';
 import { ReactionTopic } from './entities/reaction_topic.entity';
 import { Discussion } from './entities/discussion.entity';
+import { ForumGateway } from './forum.gateway';
 
 @Injectable()
 export class ForumService {
@@ -22,6 +23,7 @@ export class ForumService {
     private readonly reactionTopicRepository: Repository<ReactionTopic>,
     @InjectRepository(Discussion)
     private readonly discussionRepository: Repository<Discussion>,
+    private readonly forumGateway: ForumGateway,
   ) {}
 
   async create(
@@ -29,7 +31,6 @@ export class ForumService {
     file?: Express.Multer.File,
   ): Promise<Forum> {
     let imageUrl = '';
-    console.log(createForumDto);
     if (file) {
       imageUrl = await azureUpload(file);
     }
@@ -40,7 +41,10 @@ export class ForumService {
       user: { user_id: createForumDto.userId } as any,
     });
 
-    return await this.forumRepository.save(forum);
+    const savedForum = await this.forumRepository.save(forum);
+    const forums = await this.findAll(); // Lấy danh sách mới
+    this.forumGateway.notifyForumUpdate(forums); // Thông báo cập nhật
+    return savedForum;
   }
 
   async findAll(): Promise<ForumResponseDto[]> {
@@ -106,27 +110,25 @@ export class ForumService {
     const forum = await this.forumRepository.findOne({
       where: { forumId: id },
     });
+    if (!forum) throw new Error('Forum not found');
 
-    if (!forum) {
-      throw new Error('Forum not found');
-    }
     if (file && forum.image) {
       const blob = extractBlobName(forum.image);
       updateForumDto.image = await azureEdit(blob, file);
     }
 
     Object.assign(forum, updateForumDto);
-
-    return await this.forumRepository.save(forum);
+    const updatedForum = await this.forumRepository.save(forum);
+    const forums = await this.findAll();
+    this.forumGateway.notifyForumUpdate(forums);
+    return updatedForum;
   }
-
   async delete(id: string): Promise<void> {
     const forum = await this.forumRepository.findOne({
       where: { forumId: id },
     });
-    if (!forum) {
-      throw new Error('Forum not found');
-    }
+    if (!forum) throw new Error('Forum not found');
+
     await this.reactionTopicRepository.delete({ forum: { forumId: id } });
     await this.discussionRepository.delete({ forum: { forumId: id } });
     if (forum.image) {
@@ -134,6 +136,8 @@ export class ForumService {
       await azureDelete(blob);
     }
     await this.forumRepository.delete(id);
+    const forums = await this.findAll(); // Lấy danh sách mới
+    this.forumGateway.notifyForumUpdate(forums); // Thông báo cập nhật
   }
 }
 function extractBlobName(url: string): string {
