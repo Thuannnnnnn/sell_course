@@ -4,10 +4,23 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotifyController } from './notify.controller';
 import { NotifyService } from './notify.service';
 import { UserNotify } from '../User_Notify/entities/user_Notify.entity';
+import { NotifyGateway } from './notify.gateway';
+import { Course } from '../course/entities/course.entity';
+import { CoursePurchase } from '../course_purchase/entities/course_purchase.entity';
+import { User } from '../user/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notify, UserNotify])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Notify,
+      UserNotify,
+      Course,
+      CoursePurchase,
+      User,
+      Course,
+    ]),
+  ],
   controllers: [NotifyController],
-  providers: [NotifyService],
+  providers: [NotifyService, NotifyGateway],
 })
 export class NotifyModule {}

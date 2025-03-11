@@ -7,7 +7,10 @@ import { UserNotify } from '../User_Notify/entities/user_Notify.entity';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { CoursePurchase } from '../course_purchase/entities/course_purchase.entity';
+import { WebSocketGateway } from '@nestjs/websockets';
+import { NotifyGateway } from './notify.gateway';
 
+@WebSocketGateway({ cors: true })
 @Injectable()
 export class NotifyService {
   constructor(
@@ -21,6 +24,7 @@ export class NotifyService {
     private courseRepository: Repository<Course>,
     @InjectRepository(CoursePurchase)
     private coursePurchasedRepository: Repository<CoursePurchase>,
+    private readonly notifyGateway: NotifyGateway,
   ) {}
 
   async create(createNotifyDto: CreateNotifyDto): Promise<Notify> {
@@ -37,50 +41,78 @@ export class NotifyService {
 
     await this.notifyRepository.save(notify);
 
+    let userNotifies = [];
     if (type === 'USER' && userId) {
       const user = await this.userRepository.findOne({
         where: { user_id: userId },
       });
       if (!user) throw new Error('User not found');
-      const userNotify = this.userNotifyRepository.create({ user, notify });
-      await this.userNotifyRepository.save(userNotify);
+      userNotifies.push(this.userNotifyRepository.create({ user, notify }));
     } else if (type === 'COURSE' && courseId) {
       const users = await this.coursePurchasedRepository.find({
         where: { course: { courseId } },
         relations: ['user'],
       });
-      const userNotifies = users.map((coursePurchase) =>
+      userNotifies = users.map((coursePurchase) =>
         this.userNotifyRepository.create({ user: coursePurchase.user, notify }),
       );
+    } else if (type === 'GLOBAL') {
+      const users = await this.userRepository.find();
+      userNotifies = users.map((user) =>
+        this.userNotifyRepository.create({ user, notify }),
+      );
+    }
+
+    if (userNotifies.length > 0) {
       await this.userNotifyRepository.save(userNotifies);
+      userNotifies.forEach((userNotify) =>
+        this.notifyGateway.sendNotificationToUser(
+          userNotify.user.user_id,
+          userNotify,
+        ),
+      );
     }
 
     return notify;
   }
 
-  async findAll(): Promise<Notify[]> {
-    return this.notifyRepository.find({
-      relations: ['userNotifies', 'course'],
-    });
-  }
-
-  async findByUser(userId: string): Promise<UserNotify[]> {
-    return this.userNotifyRepository.find({
-      where: { user: { user_id: userId } },
-      relations: ['notify'],
-    });
-  }
-
-  async findByCourse(courseId: string): Promise<Notify[]> {
-    return this.notifyRepository.find({ where: { course: { courseId } } });
-  }
-
   async update(id: string, updateNotifyDto: UpdateNotifyDto): Promise<Notify> {
     await this.notifyRepository.update(id, updateNotifyDto);
-    return this.notifyRepository.findOne({ where: { notifyId: id } });
+    const updatedNotify = await this.notifyRepository.findOne({
+      where: { notifyId: id },
+    });
+    if (!updatedNotify) throw new Error('Notification not found');
+
+    const userNotifies = await this.userNotifyRepository.find({
+      where: { notify: { notifyId: id } },
+      relations: ['user'],
+    });
+
+    console.log('check check check: ', userNotifies);
+
+    userNotifies.forEach((userNotify) =>
+      this.notifyGateway.sendUpdateToUser(
+        userNotify.user.user_id,
+        updatedNotify,
+      ),
+    );
+
+    return updatedNotify;
   }
 
-  async remove(id: string): Promise<void> {
-    await this.notifyRepository.delete(id);
+  async removeNotification(id: string): Promise<void> {
+    const userNotifies = await this.userNotifyRepository.find({
+      where: { notify: { notifyId: id } },
+      relations: ['user'],
+    });
+
+    if (userNotifies.length > 0) {
+      await this.userNotifyRepository.remove(userNotifies);
+    }
+
+    await this.userNotifyRepository.delete({ notify: { notifyId: id } });
+    userNotifies.forEach((userNotify) =>
+      this.notifyGateway.sendRemoveToUser(userNotify.user.user_id, id),
+    );
   }
 }
