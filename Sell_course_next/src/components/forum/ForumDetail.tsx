@@ -125,14 +125,6 @@ const ForumDetail: React.FC = () => {
   const handleReactionProcessing = (isProcessing: boolean) => {
     setReactionProcessing(isProcessing);
   };
-
-  const hasUserReaction = () => {
-    if (!forum || !session?.user?.user_id) return false;
-    return forum.reactionTopics.some(
-      (reaction) => reaction.userId === session.user.user_id
-    );
-  };
-
   if (loading && !reactionProcessing) {
     return (
       <div className="container py-4">

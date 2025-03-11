@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
 import { Course } from '../course/entities/course.entity';
 import { UpdateLessonDTO, CourseWithLessonsDto } from './dto/lesson.dto';
@@ -131,17 +131,37 @@ export class LessonService {
   async updateLessonOrder(
     lessons: { lessonId: string; order: number }[],
   ): Promise<{ message: string }> {
-    for (const { lessonId, order } of lessons) {
-      const lesson = await this.lessonRepository.findOne({
-        where: { lessonId },
-      });
-      if (!lesson) {
-        throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
-      }
+    const lessonIds = lessons.map((l) => l.lessonId);
 
-      lesson.order = order;
-      await this.lessonRepository.save(lesson);
+    // Verify all lessons exist
+    const count = await this.lessonRepository.count({
+      where: { lessonId: In(lessonIds) },
+    });
+
+    if (count !== lessons.length) {
+      const existing = await this.lessonRepository.find({
+        where: { lessonId: In(lessonIds) },
+        select: ['lessonId'],
+      });
+      const foundIds = new Set(existing.map((l) => l.lessonId));
+      const missing = lessons.filter((l) => !foundIds.has(l.lessonId));
+      throw new NotFoundException(
+        `Lessons with IDs ${missing.map((l) => l.lessonId).join(', ')} not found`,
+      );
     }
+    await this.lessonRepository
+      .createQueryBuilder()
+      .update()
+      .set({
+        order: () =>
+          'CASE ' +
+          lessons
+            .map((l) => `WHEN lessonId = '${l.lessonId}' THEN ${l.order}`)
+            .join(' ') +
+          ' END',
+      })
+      .where({ lessonId: In(lessonIds) })
+      .execute();
 
     return { message: 'Lesson order updated successfully' };
   }
