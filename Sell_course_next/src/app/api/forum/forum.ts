@@ -35,7 +35,7 @@ export async function getForumById(forumId: string): Promise<Forum | null> {
     );
 
     return response.data;
-  } catch (error) {
+  } catch {
     try {
       const allForumsResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/forum/get_all_forum`,
@@ -52,7 +52,7 @@ export async function getForumById(forumId: string): Promise<Forum | null> {
       );
 
       return foundForum || null;
-    } catch (backupError) {
+    } catch{
       return null;
     }
   }
@@ -83,7 +83,7 @@ export async function createForum(
     );
 
     return response.data;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -114,7 +114,7 @@ export async function updateForum(
     );
 
     return response.data;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -134,7 +134,7 @@ export async function deleteForum(
     );
 
     return response.status === 200;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

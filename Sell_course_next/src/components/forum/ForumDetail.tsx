@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { formatDistanceToNow, format } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
@@ -29,33 +29,36 @@ const ForumDetail: React.FC = () => {
   const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
   const [reactionProcessing, setReactionProcessing] = useState<boolean>(false);
 
-  const fetchForumDetail = async (isPolling = false) => {
-    if (reactionProcessing && isPolling) return;
-    try {
-      if (!forumId) {
-        setError(t("postNotFound"));
-        setLoading(false);
-        return;
+  const fetchForumDetail = useCallback(
+    async (isPolling = false) => {
+      if (reactionProcessing && isPolling) return;
+      try {
+        if (!forumId) {
+          setError(t("postNotFound"));
+          setLoading(false);
+          return;
+        }
+        if (!isPolling) setLoading(true);
+        const forumData = await getForumById(forumId);
+        if (!forumData) {
+          setError(t("postNotFound"));
+          return;
+        }
+        setForum({
+          ...forumData,
+          reactionTopics: forumData.reactionTopics || [],
+        });
+        setError(null);
+      } catch {
+        if (!isPolling) setError(t("errorLoading"));
+      } finally {
+        if (!isPolling) setLoading(false);
       }
-      if (!isPolling) setLoading(true);
-      const forumData = await getForumById(forumId);
-      if (!forumData) {
-        setError(t("postNotFound"));
-        return;
-      }
-      setForum({
-        ...forumData,
-        reactionTopics: forumData.reactionTopics || [],
-      });
-      setError(null);
-    } catch (err) {
-      if (!isPolling) setError(t("errorLoading"));
-    } finally {
-      if (!isPolling) setLoading(false);
-    }
-  };
+    },
+    [forumId, reactionProcessing, t, setError, setLoading, setForum]
+  );
 
-  const fetchDiscussions = async () => {
+  const fetchDiscussions = useCallback(async () => {
     if (!session?.user?.token || !forumId) return;
     const discussionData = await getDiscussionsByForumId(
       forumId,
@@ -64,12 +67,12 @@ const ForumDetail: React.FC = () => {
     if (discussionData) {
       setDiscussions(discussionData);
     }
-  };
+  }, [forumId, session?.user?.token, setDiscussions]);
 
   useEffect(() => {
     fetchForumDetail();
     fetchDiscussions();
-  }, [forumId, session?.user?.token]);
+  }, [forumId, session?.user?.token, fetchForumDetail, fetchDiscussions]);
 
   useEffect(() => {
     const handleReactionChange = (event: CustomEvent) => {
@@ -86,7 +89,7 @@ const ForumDetail: React.FC = () => {
         "forumReactionChanged",
         handleReactionChange as EventListener
       );
-  }, [forumId]);
+  }, [forumId, fetchForumDetail]);
 
   useEffect(() => {
     const handleUserInteraction = () => setPollingActive(true);
@@ -120,17 +123,16 @@ const ForumDetail: React.FC = () => {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
     };
-  }, [pollingActive, forumId, reactionProcessing]);
+  }, [
+    pollingActive,
+    forumId,
+    reactionProcessing,
+    fetchForumDetail,
+    fetchDiscussions,
+  ]);
 
   const handleReactionProcessing = (isProcessing: boolean) => {
     setReactionProcessing(isProcessing);
-  };
-
-  const hasUserReaction = () => {
-    if (!forum || !session?.user?.user_id) return false;
-    return forum.reactionTopics.some(
-      (reaction) => reaction.userId === session.user.user_id
-    );
   };
 
   if (loading && !reactionProcessing) {
