@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import "@/style/CourseDetail.css";
 import { fetchCourseById } from "@/app/api/course/CourseAPI";
 import { Course } from "@/app/type/course/Course";
-
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -17,8 +16,13 @@ import "react-notifications/lib/notifications.css";
 import { ResponseQaDto } from "@/app/type/qa/Qa";
 import { createQa, deleteQa, getAllQa } from "@/app/api/qa/Qa";
 import ReactQuill from "react-quill";
-import { creatWaitingList } from "@/app/api/waitingList/waitingList";
-
+import {
+  getFeedbackRatingByCourseId,
+  createFeedbackRating,
+  deleteFeedbackRating,
+  updateFeedbackRating,
+} from "@/app/api/feedbackRating/feedbackRating";
+import { ResponseFeedbackRatingDto } from "@/app/type/feedbackRating/feedbackRating";
 // const getRelativeTime = (dateString: string) => {
 //   const now = new Date();
 //   const past = new Date(dateString);
@@ -77,12 +81,20 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
   // const [showReplyPopup, setShowReplyPopup] = useState(false);
   // const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
   //   null
   // );
   // const [replyText, setReplyText] = useState("");
+  const [feedbacks, setFeedbacks] = useState<ResponseFeedbackRatingDto[]>([]);
+  const [newFeedback, setNewFeedback] = useState("");
+  const [newStar, setNewStar] = useState(5);
+  const [editingFeedback, setEditingFeedback] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editStar, setEditStar] = useState(5);
+
+  console.log("Session Status:", status);
+  console.log("Session Data:", session);
   const t = useTranslations("courseDetailForm");
 
   useEffect(() => {
@@ -107,6 +119,103 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
     fetchQaData();
   }, [courseId]);
+
+  // ✅ Fetch Feedback khi courseId thay đổi
+  useEffect(() => {
+    const fetchFeedbackRatings = async () => {
+      if (!courseId) return;
+      try {
+        const ratings = await getFeedbackRatingByCourseId(courseId);
+        console.log("Fetched Feedbacks:", ratings);
+        setFeedbacks(Array.isArray(ratings) ? ratings : [ratings]);
+      } catch (error) {
+        console.error("Error fetching feedback ratings:", error);
+      }
+    };
+    fetchFeedbackRatings();
+  }, [courseId]);
+
+// ✅ Hàm Thêm hoặc Cập nhật Feedback
+const handleSubmitFeedback = async () => {
+  if (!session || !session.user || !session.user.user_id) {
+    NotificationManager.warning(t("loginRequired") || "You need to log in to submit feedback.", t("warning") || "Warning", 2000);
+    return;
+  }
+
+  if (!newFeedback.trim()) {
+    NotificationManager.error("Feedback cannot be empty", t("error") || "Error", 2000);
+    return;
+  }
+
+  if (newStar < 1 || newStar > 5) {
+    NotificationManager.error("Rating must be between 1 and 5 stars", t("error") || "Error", 2000);
+    return;
+  }
+
+  try {
+    const userId = String(session.user.user_id);
+    const existingFeedback = feedbacks.find(
+      (fb) => fb.user && String(fb.user.user_id) === userId
+    );
+
+    if (existingFeedback) {
+      console.log("Updating existing feedback...");
+      const updatedFeedback = await updateFeedbackRating(
+        existingFeedback.feedbackRattingId,
+        newStar,
+        newFeedback,
+        session.user.token
+      );
+
+      setFeedbacks((prev) =>
+        prev.map((fb) =>
+          fb.user && String(fb.user.user_id) === userId
+            ? { ...fb, star: newStar, feedback: newFeedback }
+            : fb
+        )
+      );
+      NotificationManager.success("Feedback updated successfully", t("success") || "Success", 2000);
+    } else {
+      console.log("Creating new feedback...");
+      const feedback = await createFeedbackRating(
+        userId,
+        courseId,
+        newStar,
+        newFeedback,
+        session.user.token
+      );
+
+      setFeedbacks((prev) => [feedback, ...prev]);
+      NotificationManager.success("Feedback submitted successfully", t("success") || "Success", 2000);
+    }
+
+    setNewFeedback("");
+    setNewStar(5);
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    NotificationManager.error("Failed to submit feedback", t("error") || "Error", 2000);
+  }
+};
+
+// ✅ Hàm Xóa Feedback
+const handleDeleteFeedback = async (feedbackId: string) => {
+  if (!session) {
+    NotificationManager.warning("You need to log in to delete feedback.", t("warning") || "Warning", 2000);
+    return;
+  }
+  if (!confirm("Are you sure you want to delete this feedback?")) return;
+  try {
+    await deleteFeedbackRating(feedbackId, session.user.token);
+    setFeedbacks((prev) =>
+      prev.filter((fb) => fb.feedbackRattingId !== feedbackId)
+    );
+    NotificationManager.success("Feedback deleted successfully", t("success") || "Success", 2000);
+  } catch (error) {
+    console.error("Error deleting feedback:", error);
+    NotificationManager.error("Failed to delete feedback", t("error") || "Error", 2000);
+  }
+};
+
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
@@ -177,31 +286,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
     router.push(`/${locale}/payment?data=${encodedData}`);
   };
-
-  const handleCreatWaitList = async () => {
-    try {
-        const token = session?.user.token;
-        const userId = session?.user.user_id;
-        if (!token || !userId) {
-            NotificationManager.warning("Login required", "Warning", 2000);
-            return;
-        }
-
-        const response = await creatWaitingList(token, userId, courseId);
-        console.log("📩 API Response:", response);
-
-        // Sửa kiểm tra status đúng với Axios
-        if (response && response.waitlistId) {
-            NotificationManager.success("Added to waitlist", "Success", 2000);
-        } else {
-            NotificationManager.error("Failed to add to waitlist", "Error", 2000);
-        }
-    } catch {
-        NotificationManager.error("Failed to add to waitlist", "Error", 2000);
-    }
-};
-
-
   const handleCreateQa = async () => {
     if (!text.trim()) {
       setError("Nội dung câu hỏi không được để trống!");
@@ -347,6 +431,93 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
             </div>
           </div>
 
+          <div className="feedback-section">
+  <h2>Feedbacks</h2>
+
+  {/* Feedback Input Form */}
+  <div className="feedback-input-container">
+    <textarea
+      value={newFeedback}
+      onChange={(e) => setNewFeedback(e.target.value)}
+      placeholder="Share your experience..."
+      className="feedback-textarea"
+    />
+    <div className="rating-container">
+      <span>Rating</span>
+      <div className="star-rating">
+        {Array.from({ length: 5 }, (_, index) => (
+          <span
+            key={index}
+            className={`star ${index < newStar ? "filled" : ""}`}
+            onClick={() => setNewStar(index + 1)}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    </div>
+    <button className="submit-feedback-btn" onClick={handleSubmitFeedback}>
+      Submit Feedback
+    </button>
+  </div>
+
+  {/* Display Existing Feedbacks */}
+  {feedbacks.length > 0 ? (
+    feedbacks
+      .slice() // Tạo bản sao để không ảnh hưởng mảng gốc
+      .sort((a, b) => {
+        const currentUserId = session?.user?.user_id;
+        const isACurrentUser = a.user && String(a.user.user_id) === String(currentUserId);
+        const isBCurrentUser = b.user && String(b.user.user_id) === String(currentUserId);
+        return isBCurrentUser ? 1 : isACurrentUser ? -1 : 0; // Đưa feedback của user hiện tại lên đầu
+      })
+      .map((feedback) => (
+        <div key={feedback.feedbackRattingId} className="feedback-card">
+          <div className="feedback-header">
+            <div className="feedback-user-info">
+              {feedback.user?.avatarImg ? (
+                <Image
+                  src={feedback.user.avatarImg}
+                  alt="User Avatar"
+                  width={32}
+                  height={32}
+                  className="feedback-avatar"
+                />
+              ) : (
+                <div className="feedback-avatar-placeholder">
+                  {feedback.user?.username?.charAt(0) || "A"}
+                </div>
+              )}
+              <div className="feedback-user-details">
+                <span className="feedback-author">{feedback.user?.username || "Anonymous"}</span>
+                <span className="feedback-role">{feedback.user?.email || "No Role"}</span>
+              </div>
+            </div>
+            <button
+              className="delete-feedback-btn"
+              onClick={() => handleDeleteFeedback(feedback.feedbackRattingId)}
+              title="Delete Feedback"
+            >
+              🗑️
+            </button>
+          </div>
+          <div className="feedback-rating">
+            {Array.from({ length: 5 }, (_, index) => (
+              <span
+                key={index}
+                className={`star ${index < feedback.star ? "filled" : ""}`}
+              >
+                ★
+              </span>
+            ))}
+            <span className="rating-value">/5</span>
+          </div>
+        </div>
+      ))
+  ) : (
+    <p>No feedbacks yet</p>
+  )}
+</div>
           <div className="course-qa bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-2xl font-bold mb-6">
               {t("questionsAndAnswers")}
@@ -475,11 +646,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           <button className="btn buy-course" onClick={() => handleCheckOut()}>
             {t("buyCourse")}
           </button>
-          {courses?.isPublic && (
-              <button className="btn waitListCourse" onClick={() => handleCreatWaitList()}>
-                {t("addToWaitList")}
-              </button>
-            )}
 
           <div className="course-details">
             <div className="row"></div>
