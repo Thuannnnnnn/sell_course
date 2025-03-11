@@ -170,9 +170,9 @@ export class LessonController {
   })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   async updateLessonOrder(
-    @Body() lessons: { lessonId: string; order: number }[],
-  ) {
-    return this.lessonService.updateLessonOrder(lessons);
+    @Body() body: { lessons: { lessonId: string; order: number }[] },
+  ): Promise<{ message: string }> {
+    return this.lessonService.updateLessonOrder(body.lessons);
   }
 
   @Delete('admin/lesson/delete_lesson/:lessonId')

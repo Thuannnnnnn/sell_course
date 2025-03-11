@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Contents } from './entities/contents.entity';
 import { Lesson } from '../lesson/entities/lesson.entity';
 
@@ -85,5 +85,58 @@ export class ContentService {
 
     content.contentName = contentName;
     return await this.contentRepository.save(content);
+  }
+
+  async updateContentOrder(
+    contents: { contentId: string; order: number }[],
+  ): Promise<{ message: string }> {
+    try {
+      if (!Array.isArray(contents)) {
+        throw new HttpException(
+          'Contents must be an array',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const contentIds = contents.map((c) => c.contentId);
+      const count = await this.contentRepository.count({
+        where: { contentId: In(contentIds) },
+      });
+
+      if (count !== contents.length) {
+        const existing = await this.contentRepository.find({
+          where: { contentId: In(contentIds) },
+          select: ['contentId'],
+        });
+        const foundIds = new Set(existing.map((c) => c.contentId));
+        const missing = contents.filter((c) => !foundIds.has(c.contentId));
+        throw new HttpException(
+          `Contents with IDs ${missing.map((c) => c.contentId).join(', ')} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      await this.contentRepository
+        .createQueryBuilder()
+        .update()
+        .set({
+          order: () =>
+            'CASE ' +
+            contents
+              .map((c) => `WHEN contentId = '${c.contentId}' THEN ${c.order}`)
+              .join(' ') +
+            ' END',
+        })
+        .where({ contentId: In(contentIds) })
+        .execute();
+
+      return { message: 'Content order updated successfully' };
+    } catch (error) {
+      console.error('Error updating content order:', error);
+      throw error instanceof HttpException
+        ? error
+        : new HttpException(
+            'Internal Server Error',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+    }
   }
 }

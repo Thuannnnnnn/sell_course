@@ -39,7 +39,6 @@
   align-items: center;
 }
 
-
 .list-group-item:hover {
   background: #e9ecef;
   border-left: 5px solid #0056b3;
@@ -125,4 +124,11 @@
     font-size: 14px;
     padding: 10px;
   }
+}
+.cursorPointer {
+  cursor: pointer;
+}
+.dragging {
+  opacity: 0.5;
+  border: 2px dashed #999;
 }

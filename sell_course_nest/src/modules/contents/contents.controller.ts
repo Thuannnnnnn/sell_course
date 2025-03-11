@@ -57,4 +57,18 @@ export class ContentController {
       throw new HttpException(error, 500);
     }
   }
+
+  @Put('admin/content/update_order')
+  async updateContentOrder(
+    @Body() body: { contents: { contentId: string; order: number }[] },
+  ) {
+    try {
+      return await this.contentService.updateContentOrder(body.contents);
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error instanceof HttpException ? error.getStatus() : 500,
+      );
+    }
+  }
 }
