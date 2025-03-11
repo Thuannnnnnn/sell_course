@@ -407,6 +407,8 @@ body {
 .waitListCourse {
   background: #e8fdf8;
 }
+
+
 .feedback-section {
   margin-top: 20px;
   padding: 20px;
@@ -471,15 +473,20 @@ body {
   border-radius: 4px;
   background: #f9f9f9;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.feedback-card:hover {
+  background-color: #f0f0f0;
 }
 
 .feedback-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex: 1;
 }
 
 .feedback-user-info {
@@ -531,6 +538,12 @@ body {
   color: #dc3545;
 }
 
+.feedback-text {
+  margin: 0;
+  color: #333;
+  word-wrap: break-word;
+}
+
 .feedback-rating {
   display: flex;
   align-items: center;
@@ -540,4 +553,36 @@ body {
 .rating-value {
   color: #666;
   margin-left: 5px;
+}
+/* Trong CourseDetail.css hoặc tệp CSS tương ứng */
+.star-rating-display {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.star {
+  font-size: 18px;
+  color: #ccc;
+}
+
+.star.filled {
+  color: #ffd700;
+}
+
+.star.half {
+  color: #ffd700;
+  position: relative;
+  overflow: hidden;
+  width: 0.5em;
+}
+
+.star.half::after {
+  content: "★";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  color: #ccc;
 }

@@ -120,7 +120,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     fetchQaData();
   }, [courseId]);
 
-  // ✅ Fetch Feedback khi courseId thay đổi
+
   useEffect(() => {
     const fetchFeedbackRatings = async () => {
       if (!courseId) return;
@@ -135,86 +135,140 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     fetchFeedbackRatings();
   }, [courseId]);
 
-// ✅ Hàm Thêm hoặc Cập nhật Feedback
-const handleSubmitFeedback = async () => {
-  if (!session || !session.user || !session.user.user_id) {
-    NotificationManager.warning(t("loginRequired") || "You need to log in to submit feedback.", t("warning") || "Warning", 2000);
-    return;
-  }
 
-  if (!newFeedback.trim()) {
-    NotificationManager.error("Feedback cannot be empty", t("error") || "Error", 2000);
-    return;
-  }
-
-  if (newStar < 1 || newStar > 5) {
-    NotificationManager.error("Rating must be between 1 and 5 stars", t("error") || "Error", 2000);
-    return;
-  }
-
-  try {
-    const userId = String(session.user.user_id);
-    const existingFeedback = feedbacks.find(
-      (fb) => fb.user && String(fb.user.user_id) === userId
-    );
-
-    if (existingFeedback) {
-      console.log("Updating existing feedback...");
-      const updatedFeedback = await updateFeedbackRating(
-        existingFeedback.feedbackRattingId,
-        newStar,
-        newFeedback,
-        session.user.token
+  const handleSubmitFeedback = async () => {
+    if (!session || !session.user || !session.user.user_id) {
+      NotificationManager.warning(
+        t("loginRequired") || "You need to log in to submit feedback.",
+        t("warning") || "Warning",
+        2000
       );
-
-      setFeedbacks((prev) =>
-        prev.map((fb) =>
-          fb.user && String(fb.user.user_id) === userId
-            ? { ...fb, star: newStar, feedback: newFeedback }
-            : fb
-        )
-      );
-      NotificationManager.success("Feedback updated successfully", t("success") || "Success", 2000);
-    } else {
-      console.log("Creating new feedback...");
-      const feedback = await createFeedbackRating(
-        userId,
-        courseId,
-        newStar,
-        newFeedback,
-        session.user.token
-      );
-
-      setFeedbacks((prev) => [feedback, ...prev]);
-      NotificationManager.success("Feedback submitted successfully", t("success") || "Success", 2000);
+      return;
     }
 
-    setNewFeedback("");
-    setNewStar(5);
-  } catch (error) {
-    console.error("Error submitting feedback:", error);
-    NotificationManager.error("Failed to submit feedback", t("error") || "Error", 2000);
-  }
-};
+    if (!newFeedback.trim()) {
+      NotificationManager.error(
+        "Feedback cannot be empty",
+        t("error") || "Error",
+        2000
+      );
+      return;
+    }
 
-// ✅ Hàm Xóa Feedback
-const handleDeleteFeedback = async (feedbackId: string) => {
-  if (!session) {
-    NotificationManager.warning("You need to log in to delete feedback.", t("warning") || "Warning", 2000);
-    return;
-  }
-  if (!confirm("Are you sure you want to delete this feedback?")) return;
-  try {
-    await deleteFeedbackRating(feedbackId, session.user.token);
-    setFeedbacks((prev) =>
-      prev.filter((fb) => fb.feedbackRattingId !== feedbackId)
-    );
-    NotificationManager.success("Feedback deleted successfully", t("success") || "Success", 2000);
-  } catch (error) {
-    console.error("Error deleting feedback:", error);
-    NotificationManager.error("Failed to delete feedback", t("error") || "Error", 2000);
-  }
-};
+    if (newStar < 1 || newStar > 5) {
+      NotificationManager.error(
+        "Rating must be between 1 and 5 stars",
+        t("error") || "Error",
+        2000
+      );
+      return;
+    }
+
+    try {
+      const userId = String(session.user.user_id);
+      const existingFeedback = feedbacks.find(
+        (fb) => fb.user && String(fb.user.user_id) === userId
+      );
+
+      if (existingFeedback) {
+        console.log("Updating existing feedback...");
+        const updatedFeedback = await updateFeedbackRating(
+          existingFeedback.feedbackRattingId,
+          newStar,
+          newFeedback,
+          session.user.token
+        );
+
+        setFeedbacks((prev) =>
+          prev.map((fb) =>
+            fb.user && String(fb.user.user_id) === userId
+              ? { ...fb, star: newStar, feedback: newFeedback }
+              : fb
+          )
+        );
+        NotificationManager.success(
+          "Feedback updated successfully",
+          t("success") || "Success",
+          2000
+        );
+      } else {
+        console.log("Creating new feedback...");
+        const feedback = await createFeedbackRating(
+          userId,
+          courseId,
+          newStar,
+          newFeedback,
+          session.user.token
+        );
+
+        setFeedbacks((prev) => [feedback, ...prev]);
+        NotificationManager.success(
+          "Feedback submitted successfully",
+          t("success") || "Success",
+          2000
+        );
+      }
+
+      setNewFeedback("");
+      setNewStar(5);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      NotificationManager.error(
+        "Failed to submit feedback",
+        t("error") || "Error",
+        2000
+      );
+    }
+  };
+
+  const handleEditFeedback = (feedback: ResponseFeedbackRatingDto) => {
+    setNewFeedback(feedback.feedback || "");
+    setNewStar(feedback.star || 5);
+  };
+
+  // ✅ Hàm Xóa Feedback
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    if (!session) {
+      NotificationManager.warning(
+        "You need to log in to delete feedback.",
+        t("warning") || "Warning",
+        2000
+      );
+      return;
+    }
+    if (!confirm("Are you sure you want to delete this feedback?")) return;
+    try {
+      await deleteFeedbackRating(feedbackId, session.user.token);
+      setFeedbacks((prev) =>
+        prev.filter((fb) => fb.feedbackRattingId !== feedbackId)
+      );
+      NotificationManager.success(
+        "Feedback deleted successfully",
+        t("success") || "Success",
+        2000
+      );
+    } catch (error) {
+      console.error("Error deleting feedback:", error);
+      NotificationManager.error(
+        "Failed to delete feedback",
+        t("error") || "Error",
+        2000
+      );
+    }
+  };
+  // Thêm useEffect để tự động điền feedback của người dùng hiện tại
+  useEffect(() => {
+    if (session?.user?.user_id && feedbacks.length > 0) {
+      const currentUserFeedback = feedbacks.find(
+        (fb) =>
+          fb.user && String(fb.user.user_id) === String(session.user.user_id)
+      );
+      if (currentUserFeedback) {
+        setNewFeedback(currentUserFeedback.feedback || "");
+        setNewStar(currentUserFeedback.star || 5);
+      }
+    }
+  }, [feedbacks, session]);
 
   useEffect(() => {
     if (error) {
@@ -432,92 +486,110 @@ const handleDeleteFeedback = async (feedbackId: string) => {
           </div>
 
           <div className="feedback-section">
-  <h2>Feedbacks</h2>
+            <h2>Feedbacks</h2>
 
-  {/* Feedback Input Form */}
-  <div className="feedback-input-container">
-    <textarea
-      value={newFeedback}
-      onChange={(e) => setNewFeedback(e.target.value)}
-      placeholder="Share your experience..."
-      className="feedback-textarea"
-    />
-    <div className="rating-container">
-      <span>Rating</span>
-      <div className="star-rating">
-        {Array.from({ length: 5 }, (_, index) => (
-          <span
-            key={index}
-            className={`star ${index < newStar ? "filled" : ""}`}
-            onClick={() => setNewStar(index + 1)}
-          >
-            ★
-          </span>
-        ))}
-      </div>
-    </div>
-    <button className="submit-feedback-btn" onClick={handleSubmitFeedback}>
-      Submit Feedback
-    </button>
-  </div>
-
-  {/* Display Existing Feedbacks */}
-  {feedbacks.length > 0 ? (
-    feedbacks
-      .slice() // Tạo bản sao để không ảnh hưởng mảng gốc
-      .sort((a, b) => {
-        const currentUserId = session?.user?.user_id;
-        const isACurrentUser = a.user && String(a.user.user_id) === String(currentUserId);
-        const isBCurrentUser = b.user && String(b.user.user_id) === String(currentUserId);
-        return isBCurrentUser ? 1 : isACurrentUser ? -1 : 0; // Đưa feedback của user hiện tại lên đầu
-      })
-      .map((feedback) => (
-        <div key={feedback.feedbackRattingId} className="feedback-card">
-          <div className="feedback-header">
-            <div className="feedback-user-info">
-              {feedback.user?.avatarImg ? (
-                <Image
-                  src={feedback.user.avatarImg}
-                  alt="User Avatar"
-                  width={32}
-                  height={32}
-                  className="feedback-avatar"
-                />
-              ) : (
-                <div className="feedback-avatar-placeholder">
-                  {feedback.user?.username?.charAt(0) || "A"}
+            {/* Feedback Input Form */}
+            <div className="feedback-input-container">
+              <textarea
+                value={newFeedback}
+                onChange={(e) => setNewFeedback(e.target.value)}
+                placeholder="Share your experience..."
+                className="feedback-textarea"
+              />
+              <div className="rating-container">
+                <span>Rating</span>
+                <div className="star-rating">
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <span
+                      key={index}
+                      className={`star ${index < newStar ? "filled" : ""}`}
+                      onClick={() => setNewStar(index + 1)}
+                    >
+                      ★
+                    </span>
+                  ))}
                 </div>
-              )}
-              <div className="feedback-user-details">
-                <span className="feedback-author">{feedback.user?.username || "Anonymous"}</span>
-                <span className="feedback-role">{feedback.user?.email || "No Role"}</span>
               </div>
-            </div>
-            <button
-              className="delete-feedback-btn"
-              onClick={() => handleDeleteFeedback(feedback.feedbackRattingId)}
-              title="Delete Feedback"
-            >
-              🗑️
-            </button>
-          </div>
-          <div className="feedback-rating">
-            {Array.from({ length: 5 }, (_, index) => (
-              <span
-                key={index}
-                className={`star ${index < feedback.star ? "filled" : ""}`}
+              <button
+                className="submit-feedback-btn"
+                onClick={handleSubmitFeedback}
               >
-                ★
-              </span>
-            ))}
-            <span className="rating-value">/5</span>
+                Submit Feedback
+              </button>
+            </div>
+
+            {/* Display Existing Feedbacks */}
+            {feedbacks.length > 0 ? (
+              feedbacks
+                .slice() // Tạo bản sao để không ảnh hưởng mảng gốc
+                .sort((a, b) => {
+                  const currentUserId = session?.user?.user_id;
+                  const isACurrentUser =
+                    a.user && String(a.user.user_id) === String(currentUserId);
+                  const isBCurrentUser =
+                    b.user && String(b.user.user_id) === String(currentUserId);
+                  return isBCurrentUser ? 1 : isACurrentUser ? -1 : 0; // Đưa feedback của user hiện tại lên đầu
+                })
+                .map((feedback) => (
+                  <div
+                    key={feedback.feedbackRattingId}
+                    className="feedback-card"
+                  >
+                    <div className="feedback-header">
+                      <div className="feedback-user-info">
+                        {feedback.user?.avatarImg ? (
+                          <Image
+                            src={feedback.user.avatarImg}
+                            alt="User Avatar"
+                            width={32}
+                            height={32}
+                            className="feedback-avatar"
+                          />
+                        ) : (
+                          <div className="feedback-avatar-placeholder">
+                            {feedback.user?.username?.charAt(0) || "A"}
+                          </div>
+                        )}
+                        <div className="feedback-user-details">
+                          <span className="feedback-author">
+                            {feedback.user?.username || "Anonymous"}
+                          </span>
+                          <span className="feedback-role">
+                            {feedback.user?.role || "No Role"}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        className="delete-feedback-btn"
+                        onClick={() =>
+                          handleDeleteFeedback(feedback.feedbackRattingId)
+                        }
+                        title="Delete Feedback"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    <p className="feedback-text">{feedback.feedback}</p>
+                    <div className="feedback-rating">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <span
+                          key={index}
+                          className={`star ${
+                            index < feedback.star ? "filled" : ""
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                      <span className="rating-value">/5</span>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <p>No feedbacks yet</p>
+            )}
           </div>
-        </div>
-      ))
-  ) : (
-    <p>No feedbacks yet</p>
-  )}
-</div>
+
           <div className="course-qa bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-2xl font-bold mb-6">
               {t("questionsAndAnswers")}
