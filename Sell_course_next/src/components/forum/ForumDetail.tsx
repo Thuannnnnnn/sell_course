@@ -91,45 +91,45 @@ const ForumDetail: React.FC = () => {
       );
   }, [forumId, fetchForumDetail]);
 
-  useEffect(() => {
-    const handleUserInteraction = () => setPollingActive(true);
-    window.addEventListener("click", handleUserInteraction);
-    window.addEventListener("keydown", handleUserInteraction);
-    window.addEventListener("mousemove", handleUserInteraction);
-    window.addEventListener("touchstart", handleUserInteraction);
-    return () => {
-      window.removeEventListener("click", handleUserInteraction);
-      window.removeEventListener("keydown", handleUserInteraction);
-      window.removeEventListener("mousemove", handleUserInteraction);
-      window.removeEventListener("touchstart", handleUserInteraction);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const handleUserInteraction = () => setPollingActive(true);
+  //   window.addEventListener("click", handleUserInteraction);
+  //   window.addEventListener("keydown", handleUserInteraction);
+  //   window.addEventListener("mousemove", handleUserInteraction);
+  //   window.addEventListener("touchstart", handleUserInteraction);
+  //   return () => {
+  //     window.removeEventListener("click", handleUserInteraction);
+  //     window.removeEventListener("keydown", handleUserInteraction);
+  //     window.removeEventListener("mousemove", handleUserInteraction);
+  //     window.removeEventListener("touchstart", handleUserInteraction);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    if (!pollingActive || reactionProcessing) return;
+  // useEffect(() => {
+  //   if (!pollingActive || reactionProcessing) return;
 
-    const intervalId = setInterval(() => {
-      if (!document.hidden && !reactionProcessing) {
-        setIsCurrentlyPolling(true);
-        Promise.all([fetchForumDetail(true), fetchDiscussions()]).finally(() =>
-          setIsCurrentlyPolling(false)
-        );
-      }
-    }, 3000);
+  //   const intervalId = setInterval(() => {
+  //     if (!document.hidden && !reactionProcessing) {
+  //       setIsCurrentlyPolling(true);
+  //       Promise.all([fetchForumDetail(true), fetchDiscussions()]).finally(() =>
+  //         setIsCurrentlyPolling(false)
+  //       );
+  //     }
+  //   }, 3000);
 
-    const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
+  //   const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
 
-    return () => {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
-    };
-  }, [
-    pollingActive,
-    forumId,
-    reactionProcessing,
-    fetchForumDetail,
-    fetchDiscussions,
-  ]);
+  //   return () => {
+  //     clearInterval(intervalId);
+  //     clearTimeout(timeoutId);
+  //   };
+  // }, [
+  //   pollingActive,
+  //   forumId,
+  //   reactionProcessing,
+  //   fetchForumDetail,
+  //   fetchDiscussions,
+  // ]);
 
   const handleReactionProcessing = (isProcessing: boolean) => {
     setReactionProcessing(isProcessing);
@@ -201,7 +201,7 @@ const ForumDetail: React.FC = () => {
 
   return (
     <div className="container py-4">
-      {pollingActive && (
+      {/* {pollingActive && ( */}
         <div
           className="position-fixed bottom-0 end-0 p-3"
           style={{ zIndex: 1050 }}
@@ -231,7 +231,7 @@ const ForumDetail: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      {/* )} */}
       <div className="row">
         <div className="col-lg-8">
           <nav aria-label="breadcrumb" className="mb-4">

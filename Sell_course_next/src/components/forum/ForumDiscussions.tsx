@@ -145,23 +145,23 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (!pollingActive) return;
+  // useEffect(() => {
+  //   if (!pollingActive) return;
 
-    const intervalId = setInterval(() => {
-      if (!document.hidden) {
-        setIsCurrentlyPolling(true);
-        fetchDiscussions().finally(() => setIsCurrentlyPolling(false));
-      }
-    }, 3000);
+  //   const intervalId = setInterval(() => {
+  //     if (!document.hidden) {
+  //       setIsCurrentlyPolling(true);
+  //       fetchDiscussions().finally(() => setIsCurrentlyPolling(false));
+  //     }
+  //   }, 3000);
 
-    const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
+  //   const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
 
-    return () => {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
-    };
-  }, [pollingActive, forumId, fetchDiscussions]);
+  //   return () => {
+  //     clearInterval(intervalId);
+  //     clearTimeout(timeoutId);
+  //   };
+  // }, [pollingActive, forumId, fetchDiscussions]);
 
   useEffect(() => {
     const handleDiscussionChange = (event: CustomEvent) => {
