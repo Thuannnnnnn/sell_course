@@ -1,4 +1,5 @@
 import { Category } from 'src/modules/category/entities/category.entity';
+import { Notify } from 'src/modules/notify/entities/notify.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
 import {
@@ -48,7 +49,8 @@ export class Course {
 
   @Column({ name: 'is_public', type: 'boolean', default: true })
   isPublic: boolean;
-
+  @OneToMany(() => Notify, (notify) => notify.course)
+  notifies: Notify[];
   @BeforeInsert()
   prePersist() {
     if (!this.courseId) {

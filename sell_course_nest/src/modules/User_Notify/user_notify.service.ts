@@ -50,10 +50,11 @@ export class UserNotifyService {
     });
   }
 
-  async findUserNotifyById(id: string): Promise<UserNotify> {
+  async findUserNotifyById(userId: string): Promise<UserNotify> {
     const userNotify = await this.userNotifyRepository.findOne({
-      where: { id },
+      where: { user: { user_id: userId } },
       relations: ['user', 'notify'],
+      order: { read_at: 'ASC' },
     });
     if (!userNotify) throw new NotFoundException('User notification not found');
     return userNotify;
