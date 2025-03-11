@@ -66,7 +66,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       return;
     }
 
-    setIsProcessing(true);
+    setIsProcessing(false);
     const token = session.user.token;
 
     try {
