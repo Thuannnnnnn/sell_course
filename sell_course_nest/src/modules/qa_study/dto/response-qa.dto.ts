@@ -1,5 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+class ReactionQaDto {
+  @ApiProperty({
+    example: 'user@example.com',
+    description: 'User Email',
+  })
+  userEmail: string;
+
+  @ApiProperty({
+    example: 'like',
+    description: 'Reaction Type',
+    enum: ['like', 'love', 'haha', 'wow', 'sad', 'angry'],
+  })
+  reactionType: string;
+}
+
 export class ResponseQaDto {
   @ApiProperty({
     example: '987e6543-e21b-11d3-a456-426614174001',
@@ -39,4 +54,10 @@ export class ResponseQaDto {
     description: 'User Avatar Image',
   })
   avatarImg?: string;
+
+  @ApiPropertyOptional({
+    type: [ReactionQaDto],
+    description: 'List of reactions for this QA',
+  })
+  reactionQas?: ReactionQaDto[];
 }
