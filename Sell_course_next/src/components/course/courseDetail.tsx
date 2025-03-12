@@ -55,17 +55,10 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  // const [showReplyPopup, setShowReplyPopup] = useState(false);
-  // const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
-  //   null
-  // );
-  // const [replyText, setReplyText] = useState("");
   const [feedbacks, setFeedbacks] = useState<ResponseFeedbackRatingDto[]>([]);
   const [newFeedback, setNewFeedback] = useState("");
   const [newStar, setNewStar] = useState(5);
   const [isPurchased, setIsPurchased] = useState(false);
-  console.log("Session Status:", status);
-  console.log("Session Data:", session);
   const t = useTranslations("courseDetailForm");
 
   useEffect(() => {
