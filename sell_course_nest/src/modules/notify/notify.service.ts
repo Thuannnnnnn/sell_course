@@ -27,6 +27,24 @@ export class NotifyService {
     private readonly notifyGateway: NotifyGateway,
   ) {}
 
+  async getAll(): Promise<Notify[]> {
+    return await this.notifyRepository.find({
+      relations: ['course', 'userNotifies'],
+    });
+  }
+
+  async getById(id: string): Promise<Notify> {
+    const notify = await this.notifyRepository.findOne({
+      where: { notifyId: id },
+      relations: ['course', 'userNotifies'],
+    });
+
+    if (!notify) {
+      throw new Error(`Notify with ID ${id} not found`);
+    }
+
+    return notify;
+  }
   async create(createNotifyDto: CreateNotifyDto): Promise<Notify> {
     const { title, message, type, courseId, userId } = createNotifyDto;
     const notify = this.notifyRepository.create({ title, message, type });
@@ -77,18 +95,20 @@ export class NotifyService {
   }
 
   async update(id: string, updateNotifyDto: UpdateNotifyDto): Promise<Notify> {
-    await this.notifyRepository.update(id, updateNotifyDto);
+    const { title, message } = updateNotifyDto;
+
+    await this.notifyRepository.update(id, { title, message });
+
     const updatedNotify = await this.notifyRepository.findOne({
       where: { notifyId: id },
     });
+
     if (!updatedNotify) throw new Error('Notification not found');
 
     const userNotifies = await this.userNotifyRepository.find({
       where: { notify: { notifyId: id } },
       relations: ['user'],
     });
-
-    console.log('check check check: ', userNotifies);
 
     userNotifies.forEach((userNotify) =>
       this.notifyGateway.sendUpdateToUser(
@@ -100,7 +120,7 @@ export class NotifyService {
     return updatedNotify;
   }
 
-  async removeNotification(id: string): Promise<void> {
+  async removeNotification(id: string): Promise<string> {
     const userNotifies = await this.userNotifyRepository.find({
       where: { notify: { notifyId: id } },
       relations: ['user'],
@@ -114,5 +134,7 @@ export class NotifyService {
     userNotifies.forEach((userNotify) =>
       this.notifyGateway.sendRemoveToUser(userNotify.user.user_id, id),
     );
+    await this.notifyRepository.delete(id);
+    return 'Sucessful';
   }
 }

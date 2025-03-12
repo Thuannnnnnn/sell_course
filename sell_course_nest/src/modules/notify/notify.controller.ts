@@ -7,6 +7,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  Get,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -23,6 +24,24 @@ import { Notify } from './entities/notify.entity';
 export class NotifyController {
   constructor(private readonly notifyService: NotifyService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get all notifications' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of notifications',
+    type: [Notify],
+  })
+  async getAll(): Promise<Notify[]> {
+    return await this.notifyService.getAll();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a notification by ID' })
+  @ApiResponse({ status: 200, description: 'Notification found', type: Notify })
+  @ApiResponse({ status: 404, description: 'Notification not found' })
+  async getById(@Param('id') id: string): Promise<Notify> {
+    return await this.notifyService.getById(id);
+  }
   @ApiBearerAuth('Authorization')
   @Post('create')
   @ApiOperation({ summary: 'Create a new notification' })
@@ -62,7 +81,7 @@ export class NotifyController {
     description: 'Notification deleted successfully',
   })
   @ApiResponse({ status: 404, description: 'Notification not found' })
-  async deleteNotify(@Param('id') id: string): Promise<void> {
+  async deleteNotify(@Param('id') id: string): Promise<string> {
     return await this.notifyService.removeNotification(id);
   }
 }

@@ -513,5 +513,25 @@
   "waitListPage": {
     "title": "Danh sách chờ",
     "noCourse": "Bạn chưa thêm khóa học nào vào danh sách chờ"
+  },
+  "notifies": {
+    "notify" : "Quản lý Thông Báo",
+    "title": "Tiêu đề",
+    "type": "Loại",
+    "dateCreated": "Ngày tạo",
+    "actions": "Hành động",
+    "edit": "Chỉnh sửa",
+    "create" : "Tạo",
+    "delete": "Xóa",
+    "success": "Thao tác thành công!",
+    "error": "Đã xảy ra lỗi",
+    "selectCourse": "Chọn khóa học",
+    "selectUser": "Chọn người dùng",
+    "createNotification": "Tạo thông báo",
+    "editNotification": "Chỉnh sửa thông báo",
+    "message": "Nội dung",
+    "global": "Toàn cầu",
+    "course": "Khóa học",
+    "user": "Người dùng"
   }
 }

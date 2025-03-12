@@ -81,22 +81,4 @@ export class UpdateNotifyDto {
   @ApiProperty({ example: false, required: false })
   @IsOptional()
   isGlobal?: boolean;
-
-  @ApiProperty({
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    description: 'Course ID if updating a course-specific notification',
-    required: false,
-  })
-  @IsOptional()
-  @IsUUID()
-  courseId?: string;
-
-  @ApiProperty({
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    description: 'user ID if the notification is for a course',
-    required: false,
-  })
-  @IsOptional()
-  @IsUUID()
-  userId?: string;
 }
