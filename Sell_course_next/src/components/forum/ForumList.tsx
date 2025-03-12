@@ -29,10 +29,10 @@ const ForumList: React.FC = () => {
         });
         setForums(sortedByDate);
         const sortedByEngagement = [...forumData].sort((a, b) => {
-          const aReactions = a.reactionTopics.length;
-          const aComments = a.discussions.length;
-          const bReactions = b.reactionTopics.length;
-          const bComments = b.discussions.length;
+          const aReactions = a.reactionTopics?.length ?? 0;
+          const aComments = a.discussions?.length ?? 0;
+          const bReactions = b.reactionTopics?.length ?? 0;
+          const bComments = b.discussions?.length ?? 0;
           const aTotal = aReactions + aComments;
           const bTotal = bReactions + bComments;
           if (aTotal === bTotal) {
@@ -43,8 +43,7 @@ const ForumList: React.FC = () => {
             return bReactions - aReactions;
           }
           return bTotal - aTotal;
-        });
-        setTopForums(sortedByEngagement.slice(0, 3));
+        });        setTopForums(sortedByEngagement.slice(0, 3));
         setError(null);
       } catch {
         setError(t('errorLoading'));
@@ -219,7 +218,7 @@ const ForumList: React.FC = () => {
                       </span>
                       <span>
                         <i className="bi bi-hand-thumbs-up me-1"></i>
-                        {forum.reactionTopics.length} {t("likes")}
+                        {forum.reactionTopics?.length || 0} {t("likes")}
                       </span>
                     </div>
                   </li>
@@ -251,7 +250,7 @@ const ForumList: React.FC = () => {
                 {t("totalReactions")}:{" "}
                 <strong>
                   {forums.reduce(
-                    (total, forum) => total + forum.reactionTopics.length,
+                    (total, forum) => total + (forum.reactionTopics?.length || 0),
                     0
                   )}
                 </strong>

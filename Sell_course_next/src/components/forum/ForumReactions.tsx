@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { Reaction, reactionEmojis, ReactionType } from "@/app/type/forum/forum";
@@ -32,12 +32,10 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
   const [allReactions, setAllReactions] = useState<Reaction[]>(reactions);
   const [socket, setSocket] = useState<Socket | null>(null);
 
-  // Đồng bộ allReactions với props reactions
   useEffect(() => {
     setAllReactions(reactions);
   }, [reactions]);
 
-  // Kết nối WebSocket
   useEffect(() => {
     const socketInstance = io(
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
@@ -56,12 +54,10 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     };
   }, [session?.user?.token]);
 
-  // Lắng nghe sự kiện từ server
   useEffect(() => {
     if (!socket) return;
 
     socket.on("connect", () => {
-      console.log("Connected to WebSocket server for reactions");
       socket.emit("joinForumRoom", forumId);
     });
 
@@ -73,7 +69,6 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     });
 
     socket.on("disconnect", () => {
-      console.log("Disconnected from WebSocket server");
     });
 
     return () => {
@@ -86,16 +81,22 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     };
   }, [socket, forumId, onReactionChange]);
 
-  const syncReactions = useCallback(async () => {
-    if (!session?.user?.token) return null;
-    const result = await getReactionsByTopic(session.user.token, forumId);
-    if (result.success && Array.isArray(result.data)) {
-      setAllReactions(result.data);
-      onReactionChange?.(result.data);
-      return result.data;
-    }
-    return null;
-  }, [forumId, session?.user?.token]);
+const onReactionChangeRef = useRef(onReactionChange);
+
+useEffect(() => {
+  onReactionChangeRef.current = onReactionChange;
+}, [onReactionChange]);
+
+const syncReactions = useCallback(async () => {
+  if (!session?.user?.token) return null;
+  const result = await getReactionsByTopic(session.user.token, forumId);
+  if (result.success && Array.isArray(result.data)) {
+    setAllReactions(result.data);
+    onReactionChangeRef.current?.(result.data);
+    return result.data;
+  }
+  return null;
+}, [forumId, session?.user?.token]);
 
   useEffect(() => {
     syncReactions();
@@ -205,8 +206,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       }
 
       await syncReactions();
-    } catch (error) {
-      console.error("Error handling reaction:", error);
+    } catch {
       await syncReactions();
     } finally {
       setIsProcessing(false);

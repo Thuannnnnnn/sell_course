@@ -28,7 +28,16 @@ const ForumDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
 
-  // Kết nối WebSocket
+  const syncReactions = useCallback(async () => {
+    if (!session?.user?.token) return;
+    const result = await getReactionsByTopic(session.user.token, forumId);
+    if (result.success && Array.isArray(result.data)) {
+      setForum((prev) =>
+        prev ? { ...prev, reactionTopics: result.data } : null
+      );
+    }
+  }, [forumId, session?.user?.token]);
+
   useEffect(() => {
     const socketInstance = io(
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
@@ -85,8 +94,7 @@ const ForumDetail: React.FC = () => {
       socketInstance.off("forumDeleted");
       socketInstance.disconnect();
     };
-  }, [forumId, session?.user?.token, locale, router]);
-  
+  }, [forumId, session?.user?.token, locale, router, syncReactions]);
 
   const fetchForumDetail = useCallback(
     async (isInitial = true) => {
@@ -131,16 +139,6 @@ const ForumDetail: React.FC = () => {
       }
     } catch (err) {
       console.error("Error fetching discussions:", err);
-    }
-  }, [forumId, session?.user?.token]);
-
-  const syncReactions = useCallback(async () => {
-    if (!session?.user?.token) return;
-    const result = await getReactionsByTopic(session.user.token, forumId);
-    if (result.success && Array.isArray(result.data)) {
-      setForum((prev) =>
-        prev ? { ...prev, reactionTopics: result.data } : null
-      );
     }
   }, [forumId, session?.user?.token]);
 
