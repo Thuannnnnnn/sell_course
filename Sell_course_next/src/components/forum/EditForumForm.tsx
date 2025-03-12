@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { CreateForumDto, Forum } from "@/app/type/forum/forum";
-
+import { FaTrash } from "react-icons/fa";
 interface EditForumFormProps {
   forumId: string;
 }
@@ -315,7 +315,7 @@ const EditForumForm: React.FC<EditForumFormProps> = ({ forumId }) => {
                           className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
                           onClick={handleRemoveImage}
                         >
-                          <i className="bi bi-x"></i>
+                          <FaTrash />
                         </button>
                       </div>
                     )}

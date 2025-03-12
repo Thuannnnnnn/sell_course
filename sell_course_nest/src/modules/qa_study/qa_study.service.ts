@@ -71,7 +71,13 @@ export class QaStudyService {
   async findByCourseId(courseId: string): Promise<ResponseQaDto[]> {
     const qaList = await this.qaRepository.find({
       where: { course: { courseId } },
-      relations: ['user', 'parent', 'replies'],
+      relations: [
+        'user',
+        'parent',
+        'replies',
+        'reactionQas',
+        'reactionQas.user',
+      ],
       order: { qaStudyId: 'ASC' },
     });
 
@@ -84,8 +90,13 @@ export class QaStudyService {
       parentId: qa.parent ? qa.parent.qaStudyId : null,
       createdAt: qa.createdAt.toISOString(),
       avatarImg: qa.user.avatarImg,
+      reactionQas: qa.reactionQas.map((reaction) => ({
+        userEmail: reaction.user.email,
+        reactionType: reaction.reactionType,
+      })),
     }));
   }
+
   async findOne(id: string): Promise<QaStudy> {
     const qa = await this.qaRepository.findOne({
       where: { qaStudyId: id },

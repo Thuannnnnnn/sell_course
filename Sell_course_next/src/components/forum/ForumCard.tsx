@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
+import { addHours, formatDistanceToNow } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -23,10 +23,13 @@ const ForumCard: React.FC<ForumCardProps> = ({ forum }) => {
 
   const dateLocale = locale === "vi" ? vi : enUS;
 
-  const formattedDate = formatDistanceToNow(new Date(forumState.createdAt), {
-    addSuffix: true,
-    locale: dateLocale,
-  });
+  const formattedDate = formatDistanceToNow(
+    addHours(new Date(forumState.createdAt), 7),
+    {
+      addSuffix: true,
+      locale: dateLocale,
+    }
+  );
 
   return (
     <div className="card mb-4 shadow-sm">
@@ -100,7 +103,7 @@ const ForumCard: React.FC<ForumCardProps> = ({ forum }) => {
         </div>
         <div className="reaction-summary">
           <ForumReactionsReadOnly
-            reactions={forumState.reactionTopics.map((reaction) => ({
+            reactions={forumState.reactionTopics?.map((reaction) => ({
               userId: reaction.userId,
               reactionId: reaction.reactionId,
               reactionType: validateReactionType(reaction.reactionType),
