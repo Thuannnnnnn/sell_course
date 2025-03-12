@@ -451,6 +451,8 @@
     "createNewPost": "Create New Post",
     "editPost": "Edit Post",
     "deletePost": "Delete Post",
+    "deleteFailed": "Failed to delete post.",
+    "confirmDeleteComment": "Confirm Delete Comment",
     "confirmDelete": "Confirm Delete Post",
     "confirmDeleteMessage": "Are you sure you want to delete this post? This action cannot be undone.",
     "cancel": "Cancel",
