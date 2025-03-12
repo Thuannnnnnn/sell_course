@@ -59,22 +59,26 @@ export class FeedbackRattingController {
     return this.feedbackRattingService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get feedback rating by course ID' })
-  @ApiParam({
-    name: 'id',
-    description: 'Feedback Rating course ID',
-    type: String,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Successful retrieval',
-    type: FeedbackRatting,
-  })
-  @ApiResponse({ status: 404, description: 'Feedback not found' })
-  findOne(@Param('id') id: string) {
-    return this.feedbackRattingService.findOne(id);
+@Get(':id')
+@ApiOperation({ summary: 'Get feedback rating by course ID' })
+@ApiParam({
+  name: 'id',
+  description: 'Feedback Rating course ID',
+  type: String,
+})
+@ApiResponse({
+  status: 200,
+  description: 'Successful retrieval',
+  type: FeedbackRatting,
+})
+@ApiResponse({ status: 404, description: 'Feedback not found' })
+async findOne(@Param('id') id: string) {
+  const feedback = await this.feedbackRattingService.findOne(id);
+  if (!feedback) {
+    return { message: 'No feedback found for this course' };
   }
+  return feedback;
+}
 
   @Put(':id')
   @ApiBearerAuth('Authorization')

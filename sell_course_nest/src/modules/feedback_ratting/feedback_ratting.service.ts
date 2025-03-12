@@ -1,4 +1,3 @@
-// src/feedback-ratting/feedback-ratting.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -39,14 +38,14 @@ export class FeedbackRattingService {
       relations: ['user', 'course'],
     });
   }
-  async findOne(courseId: string): Promise<FeedbackRatting> {
-    const feedback = await this.feedbackRattingRepository.findOne({
-      where: { course: { courseId } },
-      relations: ['user', 'course'],
-    });
-    if (!feedback) throw new Error('Feedback not found');
-    return feedback;
-  }
+// Fix for src/feedback-ratting/feedback-ratting.service.ts
+async findOne(courseId: string): Promise<FeedbackRatting | null> {
+  const feedback = await this.feedbackRattingRepository.findOne({
+    where: { course: { courseId } },
+    relations: ['user', 'course'],
+  });
+  return feedback;
+}
   async update(
     id: string,
     updateFeedbackRattingDto: UpdateFeedbackRattingDto,

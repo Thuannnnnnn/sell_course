@@ -341,9 +341,10 @@
     "reply": "trả lời",
     "noQuestionsYet": "Chưa có câu hỏi",
     "enterDescription": "Nhập câu hỏi",
-    "addToWaitList": "Thêm khóa mong muốn",
-    "addedToWaitListSuccess": "Khóa học đã được thêm vào danh sách mong muốn!",
-    "addedToWaitListFail": "Không thể thêm khóa học vào danh sách mong muốn."
+    "addToWaitList": "Thêm khóa chờ",
+    "addedToWaitListSuccess": "Khóa học đã được thêm vào danh sách chờ thành công!",
+    "addedToWaitListFail": "Không thể thêm khóa học vào danh sách chờ.",
+    "purFedback": "Bạn cần mua khóa học này để đánh giá"
   },
   "forgotPasswordPage": {
     "title": "Quên Mật Khẩu",
