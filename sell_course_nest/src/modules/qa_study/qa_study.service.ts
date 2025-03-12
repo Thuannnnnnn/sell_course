@@ -7,16 +7,20 @@ import { Course } from '../course/entities/course.entity';
 import { CreateQaDto } from './dto/create-qa.dto';
 import { ResponseQaDto } from './dto/response-qa.dto';
 import { ReactionQa } from './entities/reaction_qa.entity';
+import { QaGateway } from './qa_study.gateway';
+
 @Injectable()
 export class QaStudyService {
   constructor(
     @InjectRepository(QaStudy)
     private readonly qaRepository: Repository<QaStudy>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
     @InjectRepository(ReactionQa)
     private readonly reactionQaRepository: Repository<ReactionQa>,
+    private readonly qaGateway: QaGateway,
   ) {}
 
   async createQa(qaData: CreateQaDto): Promise<QaStudy> {
@@ -39,6 +43,9 @@ export class QaStudyService {
       parent = await this.qaRepository.findOne({
         where: { qaStudyId: qaData.parentId },
       });
+      if (!parent) {
+        throw new NotFoundException('Parent QA not found');
+      }
     }
 
     const qa = this.qaRepository.create({
@@ -47,10 +54,20 @@ export class QaStudyService {
       text: qaData.text,
       parent,
     });
-
-    return this.qaRepository.save(qa);
+    const savedQa = await this.qaRepository.save(qa);
+    const qaResponse: ResponseQaDto = {
+      qaId: savedQa.qaStudyId,
+      userEmail: user.email,
+      username: user.username,
+      courseId: course.courseId,
+      text: savedQa.text,
+      parentId: parent?.qaStudyId || null,
+      createdAt: savedQa.createdAt.toISOString(),
+      avatarImg: user.avatarImg,
+    };
+    await this.qaGateway.broadcastNewQa(qaResponse);
+    return savedQa;
   }
-
   async findByCourseId(courseId: string): Promise<ResponseQaDto[]> {
     const qaList = await this.qaRepository.find({
       where: { course: { courseId } },
@@ -69,7 +86,6 @@ export class QaStudyService {
       avatarImg: qa.user.avatarImg,
     }));
   }
-
   async findOne(id: string): Promise<QaStudy> {
     const qa = await this.qaRepository.findOne({
       where: { qaStudyId: id },
@@ -84,10 +100,13 @@ export class QaStudyService {
   }
 
   async remove(id: string): Promise<void> {
+    const qa = await this.findOne(id);
     await this.reactionQaRepository.delete({ qa: { qaStudyId: id } });
+
     const result = await this.qaRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException('QA not found');
     }
+    await this.qaGateway.broadcastRemoveQa(id, qa.course.courseId);
   }
 }

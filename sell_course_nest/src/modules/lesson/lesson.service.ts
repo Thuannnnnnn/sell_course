@@ -131,9 +131,10 @@ export class LessonService {
   async updateLessonOrder(
     lessons: { lessonId: string; order: number }[],
   ): Promise<{ message: string }> {
+    if (!Array.isArray(lessons)) {
+      throw new Error('Lessons must be an array');
+    }
     const lessonIds = lessons.map((l) => l.lessonId);
-
-    // Verify all lessons exist
     const count = await this.lessonRepository.count({
       where: { lessonId: In(lessonIds) },
     });

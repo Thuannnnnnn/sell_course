@@ -5,7 +5,7 @@ interface Content {
   order: number;
 }
 
-interface Lesson {
+export interface Lesson {
   lessonId: string;
   lessonName: string;
   order: number;
