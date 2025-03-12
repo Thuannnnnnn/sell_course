@@ -113,7 +113,7 @@ const NotifyPage: React.FC = () => {
         addNotify={(newNotify) => setNotifies((prev) => [...prev, newNotify])}
         editNotify={editNotify}
         updateNotify={handleUpdateNotify}
-      /> 
+      />
     </div>
   );
 };

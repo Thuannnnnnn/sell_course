@@ -520,13 +520,13 @@
     "noCourse": "Bạn chưa thêm khóa học nào vào danh sách chờ"
   },
   "notifies": {
-    "notify" : "Quản lý Thông Báo",
+    "notify": "Quản lý Thông Báo",
     "title": "Tiêu đề",
     "type": "Loại",
     "dateCreated": "Ngày tạo",
     "actions": "Hành động",
     "edit": "Chỉnh sửa",
-    "create" : "Tạo",
+    "create": "Tạo",
     "delete": "Xóa",
     "success": "Thao tác thành công!",
     "error": "Đã xảy ra lỗi",
@@ -537,6 +537,11 @@
     "message": "Nội dung",
     "global": "Toàn cầu",
     "course": "Khóa học",
-    "user": "Người dùng"
+    "user": "Người dùng",
+    "no_notification_found": "Không có thông báo nào",
+    "loading": "Đang tải...",
+    "view_all": "Xem tất cả",
+    "notification_detail": "Chi tiết thông báo",
+    "close": "Đóng"
   }
 }
