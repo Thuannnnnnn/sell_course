@@ -34,7 +34,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     null
   );
   const [editContent, setEditContent] = useState<string>("");
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     if (!session?.user?.token) return;
@@ -65,7 +65,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
           "ForumDiscussions received updated discussions:",
           updatedDiscussions
         );
-        onDiscussionsChange(updatedDiscussions); // Truyền dữ liệu lên component cha
+        onDiscussionsChange(updatedDiscussions);
       }
     );
 

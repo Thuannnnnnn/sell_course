@@ -38,8 +38,8 @@ const ForumDetail: React.FC = () => {
           prev ? { ...prev, reactionTopics: result.data } : null
         );
       }
-    } catch (err) {
-      console.error("Error syncing reactions:", err);
+    } catch {
+      console.log("error");
     }
   }, [forumId, session?.user?.token]);
 
@@ -54,12 +54,11 @@ const ForumDetail: React.FC = () => {
       if (discussionData) {
         setDiscussions(discussionData);
       }
-    } catch (err) {
-      console.error("Error syncing discussions:", err);
+    } catch {
+      console.log("error");
     }
   }, [forumId, session?.user?.token]);
 
-  // Khởi tạo WebSocket
   useEffect(() => {
     if (!session?.user?.token) return;
 
@@ -75,18 +74,13 @@ const ForumDetail: React.FC = () => {
     setSocket(socketInstance);
 
     socketInstance.on("connect", () => {
-      console.log("Connected to WebSocket server:", socketInstance.id);
       socketInstance.emit("joinForumRoom", forumId);
     });
 
     socketInstance.on(
       "discussionUpdated",
       (updatedDiscussions: Discussion[]) => {
-        console.log(
-          "ForumDetail received updated discussions:",
-          updatedDiscussions
-        );
-        setDiscussions(updatedDiscussions); // Cập nhật discussions từ WebSocket
+        setDiscussions(updatedDiscussions);
       }
     );
 
@@ -94,10 +88,6 @@ const ForumDetail: React.FC = () => {
       "forumReactionsUpdated",
       (data: { forumId: string; reactions: Reaction[] }) => {
         if (data.forumId === forumId) {
-          console.log(
-            "ForumDetail received updated reactions:",
-            data.reactions
-          );
           setForum((prev) =>
             prev ? { ...prev, reactionTopics: data.reactions } : null
           );
@@ -107,13 +97,12 @@ const ForumDetail: React.FC = () => {
 
     socketInstance.on("forumDeleted", (deletedForumId: string) => {
       if (deletedForumId === forumId) {
-        console.log("Forum deleted, redirecting...");
         router.push(`/${locale}/forum`);
       }
     });
 
     socketInstance.on("disconnect", () => {
-      console.log("Disconnected from WebSocket server");
+      // Disconnect handling
     });
 
     return () => {
@@ -134,8 +123,7 @@ const ForumDetail: React.FC = () => {
         reactionTopics: forumData.reactionTopics || [],
       });
       setError(null);
-    } catch (err) {
-      console.error("Error fetching forum:", err);
+    } catch {
       setError(t("postNotFound"));
     } finally {
       setLoading(false);
@@ -161,8 +149,7 @@ const ForumDetail: React.FC = () => {
       } else {
         alert(t("deleteFailed"));
       }
-    } catch (err) {
-      console.error("Error deleting forum:", err);
+    } catch {
       alert(t("deleteError"));
     }
   };
@@ -332,10 +319,6 @@ const ForumDetail: React.FC = () => {
             locale={locale}
             discussions={discussions}
             onDiscussionsChange={(newDiscussions) => {
-              console.log(
-                "ForumDetail updated discussions from child:",
-                newDiscussions
-              );
               setDiscussions(newDiscussions);
             }}
           />
