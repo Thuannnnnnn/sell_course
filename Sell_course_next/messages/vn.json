@@ -344,7 +344,8 @@
     "addToWaitList": "Thêm khóa chờ",
     "addedToWaitListSuccess": "Khóa học đã được thêm vào danh sách chờ thành công!",
     "addedToWaitListFail": "Không thể thêm khóa học vào danh sách chờ.",
-    "purFedback": "Bạn cần mua khóa học này để đánh giá"
+    "purFedback": "Bạn cần mua khóa học này để đánh giá",
+    "GoToCourse": "Vào Học"
   },
   "forgotPasswordPage": {
     "title": "Quên Mật Khẩu",

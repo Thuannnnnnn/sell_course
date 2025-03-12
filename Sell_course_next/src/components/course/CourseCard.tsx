@@ -1,4 +1,3 @@
-import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
 import {
   createWishListCourse,
   fetchWishListCourse,
@@ -94,22 +93,8 @@ export default function CourseCard({ course }: CourseCardProps) {
     }
   };
 
-  const handleCoursePurchase = async (courseId: string) => {
-    if (!session?.user.email) return;
-
-    try {
-      const data = await CoursePurchaseAPI.getCoursePurchaseById(
-        courseId,
-        session?.user.email
-      );
-      if (data === 200) {
-        router.push(`/${localActive}/courseInfo/${courseId}`);
-        return;
-      }
-      router.push(`/${localActive}/courseDetail/${courseId}`);
-    } catch (error) {
-      console.error("Error fetching course purchase:", error);
-    }
+  const handleGotoCourseDetail = async (courseId: string) => {
+    router.push(`/${localActive}/courseDetail/${courseId}`);
   };
 
   return (
@@ -126,7 +111,7 @@ export default function CourseCard({ course }: CourseCardProps) {
       </div>
       <div
         className="image-wrapper"
-        onClick={() => handleCoursePurchase(course.courseId)}
+        onClick={() => handleGotoCourseDetail(course.courseId)}
       >
         <Image
           src={course.imageInfo}

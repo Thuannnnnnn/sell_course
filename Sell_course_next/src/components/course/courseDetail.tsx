@@ -370,6 +370,11 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     );
   }
 
+  const handleGotoCourse = () => {
+    const locale = params.locale;
+    router.push(`/${locale}/courseInfo/${courseId}`);
+  };
+
   return (
     <div className="container">
       <div className="button-wrapper">
@@ -694,24 +699,41 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
             src={courses?.videoInfo}
             allowFullScreen
           ></iframe>
+          {!isPurchased ? (
+            <div>
+              {courses?.isPublic && (
+                <div>
+                  <h2 className="course-price">${courses?.price}</h2>
 
-          <h2 className="course-price">${courses?.price}</h2>
-
-          <button
-            className="btn add-to-cart"
-            onClick={() => handleAddToCart(courses?.courseId || "")}
-          >
-            {t("addToCart")}
-          </button>
-          <button className="btn buy-course" onClick={() => handleCheckOut()}>
-            {t("buyCourse")}
-          </button>
-          {!courses?.isPublic && (
+                  <button
+                    className="btn add-to-cart"
+                    onClick={() => handleAddToCart(courses?.courseId || "")}
+                  >
+                    {t("addToCart")}
+                  </button>
+                  <button
+                    className="btn buy-course"
+                    onClick={() => handleCheckOut()}
+                  >
+                    {t("buyCourse")}
+                  </button>
+                </div>
+              )}
+              {!courses?.isPublic && (
+                <button
+                  className="btn waitListCourse"
+                  onClick={() => handleCreatWaitList()}
+                >
+                  {t("addToWaitList")}
+                </button>
+              )}
+            </div>
+          ) : (
             <button
-              className="btn waitListCourse"
-              onClick={() => handleCreatWaitList()}
+              className="btn buy-course"
+              onClick={() => handleGotoCourse()}
             >
-              {t("addToWaitList")}
+              {t("GoToCourse")}
             </button>
           )}
           <div className="course-details">

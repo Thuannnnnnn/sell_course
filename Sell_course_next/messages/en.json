@@ -336,7 +336,8 @@
     "addedToWaitListSuccess": "Course successfully added to Waitlist!",
     "addedToWaitListFail": "Failed to add course to Waitlist.",
     "addToWaitList": "Add to Waitlist",
-    "purFedback": "You need to buy this course to give feedback"
+    "purFedback": "You need to buy this course to give feedback",
+    "GoToCourse": "Go To Course"
   },
   "forgotPasswordPage": {
     "title": "Forgot Password",
