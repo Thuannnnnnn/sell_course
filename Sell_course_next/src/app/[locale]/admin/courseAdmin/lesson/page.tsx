@@ -1,14 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import {
-  Container,
-  Card,
-  ListGroup,
-  Button,
-  Modal,
-  Form,
-} from "react-bootstrap";
-import { CourseData, Lesson } from "@/app/type/course/Lesson";
+import { Container, Button, Modal, Form } from "react-bootstrap";
+import { CourseData } from "@/app/type/course/Lesson";
 import {
   fetchLesson,
   addLesson,
@@ -19,195 +12,20 @@ import {
 import {
   addContent,
   updateContent,
-  deleteContent,
   updateContentOrder,
 } from "@/app/api/course/ContentAPI";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { FaPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   NotificationManager,
   NotificationContainer,
 } from "react-notifications";
-import styles from "@/style/lesson.module.css";
 import "react-notifications/lib/notifications.css";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-
-const ItemTypes = {
-  LESSON: "lesson",
-  CONTENT: "content",
-};
-
-interface LessonItemProps {
-  lesson: Lesson;
-  index: number;
-  moveLesson: (fromIndex: number, toIndex: number) => void;
-  moveContent: (lessonId: string, fromIndex: number, toIndex: number) => void;
-  handleDeleteLesson: (lessonId: string) => void;
-  handleShowUpdateModal: (lessonId: string, lessonName: string) => void;
-  handleShowModal: (lessonId: string) => void;
-  handleContentClick: (content: {
-    contentType: string;
-    contentId: string;
-  }) => void;
-  handleShowContentModal: (
-    event: React.MouseEvent,
-    contentId: string,
-    contentName: string
-  ) => void;
-  t: (key: string) => string;
-}
-
-export const LessonItem = ({
-  lesson,
-  index,
-  moveLesson,
-  moveContent,
-  handleDeleteLesson,
-  handleShowUpdateModal,
-  handleShowModal,
-  handleContentClick,
-  handleShowContentModal,
-}: LessonItemProps) => {
-  const [, lessonRef] = useDrag({
-    type: ItemTypes.LESSON,
-    item: { index },
-  });
-
-  const [, lessonDrop] = useDrop({
-    accept: ItemTypes.LESSON,
-    hover: (item: { index: number }) => {
-      if (item.index !== index) {
-        moveLesson(item.index, index);
-        item.index = index;
-      }
-    },
-  });
-
-  const ContentItem = ({
-    content,
-    contentIndex,
-  }: {
-    content: {
-      contentId: string;
-      contentName: string;
-      contentType: string;
-      order: number;
-    };
-    contentIndex: number;
-  }) => {
-    const [, contentRef] = useDrag({
-      type: ItemTypes.CONTENT,
-      item: { index: contentIndex, lessonId: lesson.lessonId },
-    });
-
-    const [, contentDrop] = useDrop({
-      accept: ItemTypes.CONTENT,
-      hover: (item: { index: number; lessonId: string }) => {
-        if (item.lessonId === lesson.lessonId && item.index !== contentIndex) {
-          moveContent(lesson.lessonId, item.index, contentIndex);
-          item.index = contentIndex;
-        }
-      },
-    });
-
-    return (
-      <ListGroup.Item
-        ref={(node) => {
-          contentRef(node);
-          contentDrop(node);
-        }}
-        onClick={() => handleContentClick(content)}
-        className={styles.cursorPointer}
-        style={{ cursor: "move" }}
-      >
-        {content.order}. [{content.contentType.toUpperCase()}]{" "}
-        {content.contentName}
-        <Button
-          variant="danger"
-          className="ms-2"
-          onClick={(event) => {
-            event.stopPropagation();
-            deleteContent(
-              content.contentId,
-              sessionStorage.getItem("token") || ""
-            );
-          }}
-        >
-          🗑️
-        </Button>
-        <Button
-          variant="warning"
-          className="ms-2"
-          onClick={(event) =>
-            handleShowContentModal(
-              event,
-              content.contentId,
-              content.contentName
-            )
-          }
-        >
-          ✏️
-        </Button>
-      </ListGroup.Item>
-    );
-  };
-
-  return (
-    <Card
-      ref={(node) => {
-        lessonRef(node);
-        lessonDrop(node);
-      }}
-      key={lesson.lessonId}
-      className="mb-3"
-      style={{ cursor: "move" }}
-    >
-      <Card.Body>
-        <Card.Title>
-          {lesson.order}. {lesson.lessonName}
-          <Button
-            variant="danger"
-            className="ms-2"
-            onClick={() => handleDeleteLesson(lesson.lessonId)}
-          >
-            🗑️
-          </Button>
-          <Button
-            variant="warning"
-            className="ms-2"
-            onClick={() =>
-              handleShowUpdateModal(lesson.lessonId, lesson.lessonName)
-            }
-          >
-            ✏️
-          </Button>
-        </Card.Title>
-
-        <ListGroup>
-          {lesson.contents.map((content, contentIndex) => (
-            <ContentItem
-              key={content.contentId}
-              content={content}
-              contentIndex={contentIndex}
-            />
-          ))}
-        </ListGroup>
-        <Button
-          variant="outline-secondary"
-          className="mt-2"
-          onClick={() => handleShowModal(lesson.lessonId)}
-        >
-          <FaPlus />
-        </Button>
-      </Card.Body>
-    </Card>
-  );
-};
-
+import { LessonItem } from "@/components/Lessons/LessonItem";
 const LessonPage = () => {
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -489,7 +307,7 @@ const LessonPage = () => {
               className="mt-3"
               onClick={() => setShowLessonModal(true)}
             >
-              <FaPlus />
+              ➕
             </Button>
             <Modal show={showLessonModal} onHide={handleCloseModal}>
               <Modal.Header closeButton>
@@ -546,7 +364,7 @@ const LessonPage = () => {
               className="mt-3"
               onClick={() => setShowLessonModal(true)}
             >
-              <FaPlus />
+              ➕
             </Button>
 
             <Modal show={showModal} onHide={handleCloseModal}>
