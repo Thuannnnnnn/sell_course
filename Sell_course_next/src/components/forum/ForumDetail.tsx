@@ -1,18 +1,19 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow, format, addHours } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import DeleteForumButton from "./DeleteForumButton";
 import ForumReactions from "./ForumReactions";
 import ForumDiscussions from "./ForumDiscussions";
 import { useTranslations } from "next-intl";
-import { Forum, Discussion } from "@/app/type/forum/forum";
-import { getForumById } from "@/app/api/forum/forum";
+import { Forum, Discussion, Reaction } from "@/app/type/forum/forum";
+import { getForumById, deleteForum } from "@/app/api/forum/forum";
 import { getDiscussionsByForumId } from "@/app/api/discussion/Discussion";
+import { getReactionsByTopic } from "@/app/api/forum/forum"; // Thêm để đồng bộ reaction
+import { io, Socket } from "socket.io-client";
 
 const ForumDetail: React.FC = () => {
   const params = useParams();
@@ -25,115 +26,149 @@ const ForumDetail: React.FC = () => {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [pollingActive, setPollingActive] = useState<boolean>(false);
-  const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
-  const [reactionProcessing, setReactionProcessing] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-  const fetchForumDetail = async (isPolling = false) => {
-    if (reactionProcessing && isPolling) return;
-    try {
-      if (!forumId) {
-        setError(t("postNotFound"));
-        setLoading(false);
-        return;
-      }
-      if (!isPolling) setLoading(true);
-      const forumData = await getForumById(forumId);
-      if (!forumData) {
-        setError(t("postNotFound"));
-        return;
-      }
-      setForum({
-        ...forumData,
-        reactionTopics: forumData.reactionTopics || [],
-      });
-      setError(null);
-    } catch (err) {
-      if (!isPolling) setError(t("errorLoading"));
-    } finally {
-      if (!isPolling) setLoading(false);
+  const syncReactions = useCallback(async () => {
+    if (!session?.user?.token) return;
+    const result = await getReactionsByTopic(session.user.token, forumId);
+    if (result.success && Array.isArray(result.data)) {
+      setForum((prev) =>
+        prev ? { ...prev, reactionTopics: result.data } : null
+      );
     }
-  };
+  }, [forumId, session?.user?.token]);
 
-  const fetchDiscussions = async () => {
-    if (!session?.user?.token || !forumId) return;
-    const discussionData = await getDiscussionsByForumId(
-      forumId,
-      session.user.token
+  useEffect(() => {
+    const socketInstance = io(
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
+      {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        auth: { token: session?.user?.token },
+      }
     );
-    if (discussionData) {
-      setDiscussions(discussionData);
+
+    setSocket(socketInstance);
+
+    socketInstance.on("connect", () => {
+      console.log("Connected to WebSocket server");
+      socketInstance.emit("joinForumRoom", forumId);
+    });
+
+    socketInstance.on(
+      "discussionUpdated",
+      (updatedDiscussions: Discussion[]) => {
+        console.log("Received updated discussions:", updatedDiscussions);
+        setDiscussions(updatedDiscussions);
+        syncReactions(); // Đồng bộ reaction sau khi discussions thay đổi
+      }
+    );
+
+    socketInstance.on(
+      "forumReactionsUpdated",
+      (data: { forumId: string; reactions: Reaction[] }) => {
+        if (data.forumId === forumId) {
+          setForum((prev) =>
+            prev ? { ...prev, reactionTopics: data.reactions } : null
+          );
+        }
+      }
+    );
+
+    socketInstance.on("forumDeleted", (deletedForumId: string) => {
+      if (deletedForumId === forumId) {
+        router.push(`/${locale}/forum`);
+      }
+    });
+
+    socketInstance.on("disconnect", () => {
+      console.log("Disconnected from WebSocket server");
+    });
+
+    return () => {
+      socketInstance.emit("leaveForumRoom", forumId);
+      socketInstance.off("connect");
+      socketInstance.off("discussionUpdated");
+      socketInstance.off("forumReactionsUpdated");
+      socketInstance.off("forumDeleted");
+      socketInstance.disconnect();
+    };
+  }, [forumId, session?.user?.token, locale, router, syncReactions]);
+
+  const fetchForumDetail = useCallback(
+    async (isInitial = true) => {
+      try {
+        if (!forumId) {
+          setError(t("postNotFound"));
+          setLoading(false);
+          return;
+        }
+        if (isInitial) setLoading(true);
+        const forumData = await getForumById(forumId);
+        if (!forumData) {
+          setError(t("postNotFound"));
+          return;
+        }
+        setForum({
+          ...forumData,
+          reactionTopics: forumData.reactionTopics || [],
+        });
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching forum:", err);
+        setError(t("errorLoading"));
+      } finally {
+        if (isInitial) setLoading(false);
+      }
+    },
+    [forumId, t]
+  );
+
+  const fetchDiscussions = useCallback(async () => {
+    if (!session?.user?.token || !forumId) return;
+    try {
+      const discussionData = await getDiscussionsByForumId(
+        forumId,
+        session.user.token
+      );
+      if (discussionData) {
+        setDiscussions(discussionData);
+      } else {
+        console.warn("No discussions returned from API");
+      }
+    } catch (err) {
+      console.error("Error fetching discussions:", err);
     }
-  };
+  }, [forumId, session?.user?.token]);
 
   useEffect(() => {
     fetchForumDetail();
     fetchDiscussions();
-  }, [forumId, session?.user?.token]);
+    syncReactions();
+  }, [fetchForumDetail, fetchDiscussions, syncReactions]);
 
-  useEffect(() => {
-    const handleReactionChange = (event: CustomEvent) => {
-      if (event.detail.forumId === forumId) {
-        fetchForumDetail(true);
+  const handleDeleteForum = async () => {
+    if (!session?.user?.token || !forumId) return;
+
+    const confirmDelete = window.confirm(t("confirmDeleteForum"));
+    if (!confirmDelete) return;
+
+    try {
+      const success = await deleteForum(forumId, session.user.token);
+      if (success) {
+        socket?.emit("deleteForum", forumId);
+        router.push(`/${locale}/forum`);
+      } else {
+        alert(t("deleteFailed"));
       }
-    };
-    window.addEventListener(
-      "forumReactionChanged",
-      handleReactionChange as EventListener
-    );
-    return () =>
-      window.removeEventListener(
-        "forumReactionChanged",
-        handleReactionChange as EventListener
-      );
-  }, [forumId]);
-
-  useEffect(() => {
-    const handleUserInteraction = () => setPollingActive(true);
-    window.addEventListener("click", handleUserInteraction);
-    window.addEventListener("keydown", handleUserInteraction);
-    window.addEventListener("mousemove", handleUserInteraction);
-    window.addEventListener("touchstart", handleUserInteraction);
-    return () => {
-      window.removeEventListener("click", handleUserInteraction);
-      window.removeEventListener("keydown", handleUserInteraction);
-      window.removeEventListener("mousemove", handleUserInteraction);
-      window.removeEventListener("touchstart", handleUserInteraction);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!pollingActive || reactionProcessing) return;
-
-    const intervalId = setInterval(() => {
-      if (!document.hidden && !reactionProcessing) {
-        setIsCurrentlyPolling(true);
-        Promise.all([fetchForumDetail(true), fetchDiscussions()]).finally(() =>
-          setIsCurrentlyPolling(false)
-        );
-      }
-    }, 3000);
-
-    const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
-
-    return () => {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
-    };
-  }, [pollingActive, forumId, reactionProcessing]);
-
-  const handleReactionProcessing = (isProcessing: boolean) => {
-    setReactionProcessing(isProcessing);
+    } catch (err) {
+      console.error("Error deleting forum:", err);
+      alert(t("deleteError"));
+    }
   };
 
-  const hasUserReaction = () => {
-    if (!forum || !session?.user?.user_id) return false;
-    return forum.reactionTopics.some(
-      (reaction) => reaction.userId === session.user.user_id
-    );
-  };
-
-  if (loading && !reactionProcessing) {
+  if (loading) {
     return (
       <div className="container py-4">
         <div className="row">
@@ -192,45 +227,17 @@ const ForumDetail: React.FC = () => {
   }
 
   const dateLocale = locale === "vi" ? vi : enUS;
-  const formattedDate = formatDistanceToNow(new Date(forum.createdAt), {
-    addSuffix: true,
-    locale: dateLocale,
-  });
+  const formattedDate = formatDistanceToNow(
+    addHours(new Date(forum.createdAt), 7),
+    {
+      addSuffix: true,
+      locale: dateLocale,
+    }
+  );
   const exactDate = format(new Date(forum.createdAt), "dd/MM/yyyy HH:mm");
 
   return (
     <div className="container py-4">
-      {pollingActive && (
-        <div
-          className="position-fixed bottom-0 end-0 p-3"
-          style={{ zIndex: 1050 }}
-        >
-          <div
-            className={`toast ${isCurrentlyPolling ? "show" : ""}`}
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-          >
-            <div className="toast-header">
-              <div
-                className={`spinner-border spinner-border-sm me-2 ${
-                  isCurrentlyPolling ? "" : "invisible"
-                }`}
-                role="status"
-              >
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <strong className="me-auto">Real-time Updates</strong>
-              <small>{new Date().toLocaleTimeString()}</small>
-            </div>
-            <div className="toast-body">
-              {isCurrentlyPolling
-                ? "Đang cập nhật dữ liệu..."
-                : "Đang theo dõi thay đổi trong thời gian thực"}
-            </div>
-          </div>
-        </div>
-      )}
       <div className="row">
         <div className="col-lg-8">
           <nav aria-label="breadcrumb" className="mb-4">
@@ -311,10 +318,13 @@ const ForumDetail: React.FC = () => {
                     reactions={forum.reactionTopics}
                     onReactionChange={(newReactions) => {
                       setForum((prev) =>
-                        prev ? { ...prev, reactions: newReactions } : null
+                        prev ? { ...prev, reactionTopics: newReactions } : null
                       );
+                      socket?.emit("updateForumReactions", {
+                        forumId,
+                        reactions: newReactions,
+                      });
                     }}
-                    onProcessingChange={handleReactionProcessing}
                   />
                   {session?.user?.user_id === forum.user.user_id && (
                     <>
@@ -325,11 +335,13 @@ const ForumDetail: React.FC = () => {
                         <i className="bi bi-pencil me-1"></i>
                         {t("editPost")}
                       </Link>
-                      <DeleteForumButton
-                        forumId={forumId}
-                        userId={forum.user.user_id}
-                        locale={locale}
-                      />
+                      <button
+                        className="btn btn-outline-danger"
+                        onClick={handleDeleteForum}
+                      >
+                        <i className="bi bi-trash me-1"></i>
+                        {t("deletePost")}
+                      </button>
                     </>
                   )}
                 </div>
@@ -344,7 +356,10 @@ const ForumDetail: React.FC = () => {
             forumId={forumId}
             locale={locale}
             discussions={discussions}
-            onDiscussionsChange={setDiscussions}
+            onDiscussionsChange={(newDiscussions) => {
+              setDiscussions(newDiscussions);
+              syncReactions(); // Đồng bộ reaction sau khi discussions thay đổi
+            }}
           />
         </div>
         <div className="col-lg-4">

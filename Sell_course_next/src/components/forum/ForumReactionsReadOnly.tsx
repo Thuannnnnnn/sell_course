@@ -24,7 +24,7 @@ const ForumReactionsReadOnly: React.FC<ForumReactionsReadOnlyProps> = ({
   const reactionCounts = countReactions();
 
   const activeReactions = Object.entries(reactionCounts)
-    .filter(([_, count]) => count > 0)
+    .filter(([, count]) => count > 0)
     .map(([type]) => type as ReactionType);
 
   if (activeReactions.length === 0) {

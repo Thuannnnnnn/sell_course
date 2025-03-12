@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { CreateForumDto } from "@/app/type/forum/forum";
 import { createForum } from "@/app/api/forum/forum";
+import { FaTrash } from "react-icons/fa";
 
 const CreateForumForm: React.FC = () => {
   const router = useRouter();
@@ -29,24 +30,17 @@ const CreateForumForm: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-
     if (status === "unauthenticated") {
       router.push(`/${locale}/auth/login`);
     }
 
     if (session) {
-
-
       if (session.user?.user_id) {
         setUserId(session.user.user_id);
       } else if (session.user?.id) {
-
         setUserId(session.user.id);
       } else if (session.user_id) {
-
         setUserId(session.user_id);
-
-
       }
     }
   }, [session, status, router, locale]);
@@ -54,21 +48,17 @@ const CreateForumForm: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-
       if (file.size > 5 * 1024 * 1024) {
         setError(t("imageFormats"));
         return;
       }
-
 
       if (!file.type.startsWith("image/")) {
         setError(t("imageFormats"));
         return;
       }
 
-
       setImage(file);
-
 
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -90,7 +80,6 @@ const CreateForumForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-
     if (!title.trim()) {
       setError(t("titleRequired"));
       return;
@@ -102,16 +91,13 @@ const CreateForumForm: React.FC = () => {
     }
 
     if (!userId) {
-
-      setError(t('userIdRequired'));
+      setError(t("userIdRequired"));
       return;
     }
 
-
     const token = session?.user?.token;
     if (!token) {
-
-      setError(t('tokenRequired'));
+      setError(t("tokenRequired"));
       return;
     }
 
@@ -126,9 +112,6 @@ const CreateForumForm: React.FC = () => {
         image: image || undefined,
       };
 
-
-
-
       const result = await createForum(forumData, token);
 
       if (result) {
@@ -138,11 +121,9 @@ const CreateForumForm: React.FC = () => {
           router.push(`/${locale}/forum`);
         }, 2000);
       } else {
-
-        setError(t('errorCreatingPost'));
+        setError(t("errorCreatingPost"));
       }
     } catch (err) {
-
       if (err instanceof Error) {
         setError(`${t("errorCreatingPost")}: ${err.message}`);
       } else {
@@ -152,7 +133,6 @@ const CreateForumForm: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
 
   if (status === "loading") {
     return (
@@ -165,7 +145,6 @@ const CreateForumForm: React.FC = () => {
       </div>
     );
   }
-
 
   if (status === "unauthenticated") {
     return (
@@ -255,7 +234,15 @@ const CreateForumForm: React.FC = () => {
 
                     {imagePreview && (
                       <div className="mt-3 position-relative">
-                        <div className="img-thumbnail" style={{ maxHeight: "200px", position: "relative", width: "100%", height: "200px" }}>
+                        <div
+                          className="img-thumbnail"
+                          style={{
+                            maxHeight: "200px",
+                            position: "relative",
+                            width: "100%",
+                            height: "200px",
+                          }}
+                        >
                           <Image
                             src={imagePreview}
                             alt="Preview"
@@ -269,7 +256,7 @@ const CreateForumForm: React.FC = () => {
                           className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
                           onClick={handleRemoveImage}
                         >
-                          <i className="bi bi-x"></i>
+                          <FaTrash />
                         </button>
                       </div>
                     )}

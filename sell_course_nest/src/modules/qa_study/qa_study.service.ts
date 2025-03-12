@@ -7,16 +7,20 @@ import { Course } from '../course/entities/course.entity';
 import { CreateQaDto } from './dto/create-qa.dto';
 import { ResponseQaDto } from './dto/response-qa.dto';
 import { ReactionQa } from './entities/reaction_qa.entity';
+import { QaGateway } from './qa_study.gateway';
+
 @Injectable()
 export class QaStudyService {
   constructor(
     @InjectRepository(QaStudy)
     private readonly qaRepository: Repository<QaStudy>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
     @InjectRepository(ReactionQa)
     private readonly reactionQaRepository: Repository<ReactionQa>,
+    private readonly qaGateway: QaGateway,
   ) {}
 
   async createQa(qaData: CreateQaDto): Promise<QaStudy> {
@@ -39,6 +43,9 @@ export class QaStudyService {
       parent = await this.qaRepository.findOne({
         where: { qaStudyId: qaData.parentId },
       });
+      if (!parent) {
+        throw new NotFoundException('Parent QA not found');
+      }
     }
 
     const qa = this.qaRepository.create({
@@ -47,15 +54,23 @@ export class QaStudyService {
       text: qaData.text,
       parent,
     });
+    const savedQa = await this.qaRepository.save(qa);
+    await this.qaGateway.notifyQasUpdate(qaData.courseId);
 
-    return this.qaRepository.save(qa);
+    return savedQa;
   }
 
   async findByCourseId(courseId: string): Promise<ResponseQaDto[]> {
     const qaList = await this.qaRepository.find({
       where: { course: { courseId } },
-      relations: ['user', 'parent', 'replies'],
-      order: { qaStudyId: 'ASC' },
+      relations: [
+        'user',
+        'parent',
+        'replies',
+        'reactionQas',
+        'reactionQas.user',
+      ],
+      order: { createdAt: 'ASC' },
     });
 
     return qaList.map((qa) => ({
@@ -67,6 +82,10 @@ export class QaStudyService {
       parentId: qa.parent ? qa.parent.qaStudyId : null,
       createdAt: qa.createdAt.toISOString(),
       avatarImg: qa.user.avatarImg,
+      reactionQas: qa.reactionQas.map((reaction) => ({
+        userEmail: reaction.user.email,
+        reactionType: reaction.reactionType,
+      })),
     }));
   }
 
@@ -83,11 +102,29 @@ export class QaStudyService {
     return qa;
   }
 
+  async updateQa(
+    id: string,
+    updateData: Partial<CreateQaDto>,
+  ): Promise<QaStudy> {
+    const qa = await this.findOne(id);
+    if (updateData.text) {
+      qa.text = updateData.text;
+    }
+    const updatedQa = await this.qaRepository.save(qa);
+
+    await this.qaGateway.notifyQasUpdate(qa.course.courseId);
+
+    return updatedQa;
+  }
+
   async remove(id: string): Promise<void> {
+    const qa = await this.findOne(id);
     await this.reactionQaRepository.delete({ qa: { qaStudyId: id } });
+
     const result = await this.qaRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException('QA not found');
     }
+    await this.qaGateway.notifyQasUpdate(qa.course.courseId);
   }
 }

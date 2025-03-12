@@ -21,6 +21,7 @@ import {
   fetchCourseProgress,
   markContentAsCompleted,
 } from "@/app/api/progress/ProgressAPI";
+import QaStudyList from "../QaStudy/QastudyList";
 
 export default function CourseInfo() {
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -30,7 +31,8 @@ export default function CourseInfo() {
   const [completedContents, setCompletedContents] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
   const [isExamSelected, setIsExamSelected] = useState(false);
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id as string;
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -243,6 +245,10 @@ export default function CourseInfo() {
         <div className="course-nav-content">
           <span className="nav-item active">📖 Overview</span>
         </div>
+      </div>
+      <div className="course-nav-content">
+        <span className="nav-item active">📖 QA</span>
+        <QaStudyList courseId={id} />
       </div>
 
       {/* Main Layout */}

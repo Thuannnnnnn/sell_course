@@ -1,6 +1,13 @@
 import axios from "axios";
 import { CourseData } from "@/app/type/course/Lesson";
+interface LessonOrder {
+  lessonId: string;
+  order: number;
+}
 
+interface UpdateLessonOrderResponse {
+  message: string;
+}
 export async function fetchLessonAdmin(
   courseId: string,
   token: string
@@ -88,7 +95,6 @@ export const updateLesson = async (
   }
 };
 
-
 export const deleteLesson = async (lessonId: string, token: string) => {
   try {
     const response = await axios.delete(
@@ -104,5 +110,31 @@ export const deleteLesson = async (lessonId: string, token: string) => {
   } catch (error) {
     console.error("Error deleting lesson:", error);
     return null;
+  }
+};
+export const updateLessonOrder = async (
+  lessons: LessonOrder[],
+  token: string
+): Promise<UpdateLessonOrderResponse> => {
+  try {
+    const response = await axios.put<UpdateLessonOrderResponse>(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/lesson/update_order`,
+      { lessons },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating lesson order:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message || "Failed to update lesson order"
+      );
+    }
+    throw new Error("An unknown error occurred while updating lesson order");
   }
 };

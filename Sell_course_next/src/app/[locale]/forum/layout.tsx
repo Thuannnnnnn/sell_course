@@ -1,16 +1,12 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Check out',
-  description: 'check out',
+  title: "Forum",
+  description: "Forum",
 };
 
 export default function ForumLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

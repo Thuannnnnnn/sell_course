@@ -440,6 +440,8 @@
     "createNewPost": "Tạo bài viết mới",
     "editPost": "Chỉnh sửa bài viết",
     "deletePost": "Xóa bài viết",
+    "deleteFailed": "Không thể xóa bài viết.",
+    "confirmDeleteComment": "Xác nhận xóa bình luận",
     "confirmDelete": "Xác nhận xóa bài viết",
     "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.",
     "cancel": "Hủy",
@@ -481,7 +483,10 @@
     "tokenRequired": "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.",
     "pagination": "Phân trang diễn đàn",
     "previousPage": "Trang trước",
-    "nextPage": "Trang sau"
+    "nextPage": "Trang sau",
+    "save": "Lưu",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa"
   },
   "lesson": {
     "NotHave": "Không có bài học nào!",

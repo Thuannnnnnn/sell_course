@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, addHours } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -11,9 +11,8 @@ import {
   createDiscussion,
   deleteDiscussion,
   updateDiscussion,
-  getDiscussionsByForumId,
 } from "@/app/api/discussion/Discussion";
-
+import { io, Socket } from "socket.io-client";
 interface ForumDiscussionsProps {
   forumId: string;
   locale: string;
@@ -30,23 +29,50 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
   const { data: session } = useSession();
   const t = useTranslations("Forum");
   const [comment, setComment] = useState<string>("");
-  const [editingDiscussion, setEditingDiscussion] = useState<string | null>(null);
+  const [editingDiscussion, setEditingDiscussion] = useState<string | null>(
+    null
+  );
   const [editContent, setEditContent] = useState<string>("");
-  const [pollingActive, setPollingActive] = useState<boolean>(false);
-  const [isCurrentlyPolling, setIsCurrentlyPolling] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-  const fetchDiscussions = async () => {
-    if (!session?.user?.token || !forumId) return;
-    try {
-      const discussionData = await getDiscussionsByForumId(
-        forumId,
-        session.user.token
-      );
-      onDiscussionsChange(discussionData ?? []);
-    } catch (error) {
-      onDiscussionsChange([]);
-    }
-  };
+  // WebSocket setup
+  useEffect(() => {
+    const socketInstance = io(
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
+      {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        auth: { token: session?.user?.token },
+      }
+    );
+    setSocket(socketInstance);
+
+    socketInstance.on("connect", () => {
+      console.log("Connected to WebSocket server for discussions");
+      socketInstance.emit("joinForumRoom", forumId);
+    });
+
+    socketInstance.on(
+      "discussionUpdated",
+      (updatedDiscussions: Discussion[]) => {
+        console.log("Received updated discussions:", updatedDiscussions);
+        onDiscussionsChange(updatedDiscussions);
+      }
+    );
+
+    socketInstance.on("disconnect", () => {
+      console.log("Disconnected from WebSocket server");
+    });
+
+    return () => {
+      socketInstance.emit("leaveForumRoom", forumId);
+      socketInstance.off("connect");
+      socketInstance.off("discussionUpdated");
+      socketInstance.off("disconnect");
+      socketInstance.disconnect();
+    };
+  }, [forumId, session?.user?.token, onDiscussionsChange]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,41 +84,64 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
       content: comment.trim(),
     };
 
-    const newDiscussion = await createDiscussion(
-      createDiscussionDto,
-      session.user.token
-    );
-    if (newDiscussion) {
-      const updatedDiscussions = [...discussions, newDiscussion];
-      onDiscussionsChange(updatedDiscussions);
-      setComment("");
-      window.dispatchEvent(
-        new CustomEvent("forumDiscussionChanged", { detail: { forumId } })
+    try {
+      const newDiscussion = await createDiscussion(
+        createDiscussionDto,
+        session.user.token
       );
+      if (newDiscussion) {
+        const updatedDiscussions = [...discussions, newDiscussion];
+        onDiscussionsChange(updatedDiscussions);
+        socket?.emit("updateDiscussions", {
+          forumId,
+          discussions: updatedDiscussions,
+        });
+        setComment("");
+      }
+    } catch (error) {
+      console.error("Error creating discussion:", error);
+      alert(t("createCommentError"));
     }
   };
 
   const handleDeleteDiscussion = async (discussionId: string) => {
     if (!session?.user?.token) return;
-    const success = await deleteDiscussion(
-      discussionId,
-      session.user.token,
-      session.user.user_id
-    );
-    if (success) {
-      const updatedDiscussions = discussions.filter(
-        (d) => d.discussionId !== discussionId
+
+    const confirmDelete = window.confirm(t("confirmDeleteComment"));
+    if (!confirmDelete) return;
+
+    console.log("Attempting to delete discussion with ID:", discussionId);
+
+    try {
+      const success = await deleteDiscussion(
+        discussionId,
+        session.user.token,
+        session.user.user_id
       );
-      onDiscussionsChange(updatedDiscussions);
-      window.dispatchEvent(
-        new CustomEvent("forumDiscussionChanged", { detail: { forumId } })
-      );
+
+      console.log("Delete API response:", success);
+
+      if (success) {
+        const updatedDiscussions = discussions.filter(
+          (d) => d.discussionId !== discussionId
+        );
+        onDiscussionsChange(updatedDiscussions);
+        socket?.emit("updateDiscussions", {
+          forumId,
+          discussions: updatedDiscussions,
+        });
+      } else {
+        alert(t("deleteFailed"));
+        console.warn("Delete request returned false");
+      }
+    } catch {
+      alert(t("deleteError"));
     }
   };
 
   const startEditingDiscussion = (discussion: Discussion) => {
     setEditingDiscussion(discussion.discussionId);
-    setEditContent(discussion.content);
+    setEditContent(discussion.content || "");
   };
 
   const cancelEditingDiscussion = () => {
@@ -103,116 +152,39 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
   const saveEditedDiscussion = async (discussionId: string) => {
     if (!session?.user?.token || !editContent.trim()) return;
 
-    const updateDto = {
-      content: editContent.trim(),
-    };
+    const updateDto = { content: editContent.trim() };
 
-    const updatedDiscussion = await updateDiscussion(
-      discussionId,
-      updateDto,
-      session.user.token,
-      session.user.user_id
-    );
-
-    if (updatedDiscussion) {
-      const updatedDiscussions = discussions.map((d) =>
-        d.discussionId === discussionId
-          ? { ...d, content: editContent.trim() }
-          : d
+    try {
+      const updatedDiscussion = await updateDiscussion(
+        discussionId,
+        updateDto,
+        session.user.token,
+        session.user.user_id
       );
-      onDiscussionsChange(updatedDiscussions);
-      setEditingDiscussion(null);
-      setEditContent("");
-      window.dispatchEvent(
-        new CustomEvent("forumDiscussionChanged", { detail: { forumId } })
-      );
+      if (updatedDiscussion) {
+        const updatedDiscussions = discussions.map((d) =>
+          d.discussionId === discussionId
+            ? { ...d, content: editContent.trim() }
+            : d
+        );
+        onDiscussionsChange(updatedDiscussions);
+        socket?.emit("updateDiscussions", {
+          forumId,
+          discussions: updatedDiscussions,
+        });
+        setEditingDiscussion(null);
+        setEditContent("");
+      }
+    } catch (error) {
+      console.error("Error updating discussion:", error);
+      alert(t("updateCommentError"));
     }
   };
-
-  useEffect(() => {
-    const handleUserInteraction = () => setPollingActive(true);
-    window.addEventListener("click", handleUserInteraction);
-    window.addEventListener("keydown", handleUserInteraction);
-    window.addEventListener("mousemove", handleUserInteraction);
-    window.addEventListener("touchstart", handleUserInteraction);
-    return () => {
-      window.removeEventListener("click", handleUserInteraction);
-      window.removeEventListener("keydown", handleUserInteraction);
-      window.removeEventListener("mousemove", handleUserInteraction);
-      window.removeEventListener("touchstart", handleUserInteraction);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!pollingActive) return;
-
-    const intervalId = setInterval(() => {
-      if (!document.hidden) {
-        setIsCurrentlyPolling(true);
-        fetchDiscussions().finally(() => setIsCurrentlyPolling(false));
-      }
-    }, 3000);
-
-    const timeoutId = setTimeout(() => setPollingActive(false), 2 * 60 * 1000);
-
-    return () => {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
-    };
-  }, [pollingActive, forumId]);
-
-  useEffect(() => {
-    const handleDiscussionChange = (event: CustomEvent) => {
-      if (event.detail.forumId === forumId) {
-        fetchDiscussions();
-      }
-    };
-    window.addEventListener(
-      "forumDiscussionChanged",
-      handleDiscussionChange as EventListener
-    );
-    return () =>
-      window.removeEventListener(
-        "forumDiscussionChanged",
-        handleDiscussionChange as EventListener
-      );
-  }, [forumId]);
 
   const dateLocale = locale === "vi" ? vi : enUS;
 
   return (
     <div className="card shadow-sm mb-4">
-      {pollingActive && (
-        <div
-          className="position-fixed bottom-0 end-0 p-3"
-          style={{ zIndex: 1050 }}
-        >
-          <div
-            className={`toast ${isCurrentlyPolling ? "show" : ""}`}
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-          >
-            <div className="toast-header">
-              <div
-                className={`spinner-border spinner-border-sm me-2 ${
-                  isCurrentlyPolling ? "" : "invisible"
-                }`}
-                role="status"
-              >
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <strong className="me-auto">Real-time Updates</strong>
-              <small>{new Date().toLocaleTimeString()}</small>
-            </div>
-            <div className="toast-body">
-              {isCurrentlyPolling
-                ? "Đang cập nhật bình luận..."
-                : "Đang theo dõi thay đổi trong thời gian thực"}
-            </div>
-          </div>
-        </div>
-      )}
       <div className="card-header bg-white">
         <h5 className="mb-0">
           {t("comments")} ({discussions.length})
@@ -228,6 +200,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               required
+              disabled={!session}
             />
           </div>
           <button type="submit" className="btn btn-primary" disabled={!session}>
@@ -243,10 +216,10 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
               >
                 <div className="d-flex align-items-start">
                   <div className="me-3">
-                    {discussion.user.avatarImg ? (
+                    {discussion.user && discussion.user.avatarImg ? (
                       <Image
                         src={discussion.user.avatarImg}
-                        alt={discussion.user.username}
+                        alt={discussion.user.username || "User"}
                         width={40}
                         height={40}
                         className="rounded-circle"
@@ -257,39 +230,43 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
                         className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
                         style={{ width: "40px", height: "40px" }}
                       >
-                        {discussion.user.username.charAt(0).toUpperCase()}
+                        {discussion.user?.username?.charAt(0).toUpperCase() ||
+                          "U"}
                       </div>
                     )}
                   </div>
                   <div className="flex-grow-1">
                     <div className="d-flex justify-content-between align-items-center">
                       <div className="fw-bold mb-1">
-                        {discussion.user.username}
+                        {discussion.user?.username || "Unknown User"}
                       </div>
-                      {session?.user?.user_id === discussion.user.user_id && (
-                        <div className="btn-group">
-                          <button
-                            className="btn btn-sm btn-outline-primary"
-                            onClick={() => startEditingDiscussion(discussion)}
-                            title={t("edit")}
-                          >
-                            <FaPencilAlt />
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() =>
-                              handleDeleteDiscussion(discussion.discussionId)
-                            }
-                            title={t("delete")}
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                      )}
+                      {session?.user?.user_id &&
+                        discussion.user?.user_id &&
+                        session.user.user_id === discussion.user.user_id && (
+                          <div className="btn-group">
+                            <button
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => startEditingDiscussion(discussion)}
+                              title={t("edit")}
+                            >
+                              <FaPencilAlt />
+                            </button>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() =>
+                                handleDeleteDiscussion(discussion.discussionId)
+                              }
+                              title={t("delete")}
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        )}
                     </div>
                     {editingDiscussion === discussion.discussionId ? (
                       <div className="mb-2">
                         <textarea
+                          title={t("edit")}
                           className="form-control mb-2"
                           rows={3}
                           value={editContent}
@@ -315,14 +292,19 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
                       </div>
                     ) : (
                       <div className="comment-content mb-1">
-                        {discussion.content}
+                        {discussion.content || "No content available"}
                       </div>
                     )}
                     <div className="text-muted small">
-                      {formatDistanceToNow(new Date(discussion.createdAt), {
-                        addSuffix: true,
-                        locale: dateLocale,
-                      })}
+                      {discussion.createdAt
+                        ? formatDistanceToNow(
+                            addHours(new Date(discussion.createdAt), 7),
+                            {
+                              addSuffix: true,
+                              locale: dateLocale,
+                            }
+                          )
+                        : "Unknown time"}
                     </div>
                   </div>
                 </div>
