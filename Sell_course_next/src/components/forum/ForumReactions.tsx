@@ -65,15 +65,12 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       socket.emit("joinForumRoom", forumId);
     });
 
-    socket.on(
-      "forumReactionsUpdated",
-      (data: { forumId: string; reactions: Reaction[] }) => {
-        if (data.forumId === forumId) {
-          setAllReactions(data.reactions);
-          onReactionChange?.(data.reactions);
-        }
+    socket.on("forumReactionsUpdated", (data: { forumId: string; reactions: Reaction[] }) => {
+      if (data.forumId === forumId) {
+        setAllReactions(data.reactions);
+        onReactionChange?.(data.reactions);
       }
-    );
+    });
 
     socket.on("disconnect", () => {
       console.log("Disconnected from WebSocket server");
@@ -98,7 +95,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       return result.data;
     }
     return null;
-  }, [forumId, session?.user?.token, onReactionChange]);
+  }, [forumId, session?.user?.token]);
 
   useEffect(() => {
     syncReactions();

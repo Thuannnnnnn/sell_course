@@ -483,7 +483,10 @@
     "tokenRequired": "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.",
     "pagination": "Phân trang diễn đàn",
     "previousPage": "Trang trước",
-    "nextPage": "Trang sau"
+    "nextPage": "Trang sau",
+    "save": "Lưu",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa"
   },
   "lesson": {
     "NotHave": "Không có bài học nào!",
