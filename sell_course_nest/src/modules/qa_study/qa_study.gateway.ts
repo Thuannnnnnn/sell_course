@@ -96,4 +96,14 @@ export class QaGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
   }
+
+  async broadcastUpdateQa(updatedQa: ResponseQaDto) {
+    const courseId = updatedQa.courseId;
+    if (this.clients.has(courseId)) {
+      const socketIds = this.clients.get(courseId);
+      socketIds.forEach((socketId) => {
+        this.server.to(socketId).emit('updateQa', updatedQa);
+      });
+    }
+  }
 }

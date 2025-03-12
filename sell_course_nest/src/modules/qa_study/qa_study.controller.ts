@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -50,6 +51,20 @@ export class QaStudyController {
     return this.qaService.findByCourseId(courseId);
   }
 
+  @Patch(':id')
+@ApiBearerAuth('Authorization')
+@UseGuards(JwtAuthGuard)
+@ApiOperation({ summary: 'Update a QA entry' })
+@ApiResponse({
+  status: 200,
+  description: 'QA updated successfully',
+  type: ResponseQaDto,
+})
+@ApiResponse({ status: 404, description: 'QA not found' })
+update(@Param('id') id: string, @Body() updateQaDto: { text: string }) {
+  return this.qaService.updateQa(id, updateQaDto.text);
+}
+
   @Delete(':id')
   @ApiBearerAuth('Authorization')
   @UseGuards(JwtAuthGuard)
@@ -59,4 +74,5 @@ export class QaStudyController {
   remove(@Param('id') id: string) {
     return this.qaService.remove(id);
   }
+  
 }

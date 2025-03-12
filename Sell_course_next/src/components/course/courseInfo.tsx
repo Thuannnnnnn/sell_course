@@ -15,7 +15,7 @@ import { CourseData } from "@/app/type/course/Lesson";
 import { useParams } from "next/navigation";
 import QuizPage from "../quizz/Quiz";
 import { fetchQuestion } from "@/app/api/exam/exam";
-
+import QaComponent from "@/components/qaStudy/QaComponent";
 import {
   fetchContentStatus,
   fetchCourseProgress,
@@ -29,6 +29,7 @@ export default function CourseInfo() {
   const [currentContentIndex, setCurrentContentIndex] = useState<number>(0);
   const [completedContents, setCompletedContents] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<"overview" | "qa">("overview");
   const [isExamSelected, setIsExamSelected] = useState(false);
   const { id } = useParams();
   const { data: session } = useSession();
@@ -165,8 +166,12 @@ export default function CourseInfo() {
         return null;
     }
   };
+  const courseId = Array.isArray(id) ? id[0] : id;
 
   const renderLessonComponent = () => {
+    if (activeTab === "qa") {
+      return <QaComponent courseId={courseId} userEmail={session?.user.email || ""} token={session?.user.token || ""} />;
+    }
     if (isExamSelected) {
       return <ExamPage />;
     }
@@ -241,7 +246,8 @@ export default function CourseInfo() {
       {/* Navigation Bar */}
       <div className="course-nav">
         <div className="course-nav-content">
-          <span className="nav-item active">📖 Overview</span>
+          <span className={`nav-item ${activeTab === "overview" ? "active" : ""}`} onClick={() => setActiveTab("overview")}>📖 Overview</span>
+          <span className={`nav-item ${activeTab === "qa" ? "active" : ""}`} onClick={() => setActiveTab("qa")}>💬 Q&A</span>
         </div>
       </div>
 

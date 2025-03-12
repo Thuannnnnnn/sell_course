@@ -120,4 +120,28 @@ export class QaStudyService {
     }
     await this.qaGateway.broadcastRemoveQa(id, qa.course.courseId);
   }
+
+  async updateQa(qaId: string, text: string): Promise<ResponseQaDto> {
+    const qa = await this.findOne(qaId);
+    qa.text = text;
+    const updatedQa = await this.qaRepository.save(qa);
+  
+    const qaResponse: ResponseQaDto = {
+      qaId: updatedQa.qaStudyId,
+      userEmail: updatedQa.user.email,
+      username: updatedQa.user.username,
+      courseId: updatedQa.course.courseId,
+      text: updatedQa.text,
+      parentId: updatedQa.parent?.qaStudyId || null,
+      createdAt: updatedQa.createdAt.toISOString(),
+      avatarImg: updatedQa.user.avatarImg,
+      reactionQas: updatedQa.reactionQas?.map((reaction) => ({
+        userEmail: reaction.user.email,
+        reactionType: reaction.reactionType,
+      })),
+    };
+  
+    await this.qaGateway.broadcastUpdateQa(qaResponse);
+    return qaResponse;
+  }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { QaData } from "@/app/type/QAStudy/QAStudy";
+import { QaData } from "@/app/type/qastudy/QAStudy";
 
 export const useQaSocket = (courseId: string) => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -21,6 +21,13 @@ export const useQaSocket = (courseId: string) => {
 
     newSocket.on("newQa", (qa) => {
       setQaList((prevQaList) => [...prevQaList, qa]);
+    });
+    newSocket.on("updateQa", (updatedQa: QaData) => {
+      setQaList((prevQaList) =>
+        prevQaList.map((qa) =>
+          qa.qaId === updatedQa.qaId ? { ...qa, text: updatedQa.text } : qa
+        )
+      );
     });
 
     newSocket.on("removeQa", ({ qaId }) => {

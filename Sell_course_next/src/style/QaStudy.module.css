@@ -1,0 +1,343 @@
+/* Container styles */
+.container {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-top: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .inputForm {
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .inputArea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    resize: none;
+    outline: none;
+    font-size: 14px;
+    color: #333;
+    font-family: Arial, sans-serif;
+  }
+  
+  .inputArea::placeholder {
+    color: #999;
+  }
+  
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .submitButton {
+    padding: 8px 16px;
+    background-color: #ff6200;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.2s;
+  }
+  
+  .submitButton:hover {
+    background-color: #e64a19;
+  }
+  
+  .submitButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .cancelButton {
+    padding: 8px 16px;
+    background-color: #e5e7eb;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.2s;
+  }
+  
+  .cancelButton:hover {
+    background-color: #d1d5db;
+  }
+  
+  .commentsSection {
+    margin-top: 16px;
+  }
+  
+  .commentsHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .commentsTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    font-family: Arial, sans-serif;
+    margin-right: 8px;
+  }
+  
+  .commentCount {
+    padding: 4px 8px;
+    background-color: #ff6200;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: Arial, sans-serif;
+  }
+  
+  .sortContainer {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .sortIcon {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .sortSelect {
+    font-size: 14px;
+    color: #666;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+  }
+  
+  .loadingText {
+    color: #666;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Comment list styles */
+  .commentList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* Comment item styles */
+  .comment {
+    display: flex;
+    gap: 12px;
+    position: relative;
+  }
+  
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .commentContent {
+    flex: 1;
+  }
+  
+  .commentHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  
+  .username {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    font-family: Arial, sans-serif;
+  }
+  
+  .verifiedIcon {
+    color: #1e90ff;
+    margin-left: 4px;
+    font-size: 14px;
+  }
+  
+  .timestamp {
+    font-size: 12px;
+    color: #999;
+    font-family: Arial, sans-serif;
+  }
+  
+  .actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  .comment:hover .actions {
+    opacity: 1;
+  }
+  
+  .actionButton {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+  }
+  
+  .actionButton:hover {
+    color: #333;
+  }
+  
+  .commentText {
+    font-size: 14px;
+    color: #333;
+    margin-top: 4px;
+    line-height: 1.5;
+    font-family: Arial, sans-serif;
+  }
+  
+  .interactions {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    align-items: center;
+    position: relative;
+  }
+  
+  .interactionButton {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-family: Arial, sans-serif;
+  }
+  
+  .interactionButton:hover {
+    color: #333;
+  }
+  
+  .interactionButton i {
+    font-size: 14px;
+  }
+  
+  /* Popup Reaction styles */
+  .reactionPopup {
+    position: absolute;
+    bottom: 100%; /* Hiển thị phía trên nút Like */
+    left: 0;
+    display: flex;
+    gap: 8px;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    animation: slideIn 0.2s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .reactionPopupButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 4px;
+    transition: transform 0.1s;
+  }
+
+  .reactionPopupButton:hover {
+    transform: scale(1.2);
+  }
+
+  /* Reply input styles */
+  .replyForm {
+    margin-top: 8px;
+    margin-left: 52px;
+  }
+
+  .replyInput {
+    width: 100%;
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    resize: none;
+    outline: none;
+    font-size: 14px;
+    color: #333;
+    font-family: Arial, sans-serif;
+  }
+
+  .replyInput::placeholder {
+    color: #999;
+  }
+
+  .replyActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  /* Edit input styles */
+  .editForm {
+    margin-top: 8px;
+    margin-left: 52px;
+  }
+
+  .editInput {
+    width: 100%;
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    resize: none;
+    outline: none;
+    font-size: 14px;
+    color: #333;
+    font-family: Arial, sans-serif;
+  }
+
+  .editActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
