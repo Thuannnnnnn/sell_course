@@ -20,16 +20,7 @@ import {
   FaSurprise,
   FaSadTear,
   FaAngry,
-  FaEllipsisH,
-  FaBold,
-  FaItalic,
-  FaUnderline,
-  FaLink,
-  FaImage,
-  FaSmile,
-  FaAt,
   FaAngleDown,
-  FaSort,
 } from "react-icons/fa";
 import styles from "../../style/QaStudy.module.css";
 
@@ -47,13 +38,11 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
   const [hoveringReactionId, setHoveringReactionId] = useState<string | null>(
     null
   );
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = 10;
   const { data: session } = useSession();
 
-  // Sort and paginate comments
   const sortedQas = [...qaList]
     .filter((qa) => !qa.parentId)
     .sort((a, b) => {
@@ -79,9 +68,7 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
 
   // Close dropdown menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setOpenMenuId(null);
-    };
+    const handleClickOutside = () => {};
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
@@ -133,7 +120,6 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
   const handleEdit = (qaId: string, currentText: string) => {
     setEditingQaId(qaId);
     setEditText(currentText);
-    setOpenMenuId(null); // Close menu after selecting edit
   };
 
   const saveEdit = async (qaId: string) => {
@@ -153,7 +139,6 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
 
     try {
       await deleteQa(qaId, session.user.token);
-      setOpenMenuId(null); // Close menu after selecting delete
     } catch (error) {
       console.error("Failed to delete QA:", error);
     }
@@ -162,7 +147,6 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
   const handleReply = (qaId: string) => {
     setReplyToId(qaId);
     setReplyText("");
-    setOpenMenuId(null); // Close menu if open
   };
 
   const handleReaction = async (
@@ -265,11 +249,6 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
       default:
         return "";
     }
-  };
-
-  const toggleDropdownMenu = (qaId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent the click from closing the menu immediately
-    setOpenMenuId(openMenuId === qaId ? null : qaId);
   };
 
   const handleSortChange = () => {
@@ -468,13 +447,18 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
               <div className={styles.commentHeader}>
                 <span className={styles.userName}>{qa.username}</span>
                 <span className={styles.timeAgo}>
-                  {new Date(qa.createdAt).toLocaleString()}
+                  {new Date(
+                    new Date(qa.createdAt).setHours(
+                      new Date(qa.createdAt).getHours() + 7
+                    )
+                  ).toLocaleString()}
                 </span>
               </div>
 
               {editingQaId === qa.qaId ? (
                 <div className={styles.editContainer}>
                   <textarea
+                    title="edit"
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
                     className={styles.editTextarea}
@@ -583,13 +567,18 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
                           )}
                         </span>
                         <span className={styles.timeAgo}>
-                          {new Date(reply.createdAt).toLocaleString()}
+                          {new Date(
+                            new Date(qa.createdAt).setHours(
+                              new Date(qa.createdAt).getHours() + 7
+                            )
+                          ).toLocaleString()}
                         </span>
                       </div>
 
                       {editingQaId === reply.qaId ? (
                         <div className={styles.editContainer}>
                           <textarea
+                            title="edit"
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
                             className={styles.editTextarea}
