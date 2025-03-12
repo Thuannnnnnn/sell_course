@@ -43,6 +43,13 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
       setCourseId(editNotify.courseId || "");
       setUserId(editNotify.userId || "");
     }
+    else {
+      setTitle("");
+      setMessage("");
+      setType("GLOBAL");
+      setCourseId("");
+      setUserId("");
+    }
   }, [editNotify]);
 
   useEffect(() => {

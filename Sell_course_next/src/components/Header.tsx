@@ -1,6 +1,14 @@
 "use client";
-import React from "react";
-import { Navbar, Container, Nav, Image, Button } from "react-bootstrap";
+import React, { useState } from "react";
+import {
+  Navbar,
+  Container,
+  Nav,
+  Image,
+  Button,
+  Dropdown,
+  Badge,
+} from "react-bootstrap";
 import { useSession, signOut } from "next-auth/react";
 import "../style/header.css";
 import Link from "next/link";
@@ -11,9 +19,9 @@ import { IoIosLogOut } from "react-icons/io";
 // import { MdDarkMode } from "react-icons/md";
 // import { MdLightMode } from "react-icons/md";
 // import { useTheme } from "../contexts/ThemeContext";
-import { FaRegUser } from "react-icons/fa";
+import { FaRegBell, FaRegUser } from "react-icons/fa";
 import { useTheme } from "@/contexts/ThemeContext";
-
+import "@/style/NotificationDropdown.module.css";
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
   const localActive = useLocale();
@@ -24,6 +32,12 @@ const Header: React.FC = () => {
   //   const newTheme = theme === "dark" ? "light" : "dark";
   // };
   setTheme("light");
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "New message received" },
+    { id: 2, message: "Your course has been updated" },
+    { id: 3, message: "A new user followed you" },
+  ]);
   return (
     <Navbar
       expand="lg"
@@ -94,6 +108,45 @@ const Header: React.FC = () => {
               >
                 <FaRegUser />
               </Link>
+              <Dropdown align="end" className="m-2">
+                <Dropdown.Toggle
+                  bsPrefix="dropdown-toggle"
+                  variant="link"
+                  className="bell-container nav-link p-0"
+                  id="dropdown-no-caret"
+                >
+                  <div className={"bell-wrapper"}>
+                    <FaRegBell className={"notification-bell"} />
+                    {notifications.length > 0 && (
+                      <Badge bg="danger" className={"notification-badge"}>
+                        {notifications.length}
+                      </Badge>
+                    )}
+                  </div>
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu className="notification-dropdown mb-8">
+                  <Dropdown.Header className="notification-header">
+                    Notifications
+                  </Dropdown.Header>
+                  {notifications.length > 0 ? (
+                    notifications.map((notify) => (
+                      <Dropdown.Item
+                        key={notify.id}
+                        className="notification-item"
+                      >
+                        <span style={{ flex: 1 }}>{notify.message}</span>
+                      </Dropdown.Item>
+                    ))
+                  ) : (
+                    <Dropdown.Item disabled className="notification-empty">
+                      No new notifications
+                    </Dropdown.Item>
+                  )}
+                  <Dropdown.Divider />
+                  <Dropdown.Item eventKey="4">Separated link</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
               <Button
                 variant={`${theme}`}
                 onClick={() => signOut()}
