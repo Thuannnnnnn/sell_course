@@ -1,4 +1,5 @@
 export type ReactionQa = {
+  reactionId: string;
   userEmail: string;
   reactionType: "like" | "love" | "haha" | "wow" | "sad" | "angry";
 };

@@ -55,19 +55,11 @@ export class QaStudyService {
       parent,
     });
     const savedQa = await this.qaRepository.save(qa);
-    const qaResponse: ResponseQaDto = {
-      qaId: savedQa.qaStudyId,
-      userEmail: user.email,
-      username: user.username,
-      courseId: course.courseId,
-      text: savedQa.text,
-      parentId: parent?.qaStudyId || null,
-      createdAt: savedQa.createdAt.toISOString(),
-      avatarImg: user.avatarImg,
-    };
-    await this.qaGateway.broadcastNewQa(qaResponse);
+    await this.qaGateway.notifyQasUpdate(qaData.courseId);
+
     return savedQa;
   }
+
   async findByCourseId(courseId: string): Promise<ResponseQaDto[]> {
     const qaList = await this.qaRepository.find({
       where: { course: { courseId } },
@@ -78,7 +70,7 @@ export class QaStudyService {
         'reactionQas',
         'reactionQas.user',
       ],
-      order: { qaStudyId: 'ASC' },
+      order: { createdAt: 'ASC' },
     });
 
     return qaList.map((qa) => ({
@@ -110,6 +102,21 @@ export class QaStudyService {
     return qa;
   }
 
+  async updateQa(
+    id: string,
+    updateData: Partial<CreateQaDto>,
+  ): Promise<QaStudy> {
+    const qa = await this.findOne(id);
+    if (updateData.text) {
+      qa.text = updateData.text;
+    }
+    const updatedQa = await this.qaRepository.save(qa);
+
+    await this.qaGateway.notifyQasUpdate(qa.course.courseId);
+
+    return updatedQa;
+  }
+
   async remove(id: string): Promise<void> {
     const qa = await this.findOne(id);
     await this.reactionQaRepository.delete({ qa: { qaStudyId: id } });
@@ -118,6 +125,6 @@ export class QaStudyService {
     if (result.affected === 0) {
       throw new NotFoundException('QA not found');
     }
-    await this.qaGateway.broadcastRemoveQa(id, qa.course.courseId);
+    await this.qaGateway.notifyQasUpdate(qa.course.courseId);
   }
 }
