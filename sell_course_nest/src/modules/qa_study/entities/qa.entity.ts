@@ -41,6 +41,6 @@ export class QaStudy {
   @ManyToOne(() => Course)
   @JoinColumn({ name: 'courseId', referencedColumnName: 'courseId' })
   course: Course;
-  @OneToMany(() => ReactionQa, (reactionQa) => reactionQa.QaStudy)
+  @OneToMany(() => ReactionQa, (reactionQa) => reactionQa.qa)
   reactionQas: ReactionQa[];
 }
