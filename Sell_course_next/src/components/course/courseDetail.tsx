@@ -20,36 +20,10 @@ import {
   getFeedbackRatingByCourseId,
   createFeedbackRating,
   deleteFeedbackRating,
-  updateFeedbackRating,
 } from "@/app/api/feedbackRating/feedbackRating";
 import { ResponseFeedbackRatingDto } from "@/app/type/feedbackRating/feedbackRating";
-// const getRelativeTime = (dateString: string) => {
-//   const now = new Date();
-//   const past = new Date(dateString);
-
-//   const diffInMilliseconds = now.getTime() - past.getTime();
-//   const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
-//   const diffInMinutes = Math.floor(diffInSeconds / 60);
-//   const diffInHours = Math.floor(diffInMinutes / 60);
-//   const diffInDays = Math.floor(diffInHours / 24);
-//   const diffInMonths = Math.floor(diffInDays / 30);
-//   const diffInYears = Math.floor(diffInDays / 365);
-
-//   if (diffInSeconds < 30) return "Just now";
-//   if (diffInSeconds < 60)
-//     return `${diffInSeconds} second${diffInSeconds > 1 ? "s" : ""} ago`;
-//   if (diffInMinutes < 60)
-//     return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
-//   if (diffInHours < 24)
-//     return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-//   if (diffInDays === 1) return "Yesterday";
-//   if (diffInDays < 30)
-//     return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-//   if (diffInMonths < 12)
-//     return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
-//   return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
-// };
-
+import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
+import { creatWaitingList } from "@/app/api/waitingList/waitingList";
 interface CourseCardProps {
   courseId: string;
 }
@@ -89,10 +63,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const [feedbacks, setFeedbacks] = useState<ResponseFeedbackRatingDto[]>([]);
   const [newFeedback, setNewFeedback] = useState("");
   const [newStar, setNewStar] = useState(5);
-  const [editingFeedback, setEditingFeedback] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const [editStar, setEditStar] = useState(5);
-
+  const [isPurchased, setIsPurchased] = useState(false);
   console.log("Session Status:", status);
   console.log("Session Data:", session);
   const t = useTranslations("courseDetailForm");
@@ -116,11 +87,48 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         setLoading(false);
       }
     };
+    const handleCoursePurchase = async (courseId: string) => {
+      if (!session?.user.email) return;
 
+      try {
+        const data = await CoursePurchaseAPI.getCoursePurchaseById(
+          courseId,
+          session?.user.email
+        );
+        if (data === 200) {
+          setIsPurchased(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching course purchase:", error);
+      }
+    };
+    handleCoursePurchase(courseId);
     fetchQaData();
-  }, [courseId]);
+  }, [courseId, session]);
 
+  const handleCreatWaitList = async () => {
+    try {
+      const token = session?.user.token;
+      const userId = session?.user.user_id;
+      if (!token || !userId) {
+        NotificationManager.warning("Login required", "Warning", 2000);
+        return;
+      }
 
+      const response = await creatWaitingList(token, userId, courseId);
+      console.log("📩 API Response:", response);
+
+      // Sửa kiểm tra status đúng với Axios
+      if (response && response.waitlistId) {
+        NotificationManager.success("Added to waitlist", "Success", 2000);
+      } else {
+        NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+      }
+    } catch {
+      NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+    }
+  };
   useEffect(() => {
     const fetchFeedbackRatings = async () => {
       if (!courseId) return;
@@ -134,7 +142,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     };
     fetchFeedbackRatings();
   }, [courseId]);
-
 
   const handleSubmitFeedback = async () => {
     if (!session || !session.user || !session.user.user_id) {
@@ -172,12 +179,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
       if (existingFeedback) {
         console.log("Updating existing feedback...");
-        const updatedFeedback = await updateFeedbackRating(
-          existingFeedback.feedbackRattingId,
-          newStar,
-          newFeedback,
-          session.user.token
-        );
 
         setFeedbacks((prev) =>
           prev.map((fb) =>
@@ -221,12 +222,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     }
   };
 
-  const handleEditFeedback = (feedback: ResponseFeedbackRatingDto) => {
-    setNewFeedback(feedback.feedback || "");
-    setNewStar(feedback.star || 5);
-  };
-
-  // ✅ Hàm Xóa Feedback
   const handleDeleteFeedback = async (feedbackId: string) => {
     if (!session) {
       NotificationManager.warning(
@@ -256,7 +251,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       );
     }
   };
-  // Thêm useEffect để tự động điền feedback của người dùng hiện tại
   useEffect(() => {
     if (session?.user?.user_id && feedbacks.length > 0) {
       const currentUserFeedback = feedbacks.find(
@@ -487,38 +481,39 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
           <div className="feedback-section">
             <h2>Feedbacks</h2>
-
-            {/* Feedback Input Form */}
-            <div className="feedback-input-container">
-              <textarea
-                value={newFeedback}
-                onChange={(e) => setNewFeedback(e.target.value)}
-                placeholder="Share your experience..."
-                className="feedback-textarea"
-              />
-              <div className="rating-container">
-                <span>Rating</span>
-                <div className="star-rating">
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <span
-                      key={index}
-                      className={`star ${index < newStar ? "filled" : ""}`}
-                      onClick={() => setNewStar(index + 1)}
-                    >
-                      ★
-                    </span>
-                  ))}
+            {isPurchased ? (
+              <div className="feedback-input-container">
+                <textarea
+                  value={newFeedback}
+                  onChange={(e) => setNewFeedback(e.target.value)}
+                  placeholder="Share your experience..."
+                  className="feedback-textarea"
+                />
+                <div className="rating-container">
+                  <span>Rating</span>
+                  <div className="star-rating">
+                    {Array.from({ length: 5 }, (_, index) => (
+                      <span
+                        key={index}
+                        className={`star ${index < newStar ? "filled" : ""}`}
+                        onClick={() => setNewStar(index + 1)}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
                 </div>
+                <button
+                  className="submit-feedback-btn"
+                  onClick={handleSubmitFeedback}
+                >
+                  Submit Feedback
+                </button>
               </div>
-              <button
-                className="submit-feedback-btn"
-                onClick={handleSubmitFeedback}
-              >
-                Submit Feedback
-              </button>
-            </div>
+            ) : (
+              <p>{t("purFedback")}</p>
+            )}
 
-            {/* Display Existing Feedbacks */}
             {feedbacks.length > 0 ? (
               feedbacks
                 .slice() // Tạo bản sao để không ảnh hưởng mảng gốc
@@ -718,7 +713,14 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           <button className="btn buy-course" onClick={() => handleCheckOut()}>
             {t("buyCourse")}
           </button>
-
+          {!courses?.isPublic && (
+            <button
+              className="btn waitListCourse"
+              onClick={() => handleCreatWaitList()}
+            >
+              {t("addToWaitList")}
+            </button>
+          )}
           <div className="course-details">
             <div className="row"></div>
             <div className="row"></div>
