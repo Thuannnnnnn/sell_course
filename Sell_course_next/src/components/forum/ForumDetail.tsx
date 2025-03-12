@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow, format, addHours } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -227,10 +227,13 @@ const ForumDetail: React.FC = () => {
   }
 
   const dateLocale = locale === "vi" ? vi : enUS;
-  const formattedDate = formatDistanceToNow(new Date(forum.createdAt), {
-    addSuffix: true,
-    locale: dateLocale,
-  });
+  const formattedDate = formatDistanceToNow(
+    addHours(new Date(forum.createdAt), 7),
+    {
+      addSuffix: true,
+      locale: dateLocale,
+    }
+  );
   const exactDate = format(new Date(forum.createdAt), "dd/MM/yyyy HH:mm");
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, addHours } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -13,7 +13,6 @@ import {
   updateDiscussion,
 } from "@/app/api/discussion/Discussion";
 import { io, Socket } from "socket.io-client";
-
 interface ForumDiscussionsProps {
   forumId: string;
   locale: string;
@@ -267,6 +266,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
                     {editingDiscussion === discussion.discussionId ? (
                       <div className="mb-2">
                         <textarea
+                          title={t("edit")}
                           className="form-control mb-2"
                           rows={3}
                           value={editContent}
@@ -297,10 +297,13 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
                     )}
                     <div className="text-muted small">
                       {discussion.createdAt
-                        ? formatDistanceToNow(new Date(discussion.createdAt), {
-                            addSuffix: true,
-                            locale: dateLocale,
-                          })
+                        ? formatDistanceToNow(
+                            addHours(new Date(discussion.createdAt), 7),
+                            {
+                              addSuffix: true,
+                              locale: dateLocale,
+                            }
+                          )
                         : "Unknown time"}
                     </div>
                   </div>

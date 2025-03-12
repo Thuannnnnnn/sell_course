@@ -1,3 +1,4 @@
+// LessonItem.tsx
 import { Lesson } from "@/app/type/course/Lesson";
 import { ListGroup, Button, Card } from "react-bootstrap";
 import { useDrag, useDrop } from "react-dnd";
@@ -84,7 +85,7 @@ export const LessonItem = ({
 
     return (
       <ListGroup.Item
-        ref={(node) => {
+        ref={(node: HTMLElement | null) => {
           contentRef(node);
           contentDrop(node);
         }}
@@ -126,7 +127,7 @@ export const LessonItem = ({
 
   return (
     <Card
-      ref={(node) => {
+      ref={(node: HTMLElement | null) => {
         lessonRef(node);
         lessonDrop(node);
       }}
