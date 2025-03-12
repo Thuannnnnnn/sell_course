@@ -66,6 +66,7 @@ const NotifyPage: React.FC = () => {
     };
   };
 
+  
   const handleEditNotify = (notify: Notify) => {
     setEditNotify(notify);
     setShowModal(true);

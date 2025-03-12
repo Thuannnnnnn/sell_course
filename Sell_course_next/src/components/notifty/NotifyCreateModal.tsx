@@ -37,13 +37,13 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
   const t = useTranslations("notifies");
   useEffect(() => {
     if (editNotify) {
+      console.log(editNotify);
       setTitle(editNotify.title);
       setMessage(editNotify.message);
       setType(editNotify.type);
       setCourseId(editNotify.courseId || "");
       setUserId(editNotify.userId || "");
-    }
-    else {
+    } else {
       setTitle("");
       setMessage("");
       setType("GLOBAL");
@@ -116,6 +116,11 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
         );
         addNotify(newNotify);
         localStorage.setItem("notifySuccess", "true");
+        setTitle("");
+        setMessage("");
+        setType("GLOBAL");
+        setCourseId("");
+        setUserId("");
       }
 
       handleClose();
@@ -134,14 +139,12 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
           keyboard={false}
         >
           <Modal.Header closeButton>
-            <Modal.Title>
-              {editNotify ? t("edit") : t("create")}
-            </Modal.Title>
+            <Modal.Title>{editNotify ? t("edit") : t("create")}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form onSubmit={handleSubmit}>
               <Form.Group>
-                <Form.Label>{t("title") }</Form.Label>
+                <Form.Label>{t("title")}</Form.Label>
                 <Form.Control
                   type="text"
                   value={title}
@@ -226,7 +229,7 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
               )}
 
               <Button variant="primary" type="submit" className="mt-3">
-                {editNotify ? t("editNotification") : t("create") }
+                {editNotify ? t("editNotification") : t("create")}
               </Button>
             </Form>
           </Modal.Body>
