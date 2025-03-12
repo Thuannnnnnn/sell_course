@@ -42,8 +42,21 @@ export class DiscussionService {
     });
 
     const savedDiscussion = await this.discussionRepository.save(discussion);
-    const forums = await this.forumService.findAll();
-    this.forumGateway.notifyForumUpdate(forums);
+
+    const updatedDiscussions = await this.findByForum(forumId);
+    console.log(
+      `Emitting discussionUpdated to room ${forumId}:`,
+      updatedDiscussions,
+    );
+    this.forumGateway.server.to(forumId).emit(
+      'discussionUpdated',
+      updatedDiscussions.map((d) => ({
+        discussionId: d.discussionId,
+        content: d.content,
+        createdAt: d.createdAt.toISOString(),
+        user: d.user,
+      })),
+    );
 
     return savedDiscussion;
   }
@@ -76,6 +89,7 @@ export class DiscussionService {
 
     return discussion;
   }
+
   async update(
     discussionId: string,
     updateDiscussionDto: UpdateDiscussionDto,
@@ -86,13 +100,44 @@ export class DiscussionService {
       discussion.content = updateDiscussionDto.content;
     }
 
-    return this.discussionRepository.save(discussion);
+    const updatedDiscussion = await this.discussionRepository.save(discussion);
+
+    const updatedDiscussions = await this.findByForum(discussion.forum.forumId);
+    console.log(
+      `Emitting discussionUpdated to room ${discussion.forum.forumId}:`,
+      updatedDiscussions,
+    );
+    this.forumGateway.server.to(discussion.forum.forumId).emit(
+      'discussionUpdated',
+      updatedDiscussions.map((d) => ({
+        discussionId: d.discussionId,
+        content: d.content,
+        createdAt: d.createdAt.toISOString(),
+        user: d.user,
+      })),
+    );
+
+    return updatedDiscussion;
   }
 
   async delete(discussionId: string): Promise<void> {
     const discussion = await this.findOne(discussionId);
+    const forumId = discussion.forum.forumId;
     await this.discussionRepository.remove(discussion);
-    const forums = await this.forumService.findAll();
-    this.forumGateway.notifyForumUpdate(forums);
+
+    const updatedDiscussions = await this.findByForum(forumId).catch(() => []);
+    console.log(
+      `Emitting discussionUpdated to room ${forumId}:`,
+      updatedDiscussions,
+    );
+    this.forumGateway.server.to(forumId).emit(
+      'discussionUpdated',
+      updatedDiscussions.map((d) => ({
+        discussionId: d.discussionId,
+        content: d.content,
+        createdAt: d.createdAt.toISOString(),
+        user: d.user,
+      })),
+    );
   }
 }
