@@ -1,4 +1,3 @@
-
 .bell-wrapper {
   position: relative;
   display: flex;
@@ -7,12 +6,10 @@
 }
 
 .notification-badge {
+  margin-bottom: 9px;
   position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 12px;
-  padding: 4px 6px;
-  border-radius: 50%;
+  left: -8px;
+  font-size: 7px;
 }
 
 .notification-dropdown {
@@ -47,8 +44,3 @@
   padding: 10px;
 }
 
-.notification-bell {
-  color: white;
-  font-size: 22px;
-  cursor: pointer;
-}

@@ -21,7 +21,7 @@ import { IoIosLogOut } from "react-icons/io";
 // import { useTheme } from "../contexts/ThemeContext";
 import { FaRegBell, FaRegUser } from "react-icons/fa";
 import { useTheme } from "@/contexts/ThemeContext";
-import "@/style/NotificationDropdown.module.css";
+import "@/style/NotificationDropdown.css";
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
   const localActive = useLocale();
@@ -110,15 +110,15 @@ const Header: React.FC = () => {
               </Link>
               <Dropdown align="end" className="m-2">
                 <Dropdown.Toggle
-                  bsPrefix="dropdown-toggle"
+                  bsPrefix="undropdown-toggle"
                   variant="link"
                   className="bell-container nav-link p-0"
                   id="dropdown-no-caret"
                 >
-                  <div className={"bell-wrapper"}>
-                    <FaRegBell className={"notification-bell"} />
+                  <div className="bell-wrapper">
+                    <FaRegBell size={20} className="notification-bell" />
                     {notifications.length > 0 && (
-                      <Badge bg="danger" className={"notification-badge"}>
+                      <Badge bg="danger" pill className="notification-badge">
                         {notifications.length}
                       </Badge>
                     )}
