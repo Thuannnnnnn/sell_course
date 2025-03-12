@@ -93,9 +93,9 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      // ssl: {
-      //   rejectUnauthorized: false,
-      // },
+      ssl: {
+        rejectUnauthorized: false,
+      },
 
       entities: [
         Notify,
