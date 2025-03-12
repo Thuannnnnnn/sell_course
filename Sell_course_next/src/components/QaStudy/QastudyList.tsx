@@ -1,6 +1,6 @@
 "use client";
 import { useQaSocket } from "@/hook/useQaSocket";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   createQa,
   updatesQa,
@@ -20,7 +20,9 @@ import {
   FaSurprise,
   FaSadTear,
   FaAngry,
+  FaAngleDown,
 } from "react-icons/fa";
+import styles from "../../style/QaStudy.module.css";
 
 type QaStudyListProps = {
   courseId: string;
@@ -33,7 +35,45 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
   const [replyText, setReplyText] = useState("");
   const [editingQaId, setEditingQaId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");
+  const [hoveringReactionId, setHoveringReactionId] = useState<string | null>(
+    null
+  );
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const commentsPerPage = 10;
   const { data: session } = useSession();
+
+  const sortedQas = [...qaList]
+    .filter((qa) => !qa.parentId)
+    .sort((a, b) => {
+      if (sortOrder === "newest") {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      } else {
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+    });
+
+  // Calculate total pages
+  const totalPages = Math.ceil(sortedQas.length / commentsPerPage);
+
+  // Get current page comments
+  const currentComments = sortedQas.slice(
+    (currentPage - 1) * commentsPerPage,
+    currentPage * commentsPerPage
+  );
+
+  // Close dropdown menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {};
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   const sendQuestion = async () => {
     if (!question || !session?.user.email || !session?.user.token) return;
@@ -165,392 +205,505 @@ export default function QaStudyList({ courseId }: QaStudyListProps) {
           r.userEmail === session?.user.email && r.reactionType === reactionType
       );
 
-  const topLevelQas = qaList.filter((qa) => !qa.parentId);
+  const getUserReaction = (qaId: string) => {
+    const qa = qaList.find((qa) => qa.qaId === qaId);
+    const userReaction = qa?.reactionQas?.find(
+      (r) => r.userEmail === session?.user.email
+    );
+    return userReaction?.reactionType || null;
+  };
+
+  const getReactionIcon = (reactionType: string) => {
+    switch (reactionType) {
+      case "like":
+        return <FaThumbsUp />;
+      case "love":
+        return <FaHeart />;
+      case "haha":
+        return <FaLaugh />;
+      case "wow":
+        return <FaSurprise />;
+      case "sad":
+        return <FaSadTear />;
+      case "angry":
+        return <FaAngry />;
+      default:
+        return <FaThumbsUp />;
+    }
+  };
+
+  const getReactionClass = (reactionType: string) => {
+    switch (reactionType) {
+      case "like":
+        return styles.active;
+      case "love":
+        return `${styles.active} ${styles.love}`;
+      case "haha":
+        return `${styles.active} ${styles.haha}`;
+      case "wow":
+        return `${styles.active} ${styles.wow}`;
+      case "sad":
+        return `${styles.active} ${styles.sad}`;
+      case "angry":
+        return `${styles.active} ${styles.angry}`;
+      default:
+        return "";
+    }
+  };
+
+  const handleSortChange = () => {
+    setSortOrder(sortOrder === "newest" ? "oldest" : "newest");
+    setCurrentPage(1); // Reset to first page when changing sort order
+  };
+
+  const renderReactionButtons = (qaId: string) => {
+    const userReaction = getUserReaction(qaId);
+    const isHovering = hoveringReactionId === qaId;
+    const totalReactions =
+      getReactionCount(qaId, "like") +
+      getReactionCount(qaId, "love") +
+      getReactionCount(qaId, "haha") +
+      getReactionCount(qaId, "wow") +
+      getReactionCount(qaId, "sad") +
+      getReactionCount(qaId, "angry");
+
+    return (
+      <div
+        className={styles.reactionPanel}
+        onMouseEnter={() => setHoveringReactionId(qaId)}
+        onMouseLeave={() => setHoveringReactionId(null)}
+      >
+        {/* Show only the user's reaction or like button by default */}
+        {!isHovering && (
+          <button
+            onClick={() => handleReaction(qaId, userReaction || "like")}
+            className={`${styles.reactionButton} ${
+              userReaction ? getReactionClass(userReaction) : ""
+            }`}
+          >
+            {userReaction ? getReactionIcon(userReaction) : <FaThumbsUp />}
+            {totalReactions > 0 && (
+              <span className={styles.reactionCount}>{totalReactions}</span>
+            )}
+          </button>
+        )}
+
+        {/* Show all reaction options on hover */}
+        {isHovering && (
+          <div className={styles.reactionPanel}>
+            <button
+              onClick={() => handleReaction(qaId, "like")}
+              className={`${styles.reactionButton} ${
+                hasUserReacted(qaId, "like") ? styles.active : ""
+              }`}
+              title="Like"
+            >
+              <FaThumbsUp />
+              {getReactionCount(qaId, "like") > 0 && (
+                <span className={styles.reactionCount}>
+                  {getReactionCount(qaId, "like")}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleReaction(qaId, "love")}
+              className={`${styles.reactionButton} ${
+                hasUserReacted(qaId, "love")
+                  ? `${styles.active} ${styles.love}`
+                  : ""
+              }`}
+              title="Love"
+            >
+              <FaHeart />
+              {getReactionCount(qaId, "love") > 0 && (
+                <span className={styles.reactionCount}>
+                  {getReactionCount(qaId, "love")}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleReaction(qaId, "haha")}
+              className={`${styles.reactionButton} ${
+                hasUserReacted(qaId, "haha")
+                  ? `${styles.active} ${styles.haha}`
+                  : ""
+              }`}
+              title="Haha"
+            >
+              <FaLaugh />
+              {getReactionCount(qaId, "haha") > 0 && (
+                <span className={styles.reactionCount}>
+                  {getReactionCount(qaId, "haha")}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleReaction(qaId, "wow")}
+              className={`${styles.reactionButton} ${
+                hasUserReacted(qaId, "wow")
+                  ? `${styles.active} ${styles.wow}`
+                  : ""
+              }`}
+              title="Wow"
+            >
+              <FaSurprise />
+              {getReactionCount(qaId, "wow") > 0 && (
+                <span className={styles.reactionCount}>
+                  {getReactionCount(qaId, "wow")}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleReaction(qaId, "sad")}
+              className={`${styles.reactionButton} ${
+                hasUserReacted(qaId, "sad")
+                  ? `${styles.active} ${styles.sad}`
+                  : ""
+              }`}
+              title="Sad"
+            >
+              <FaSadTear />
+              {getReactionCount(qaId, "sad") > 0 && (
+                <span className={styles.reactionCount}>
+                  {getReactionCount(qaId, "sad")}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleReaction(qaId, "angry")}
+              className={`${styles.reactionButton} ${
+                hasUserReacted(qaId, "angry")
+                  ? `${styles.active} ${styles.angry}`
+                  : ""
+              }`}
+              title="Angry"
+            >
+              <FaAngry />
+              {getReactionCount(qaId, "angry") > 0 && (
+                <span className={styles.reactionCount}>
+                  {getReactionCount(qaId, "angry")}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const getReplies = (qaId: string) =>
     qaList.filter((qa) => qa.parentId === qaId);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">QA Study Room</h1>
-      <div className="space-y-4">
-        {topLevelQas.map((qa) => (
-          <div key={qa.qaId} className="space-y-2">
-            {/* Main QA */}
-            <div className="flex items-start space-x-3">
+    <div className={styles.container}>
+      {/* Comment input area */}
+      <div className={styles.commentInput}>
+        <div className={styles.inputArea}>
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Add comment..."
+            className={styles.textInput}
+            onKeyDown={(e) => e.key === "Enter" && sendQuestion()}
+          />
+        </div>
+        <div className={styles.formatToolbar}>
+          <button
+            onClick={sendQuestion}
+            className={styles.submitButton}
+            type="button"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+
+      {/* Comments header */}
+      <div className={styles.commentsHeader}>
+        <div className={styles.commentsTitle}>
+          Comments{" "}
+          <span className={styles.commentCount}>{sortedQas.length}</span>
+        </div>
+        <div className={styles.sortOptions} onClick={handleSortChange}>
+          {sortOrder === "newest" ? "Most recent" : "Oldest first"}{" "}
+          <FaAngleDown className={styles.sortIcon} />
+        </div>
+      </div>
+
+      {/* Comments list */}
+      <div>
+        {currentComments.map((qa) => (
+          <div key={qa.qaId} className={styles.commentItem}>
+            <div className={styles.avatar}>
               <Image
                 src={qa.avatarImg || "/default-avatar.png"}
                 alt={qa.username}
                 width={40}
                 height={40}
-                className="rounded-full"
               />
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold">{qa.username}</span>
-                    <span className="text-sm text-gray-500 ml-2">
-                      {new Date(qa.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                  {qa.userEmail === session?.user.email && (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(qa.qaId, qa.text)}
-                        className="text-blue-500 hover:text-blue-700"
-                        title="Edit"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(qa.qaId)}
-                        className="text-red-500 hover:text-red-700"
-                        title="Delete"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {editingQaId === qa.qaId ? (
-                  <div className="flex space-x-2">
-                    <input
-                      title="Edit"
-                      type="text"
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      className="border p-2 flex-1 rounded"
-                    />
+            </div>
+            <div className={styles.commentContent}>
+              <div className={styles.commentHeader}>
+                <span className={styles.userName}>{qa.username}</span>
+                <span className={styles.timeAgo}>
+                  {new Date(
+                    new Date(qa.createdAt).setHours(
+                      new Date(qa.createdAt).getHours() + 7
+                    )
+                  ).toLocaleString()}
+                </span>
+              </div>
+
+              {editingQaId === qa.qaId ? (
+                <div className={styles.editContainer}>
+                  <textarea
+                    title="edit"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className={styles.editTextarea}
+                  />
+                  <div className={styles.editButtons}>
                     <button
                       onClick={() => saveEdit(qa.qaId)}
-                      className="bg-blue-500 text-white px-4 py-2 rounded"
-                      title="Save"
+                      className={styles.saveButton}
                     >
                       Save
                     </button>
                     <button
                       onClick={() => setEditingQaId(null)}
-                      className="bg-gray-300 text-black px-4 py-2 rounded"
-                      title="Cancel"
+                      className={styles.cancelButton}
                     >
                       Cancel
                     </button>
                   </div>
-                ) : (
-                  <div className="p-3 bg-gray-100 rounded-lg">{qa.text}</div>
-                )}
-                {/* Reaction Buttons */}
-                <div className="flex items-center space-x-4 mt-2">
-                  <button
-                    onClick={() => handleReaction(qa.qaId, "like")}
-                    className={`flex items-center space-x-1 ${
-                      hasUserReacted(qa.qaId, "like")
-                        ? "text-blue-500"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    <FaThumbsUp />{" "}
-                    <span>{getReactionCount(qa.qaId, "like")}</span>
-                  </button>
-                  <button
-                    onClick={() => handleReaction(qa.qaId, "love")}
-                    className={`flex items-center space-x-1 ${
-                      hasUserReacted(qa.qaId, "love")
-                        ? "text-red-500"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    <FaHeart /> <span>{getReactionCount(qa.qaId, "love")}</span>
-                  </button>
-                  <button
-                    onClick={() => handleReaction(qa.qaId, "haha")}
-                    className={`flex items-center space-x-1 ${
-                      hasUserReacted(qa.qaId, "haha")
-                        ? "text-yellow-500"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    <FaLaugh /> <span>{getReactionCount(qa.qaId, "haha")}</span>
-                  </button>
-                  <button
-                    onClick={() => handleReaction(qa.qaId, "wow")}
-                    className={`flex items-center space-x-1 ${
-                      hasUserReacted(qa.qaId, "wow")
-                        ? "text-yellow-500"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    <FaSurprise />{" "}
-                    <span>{getReactionCount(qa.qaId, "wow")}</span>
-                  </button>
-                  <button
-                    onClick={() => handleReaction(qa.qaId, "sad")}
-                    className={`flex items-center space-x-1 ${
-                      hasUserReacted(qa.qaId, "sad")
-                        ? "text-blue-500"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    <FaSadTear />{" "}
-                    <span>{getReactionCount(qa.qaId, "sad")}</span>
-                  </button>
-                  <button
-                    onClick={() => handleReaction(qa.qaId, "angry")}
-                    className={`flex items-center space-x-1 ${
-                      hasUserReacted(qa.qaId, "angry")
-                        ? "text-red-500"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    <FaAngry />{" "}
-                    <span>{getReactionCount(qa.qaId, "angry")}</span>
-                  </button>
                 </div>
-                {/* Reply Button */}
-                <div className="flex items-center space-x-2 mt-1">
+              ) : (
+                <div className={styles.commentText}>{qa.text}</div>
+              )}
+
+              {/* Reaction Buttons */}
+              {renderReactionButtons(qa.qaId)}
+
+              {/* Comment actions */}
+              <div className={styles.commentActions}>
+                <div className={styles.actionGroup}>
                   <button
                     onClick={() => handleReply(qa.qaId)}
-                    className="text-blue-500 hover:text-blue-700 text-sm"
+                    className={styles.actionButton}
                     title="Reply"
                   >
-                    <FaReply className="inline mr-1" /> Reply
+                    <FaReply className={styles.replyButton} /> Reply
                   </button>
-                  {replyToId === qa.qaId && (
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="Write your reply..."
-                        className="border p-2 flex-1 rounded"
-                        onKeyDown={(e) => e.key === "Enter" && sendReply()}
-                      />
-                      <button
-                        onClick={sendReply}
-                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                        title="Submit Reply"
-                      >
-                        Submit
-                      </button>
-                      <button
-                        onClick={() => setReplyToId(null)}
-                        className="bg-gray-300 text-black px-4 py-2 rounded"
-                        title="Cancel Reply"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
                 </div>
+
+                {qa.userEmail === session?.user.email && (
+                  <div className={styles.editDeleteGroup}>
+                    <button
+                      onClick={() => handleEdit(qa.qaId, qa.text)}
+                      className={styles.actionButton}
+                      title="Edit"
+                    >
+                      <FaEdit /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(qa.qaId)}
+                      className={styles.actionButton}
+                      title="Delete"
+                    >
+                      <FaTrash /> Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Reply input */}
+              {replyToId === qa.qaId && (
+                <div className={styles.replyInputContainer}>
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Write your reply..."
+                    className={styles.replyTextarea}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && !e.shiftKey && sendReply()
+                    }
+                  />
+                  <div className={styles.replyButtons}>
+                    <button
+                      onClick={sendReply}
+                      className={styles.replySubmitButton}
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={() => setReplyToId(null)}
+                      className={styles.replyCancelButton}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Replies */}
+              <div className={styles.replySection}>
+                {getReplies(qa.qaId).map((reply) => (
+                  <div key={reply.qaId} className={styles.replyItem}>
+                    <div className={styles.replyAvatar}>
+                      <Image
+                        src={reply.avatarImg || "/default-avatar.png"}
+                        alt={reply.username}
+                        width={36}
+                        height={36}
+                      />
+                    </div>
+                    <div className={styles.commentContent}>
+                      <div className={styles.commentHeader}>
+                        <span className={styles.userName}>
+                          {reply.username}
+                          {reply.username === "Skill Sprout" && (
+                            <span className={styles.verifiedBadge}>✓</span>
+                          )}
+                        </span>
+                        <span className={styles.timeAgo}>
+                          {new Date(
+                            new Date(qa.createdAt).setHours(
+                              new Date(qa.createdAt).getHours() + 7
+                            )
+                          ).toLocaleString()}
+                        </span>
+                      </div>
+
+                      {editingQaId === reply.qaId ? (
+                        <div className={styles.editContainer}>
+                          <textarea
+                            title="edit"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            className={styles.editTextarea}
+                          />
+                          <div className={styles.editButtons}>
+                            <button
+                              onClick={() => saveEdit(reply.qaId)}
+                              className={styles.saveButton}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingQaId(null)}
+                              className={styles.cancelButton}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={styles.commentText}>{reply.text}</div>
+                      )}
+
+                      {/* Reaction Buttons for Replies */}
+                      {renderReactionButtons(reply.qaId)}
+
+                      {/* Reply actions */}
+                      <div className={styles.commentActions}>
+                        <div className={styles.actionGroup}>
+                          <button
+                            onClick={() => handleReply(reply.qaId)}
+                            className={styles.actionButton}
+                            title="Reply"
+                          >
+                            <FaReply /> Reply
+                          </button>
+                        </div>
+
+                        {reply.userEmail === session?.user.email && (
+                          <div className={styles.editDeleteGroup}>
+                            <button
+                              onClick={() => handleEdit(reply.qaId, reply.text)}
+                              className={styles.actionButton}
+                              title="Edit"
+                            >
+                              <FaEdit /> Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(reply.qaId)}
+                              className={styles.actionButton}
+                              title="Delete"
+                            >
+                              <FaTrash /> Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Reply input for replies */}
+                      {replyToId === reply.qaId && (
+                        <div className={styles.replyInputContainer}>
+                          <textarea
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Write your reply..."
+                            className={styles.replyTextarea}
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && !e.shiftKey && sendReply()
+                            }
+                          />
+                          <div className={styles.replyButtons}>
+                            <button
+                              onClick={sendReply}
+                              className={styles.replySubmitButton}
+                            >
+                              Submit
+                            </button>
+                            <button
+                              onClick={() => setReplyToId(null)}
+                              className={styles.replyCancelButton}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            {/* Replies */}
-            {getReplies(qa.qaId).map((reply) => (
-              <div
-                key={reply.qaId}
-                className="flex items-start space-x-3 ml-12"
-              >
-                <Image
-                  src={reply.avatarImg || "/default-avatar.png"}
-                  alt={reply.username}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-semibold">{reply.username}</span>
-                      <span className="text-sm text-gray-500 ml-2">
-                        {new Date(reply.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                    {reply.userEmail === session?.user.email && (
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(reply.qaId, reply.text)}
-                          className="text-blue-500 hover:text-blue-700"
-                          title="Edit"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(reply.qaId)}
-                          className="text-red-500 hover:text-red-700"
-                          title="Delete"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {editingQaId === reply.qaId ? (
-                    <div className="flex space-x-2">
-                      <input
-                        title="Edit"
-                        type="text"
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        className="border p-2 flex-1 rounded"
-                      />
-                      <button
-                        onClick={() => saveEdit(reply.qaId)}
-                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                        title="Save"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingQaId(null)}
-                        className="bg-gray-300 text-black px-4 py-2 rounded"
-                        title="Cancel"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-gray-100 rounded-lg">
-                      {reply.text}
-                    </div>
-                  )}
-                  {/* Reaction Buttons for Replies */}
-                  <div className="flex items-center space-x-4 mt-2">
-                    <button
-                      onClick={() => handleReaction(reply.qaId, "like")}
-                      className={`flex items-center space-x-1 ${
-                        hasUserReacted(reply.qaId, "like")
-                          ? "text-blue-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <FaThumbsUp />{" "}
-                      <span>{getReactionCount(reply.qaId, "like")}</span>
-                    </button>
-                    <button
-                      onClick={() => handleReaction(reply.qaId, "love")}
-                      className={`flex items-center space-x-1 ${
-                        hasUserReacted(reply.qaId, "love")
-                          ? "text-red-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <FaHeart />{" "}
-                      <span>{getReactionCount(reply.qaId, "love")}</span>
-                    </button>
-                    <button
-                      onClick={() => handleReaction(reply.qaId, "haha")}
-                      className={`flex items-center space-x-1 ${
-                        hasUserReacted(reply.qaId, "haha")
-                          ? "text-yellow-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <FaLaugh />{" "}
-                      <span>{getReactionCount(reply.qaId, "haha")}</span>
-                    </button>
-                    <button
-                      onClick={() => handleReaction(reply.qaId, "wow")}
-                      className={`flex items-center space-x-1 ${
-                        hasUserReacted(reply.qaId, "wow")
-                          ? "text-yellow-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <FaSurprise />{" "}
-                      <span>{getReactionCount(reply.qaId, "wow")}</span>
-                    </button>
-                    <button
-                      onClick={() => handleReaction(reply.qaId, "sad")}
-                      className={`flex items-center space-x-1 ${
-                        hasUserReacted(reply.qaId, "sad")
-                          ? "text-blue-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <FaSadTear />{" "}
-                      <span>{getReactionCount(reply.qaId, "sad")}</span>
-                    </button>
-                    <button
-                      onClick={() => handleReaction(reply.qaId, "angry")}
-                      className={`flex items-center space-x-1 ${
-                        hasUserReacted(reply.qaId, "angry")
-                          ? "text-red-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      <FaAngry />{" "}
-                      <span>{getReactionCount(reply.qaId, "angry")}</span>
-                    </button>
-                  </div>
-                  {/* Reply Button for Replies */}
-                  <div className="flex items-center space-x-2 mt-1">
-                    <button
-                      onClick={() => handleReply(reply.qaId)}
-                      className="text-blue-500 hover:text-blue-700 text-sm"
-                      title="Reply"
-                    >
-                      <FaReply className="inline mr-1" /> Reply
-                    </button>
-                    {replyToId === reply.qaId && (
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          placeholder="Write your reply..."
-                          className="border p-2 flex-1 rounded"
-                          onKeyDown={(e) => e.key === "Enter" && sendReply()}
-                        />
-                        <button
-                          onClick={sendReply}
-                          className="bg-blue-500 text-white px-4 py-2 rounded"
-                          title="Submit Reply"
-                        >
-                          Submit
-                        </button>
-                        <button
-                          onClick={() => setReplyToId(null)}
-                          className="bg-gray-300 text-black px-4 py-2 rounded"
-                          title="Cancel Reply"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         ))}
       </div>
-      <div className="mt-4 flex items-center space-x-3">
-        <Image
-          src={session?.user.avatarImg || "/default-avatar.png"}
-          alt={session?.user.name || "User"}
-          width={40}
-          height={40}
-          className="rounded-full"
-        />
-        <input
-          type="text"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Write your comment here..."
-          className="border p-2 flex-1 rounded"
-          onKeyDown={(e) => e.key === "Enter" && sendQuestion()}
-        />
-        <button
-          onClick={sendQuestion}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          type="button"
-        >
-          Submit
-        </button>
-      </div>
-      <div className="mt-4 flex justify-center space-x-4">
-        <button className="text-gray-500 hover:text-gray-700">Previous</button>
-        <button className="text-gray-500 hover:text-gray-700">Next</button>
-      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            className={`${styles.pageButton} ${
+              currentPage === 1 ? styles.disabled : ""
+            }`}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+
+          <div className={styles.pageInfo}>
+            Page {currentPage} of {totalPages}
+          </div>
+
+          <button
+            className={`${styles.pageButton} ${
+              currentPage === totalPages ? styles.disabled : ""
+            }`}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }
