@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { Reaction, reactionEmojis, ReactionType } from "@/app/type/forum/forum";
@@ -61,15 +67,17 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
       socket.emit("joinForumRoom", forumId);
     });
 
-    socket.on("forumReactionsUpdated", (data: { forumId: string; reactions: Reaction[] }) => {
-      if (data.forumId === forumId) {
-        setAllReactions(data.reactions);
-        onReactionChange?.(data.reactions);
+    socket.on(
+      "forumReactionsUpdated",
+      (data: { forumId: string; reactions: Reaction[] }) => {
+        if (data.forumId === forumId) {
+          setAllReactions(data.reactions);
+          onReactionChange?.(data.reactions);
+        }
       }
-    });
+    );
 
-    socket.on("disconnect", () => {
-    });
+    socket.on("disconnect", () => {});
 
     return () => {
       if (socket.connected) {
@@ -81,22 +89,22 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
     };
   }, [socket, forumId, onReactionChange]);
 
-const onReactionChangeRef = useRef(onReactionChange);
+  const onReactionChangeRef = useRef(onReactionChange);
 
-useEffect(() => {
-  onReactionChangeRef.current = onReactionChange;
-}, [onReactionChange]);
+  useEffect(() => {
+    onReactionChangeRef.current = onReactionChange;
+  }, [onReactionChange]);
 
-const syncReactions = useCallback(async () => {
-  if (!session?.user?.token) return null;
-  const result = await getReactionsByTopic(session.user.token, forumId);
-  if (result.success && Array.isArray(result.data)) {
-    setAllReactions(result.data);
-    onReactionChangeRef.current?.(result.data);
-    return result.data;
-  }
-  return null;
-}, [forumId, session?.user?.token]);
+  const syncReactions = useCallback(async () => {
+    if (!session?.user?.token) return null;
+    const result = await getReactionsByTopic(session.user.token, forumId);
+    if (result.success && Array.isArray(result.data)) {
+      setAllReactions(result.data);
+      onReactionChangeRef.current?.(result.data);
+      return result.data;
+    }
+    return null;
+  }, [forumId, session?.user?.token]);
 
   useEffect(() => {
     syncReactions();
@@ -215,7 +223,6 @@ const syncReactions = useCallback(async () => {
 
   return (
     <div className="reaction-container d-flex gap-2">
-      {isProcessing && <div className="processing-badge">Đang xử lý...</div>}
       {Object.entries(reactionEmojis).map(([type, emoji]) => {
         const reactionType = type as ReactionType;
         const count = reactionCounts[reactionType] || 0;
