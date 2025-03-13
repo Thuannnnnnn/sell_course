@@ -574,7 +574,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                           ★
                         </span>
                       ))}
-                      <span className="rating-value">/5</span>
                     </div>
                   </div>
                 ))
