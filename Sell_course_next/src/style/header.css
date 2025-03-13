@@ -125,3 +125,98 @@
 .btn-signup.light {
   color: black;
 }
+
+.bell-wrapper {
+  position: relative;
+}
+
+.notification-bell {
+  font-size: 1.5rem;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+}
+
+.notification-dropdown {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  transition: opacity 0.3s ease;
+  padding: 8px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.read-notification {
+  opacity: 0.7;
+  font-style: italic;
+  color: #6c757d;
+}
+
+.notification-header {
+  font-weight: bold;
+}
+
+.notification-empty {
+  color: #888;
+}
+
+.notification-modal-content {
+  padding: 10px;
+}
+
+/* Title */
+.notification-title {
+  font-size: 1.5rem; /* Kích thước chữ lớn hơn */
+  font-weight: bold; /* Đậm */
+  color: #333; /* Màu tối để nổi bật */
+  margin-bottom: 15px; /* Khoảng cách dưới */
+  word-break: break-word; /* Ngắt từ nếu quá dài */
+  overflow-wrap: break-word;
+}
+
+/* Description and Details Container */
+.notification-details {
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0; /* Đường phân cách nhẹ */
+}
+
+/* Description */
+.notification-description {
+  font-size: 1rem; /* Kích thước chữ bình thường */
+  color: #555; /* Màu nhạt hơn title */
+  margin-bottom: 15px; /* Khoảng cách dưới */
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Meta Information */
+.notification-meta {
+  font-size: 0.9rem; /* Chữ nhỏ hơn một chút */
+  color: #666; /* Màu nhạt hơn */
+}
+
+.notification-meta p {
+  margin: 5px 0; /* Khoảng cách giữa các dòng */
+}
+
+.notification-meta strong {
+  color: #333; /* Đậm hơn cho nhãn */
+}
+
+/* Modal Body General Styling */
+.modal-body {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow-x: hidden;
+}

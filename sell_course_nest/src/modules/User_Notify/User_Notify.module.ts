@@ -7,6 +7,7 @@ import { User } from '../user/entities/user.entity';
 import { Notify } from '../notify/entities/notify.entity';
 import { UserModule } from '../user/user.module';
 import { NotifyModule } from '../notify/notify.module';
+import { NotifyGateway } from '../notify/notify.gateway';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { NotifyModule } from '../notify/notify.module';
     NotifyModule,
   ],
   controllers: [UserNotifyController],
-  providers: [UserNotifyService],
+  providers: [UserNotifyService, NotifyGateway],
 })
 export class UserNotifyModule {}

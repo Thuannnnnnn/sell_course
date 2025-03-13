@@ -70,7 +70,6 @@ export class User {
   }
   @OneToMany(() => UserNotify, (userNotify) => userNotify.user)
   userNotifies: UserNotify[];
-
   @OneToMany(() => Forum, (forum) => forum.user)
   forums: Forum[];
   @OneToMany(() => Waitlist, (waitlist) => waitlist.user)

@@ -120,6 +120,7 @@
     "passwordMismatch": "password and confirm password do not match"
   },
   "dashBoard": {
+    "Notify":"Notify",
     "dashboard": "Dashboard",
     "user": "Users",
     "quizz": "Quizz",
@@ -512,5 +513,30 @@
   "waitListPage": {
     "title": "Wait List",
     "noCourse": "You don't have any course in your waitlist"
+  },
+  "notifies": {
+    "notify": "Notify Manage",
+    "title": "Title",
+    "type": "Type",
+    "dateCreated": "Date Created",
+    "actions": "Actions",
+    "edit": "Edit",
+    "create": "Create",
+    "delete": "Delete",
+    "success": "Operation successful!",
+    "error": "An error occurred",
+    "selectCourse": "Select a Course",
+    "selectUser": "Select a User",
+    "createNotification": "Create Notification",
+    "editNotification": "Edit Notification",
+    "message": "Message",
+    "global": "Global",
+    "course": "Course",
+    "user": "User",
+    "no_notification_found": "No notification found",
+    "loading": "Loading...",
+    "view_all": "View All",
+    "notification_detail": "Notification Detail",
+    "close": "Close"
   }
 }

@@ -82,7 +82,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.token = user.token;
       }
-      console.log("Check token user_id in jwt: ", token.user_id);
       return token;
     },
 
@@ -99,7 +98,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         birthDay: token.birthDay as string,
         phoneNumber: token.phoneNumber as string,
       };
-      console.log("Check session user_id: ", session.user.user_id);
       return session;
     },
     async signIn({ user, account }) {

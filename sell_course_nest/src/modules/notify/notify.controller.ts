@@ -1,6 +1,5 @@
 import {
   Controller,
-  Get,
   Post,
   Put,
   Delete,
@@ -8,7 +7,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  UseGuards,
+  Get,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -19,15 +18,32 @@ import {
 import { NotifyService } from './notify.service';
 import { CreateNotifyDto, UpdateNotifyDto } from './dto/notify.dto';
 import { Notify } from './entities/notify.entity';
-import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 @ApiTags('Notifications')
-@Controller('api/admin/notify')
+@Controller('api/admin/notify/')
 export class NotifyController {
   constructor(private readonly notifyService: NotifyService) {}
-  @UseGuards(JwtAuthGuard)
+
+  @Get()
+  @ApiOperation({ summary: 'Get all notifications' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of notifications',
+    type: [Notify],
+  })
+  async getAll(): Promise<Notify[]> {
+    return await this.notifyService.getAll();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a notification by ID' })
+  @ApiResponse({ status: 200, description: 'Notification found', type: Notify })
+  @ApiResponse({ status: 404, description: 'Notification not found' })
+  async getById(@Param('id') id: string): Promise<Notify> {
+    return await this.notifyService.getById(id);
+  }
   @ApiBearerAuth('Authorization')
-  @Post('create_notify')
+  @Post('create')
   @ApiOperation({ summary: 'Create a new notification' })
   @ApiResponse({
     status: 201,
@@ -37,36 +53,11 @@ export class NotifyController {
   async createNotify(
     @Body() createNotifyDto: CreateNotifyDto,
   ): Promise<Notify> {
-    return await this.notifyService.createNotify(createNotifyDto);
+    return await this.notifyService.create(createNotifyDto);
   }
+
   @ApiBearerAuth('Authorization')
-  @UseGuards(JwtAuthGuard)
-  @Get('get_all_notify')
-  @ApiOperation({ summary: 'Get all notifications' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of notifications',
-    type: [Notify],
-  })
-  async findAllNotify(): Promise<Notify[]> {
-    return await this.notifyService.findAllNotify();
-  }
-  @ApiBearerAuth('Authorization')
-  @UseGuards(JwtAuthGuard)
-  @Get('get_notify/:id')
-  @ApiOperation({ summary: 'Get a notification by ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Notification details',
-    type: Notify,
-  })
-  @ApiResponse({ status: 404, description: 'Notification not found' })
-  async findNotifyById(@Param('id') id: string): Promise<Notify> {
-    return await this.notifyService.findNotifyById(id);
-  }
-  @ApiBearerAuth('Authorization')
-  @UseGuards(JwtAuthGuard)
-  @Put('update_notify/:id')
+  @Put(':id')
   @ApiOperation({ summary: 'Update a notification by ID' })
   @ApiResponse({
     status: 200,
@@ -78,11 +69,11 @@ export class NotifyController {
     @Param('id') id: string,
     @Body() updateNotifyDto: UpdateNotifyDto,
   ): Promise<Notify> {
-    return await this.notifyService.updateNotify(id, updateNotifyDto);
+    return await this.notifyService.update(id, updateNotifyDto);
   }
+
   @ApiBearerAuth('Authorization')
-  @UseGuards(JwtAuthGuard)
-  @Delete('delete_notify/:id')
+  @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a notification by ID' })
   @ApiResponse({
@@ -90,7 +81,7 @@ export class NotifyController {
     description: 'Notification deleted successfully',
   })
   @ApiResponse({ status: 404, description: 'Notification not found' })
-  async deleteNotify(@Param('id') id: string): Promise<{ message: string }> {
-    return await this.notifyService.deleteNotify(id);
+  async deleteNotify(@Param('id') id: string): Promise<string> {
+    return await this.notifyService.removeNotification(id);
   }
 }
