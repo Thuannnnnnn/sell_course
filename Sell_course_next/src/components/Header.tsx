@@ -38,7 +38,8 @@ const Header: React.FC = () => {
     session?.user?.user_id,
     session?.user?.token
   );
-  const [selectedNotification, setSelectedNotification] = useState<Notify | null>(null);
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notify | null>(null);
 
   const handleMarkAsRead = async (userNotifyId: string) => {
     if (socket && session?.user?.token) {
@@ -55,7 +56,10 @@ const Header: React.FC = () => {
   const handleMarkAllAsSent = async () => {
     if (session?.user?.token && session?.user?.user_id) {
       try {
-        await markAllNotificationsAsSent(session.user.user_id, session.user.token);
+        await markAllNotificationsAsSent(
+          session.user.user_id,
+          session.user.token
+        );
         socket?.emit("markAllAsSent", { userId: session.user.user_id });
       } catch (error) {
         console.error("Error marking all notifications as sent:", error);
@@ -101,8 +105,12 @@ const Header: React.FC = () => {
         </div>
 
         <Nav className="d-flex align-items-center flex-nowrap">
-          {session?.user?.role === "ADMIN" || session?.user?.role === "STAFF" ? (
-            <Link href={`/${localActive}/admin/dashboard`} className="nav-link me-4">
+          {session?.user?.role === "ADMIN" ||
+          session?.user?.role === "STAFF" ? (
+            <Link
+              href={`/${localActive}/admin/dashboard`}
+              className="nav-link me-4"
+            >
               {t("manage")}
             </Link>
           ) : null}
@@ -120,10 +128,17 @@ const Header: React.FC = () => {
             <span className="nav-link mx-4">{s("loading")}</span>
           ) : session ? (
             <>
-              <Link href={`/${localActive}/profile/myProfile`} className="nav-link">
+              <Link
+                href={`/${localActive}/profile/myProfile`}
+                className="nav-link"
+              >
                 <FaRegUser />
               </Link>
-              <Dropdown align="end" className="m-2" onToggle={handleMarkAllAsSent}>
+              <Dropdown
+                align="end"
+                className="m-2"
+                onToggle={handleMarkAllAsSent}
+              >
                 <Dropdown.Toggle
                   variant="link"
                   className="bell-container nav-link p-0"
@@ -174,6 +189,13 @@ const Header: React.FC = () => {
                       {s("no_notification_found")}
                     </Dropdown.Item>
                   )}
+                  <Dropdown.Divider />
+                  <Dropdown.Item>
+                    <Link href={`/${localActive}/notifications`}>
+                      {" "}
+                      {t("viewMore")}{" "}
+                    </Link>
+                  </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
               <Button
@@ -207,16 +229,28 @@ const Header: React.FC = () => {
 
       <Modal show={!!selectedNotification} onHide={handleClosePopup} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{selectedNotification?.title || s("notification_detail")}</Modal.Title>
+          <Modal.Title>{s("notification_detail")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedNotification ? (
-            <div>
-              <h5>{selectedNotification.title}</h5>
-              <p>{selectedNotification.message}</p>
+          {selectedNotification && (
+            <div className="py-2">
+              <div className="mb-3">
+                <h5 className="fw-bold mb-1">{s("title")}:</h5>
+                <p className="mb-0">{selectedNotification.title}</p>
+              </div>
+              <div className="mb-3">
+                <h5 className="fw-bold mb-1">{s("message")}:</h5>
+                <p className="mb-0">{selectedNotification.message}</p>
+              </div>
+              <div className="mb-3">
+                <h5 className="fw-bold mb-1">{s("dateCreated")}:</h5>
+                <p className="mb-0">
+                  {new Date(
+                    selectedNotification.createdAt || Date.now()
+                  ).toLocaleString()}
+                </p>
+              </div>
             </div>
-          ) : (
-            <p>{s("no_details_available")}</p>
           )}
         </Modal.Body>
         <Modal.Footer>
