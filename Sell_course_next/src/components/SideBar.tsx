@@ -9,7 +9,7 @@ import { MdQuiz } from "react-icons/md";
 import { SiCoursera } from "react-icons/si";
 import { BiSolidCategory } from "react-icons/bi";
 import { TbMessageReportFilled } from "react-icons/tb";
-import { FaWallet } from "react-icons/fa";
+import { FaBell, FaWallet } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
 import { FaSignOutAlt } from "react-icons/fa";
 import { useLocale, useTranslations } from "next-intl";
@@ -84,6 +84,14 @@ const Sidebar = () => {
                 <SiCoursera />
               </div>
               <div>{t('course')}</div>
+            </Link>
+          </li>
+          <li className={isActive(`/${locate}/admin/notify`)}>
+            <Link href={`/${locate}/admin/notify`} className="sidebar-link">
+              <div className="icon-sidebar">
+                <FaBell />
+              </div>
+              <div>{t('Notify')}</div>
             </Link>
           </li>
           <li className={isActive(`/${locate}/admin/category`)}>

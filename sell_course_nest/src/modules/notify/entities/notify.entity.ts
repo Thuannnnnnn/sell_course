@@ -40,7 +40,6 @@ export class Notify {
 
   @ManyToOne(() => Course, (course) => course.notifies, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'course_id' })
   course: Course;

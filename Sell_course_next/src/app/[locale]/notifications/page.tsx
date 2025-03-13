@@ -16,17 +16,17 @@ import {
   updateUserNotificationStatus,
 } from "@/app/api/notify/Notify";
 import { useTranslations } from "next-intl";
+import { UserNotify } from "@/app/type/notify/User_notify";
 const truncateText = (text: string, maxLength: number) =>
   text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
 
 const NotificationsPage: React.FC = () => {
   const { data: session } = useSession();
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<UserNotify[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedNotification, setSelectedNotification] = useState<any | null>(
-    null
-  );
+  const [selectedNotification, setSelectedNotification] =
+    useState<UserNotify | null>(null);
   const [language, setLanguage] = useState<"en" | "vi">("en");
 
   const t = useTranslations("notifies");
@@ -40,7 +40,6 @@ const NotificationsPage: React.FC = () => {
             session.user.token,
             session.user.user_id
           );
-          console.log("All Notifications:", data);
           setNotifications(data);
         } catch (error) {
           console.error("Error fetching notifications:", error);
@@ -53,7 +52,7 @@ const NotificationsPage: React.FC = () => {
       }
     };
     fetchData();
-  }, [session, t("error")]);
+  }, [session, t]);
 
   const handleMarkAsRead = async (userNotifyId: string) => {
     if (session?.user?.token) {
@@ -135,13 +134,13 @@ const NotificationsPage: React.FC = () => {
               <Card.Body>
                 <ListGroup variant="flush">
                   {notifications.length > 0 ? (
-                    notifications.map((notify) => (
+                    notifications.map((userNotify) => (
                       <ListGroup.Item
-                        key={notify.id}
+                        key={userNotify.id}
                         className={`p-0 w-100 ${
-                          notify.is_read ? "bg-light" : ""
+                          userNotify.is_read ? "bg-light" : ""
                         }`}
-                        onClick={() => handleMarkAsRead(notify.id)}
+                        onClick={() => handleMarkAsRead(userNotify.id)}
                         style={{
                           cursor: "pointer",
                           transition: "background-color 0.2s",
@@ -151,18 +150,20 @@ const NotificationsPage: React.FC = () => {
                         }
                         onMouseLeave={(e) =>
                           (e.currentTarget.style.backgroundColor =
-                            notify.is_read ? "#f8f9fa" : "transparent")
+                            userNotify.is_read ? "#f8f9fa" : "transparent")
                         }
                       >
                         <div className="p-3">
                           <h6 className="mb-1 fw-bold">
-                            {truncateText(notify.notify.title, 50)}
+                            {truncateText(userNotify.notify.title, 50)}
                           </h6>
                           <p className="mb-1 text-muted">
-                            {truncateText(notify.notify.message, 100)}
+                            {truncateText(userNotify.notify.message, 100)}
                           </p>
                           <small className="text-muted">
-                            {new Date(notify.notify.createdAt).toLocaleString()}
+                            {new Date(
+                              userNotify.notify.createdAt ?? Date.now()
+                            ).toLocaleString()}
                           </small>
                         </div>
                       </ListGroup.Item>

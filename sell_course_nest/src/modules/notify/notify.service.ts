@@ -95,46 +95,72 @@ export class NotifyService {
   }
 
   async update(id: string, updateNotifyDto: UpdateNotifyDto): Promise<Notify> {
-    const { title, message } = updateNotifyDto;
-
-    await this.notifyRepository.update(id, { title, message });
-
-    const updatedNotify = await this.notifyRepository.findOne({
+    const existingNotify = await this.notifyRepository.findOne({
       where: { notifyId: id },
+      relations: ['userNotifies'],
     });
 
-    if (!updatedNotify) throw new Error('Notification not found');
+    if (!existingNotify) {
+      throw new Error('Thông báo không được tìm thấy trong cơ sở dữ liệu');
+    }
+
+    const updatedNotify = await this.notifyRepository.save({
+      notifyId: id,
+      ...updateNotifyDto,
+    });
 
     const userNotifies = await this.userNotifyRepository.find({
       where: { notify: { notifyId: id } },
-      relations: ['user'],
+      relations: ['user', 'notify'],
     });
 
-    userNotifies.forEach((userNotify) =>
-      this.notifyGateway.sendUpdateToUser(
-        userNotify.user.user_id,
-        updatedNotify,
-      ),
-    );
+    userNotifies.forEach((userNotify) => {
+      this.notifyGateway.sendUpdateToUser(userNotify.user.user_id, userNotify);
+    });
 
     return updatedNotify;
   }
 
   async removeNotification(id: string): Promise<string> {
-    const userNotifies = await this.userNotifyRepository.find({
-      where: { notify: { notifyId: id } },
-      relations: ['user'],
-    });
+    try {
+      const notify = await this.notifyRepository.findOne({
+        where: { notifyId: id },
+      });
+      if (!notify) {
+        return 'No notification found';
+      }
+      const userNotifies = await this.userNotifyRepository.find({
+        where: { notify: { notifyId: id } },
+        relations: ['user', 'notify'],
+      });
 
-    if (userNotifies.length > 0) {
-      await this.userNotifyRepository.remove(userNotifies);
+      const userNotifyData = userNotifies.map((userNotify) => ({
+        userId: userNotify.user.user_id,
+        userNotifyId: userNotify.id,
+      }));
+
+      if (userNotifyData.length > 0) {
+        await this.userNotifyRepository.remove(userNotifies);
+      }
+
+      const notifyDeleteResult = await this.notifyRepository.delete(id);
+      if (notifyDeleteResult.affected === 0) {
+        return 'Failed to delete Notify';
+      }
+
+      if (userNotifyData.length > 0) {
+        userNotifyData.forEach(({ userId, userNotifyId }) => {
+          if (!userNotifyId) {
+            return;
+          }
+
+          this.notifyGateway.sendRemoveToUser(userId, userNotifyId);
+        });
+      }
+
+      return 'Successful';
+    } catch (error) {
+      throw new Error(`Failed to remove notification: ${error}`);
     }
-
-    await this.userNotifyRepository.delete({ notify: { notifyId: id } });
-    userNotifies.forEach((userNotify) =>
-      this.notifyGateway.sendRemoveToUser(userNotify.user.user_id, id),
-    );
-    await this.notifyRepository.delete(id);
-    return 'Sucessful';
   }
 }

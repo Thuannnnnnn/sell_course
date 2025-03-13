@@ -120,6 +120,7 @@
     "passwordMismatch": "password and confirm password do not match"
   },
   "dashBoard": {
+    "Notify":"Notify",
     "dashboard": "Dashboard",
     "user": "Users",
     "quizz": "Quizz",

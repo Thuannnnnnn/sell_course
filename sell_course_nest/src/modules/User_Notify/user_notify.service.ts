@@ -52,11 +52,16 @@ export class UserNotifyService {
 
   async markAllNotificationsAsSent(user_id: string): Promise<void> {
     const notifications = await this.userNotifyRepository.find({
-      where: { is_sent: false, user: { user_id } },
+      where: { user: { user_id } },
+      relations: ['user', 'notify'],
     });
+
     for (const notification of notifications) {
-      notification.is_sent = true;
+      if (notification.is_sent == false) {
+        notification.is_sent = true;
+      }
     }
     await this.userNotifyRepository.save(notifications);
+    this.notifyGateway.sendMarkAllAsSentToUser(user_id, notifications);
   }
 }

@@ -1,17 +1,16 @@
 .bell-wrapper {
-  position: relative;
+  position: relative !important;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .notification-badge {
-  margin-bottom: 9px;
-  position: absolute;
-  left: -8px;
-  font-size: 7px;
+  position: absolute !important;
+  font-size: 9px;
+  border-radius: 100%;
+  top: 0 !important;
 }
-
 .notification-dropdown {
   min-width: 280px;
   border-radius: 10px;
@@ -44,3 +43,30 @@
   padding: 10px;
 }
 
+.unread-dot {
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+
+.notification-modal .modal-content {
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.notification-modal .modal-header {
+  background-color: #f8f9fa;
+  border-bottom: none;
+}
+.notification-modal .modal-body {
+  padding: 20px;
+}
+.notification-modal h5 {
+  color: #333;
+  margin-bottom: 10px;
+}
+.notification-modal p {
+  color: #666;
+  line-height: 1.5;
+}

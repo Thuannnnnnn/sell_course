@@ -30,6 +30,13 @@ export class NotifyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  sendMarkAllAsSentToUser(userId: string, notifications: any[]) {
+    const socketId = this.activeUsers.get(userId);
+    if (socketId) {
+      this.server.to(socketId).emit('markAllAsSent', notifications);
+    }
+  }
+
   sendNotificationToUser(userId: string, notification: any) {
     const socketId = this.activeUsers.get(userId);
     if (socketId) {
@@ -44,10 +51,11 @@ export class NotifyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  sendRemoveToUser(userId: string, notificationId: string) {
+  sendRemoveToUser(userId: string, userNotifyId: string) {
     const socketId = this.activeUsers.get(userId);
+
     if (socketId) {
-      this.server.to(socketId).emit('removeNotification', notificationId);
+      this.server.to(socketId).emit('removeNotification', userNotifyId);
     }
   }
 }

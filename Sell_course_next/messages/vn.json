@@ -120,6 +120,7 @@
     "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
   },
   "dashBoard": {
+    "Notify":"Thông Báo",
     "dashboard": "Bảng điều khiển",
     "user": "Người dùng",
     "quizz": "Câu hỏi",
