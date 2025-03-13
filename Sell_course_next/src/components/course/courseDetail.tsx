@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import "@/style/CourseDetail.css";
 import { fetchCourseById } from "@/app/api/course/CourseAPI";
 import { Course } from "@/app/type/course/Course";
-
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -17,35 +16,14 @@ import "react-notifications/lib/notifications.css";
 import { ResponseQaDto } from "@/app/type/qa/Qa";
 import { createQa, deleteQa, getAllQa } from "@/app/api/qa/Qa";
 import ReactQuill from "react-quill";
+import {
+  getFeedbackRatingByCourseId,
+  createFeedbackRating,
+  deleteFeedbackRating,
+} from "@/app/api/feedbackRating/feedbackRating";
+import { ResponseFeedbackRatingDto } from "@/app/type/feedbackRating/feedbackRating";
+import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
 import { creatWaitingList } from "@/app/api/waitingList/waitingList";
-
-// const getRelativeTime = (dateString: string) => {
-//   const now = new Date();
-//   const past = new Date(dateString);
-
-//   const diffInMilliseconds = now.getTime() - past.getTime();
-//   const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
-//   const diffInMinutes = Math.floor(diffInSeconds / 60);
-//   const diffInHours = Math.floor(diffInMinutes / 60);
-//   const diffInDays = Math.floor(diffInHours / 24);
-//   const diffInMonths = Math.floor(diffInDays / 30);
-//   const diffInYears = Math.floor(diffInDays / 365);
-
-//   if (diffInSeconds < 30) return "Just now";
-//   if (diffInSeconds < 60)
-//     return `${diffInSeconds} second${diffInSeconds > 1 ? "s" : ""} ago`;
-//   if (diffInMinutes < 60)
-//     return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
-//   if (diffInHours < 24)
-//     return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-//   if (diffInDays === 1) return "Yesterday";
-//   if (diffInDays < 30)
-//     return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-//   if (diffInMonths < 12)
-//     return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
-//   return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
-// };
-
 interface CourseCardProps {
   courseId: string;
 }
@@ -77,12 +55,10 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // const [showReplyPopup, setShowReplyPopup] = useState(false);
-  // const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
-  //   null
-  // );
-  // const [replyText, setReplyText] = useState("");
+  const [feedbacks, setFeedbacks] = useState<ResponseFeedbackRatingDto[]>([]);
+  const [newFeedback, setNewFeedback] = useState("");
+  const [newStar, setNewStar] = useState(5);
+  const [isPurchased, setIsPurchased] = useState(false);
   const t = useTranslations("courseDetailForm");
 
   useEffect(() => {
@@ -104,9 +80,183 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         setLoading(false);
       }
     };
+    const handleCoursePurchase = async (courseId: string) => {
+      if (!session?.user.email) return;
 
+      try {
+        const data = await CoursePurchaseAPI.getCoursePurchaseById(
+          courseId,
+          session?.user.email
+        );
+        if (data === 200) {
+          setIsPurchased(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching course purchase:", error);
+      }
+    };
+    handleCoursePurchase(courseId);
     fetchQaData();
+  }, [courseId, session]);
+
+  const handleCreatWaitList = async () => {
+    try {
+      const token = session?.user.token;
+      const userId = session?.user.user_id;
+      if (!token || !userId) {
+        NotificationManager.warning("Login required", "Warning", 2000);
+        return;
+      }
+
+      const response = await creatWaitingList(token, userId, courseId);
+      console.log("📩 API Response:", response);
+
+      // Sửa kiểm tra status đúng với Axios
+      if (response && response.waitlistId) {
+        NotificationManager.success("Added to waitlist", "Success", 2000);
+      } else {
+        NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+      }
+    } catch {
+      NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+    }
+  };
+  useEffect(() => {
+    const fetchFeedbackRatings = async () => {
+      if (!courseId) return;
+      try {
+        const ratings = await getFeedbackRatingByCourseId(courseId);
+        console.log("Fetched Feedbacks:", ratings);
+        setFeedbacks(Array.isArray(ratings) ? ratings : [ratings]);
+      } catch (error) {
+        console.error("Error fetching feedback ratings:", error);
+      }
+    };
+    fetchFeedbackRatings();
   }, [courseId]);
+
+  const handleSubmitFeedback = async () => {
+    if (!session || !session.user || !session.user.user_id) {
+      NotificationManager.warning(
+        t("loginRequired") || "You need to log in to submit feedback.",
+        t("warning") || "Warning",
+        2000
+      );
+      return;
+    }
+
+    if (!newFeedback.trim()) {
+      NotificationManager.error(
+        "Feedback cannot be empty",
+        t("error") || "Error",
+        2000
+      );
+      return;
+    }
+
+    if (newStar < 1 || newStar > 5) {
+      NotificationManager.error(
+        "Rating must be between 1 and 5 stars",
+        t("error") || "Error",
+        2000
+      );
+      return;
+    }
+
+    try {
+      const userId = String(session.user.user_id);
+      const existingFeedback = feedbacks.find(
+        (fb) => fb.user && String(fb.user.user_id) === userId
+      );
+
+      if (existingFeedback) {
+        console.log("Updating existing feedback...");
+
+        setFeedbacks((prev) =>
+          prev.map((fb) =>
+            fb.user && String(fb.user.user_id) === userId
+              ? { ...fb, star: newStar, feedback: newFeedback }
+              : fb
+          )
+        );
+        NotificationManager.success(
+          "Feedback updated successfully",
+          t("success") || "Success",
+          2000
+        );
+      } else {
+        console.log("Creating new feedback...");
+        const feedback = await createFeedbackRating(
+          userId,
+          courseId,
+          newStar,
+          newFeedback,
+          session.user.token
+        );
+
+        setFeedbacks((prev) => [feedback, ...prev]);
+        NotificationManager.success(
+          "Feedback submitted successfully",
+          t("success") || "Success",
+          2000
+        );
+      }
+
+      setNewFeedback("");
+      setNewStar(5);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      NotificationManager.error(
+        "Failed to submit feedback",
+        t("error") || "Error",
+        2000
+      );
+    }
+  };
+
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    if (!session) {
+      NotificationManager.warning(
+        "You need to log in to delete feedback.",
+        t("warning") || "Warning",
+        2000
+      );
+      return;
+    }
+    if (!confirm("Are you sure you want to delete this feedback?")) return;
+    try {
+      await deleteFeedbackRating(feedbackId, session.user.token);
+      setFeedbacks((prev) =>
+        prev.filter((fb) => fb.feedbackRattingId !== feedbackId)
+      );
+      NotificationManager.success(
+        "Feedback deleted successfully",
+        t("success") || "Success",
+        2000
+      );
+    } catch (error) {
+      console.error("Error deleting feedback:", error);
+      NotificationManager.error(
+        "Failed to delete feedback",
+        t("error") || "Error",
+        2000
+      );
+    }
+  };
+  useEffect(() => {
+    if (session?.user?.user_id && feedbacks.length > 0) {
+      const currentUserFeedback = feedbacks.find(
+        (fb) =>
+          fb.user && String(fb.user.user_id) === String(session.user.user_id)
+      );
+      if (currentUserFeedback) {
+        setNewFeedback(currentUserFeedback.feedback || "");
+        setNewStar(currentUserFeedback.star || 5);
+      }
+    }
+  }, [feedbacks, session]);
+
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
@@ -177,31 +327,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
     router.push(`/${locale}/payment?data=${encodedData}`);
   };
-
-  const handleCreatWaitList = async () => {
-    try {
-        const token = session?.user.token;
-        const userId = session?.user.user_id;
-        if (!token || !userId) {
-            NotificationManager.warning("Login required", "Warning", 2000);
-            return;
-        }
-
-        const response = await creatWaitingList(token, userId, courseId);
-        console.log("📩 API Response:", response);
-
-        // Sửa kiểm tra status đúng với Axios
-        if (response && response.waitlistId) {
-            NotificationManager.success("Added to waitlist", "Success", 2000);
-        } else {
-            NotificationManager.error("Failed to add to waitlist", "Error", 2000);
-        }
-    } catch {
-        NotificationManager.error("Failed to add to waitlist", "Error", 2000);
-    }
-};
-
-
   const handleCreateQa = async () => {
     if (!text.trim()) {
       setError("Nội dung câu hỏi không được để trống!");
@@ -244,6 +369,11 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       </div>
     );
   }
+
+  const handleGotoCourse = () => {
+    const locale = params.locale;
+    router.push(`/${locale}/courseInfo/${courseId}`);
+  };
 
   return (
     <div className="container">
@@ -345,6 +475,111 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                 </ul>
               )}
             </div>
+          </div>
+
+          <div className="feedback-section">
+            <h2>Feedbacks</h2>
+            {isPurchased ? (
+              <div className="feedback-input-container">
+                <textarea
+                  value={newFeedback}
+                  onChange={(e) => setNewFeedback(e.target.value)}
+                  placeholder="Share your experience..."
+                  className="feedback-textarea"
+                />
+                <div className="rating-container">
+                  <span>Rating</span>
+                  <div className="star-rating">
+                    {Array.from({ length: 5 }, (_, index) => (
+                      <span
+                        key={index}
+                        className={`star ${index < newStar ? "filled" : ""}`}
+                        onClick={() => setNewStar(index + 1)}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  className="submit-feedback-btn"
+                  onClick={handleSubmitFeedback}
+                >
+                  Submit Feedback
+                </button>
+              </div>
+            ) : (
+              <p>{t("purFedback")}</p>
+            )}
+
+            {feedbacks.length > 0 ? (
+              feedbacks
+                .slice() // Tạo bản sao để không ảnh hưởng mảng gốc
+                .sort((a, b) => {
+                  const currentUserId = session?.user?.user_id;
+                  const isACurrentUser =
+                    a.user && String(a.user.user_id) === String(currentUserId);
+                  const isBCurrentUser =
+                    b.user && String(b.user.user_id) === String(currentUserId);
+                  return isBCurrentUser ? 1 : isACurrentUser ? -1 : 0; // Đưa feedback của user hiện tại lên đầu
+                })
+                .map((feedback) => (
+                  <div
+                    key={feedback.feedbackRattingId}
+                    className="feedback-card"
+                  >
+                    <div className="feedback-header">
+                      <div className="feedback-user-info">
+                        {feedback.user?.avatarImg ? (
+                          <Image
+                            src={feedback.user.avatarImg}
+                            alt="User Avatar"
+                            width={32}
+                            height={32}
+                            className="feedback-avatar"
+                          />
+                        ) : (
+                          <div className="feedback-avatar-placeholder">
+                            {feedback.user?.username?.charAt(0) || "A"}
+                          </div>
+                        )}
+                        <div className="feedback-user-details">
+                          <span className="feedback-author">
+                            {feedback.user?.username || "Anonymous"}
+                          </span>
+                          <span className="feedback-role">
+                            {feedback.user?.role || "No Role"}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        className="delete-feedback-btn"
+                        onClick={() =>
+                          handleDeleteFeedback(feedback.feedbackRattingId)
+                        }
+                        title="Delete Feedback"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    <p className="feedback-text">{feedback.feedback}</p>
+                    <div className="feedback-rating">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <span
+                          key={index}
+                          className={`star ${
+                            index < feedback.star ? "filled" : ""
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <p>No feedbacks yet</p>
+            )}
           </div>
 
           <div className="course-qa bg-white rounded-lg shadow-md p-6 mb-6">
@@ -463,24 +698,43 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
             src={courses?.videoInfo}
             allowFullScreen
           ></iframe>
+          {!isPurchased ? (
+            <div>
+              {courses?.isPublic && (
+                <div>
+                  <h2 className="course-price">${courses?.price}</h2>
 
-          <h2 className="course-price">${courses?.price}</h2>
-
-          <button
-            className="btn add-to-cart"
-            onClick={() => handleAddToCart(courses?.courseId || "")}
-          >
-            {t("addToCart")}
-          </button>
-          <button className="btn buy-course" onClick={() => handleCheckOut()}>
-            {t("buyCourse")}
-          </button>
-          {courses?.isPublic && (
-              <button className="btn waitListCourse" onClick={() => handleCreatWaitList()}>
-                {t("addToWaitList")}
-              </button>
-            )}
-
+                  <button
+                    className="btn add-to-cart"
+                    onClick={() => handleAddToCart(courses?.courseId || "")}
+                  >
+                    {t("addToCart")}
+                  </button>
+                  <button
+                    className="btn buy-course"
+                    onClick={() => handleCheckOut()}
+                  >
+                    {t("buyCourse")}
+                  </button>
+                </div>
+              )}
+              {!courses?.isPublic && (
+                <button
+                  className="btn waitListCourse"
+                  onClick={() => handleCreatWaitList()}
+                >
+                  {t("addToWaitList")}
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              className="btn buy-course"
+              onClick={() => handleGotoCourse()}
+            >
+              {t("GoToCourse")}
+            </button>
+          )}
           <div className="course-details">
             <div className="row"></div>
             <div className="row"></div>

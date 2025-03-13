@@ -21,6 +21,7 @@ import {
   fetchCourseProgress,
   markContentAsCompleted,
 } from "@/app/api/progress/ProgressAPI";
+import QaStudyList from "../QaStudy/QastudyList";
 
 export default function CourseInfo() {
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -28,9 +29,11 @@ export default function CourseInfo() {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(0);
   const [currentContentIndex, setCurrentContentIndex] = useState<number>(0);
   const [completedContents, setCompletedContents] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "qa">("overview");
   const [progress, setProgress] = useState<number>(0);
   const [isExamSelected, setIsExamSelected] = useState(false);
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id as string;
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -241,7 +244,18 @@ export default function CourseInfo() {
       {/* Navigation Bar */}
       <div className="course-nav">
         <div className="course-nav-content">
-          <span className="nav-item active">📖 Overview</span>
+          <span
+            className={`nav-item ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
+          >
+            📖 Overview
+          </span>
+          <span
+            className={`nav-item ${activeTab === "qa" ? "active" : ""}`}
+            onClick={() => setActiveTab("qa")}
+          >
+            📖 Q&A
+          </span>
         </div>
       </div>
 
@@ -322,7 +336,15 @@ export default function CourseInfo() {
 
         {/* Video / Lesson Content */}
         <main className="course-video-section">
-          {isExamSelected ? <ExamPage /> : renderLessonComponent()}
+          {activeTab === "overview" ? (
+            isExamSelected ? (
+              <ExamPage />
+            ) : (
+              renderLessonComponent()
+            )
+          ) : (
+            <QaStudyList courseId={id} />
+          )}
         </main>
       </div>
     </div>

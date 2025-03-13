@@ -13,6 +13,7 @@ import {
   updateDiscussion,
 } from "@/app/api/discussion/Discussion";
 import { io, Socket } from "socket.io-client";
+
 interface ForumDiscussionsProps {
   forumId: string;
   locale: string;
@@ -33,30 +34,37 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     null
   );
   const [editContent, setEditContent] = useState<string>("");
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [, setSocket] = useState<Socket | null>(null);
 
-  // WebSocket setup
   useEffect(() => {
+    if (!session?.user?.token) return;
+
     const socketInstance = io(
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
       {
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        auth: { token: session?.user?.token },
+        auth: { token: session.user.token },
       }
     );
     setSocket(socketInstance);
 
     socketInstance.on("connect", () => {
-      console.log("Connected to WebSocket server for discussions");
+      console.log(
+        "Connected to WebSocket server for discussions:",
+        socketInstance.id
+      );
       socketInstance.emit("joinForumRoom", forumId);
     });
 
     socketInstance.on(
       "discussionUpdated",
       (updatedDiscussions: Discussion[]) => {
-        console.log("Received updated discussions:", updatedDiscussions);
+        console.log(
+          "ForumDiscussions received updated discussions:",
+          updatedDiscussions
+        );
         onDiscussionsChange(updatedDiscussions);
       }
     );
@@ -67,9 +75,6 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
 
     return () => {
       socketInstance.emit("leaveForumRoom", forumId);
-      socketInstance.off("connect");
-      socketInstance.off("discussionUpdated");
-      socketInstance.off("disconnect");
       socketInstance.disconnect();
     };
   }, [forumId, session?.user?.token, onDiscussionsChange]);
@@ -85,19 +90,8 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     };
 
     try {
-      const newDiscussion = await createDiscussion(
-        createDiscussionDto,
-        session.user.token
-      );
-      if (newDiscussion) {
-        const updatedDiscussions = [...discussions, newDiscussion];
-        onDiscussionsChange(updatedDiscussions);
-        socket?.emit("updateDiscussions", {
-          forumId,
-          discussions: updatedDiscussions,
-        });
-        setComment("");
-      }
+      await createDiscussion(createDiscussionDto, session.user.token);
+      setComment("");
     } catch (error) {
       console.error("Error creating discussion:", error);
       alert(t("createCommentError"));
@@ -110,31 +104,14 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     const confirmDelete = window.confirm(t("confirmDeleteComment"));
     if (!confirmDelete) return;
 
-    console.log("Attempting to delete discussion with ID:", discussionId);
-
     try {
-      const success = await deleteDiscussion(
+      await deleteDiscussion(
         discussionId,
         session.user.token,
         session.user.user_id
       );
-
-      console.log("Delete API response:", success);
-
-      if (success) {
-        const updatedDiscussions = discussions.filter(
-          (d) => d.discussionId !== discussionId
-        );
-        onDiscussionsChange(updatedDiscussions);
-        socket?.emit("updateDiscussions", {
-          forumId,
-          discussions: updatedDiscussions,
-        });
-      } else {
-        alert(t("deleteFailed"));
-        console.warn("Delete request returned false");
-      }
-    } catch {
+    } catch (error) {
+      console.error("Error deleting discussion:", error);
       alert(t("deleteError"));
     }
   };
@@ -155,26 +132,14 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     const updateDto = { content: editContent.trim() };
 
     try {
-      const updatedDiscussion = await updateDiscussion(
+      await updateDiscussion(
         discussionId,
         updateDto,
         session.user.token,
         session.user.user_id
       );
-      if (updatedDiscussion) {
-        const updatedDiscussions = discussions.map((d) =>
-          d.discussionId === discussionId
-            ? { ...d, content: editContent.trim() }
-            : d
-        );
-        onDiscussionsChange(updatedDiscussions);
-        socket?.emit("updateDiscussions", {
-          forumId,
-          discussions: updatedDiscussions,
-        });
-        setEditingDiscussion(null);
-        setEditContent("");
-      }
+      setEditingDiscussion(null);
+      setEditContent("");
     } catch (error) {
       console.error("Error updating discussion:", error);
       alert(t("updateCommentError"));

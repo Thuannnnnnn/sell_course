@@ -33,9 +33,7 @@ export class ReactionTopicService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    const forum = await this.forumRepository.findOne({
-      where: { forumId },
-    });
+    const forum = await this.forumRepository.findOne({ where: { forumId } });
     if (!forum) {
       throw new NotFoundException(`Forum with ID ${forumId} not found`);
     }
@@ -60,20 +58,32 @@ export class ReactionTopicService {
       });
       reaction = await this.reactionTopicRepository.save(reaction);
     }
+
+    const updatedReactions = await this.findReactionsByForum(forumId);
+    this.forumGateway.notifyReactionsUpdate(
+      forumId,
+      updatedReactions.map((r) => ({
+        reactionId: r.reactionId,
+        reactionType: r.reactionType,
+        createdAt: r.createdAt.toISOString(),
+        user: r.user,
+      })),
+    );
+
     const forums = await this.forumService.findAll();
     this.forumGateway.notifyForumUpdate(forums);
+
     return reaction;
   }
+
   async findReactionsByForum(forumId: string): Promise<ReactionTopic[]> {
     const reactions = await this.reactionTopicRepository.find({
       where: { forum: { forumId } },
       relations: ['user', 'forum'],
     });
-    if (!reactions.length) {
-      throw new NotFoundException(`No reactions found for forum ${forumId}`);
-    }
     return reactions;
   }
+
   async deleteReaction(userId: string, forumId: string): Promise<void> {
     const reaction = await this.reactionTopicRepository.findOne({
       where: { user: { user_id: userId }, forum: { forumId } },
@@ -87,6 +97,18 @@ export class ReactionTopicService {
     }
 
     await this.reactionTopicRepository.remove(reaction);
+
+    const updatedReactions = await this.findReactionsByForum(forumId);
+    this.forumGateway.notifyReactionsUpdate(
+      forumId,
+      updatedReactions.map((r) => ({
+        reactionId: r.reactionId,
+        reactionType: r.reactionType,
+        createdAt: r.createdAt.toISOString(),
+        user: r.user,
+      })),
+    );
+
     const forums = await this.forumService.findAll();
     this.forumGateway.notifyForumUpdate(forums);
   }

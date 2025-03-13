@@ -23,16 +23,18 @@ const AboutPage: React.FC = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "20px",
-      }}
-    >
-      {courses.map((course) => (
-        <CourseCard key={course.courseId} course={course} />
-      ))}
+    <div className="content-courseCard">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "20px",
+        }}
+      >
+        {courses.map((course) => (
+          <CourseCard key={course.courseId} course={course} />
+        ))}
+      </div>
     </div>
   );
 };

@@ -5,7 +5,10 @@ import {
   Body,
   Param,
   Delete,
+  Put,
   UseGuards,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -33,7 +36,7 @@ export class QaStudyController {
     type: ResponseQaDto,
   })
   @ApiResponse({ status: 404, description: 'User or Course not found' })
-  create(@Body() createQaDto: CreateQaDto) {
+  async create(@Body() createQaDto: CreateQaDto) {
     return this.qaService.createQa(createQaDto);
   }
 
@@ -50,13 +53,43 @@ export class QaStudyController {
     return this.qaService.findByCourseId(courseId);
   }
 
+  @Put(':id')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update a QA entry' })
+  @ApiResponse({
+    status: 200,
+    description: 'QA updated successfully',
+    type: ResponseQaDto,
+  })
+  @ApiResponse({ status: 404, description: 'QA not found' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateData: Partial<CreateQaDto>,
+  ) {
+    try {
+      const updatedQa = await this.qaService.updateQa(id, updateData);
+      return {
+        message: 'QA updated successfully',
+        data: updatedQa,
+      };
+    } catch {
+      throw new HttpException('Failed to update QA', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @Delete(':id')
   @ApiBearerAuth('Authorization')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a QA entry' })
   @ApiResponse({ status: 200, description: 'QA deleted successfully' })
   @ApiResponse({ status: 404, description: 'QA not found' })
-  remove(@Param('id') id: string) {
-    return this.qaService.remove(id);
+  async remove(@Param('id') id: string) {
+    try {
+      await this.qaService.remove(id);
+      return { message: 'QA deleted successfully' };
+    } catch {
+      throw new HttpException('Failed to delete QA', HttpStatus.BAD_REQUEST);
+    }
   }
 }

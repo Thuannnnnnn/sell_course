@@ -9,7 +9,6 @@
   padding: 10px;
   display: flex;
   flex-direction: column;
-
 }
 
 .card:hover {
@@ -40,7 +39,7 @@
   border-radius: 8px;
 }
 
-.content {
+.content-courseCard {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -49,7 +48,7 @@
   padding: 10px;
 }
 
-.tt{
+.tt {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -87,7 +86,6 @@
   margin-top: 10px;
 }
 
-
 .price {
   font-size: 16px;
   font-weight: bold;
@@ -97,7 +95,7 @@
 .footer {
   display: flex;
   justify-content: space-between;
-  bottom: 10px; 
+  bottom: 10px;
   left: 0;
   width: 100%;
   text-align: center;

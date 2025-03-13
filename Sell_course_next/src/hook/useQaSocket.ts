@@ -1,3 +1,4 @@
+// useQaSocket.ts
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { QaData } from "@/app/type/QAStudy/QAStudy";
@@ -13,32 +14,21 @@ export const useQaSocket = (courseId: string) => {
       transports: ["websocket"],
     });
 
-    newSocket.emit("joinCourse", courseId);
+    // Request initial QA list
+    newSocket.emit("getQas", courseId);
 
-    newSocket.on("qaList", (data) => {
+    // Listen for QA list updates
+    newSocket.on("qaList", (data: QaData[]) => {
       setQaList(data);
     });
 
-    newSocket.on("newQa", (qa) => {
-      setQaList((prevQaList) => [...prevQaList, qa]);
-    });
-
-    newSocket.on("removeQa", ({ qaId }) => {
-      setQaList((prevQaList) => prevQaList.filter((qa) => qa.qaId !== qaId));
-    });
-
-    newSocket.on("reactionChange", (reaction) => {
-      setQaList((prevQaList) =>
-        prevQaList.map((qa) =>
-          qa.qaId === reaction.qaId ? { ...qa, reaction: reaction } : qa
-        )
-      );
+    newSocket.on("error", (error) => {
+      console.error("Socket error:", error);
     });
 
     setSocket(newSocket);
 
     return () => {
-      newSocket.emit("leaveCourse", courseId);
       newSocket.disconnect();
     };
   }, [courseId]);

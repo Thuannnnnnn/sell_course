@@ -12,7 +12,7 @@ import { useTranslations } from "next-intl";
 import { Forum, Discussion, Reaction } from "@/app/type/forum/forum";
 import { getForumById, deleteForum } from "@/app/api/forum/forum";
 import { getDiscussionsByForumId } from "@/app/api/discussion/Discussion";
-import { getReactionsByTopic } from "@/app/api/forum/forum"; // Thêm để đồng bộ reaction
+import { getReactionsByTopic } from "@/app/api/forum/forum";
 import { io, Socket } from "socket.io-client";
 
 const ForumDetail: React.FC = () => {
@@ -28,40 +28,59 @@ const ForumDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
 
+  // Đồng bộ reactions
   const syncReactions = useCallback(async () => {
-    if (!session?.user?.token) return;
-    const result = await getReactionsByTopic(session.user.token, forumId);
-    if (result.success && Array.isArray(result.data)) {
-      setForum((prev) =>
-        prev ? { ...prev, reactionTopics: result.data } : null
+    if (!session?.user?.token || !forumId) return;
+    try {
+      const result = await getReactionsByTopic(session.user.token, forumId);
+      if (result.success && Array.isArray(result.data)) {
+        setForum((prev) =>
+          prev ? { ...prev, reactionTopics: result.data } : null
+        );
+      }
+    } catch {
+      console.log("error");
+    }
+  }, [forumId, session?.user?.token]);
+
+  // Đồng bộ discussions
+  const syncDiscussions = useCallback(async () => {
+    if (!session?.user?.token || !forumId) return;
+    try {
+      const discussionData = await getDiscussionsByForumId(
+        forumId,
+        session.user.token
       );
+      if (discussionData) {
+        setDiscussions(discussionData);
+      }
+    } catch {
+      console.log("error");
     }
   }, [forumId, session?.user?.token]);
 
   useEffect(() => {
+    if (!session?.user?.token) return;
+
     const socketInstance = io(
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
       {
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        auth: { token: session?.user?.token },
+        auth: { token: session.user.token },
       }
     );
-
     setSocket(socketInstance);
 
     socketInstance.on("connect", () => {
-      console.log("Connected to WebSocket server");
       socketInstance.emit("joinForumRoom", forumId);
     });
 
     socketInstance.on(
       "discussionUpdated",
       (updatedDiscussions: Discussion[]) => {
-        console.log("Received updated discussions:", updatedDiscussions);
         setDiscussions(updatedDiscussions);
-        syncReactions(); // Đồng bộ reaction sau khi discussions thay đổi
       }
     );
 
@@ -83,70 +102,39 @@ const ForumDetail: React.FC = () => {
     });
 
     socketInstance.on("disconnect", () => {
-      console.log("Disconnected from WebSocket server");
+      // Disconnect handling
     });
 
     return () => {
       socketInstance.emit("leaveForumRoom", forumId);
-      socketInstance.off("connect");
-      socketInstance.off("discussionUpdated");
-      socketInstance.off("forumReactionsUpdated");
-      socketInstance.off("forumDeleted");
       socketInstance.disconnect();
     };
-  }, [forumId, session?.user?.token, locale, router, syncReactions]);
+  }, [forumId, session?.user?.token, locale, router]);
 
-  const fetchForumDetail = useCallback(
-    async (isInitial = true) => {
-      try {
-        if (!forumId) {
-          setError(t("postNotFound"));
-          setLoading(false);
-          return;
-        }
-        if (isInitial) setLoading(true);
-        const forumData = await getForumById(forumId);
-        if (!forumData) {
-          setError(t("postNotFound"));
-          return;
-        }
-        setForum({
-          ...forumData,
-          reactionTopics: forumData.reactionTopics || [],
-        });
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching forum:", err);
-        setError(t("errorLoading"));
-      } finally {
-        if (isInitial) setLoading(false);
-      }
-    },
-    [forumId, t]
-  );
-
-  const fetchDiscussions = useCallback(async () => {
-    if (!session?.user?.token || !forumId) return;
+  // Lấy dữ liệu ban đầu
+  const fetchForumDetail = useCallback(async () => {
     try {
-      const discussionData = await getDiscussionsByForumId(
-        forumId,
-        session.user.token
-      );
-      if (discussionData) {
-        setDiscussions(discussionData);
-      } else {
-        console.warn("No discussions returned from API");
-      }
-    } catch (err) {
-      console.error("Error fetching discussions:", err);
+      setLoading(true);
+      if (!forumId) throw new Error("No forumId provided");
+      const forumData = await getForumById(forumId);
+      if (!forumData) throw new Error("Forum not found");
+      setForum({
+        ...forumData,
+        reactionTopics: forumData.reactionTopics || [],
+      });
+      setError(null);
+    } catch {
+      setError(t("postNotFound"));
+    } finally {
+      setLoading(false);
     }
-  }, [forumId, session?.user?.token]);
+  }, [forumId, t]);
 
   useEffect(() => {
     fetchForumDetail();
-    fetchDiscussions();
+    syncDiscussions();
     syncReactions();
-  }, [fetchForumDetail, fetchDiscussions, syncReactions]);
+  }, [fetchForumDetail, syncDiscussions, syncReactions]);
 
   const handleDeleteForum = async () => {
     if (!session?.user?.token || !forumId) return;
@@ -158,12 +146,10 @@ const ForumDetail: React.FC = () => {
       const success = await deleteForum(forumId, session.user.token);
       if (success) {
         socket?.emit("deleteForum", forumId);
-        router.push(`/${locale}/forum`);
       } else {
         alert(t("deleteFailed"));
       }
-    } catch (err) {
-      console.error("Error deleting forum:", err);
+    } catch {
       alert(t("deleteError"));
     }
   };
@@ -184,13 +170,13 @@ const ForumDetail: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error || !forum) {
     return (
       <div className="container py-4">
         <div className="row">
           <div className="col-lg-8">
             <div className="alert alert-danger" role="alert">
-              {error}
+              {error || t("postNotFound")}
               <div className="mt-3">
                 <button
                   className="btn btn-outline-primary"
@@ -199,26 +185,6 @@ const ForumDetail: React.FC = () => {
                   {t("backToForum")}
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!forum) {
-    return (
-      <div className="container py-4">
-        <div className="row">
-          <div className="col-lg-8">
-            <div className="text-center my-5">
-              <p className="fs-5">{t("postNotFound")}</p>
-              <button
-                className="btn btn-primary mt-3"
-                onClick={() => router.push(`/${locale}/forum`)}
-              >
-                {t("backToForum")}
-              </button>
             </div>
           </div>
         </div>
@@ -320,10 +286,6 @@ const ForumDetail: React.FC = () => {
                       setForum((prev) =>
                         prev ? { ...prev, reactionTopics: newReactions } : null
                       );
-                      socket?.emit("updateForumReactions", {
-                        forumId,
-                        reactions: newReactions,
-                      });
                     }}
                   />
                   {session?.user?.user_id === forum.user.user_id && (
@@ -358,7 +320,6 @@ const ForumDetail: React.FC = () => {
             discussions={discussions}
             onDiscussionsChange={(newDiscussions) => {
               setDiscussions(newDiscussions);
-              syncReactions(); // Đồng bộ reaction sau khi discussions thay đổi
             }}
           />
         </div>
