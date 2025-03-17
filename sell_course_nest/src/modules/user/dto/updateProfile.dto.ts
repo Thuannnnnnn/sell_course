@@ -55,6 +55,7 @@ export class UserDto {
   birthDay: string | null;
   phoneNumber: number;
   role: string;
+  isOAuth: boolean;
 
   constructor(
     user_id: string,
@@ -65,6 +66,7 @@ export class UserDto {
     birthDay: string | null,
     phoneNumber: number,
     role: string,
+    isOAuth: boolean,
   ) {
     this.user_id = user_id;
     this.email = email;
@@ -74,5 +76,6 @@ export class UserDto {
     this.birthDay = birthDay;
     this.phoneNumber = phoneNumber;
     this.role = role;
+    this.isOAuth = isOAuth;
   }
 }

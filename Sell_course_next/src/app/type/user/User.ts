@@ -34,6 +34,7 @@ export interface GetUser {
   birthDay: null;
   phoneNumber: string;
   role: string;
+  isOAuth: boolean;
 }
 
 export interface UserGetAllWishlist {

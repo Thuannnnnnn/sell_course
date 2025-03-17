@@ -54,6 +54,8 @@ export const fetchUserDetails = async (token: string, email: string) => {
         },
       }
     );
+
+    console.log('User details:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching user details:', error);

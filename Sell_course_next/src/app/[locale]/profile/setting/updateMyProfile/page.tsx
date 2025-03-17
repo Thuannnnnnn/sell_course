@@ -141,9 +141,11 @@ const UpdateMyProfilePage: React.FC = () => {
               <Link className="link-profile" href={`/${localActive}/profile/setting/updateMyProfile`}>
                 <h6 className="active">{t('title-profile')}</h6>
               </Link>
-              <Link className="link-profile" href={`/${localActive}/profile/setting/changePassword`}>
-                <h6>{t('title-password')}</h6>
-              </Link>
+              {user?.isOAuth === false && (
+                <Link className="link-profile" href={`/${localActive}/profile/setting/changePassword`}>
+                  <h6>{t('title-password')}</h6>
+                </Link>
+              )}
             </div>
           </div>
           <div className="form-update">

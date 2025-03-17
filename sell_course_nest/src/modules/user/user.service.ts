@@ -196,6 +196,7 @@ export class UserService {
       user.birthDay,
       user.phoneNumber,
       user.role,
+      user.isOAuth,
     );
   }
 
@@ -248,6 +249,7 @@ export class UserService {
       user.birthDay,
       user.phoneNumber,
       user.role,
+      user.isOAuth,
     );
   }
 }
