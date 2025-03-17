@@ -10,6 +10,7 @@ import { GetUser } from "@/app/type/user/User";
 import SignIn from "../auth/login/page";
 import { deleteWaitingList, fetchWaitingList } from "@/app/api/waitingList/waitingList";
 import { FaTrash } from "react-icons/fa";
+import { fetchUserDetails } from "@/app/api/auth/User/user";
 
 interface Course {
   courseId: string;
@@ -35,15 +36,34 @@ const DashBoardPage: React.FC = () => {
   const [user, setUser] = useState(session?.user || null);
   const t = useTranslations('waitListPage');
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!session?.user) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-    setUser(session.user);
-  }, [session, status]);
+ useEffect(() => {
+     if (status === 'loading') return; // Đợi session load xong
+ 
+     const token = session?.user?.token;
+     const email = session?.user?.email;
+     if (!session?.user || !session.user.email) {
+       setError('User not found or unauthorized.');
+       setLoading(false);
+       return;
+     }
+ 
+     console.log('Session ne: ', session.user);
+ 
+     const fetchUser = async () => {
+       setLoading(true);
+       setError(null);
+       try {
+         const userDetails = await fetchUserDetails(token as string, email as string);
+         setUser(userDetails);
+       } catch {
+         setError('Failed to load user details.');
+       } finally {
+         setLoading(false);
+       }
+     };
+ 
+     fetchUser();
+   }, [session, status]);
 
   useEffect(() => {
     const fetchWaitCourse = async () => {

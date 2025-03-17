@@ -12,6 +12,7 @@ import { fetchWishListCourse } from '@/app/api/wishListCourse/wishListCourse';
 import { GetUser, UserGetAllWishlist } from '@/app/type/user/User';
 import { CiShare2 } from "react-icons/ci";
 import { AiOutlineSearch } from "react-icons/ai";
+import { fetchUserDetails } from '@/app/api/auth/User/user';
 
 const WishListPage: React.FC = () => {
   const { data: session, status } = useSession();
@@ -25,15 +26,30 @@ const WishListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session?.user || !session.user.user_id) {
-      setError('User not found or unauthorized.');
-      setLoading(false);
-      return;
-    }
+      if (status === 'loading') return; // Đợi session load xong
+      const token = session?.user?.token;
+      const email = session?.user?.email;
+      if (!session?.user || !session.user.email) {
+        setError('User not found or unauthorized.');
+        setLoading(false);
+        return;
+      }
+      console.log('Session ne: ', session.user);
+      const fetchUser = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const userDetails = await fetchUserDetails(token as string, email as string);
+          setUser(userDetails);
+        } catch {
+          setError('Failed to load user details.');
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    setUser({ ...session.user, email: session.user.email ?? null });
-  }, [session, status]);
+      fetchUser();
+    }, [session, status]);
 
   useEffect(() => {
     if (!user) return;
