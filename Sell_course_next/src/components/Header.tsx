@@ -81,150 +81,151 @@ const Header: React.FC = () => {
     <Navbar
       expand="lg"
       bg={theme}
-      className="sticky-header"
+      className="header-main"
       data-bs-theme={theme}
     >
-      <Container
-        fluid
-        className="d-flex justify-content-between align-items-center"
-      >
-        <div className="d-flex align-items-center">
-          <Link href={`/${localActive}`}>
+      <Container fluid>
+        <div className="header-brand">
+          <Link href={`/${localActive}`} className="brand-link">
             <Image
               src="/RedFlag_GoldenStar.png"
               alt="logo"
-              rounded
-              className="me-2"
+              className="brand-logo"
               width={80}
+              height={80}
             />
+            <span className="brand-text">
+              <span className="brand-text-red">RedFlag</span>{" "}
+              <span className="brand-text-gold">GoldenStar</span>
+            </span>
           </Link>
-          <Navbar.Brand href={`/${localActive}`} className="title-custom">
-            <span className="red-flag">RedFlag</span>{" "}
-            <span className="golden-star">GoldenStar</span>
-          </Navbar.Brand>
         </div>
 
-        <Nav className="d-flex align-items-center flex-nowrap">
-          {session?.user?.role === "ADMIN" ||
-          session?.user?.role === "STAFF" ? (
-            <Link
-              href={`/${localActive}/admin/dashboard`}
-              className="nav-link me-4"
-            >
-              {t("manage")}
-            </Link>
-          ) : null}
-          <Link href={`/${localActive}/showCourse`} className="nav-link me-4">
-            {t("course")}
-          </Link>
-          <Link href={`/${localActive}/cart`} className="nav-link me-4">
-            {t("cart")}
-          </Link>
-          <Link href={`/${localActive}/forum`} className="nav-link me-4">
-            {t("forum")}
-          </Link>
-          <LocalSwitcher />
-          {status === "loading" ? (
-            <span className="nav-link mx-4">{s("loading")}</span>
-          ) : session ? (
-            <>
-              <Link
-                href={`/${localActive}/profile/myProfile`}
-                className="nav-link"
-              >
-                <FaRegUser />
-              </Link>
-              <Dropdown
-                align="end"
-                className="m-2"
-                onToggle={handleMarkAllAsSent}
-              >
-                <Dropdown.Toggle
-                  variant="link"
-                  className="bell-container nav-link p-0"
-                  bsPrefix="undropdown-toggle"
-                >
-                  <div className="bell-wrapper">
-                    <FaRegBell className="notification-bell" />
-                    {unSentNotifications.length > 0 && (
-                      <Badge className="notification-badge" bg="danger">
-                        {unSentNotifications.length}
-                      </Badge>
-                    )}
-                  </div>
-                </Dropdown.Toggle>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
-                <Dropdown.Menu className="notification-dropdown">
-                  <Dropdown.Header className="notification-header">
-                    {s("notify")}
-                  </Dropdown.Header>
-                  {displayedNotifications.length > 0 ? (
-                    displayedNotifications.map((notify) => (
-                      <Dropdown.Item
-                        key={notify.id}
-                        className={`notification-item ${
-                          notify.is_read ? "read-notification" : ""
-                        }`}
-                        onClick={() => {
-                          handleMarkAsRead(notify.id);
-                          setSelectedNotification(notify.notify);
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="nav-links ms-auto align-items-center">
+            {session?.user?.role === "ADMIN" ||
+            session?.user?.role === "STAFF" ? (
+              <Link
+                href={`/${localActive}/admin/dashboard`}
+                className="nav-link me-4"
+              >
+                {t("manage")}
+              </Link>
+            ) : null}
+            <Link href={`/${localActive}/showCourse`} className="nav-link me-4">
+              {t("course")}
+            </Link>
+            <Link href={`/${localActive}/cart`} className="nav-link me-4">
+              {t("cart")}
+            </Link>
+            <Link href={`/${localActive}/forum`} className="nav-link me-4">
+              {t("forum")}
+            </Link>
+            <LocalSwitcher />
+            {status === "loading" ? (
+              <span className="nav-link mx-4">{s("loading")}</span>
+            ) : session ? (
+              <>
+                <Link
+                  href={`/${localActive}/profile/myProfile`}
+                  className="nav-link"
+                >
+                  <FaRegUser />
+                </Link>
+                <Dropdown
+                  align="end"
+                  className="m-2"
+                  onToggle={handleMarkAllAsSent}
+                >
+                  <Dropdown.Toggle
+                    variant="link"
+                    className="bell-container nav-link p-0"
+                    bsPrefix="undropdown-toggle"
+                  >
+                    <div className="bell-wrapper">
+                      <FaRegBell className="notification-bell" />
+                      {unSentNotifications.length > 0 && (
+                        <Badge className="notification-badge" bg="danger">
+                          {unSentNotifications.length}
+                        </Badge>
+                      )}
+                    </div>
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu className="notification-dropdown">
+                    <Dropdown.Header className="notification-header">
+                      {s("notify")}
+                    </Dropdown.Header>
+                    {displayedNotifications.length > 0 ? (
+                      displayedNotifications.map((notify) => (
+                        <Dropdown.Item
+                          key={notify.id}
+                          className={`notification-item ${
+                            notify.is_read ? "read-notification" : ""
+                          }`}
+                          onClick={() => {
+                            handleMarkAsRead(notify.id);
+                            setSelectedNotification(notify.notify);
                           }}
                         >
-                          <span>{notify.notify.title}</span>
-                          {!notify.is_read && (
-                            <span className="unread-dot"></span>
-                          )}
-                        </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <span>{notify.notify.title}</span>
+                            {!notify.is_read && (
+                              <span className="unread-dot"></span>
+                            )}
+                          </div>
+                        </Dropdown.Item>
+                      ))
+                    ) : (
+                      <Dropdown.Item disabled>
+                        {s("no_notification_found")}
                       </Dropdown.Item>
-                    ))
-                  ) : (
-                    <Dropdown.Item disabled>
-                      {s("no_notification_found")}
+                    )}
+                    <Dropdown.Divider />
+                    <Dropdown.Item>
+                      <Link href={`/${localActive}/notifications`}>
+                        {" "}
+                        {t("viewMore")}{" "}
+                      </Link>
                     </Dropdown.Item>
-                  )}
-                  <Dropdown.Divider />
-                  <Dropdown.Item>
-                    <Link href={`/${localActive}/notifications`}>
-                      {" "}
-                      {t("viewMore")}{" "}
-                    </Link>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-              <Button
-                variant={theme}
-                onClick={() => signOut()}
-                className="btn btn-link nav-link mx-4"
-              >
-                <IoIosLogOut />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant={theme}
-                onClick={() => router.push(`/${localActive}/auth/signUp`)}
-                className={`btn-signup mx-3 ${theme}`}
-              >
-                {t("signup")}
-              </Button>
-              <Button
-                variant="light"
-                onClick={() => router.push(`/${localActive}/auth/login`)}
-                className="btn-login"
-              >
-                {t("login")}
-              </Button>
-            </>
-          )}
-        </Nav>
+                  </Dropdown.Menu>
+                </Dropdown>
+                <Button
+                  variant={theme}
+                  onClick={() => signOut()}
+                  className="btn btn-link nav-link mx-4"
+                >
+                  <IoIosLogOut />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant={theme}
+                  onClick={() => router.push(`/${localActive}/auth/signUp`)}
+                  className={`btn-signup mx-3 ${theme}`}
+                >
+                  {t("signup")}
+                </Button>
+                <Button
+                  variant="light"
+                  onClick={() => router.push(`/${localActive}/auth/login`)}
+                  className="btn-login"
+                >
+                  {t("login")}
+                </Button>
+              </>
+            )}
+          </Nav>
+        </Navbar.Collapse>
       </Container>
 
       <Modal show={!!selectedNotification} onHide={handleClosePopup} centered>
