@@ -11,7 +11,6 @@
 }
 
 .button-wrapper button {
-
   color: black;
   border: none;
   padding: 10px 20px;
@@ -40,7 +39,7 @@ body {
   flex-direction: column;
   gap: 20px;
 }
-.doc-container{
+.doc-container {
   width: 100%;
   margin: auto;
 }
@@ -170,7 +169,7 @@ body {
   margin: 15px 0;
 }
 
-.btn {
+.btn-course-detail {
   display: block;
   width: 100%;
   padding: 12px;
@@ -306,7 +305,8 @@ body {
   font-size: 16px;
 }
 
-.question-meta, .answer-meta {
+.question-meta,
+.answer-meta {
   display: flex;
   align-items: center;
   gap: 15px;
@@ -314,7 +314,8 @@ body {
   font-size: 0.9em;
 }
 
-.question-time, .answer-time {
+.question-time,
+.answer-time {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -376,12 +377,12 @@ body {
   margin-bottom: 15px;
 }
 
-.userContent{
+.userContent {
   display: flex;
   gap: 10px;
 }
 
-.buttonReply{
+.buttonReply {
   background-color: #6084df;
   color: white;
   border: none;
@@ -394,20 +395,19 @@ body {
   float: right;
 }
 
-.dateTime{
+.dateTime {
   margin-left: 10px;
   font-size: 10px;
   color: #666;
 }
 
-.textQuestion{
+.textQuestion {
   margin-bottom: 10px;
 }
 
 .waitListCourse {
   background: #e8fdf8;
 }
-
 
 .feedback-section {
   margin-top: 20px;

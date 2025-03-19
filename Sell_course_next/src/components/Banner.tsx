@@ -10,7 +10,7 @@ const Banner = () => {
   const t = useTranslations("banner");
 
   return (
-    <section>
+    <section className="colorBackground">
       <div className="bannerSection">
         <div>
           <h1 className="bannerTitle"> {t("bannerTitle")} </h1>
