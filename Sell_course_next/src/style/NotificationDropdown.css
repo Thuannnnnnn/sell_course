@@ -5,12 +5,18 @@
   justify-content: center;
 }
 
+.notification-bell {
+  font-size: 1.5rem;
+}
+
 .notification-badge {
   position: absolute !important;
   font-size: 9px;
   border-radius: 100%;
   top: 0 !important;
+  right: -5px;
 }
+
 .notification-dropdown {
   min-width: 280px;
   border-radius: 10px;
@@ -55,18 +61,51 @@
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .notification-modal .modal-header {
   background-color: #f8f9fa;
   border-bottom: none;
 }
+
 .notification-modal .modal-body {
   padding: 20px;
 }
+
 .notification-modal h5 {
   color: #333;
   margin-bottom: 10px;
 }
+
 .notification-modal p {
   color: #666;
   line-height: 1.5;
+}
+
+/* Chuông riêng biệt cho responsive */
+.responsive-bell {
+  position: relative;
+  font-size: 1.5rem;
+  margin-right: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* Media query cho responsive (dưới 992px) */
+@media (max-width: 991.98px) {
+  /* Đảm bảo các phần tử trong Navbar được căn chỉnh đúng */
+  .navbar > .container-fluid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Điều chỉnh vị trí của Dropdown trong chế độ responsive */
+  .notification-dropdown {
+    position: absolute;
+    top: 60px; /* Khoảng cách từ đỉnh Navbar */
+    right: 10px; /* Căn chỉnh với chuông ở bên phải */
+    left: auto;
+    transform: none !important; /* Ghi đè transform của Popper.js */
+  }
 }
