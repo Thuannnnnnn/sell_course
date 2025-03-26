@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CodeMeetingModule } from './modules/code_meeting/code_meeting.module';
 import { User } from './modules/user/entities/user.entity';
 import { Cart } from './modules/cart/entities/cart.entity';
 import { Certificate } from './modules/certificate/entities/certificate.entity';
@@ -79,6 +80,8 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
 
 @Module({
   imports: [
+    CodeMeetingModule,
+    authModule,
     VideoModule,
     ContentModule,
     PaymentModule,
@@ -93,9 +96,9 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
 
       entities: [
         Notify,

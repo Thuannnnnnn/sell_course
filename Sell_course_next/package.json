@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/qwik": "^0.5.4",
+    "@monaco-editor/react": "^4.7.0",
     "@next/font": "^14.2.15",
     "@react-pdf-viewer/core": "^3.11.174",
     "@react-pdf-viewer/default-layout": "^3.11.174",
