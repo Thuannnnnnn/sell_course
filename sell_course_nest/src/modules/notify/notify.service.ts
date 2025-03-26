@@ -79,6 +79,16 @@ export class NotifyService {
       userNotifies = users.map((user) =>
         this.userNotifyRepository.create({ user, notify }),
       );
+    } else if (type === 'ADMIN') {
+      const adminUsers = await this.userRepository.find({
+        where: { role: 'ADMIN' },
+      });
+      if (adminUsers.length === 0) {
+        throw new Error('Không tìm thấy người dùng ADMIN nào');
+      }
+      userNotifies = adminUsers.map((admin) =>
+        this.userNotifyRepository.create({ user: admin, notify }),
+      );
     }
 
     if (userNotifies.length > 0) {

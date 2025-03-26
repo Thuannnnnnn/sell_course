@@ -17,4 +17,10 @@ export class ChatService {
     });
     return await this.chatSessionRepository.save(session);
   }
+  async getActiveSessions(): Promise<ChatSession[]> {
+    return this.chatSessionRepository.find({
+      where: { isActive: true },
+      order: { startTime: 'DESC' },
+    });
+  }
 }

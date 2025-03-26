@@ -19,22 +19,28 @@ interface SendMessageData {
 
 // Định nghĩa interface cho kết quả trả về của hook
 interface UseSocketResult {
-  socket: Socket | null;
+  socket: typeof Socket | null;
   messages: ChatMessage[];
   sendMessage: (message: string) => void;
 }
 
 const useSocket = (sessionId: string | string[]): UseSocketResult => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<typeof Socket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const { data: session } = useSession();
+
   // Khởi tạo và quản lý kết nối WebSocket
   useEffect(() => {
-    const newSocket = io("http://localhost:8080", { autoConnect: true });
+    console.log("Initializing WebSocket connection with sessionId:", sessionId);
+    const newSocket = io("http://localhost:8080", {
+      autoConnect: true,
+      query: { sessionId },
+    });
     setSocket(newSocket);
 
     // Xử lý sự kiện connect
     newSocket.on("connect", () => {
+      console.log("Connected to WebSocket server");
       newSocket.emit("join", { sessionId });
     });
 
@@ -43,8 +49,23 @@ const useSocket = (sessionId: string | string[]): UseSocketResult => {
       setMessages((prev) => [...prev, message]);
     });
 
+    // Xử lý sự kiện đóng tab
+    const handleBeforeUnload = () => {
+      console.log("Before unload - Disconnecting with sessionId:", sessionId);
+      if (newSocket) {
+        newSocket.disconnect();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     // Cleanup khi component unmount
     return () => {
+      console.log(
+        "Component unmounting - Disconnecting with sessionId:",
+        sessionId
+      );
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       newSocket.disconnect();
       setSocket(null);
     };

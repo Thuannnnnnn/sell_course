@@ -5,11 +5,11 @@ export interface Notify {
   notifyId?: string;
   title: string;
   message: string;
-  type: "GLOBAL" | "USER" | "COURSE";
-  isGlobal: boolean;
+  type: "GLOBAL" | "USER" | "COURSE" | "ADMIN";
+  isGlobal?: boolean;
   createdAt?: Date;
   userNotifies?: UserNotify[];
   courseId: string;
   userId?: string | null;
-  course?:Course
+  course?: Course;
 }

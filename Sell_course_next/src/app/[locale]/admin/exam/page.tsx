@@ -1,6 +1,6 @@
 "use client";
 import Sidebar from "@/components/SideBar";
-import '../../../../style/Exam.css'
+import "../../../../style/Exam.css";
 import { useEffect, useState } from "react";
 import { fetchCoursesAdmin } from "@/app/api/course/CourseAPI";
 import { useTranslations } from "next-intl";
@@ -10,7 +10,7 @@ import ExamList from "@/components/exam/CourseExam";
 export default function CoursePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const t = useTranslations("courses");
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -31,10 +31,8 @@ export default function CoursePage() {
     loadCourses();
   }, [session]);
 
-
-
   return (
-    <div className="d-flex">
+    <div className="d-flex margin3rem">
       <div className="sidebar-page">
         <Sidebar />
       </div>

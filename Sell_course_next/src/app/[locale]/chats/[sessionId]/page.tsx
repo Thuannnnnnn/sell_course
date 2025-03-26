@@ -16,8 +16,22 @@ export default function Chat() {
   const { sessionId } = useParams();
 
   // Gọi tất cả hooks trước bất kỳ return nào
-  const { messages, sendMessage } = useSocket(sessionId || "");
+  const { messages, sendMessage, socket } = useSocket(sessionId || "");
   const [inputValue, setInputValue] = useState<string>("");
+
+  // Xử lý ngắt kết nối khi tắt tab
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [socket]);
 
   // Sử dụng useEffect để xử lý chuyển hướng
   useEffect(() => {

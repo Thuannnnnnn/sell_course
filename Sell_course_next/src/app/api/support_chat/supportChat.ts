@@ -4,16 +4,47 @@ export interface StartChatResponse {
   sessionId: string;
 }
 
+const notifyAdminNewChat = async (userId: string, token: string) => {
+  try {
+    await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/notify/create`,
+      {
+        title: "New Ticket Support",
+        message: `New Ticket Support`,
+        type: "ADMIN",
+        isGlobal: true,
+        courseId: "",
+        userId: userId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Failed to notify admin", error);
+  }
+};
+
 export const StartChat = async (
-  userId: string
+  userId: string,
+  token: string
 ): Promise<StartChatResponse | undefined> => {
   try {
     const response: AxiosResponse<StartChatResponse> = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/chats`,
       {
         userId: userId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
+    await notifyAdminNewChat(userId, token);
+
     return response.data;
   } catch (error) {
     console.error("chat error", error);

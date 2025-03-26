@@ -4,10 +4,12 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 export class ChatSession {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
   @Column()
   userId: string;
-
   @Column()
   startTime: Date;
+  @Column({ default: true })
+  isActive: boolean;
+  @Column({ nullable: true })
+  endTime: Date;
 }

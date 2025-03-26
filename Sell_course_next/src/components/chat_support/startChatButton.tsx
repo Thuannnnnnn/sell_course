@@ -15,7 +15,7 @@ export default function StartChatButton() {
 
   const handleStartChat = async (): Promise<void> => {
     // Type guard for session and user_id
-    if (!session?.user?.user_id) {
+    if (!session?.user?.user_id && !session?.user?.token) {
       console.log("User not authenticated or user_id missing");
       return;
     }
@@ -23,7 +23,8 @@ export default function StartChatButton() {
     setIsLoading(true);
     try {
       const response: StartChatResponse | undefined = await StartChat(
-        session.user.user_id
+        session.user.user_id,
+        session?.user?.token
       );
 
       if (response?.sessionId) {
