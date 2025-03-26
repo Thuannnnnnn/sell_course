@@ -42,6 +42,7 @@ const Header: React.FC = () => {
     useState<Notify | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isResponsive, setIsResponsive] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // Thêm state để toggle menu
 
   // Kiểm tra kích thước màn hình để xác định chế độ responsive
   useEffect(() => {
@@ -92,6 +93,10 @@ const Header: React.FC = () => {
     if (!showDropdown) {
       handleMarkAllAsSent();
     }
+  };
+
+  const handleToggleMenu = () => {
+    setIsOpen((prev) => !prev); // Toggle trạng thái menu
   };
 
   const displayedNotifications = [...notifications]
@@ -196,10 +201,36 @@ const Header: React.FC = () => {
 
         <div className="d-flex align-items-center">
           {session && isResponsive && <NotificationBell />}
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <button
+            className="custom-btn"
+            onClick={handleToggleMenu}
+            aria-controls="basic-navbar-nav"
+            aria-expanded={isOpen}
+          >
+            <span className="icon">
+              <svg viewBox="0 0 175 80" width="40" height="40">
+                <rect width="80" height="15" fill="#f5f5f5" rx="10"></rect>
+                <rect
+                  y="30"
+                  width="80"
+                  height="15"
+                  fill="#f5f5f5"
+                  rx="10"
+                ></rect>
+                <rect
+                  y="60"
+                  width="80"
+                  height="15"
+                  fill="#f5f5f5"
+                  rx="10"
+                ></rect>
+              </svg>
+            </span>
+            <span className="text">MENU</span>
+          </button>
         </div>
 
-        <Navbar.Collapse id="basic-navbar-nav">
+        <Navbar.Collapse id="basic-navbar-nav" in={isOpen}>
           <Nav className="nav-links ms-auto align-items-center">
             {session?.user?.role === "ADMIN" ||
             session?.user?.role === "STAFF" ? (
