@@ -1,6 +1,6 @@
-/* Ẩn custom-btn theo mặc định (màn hình lớn) */
+
 .custom-btn {
-  display: none; /* Ẩn button trên màn hình lớn */
+  display: none;
   width: 140px;
   height: 50px;
   border-radius: 5px;
@@ -11,7 +11,7 @@
   font-weight: 600;
   align-items: center;
   background: #6da0e1;
-  color: #f5f5f5 !important; /* Đặt màu chữ và màu kế thừa */
+  color: #f5f5f5 !important;
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -57,14 +57,12 @@
   transform: scale(0.85);
 }
 
-/* Hiển thị custom-btn khi ở chế độ responsive (dưới 991.98px) */
 @media (max-width: 991.98px) {
   .custom-btn {
-    display: flex; /* Hiển thị button trong chế độ responsive */
+    display: flex;
   }
 }
 
-/* Các kiểu dáng khác giữ nguyên */
 .bell-wrapper {
   position: relative !important;
   display: flex;
@@ -152,7 +150,7 @@
   line-height: 1.5;
 }
 
-/* Chuông riêng biệt cho responsive */
+
 .responsive-bell {
   position: relative;
   font-size: 1.5rem;
@@ -162,21 +160,21 @@
   align-items: center;
 }
 
-/* Media query cho responsive (dưới 992px) */
+
 @media (max-width: 991.98px) {
-  /* Đảm bảo các phần tử trong Navbar được căn chỉnh đúng */
+
   .navbar > .container-fluid {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
-  /* Điều chỉnh vị trí của Dropdown trong chế độ responsive */
+
   .notification-dropdown {
     position: absolute;
-    top: 60px; /* Khoảng cách từ đỉnh Navbar */
-    right: 10px; /* Căn chỉnh với chuông ở bên phải */
+    top: 60px;
+    right: 10px;
     left: auto;
-    transform: none !important; /* Ghi đè transform của Popper.js */
+    transform: none !important;
   }
 }
