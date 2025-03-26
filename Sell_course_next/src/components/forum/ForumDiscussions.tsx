@@ -12,7 +12,7 @@ import {
   deleteDiscussion,
   updateDiscussion,
 } from "@/app/api/discussion/Discussion";
-import { io, Socket } from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
 interface ForumDiscussionsProps {
   forumId: string;
@@ -34,7 +34,7 @@ const ForumDiscussions: React.FC<ForumDiscussionsProps> = ({
     null
   );
   const [editContent, setEditContent] = useState<string>("");
-  const [, setSocket] = useState<Socket | null>(null);
+  const [, setSocket] = useState<typeof Socket | null>(null);
 
   useEffect(() => {
     if (!session?.user?.token) return;

@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import { UserNotify } from "@/app/type/notify/User_notify";
 import { fetchUserNotifications } from "@/app/api/notify/Notify";
 
 export const useSocket = (userId?: string, token?: string) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<typeof Socket | null>(null);
   const [notifications, setNotifications] = useState<UserNotify[]>([]);
 
   useEffect(() => {
     if (!userId || !token) return;
 
-    const newSocket = io(process.env.NEXT_PUBLIC_BACKEND_URL, {
-      transports: ["websocket"],
-      query: { userId },
-    });
+    const newSocket = io(
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
+      {
+        transports: ["websocket"],
+        query: { userId },
+      }
+    );
 
     const fetchNotifications = async () => {
       try {
