@@ -413,6 +413,27 @@
     "upload_error": "Có lỗi xảy ra khi tải tài liệu lên",
     "file_status": "Tệp tin đã có sẵn"
   },
+  "showCourse": {
+    "pageTitle": "Khám Phá Khóa Học",
+    "pageSubtitle": "Tìm kiếm và khám phá các khóa học phù hợp với bạn",
+    "searchPlaceholder": "Tìm kiếm khóa học...",
+    "loading": "Đang tải...",
+    "resultsFound": "Tìm thấy {count} khóa học",
+    "withKeyword": " với từ khóa \"{keyword}\"",
+    "inCategory": " trong danh mục \"{category}\"",
+    "showingAll": "Hiển thị tất cả {count} khóa học",
+    "noResults": "Không tìm thấy khóa học",
+    "noResultsMessage": "Không có khóa học nào phù hợp với tiêu chí tìm kiếm của bạn.",
+    "clearFilters": "Xóa bộ lọc",
+    "sortOptions": {
+      "newest": "Mới nhất",
+      "oldest": "Cũ nhất",
+      "priceLow": "Giá thấp đến cao",
+      "priceHigh": "Giá cao đến thấp",
+      "nameAsc": "Tên A-Z",
+      "nameDesc": "Tên Z-A"
+    }
+  },
   "Forum": {
     "title": "Diễn đàn",
     "createPost": "Tạo bài viết mới",
