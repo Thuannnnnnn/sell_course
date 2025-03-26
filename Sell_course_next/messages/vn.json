@@ -3,7 +3,7 @@
     "title": "Trang thông tin"
   },
   "Header": {
-    "viewMore" : "Xem Thêm ...",
+    "viewMore": "Xem Thêm ...",
     "title": "RedFlag GoldenStar",
     "home": "Trang Chủ",
     "cart": "Giỏ hàng",
@@ -121,18 +121,25 @@
     "passwordMismatch": "Mật khẩu và Xác nhận mật khẩu không trùng khớp"
   },
   "dashBoard": {
-    "Notify":"Thông Báo",
+    "Notify": "Thông báo",
     "dashboard": "Bảng điều khiển",
     "user": "Người dùng",
-    "quizz": "Câu hỏi",
-    "exam": "Bài kiểm tra",
+    "quizz": "Bài kiểm tra",
+    "exam": "Kỳ thi",
     "course": "Khóa học",
-    "report": "Báo cáo",
+    "support": "Hỗ trợ",
     "payment": "Thanh toán",
     "setting": "Cài đặt",
     "signout": "Đăng xuất",
     "category": "Danh mục",
-    "permission": "Quyền"
+    "permission": "Quyền hạn",
+    "totalCustomers": "Tổng số khách hàng",
+    "membersPurchased": "Thành viên đã mua",
+    "courses": "Khóa học",
+    "forumPosts": "Bài đăng diễn đàn",
+    "exportToExcel": "Xuất ra Excel",
+    "statisticsOverview": "Tổng quan thống kê",
+    "customers": "Khách Hàng"
   },
   "permission": {
     "title": "Quyền",
@@ -547,5 +554,16 @@
     "view_all": "Xem tất cả",
     "notification_detail": "Chi tiết thông báo",
     "close": "Đóng"
+  },
+  "Support": {
+    "title": "Quản lý hỗ trợ",
+    "activeSessions": "Các phiên hỗ trợ đang hoạt động",
+    "noActiveSessions": "Không có phiên hỗ trợ nào đang hoạt động",
+    "userId": "ID người dùng",
+    "startTime": "Thời gian bắt đầu",
+    "joinSupport": "Tham gia hỗ trợ",
+    "viewChat": "Xem phòng chat",
+    "loading": "Đang tải...",
+    "errorLoadingSessions": "Không thể tải các phiên hỗ trợ đang hoạt động"
   }
 }

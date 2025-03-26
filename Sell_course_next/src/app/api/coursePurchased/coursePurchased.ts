@@ -1,3 +1,4 @@
+import { CoursePurchase } from "@/app/type/coursePurchased/coursePurchased";
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -37,6 +38,25 @@ export class CoursePurchaseAPI {
       return response.data;
     } catch (error) {
       console.error("Error creating course purchase:", error);
+      throw error;
+    }
+  }
+  static async getAllPurchasesForAllUsers(
+    token: string
+  ): Promise<CoursePurchase[]> {
+    try {
+      const response = await axiosInstance.get<CoursePurchase[]>(
+        "/api/course_purchased/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all purchases for all users:", error);
       throw error;
     }
   }

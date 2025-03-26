@@ -72,6 +72,11 @@ import { QaStudy } from './modules/qa_study/entities/qa.entity';
 import { ReactionTopic } from './modules/forum/entities/reaction_topic.entity';
 import { Discussion } from './modules/forum/entities/discussion.entity';
 import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
+import { ChatModule } from './modules/support_chat/chat_support.module';
+import { ChatSession } from './modules/support_chat/entities/chat-session.entity';
+import { Message } from './modules/support_chat/entities/message.entity';
+import { Promotion } from './modules/promotion/entities/promotion.entity';
+import { PromotionModule } from './modules/promotion/promotion.module';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -135,6 +140,9 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
         ReactionTopic,
         Discussion,
         ReactionQa,
+        ChatSession,
+        Message,
+        Promotion,
       ],
       synchronize: true,
     }),
@@ -172,6 +180,8 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
     PaymentModule,
     ResultExamModule,
     QaStudyModule,
+    ChatModule,
+    PromotionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

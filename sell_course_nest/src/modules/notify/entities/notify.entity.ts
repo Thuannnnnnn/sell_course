@@ -24,13 +24,16 @@ export class Notify {
 
   @Column({
     type: 'enum',
-    enum: ['USER', 'COURSE', 'GLOBAL'],
+    enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
     default: 'GLOBAL',
   })
-  type: 'USER' | 'COURSE' | 'GLOBAL';
+  type: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
 
   @Column({ default: false })
   isGlobal: boolean;
+
+  @Column({ default: false })
+  isAdmin: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

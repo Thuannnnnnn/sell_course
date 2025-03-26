@@ -18,4 +18,3 @@ export const fetchOrderHistory = async (token: string, email: string) => {
     return null;
   }
 };
-

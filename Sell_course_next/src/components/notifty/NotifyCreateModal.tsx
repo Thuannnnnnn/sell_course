@@ -28,7 +28,9 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
   const { data: session } = useSession();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [type, setType] = useState<"GLOBAL" | "USER" | "COURSE">("GLOBAL");
+  const [type, setType] = useState<"GLOBAL" | "USER" | "COURSE" | "ADMIN">(
+    "GLOBAL"
+  );
   const [courseId, setCourseId] = useState("");
   const [userId, setUserId] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
@@ -108,7 +110,7 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
             title,
             message,
             type,
-            isGlobal: type === "GLOBAL",
+            isGlobal: type === "GLOBAL" || type === "ADMIN",
             courseId: type === "COURSE" ? courseId : "",
             userId: type === "USER" ? userId : null,
           },
@@ -167,12 +169,15 @@ const NotifyCreateModal: React.FC<NotifyCreateModalProps> = ({
                   <Form.Select
                     value={type}
                     onChange={(e) =>
-                      setType(e.target.value as "GLOBAL" | "USER" | "COURSE")
+                      setType(
+                        e.target.value as "GLOBAL" | "USER" | "COURSE" | "ADMIN"
+                      )
                     }
                   >
                     <option value="GLOBAL">{t("Global")}</option>
                     <option value="COURSE">{t("Course")}</option>
                     <option value="USER">{t("User")}</option>
+                    <option value="ADMIN">{t("Admin")}</option>
                   </Form.Select>
                 </Form.Group>
               )}
