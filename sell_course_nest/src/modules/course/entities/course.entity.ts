@@ -1,4 +1,5 @@
 import { Category } from 'src/modules/category/entities/category.entity';
+import { Interaction } from 'src/modules/Interaction/entities/Interaction.entity';
 import { Notify } from 'src/modules/notify/entities/notify.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
@@ -46,6 +47,9 @@ export class Course {
 
   @Column({ name: 'update_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToMany(() => Interaction, (interaction) => interaction.course)
+  interactions: Interaction[];
 
   @Column({ name: 'is_public', type: 'boolean', default: true })
   isPublic: boolean;
