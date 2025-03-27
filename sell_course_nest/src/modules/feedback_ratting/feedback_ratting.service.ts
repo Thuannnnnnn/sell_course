@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FeedbackRatting } from './entities/feedback_ratting.entity';
@@ -6,6 +6,7 @@ import { CreateFeedbackRattingDto } from './dto/create-feedback-ratting.dto';
 import { UpdateFeedbackRattingDto } from './dto/update-feedback-ratting.dto';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
+import axios from 'axios';
 @Injectable()
 export class FeedbackRattingService {
   constructor(
@@ -16,6 +17,22 @@ export class FeedbackRattingService {
     @InjectRepository(Course)
     private courseRepository: Repository<Course>,
   ) {}
+  private async generateEmbeddingCreate(feedback: string): Promise<number[]> {
+    try {
+      const response = await axios.post(
+        `${process.env.FASTAPI_URL}/create_course_embedding`,
+        {
+          feedback: feedback,
+        },
+      );
+      return response.data.embedding;
+    } catch (error) {
+      throw new HttpException(
+        `Không thể tạo embedding: ${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   async create(
     createFeedbackRattingDto: CreateFeedbackRattingDto,
   ): Promise<FeedbackRatting> {
@@ -24,12 +41,14 @@ export class FeedbackRattingService {
     if (!user) throw new Error('User not found');
     const course = await this.courseRepository.findOne({ where: { courseId } });
     if (!course) throw new Error('Course not found');
+    const embedding = await this.generateEmbeddingCreate(feedback);
     const feedbackRatting = this.feedbackRattingRepository.create({
       user,
       course,
       star,
       feedback,
       createdAt: new Date(),
+      embedding,
     });
     return this.feedbackRattingRepository.save(feedbackRatting);
   }
@@ -38,14 +57,14 @@ export class FeedbackRattingService {
       relations: ['user', 'course'],
     });
   }
-// Fix for src/feedback-ratting/feedback-ratting.service.ts
-async findOne(courseId: string): Promise<FeedbackRatting | null> {
-  const feedback = await this.feedbackRattingRepository.findOne({
-    where: { course: { courseId } },
-    relations: ['user', 'course'],
-  });
-  return feedback;
-}
+  // Fix for src/feedback-ratting/feedback-ratting.service.ts
+  async findOne(courseId: string): Promise<FeedbackRatting | null> {
+    const feedback = await this.feedbackRattingRepository.findOne({
+      where: { course: { courseId } },
+      relations: ['user', 'course'],
+    });
+    return feedback;
+  }
   async update(
     id: string,
     updateFeedbackRattingDto: UpdateFeedbackRattingDto,
