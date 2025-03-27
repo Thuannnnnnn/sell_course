@@ -9,7 +9,7 @@ export enum InteractionType {
 @Entity('interaction')
 export class Interaction {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @ManyToOne(() => User, (user) => user.interactions)
   user: User;

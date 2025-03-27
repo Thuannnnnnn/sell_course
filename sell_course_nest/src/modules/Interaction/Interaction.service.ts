@@ -18,46 +18,46 @@ export class InteractionService {
     @InjectRepository(Interaction)
     private readonly interactionRepository: Repository<Interaction>,
     @InjectRepository(User)
-    private readonly UserRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
   ) {}
 
   async findAll(): Promise<InteractionResponseDTO[]> {
     const interactions = await this.interactionRepository.find({
-      relations: ['User', 'course'],
+      relations: ['user', 'course'],
     });
     return interactions.map((interaction) => ({
       id: interaction.id,
-      UserId: interaction.user.user_id,
+      userId: interaction.user.user_id,
       courseId: interaction.course.courseId,
-      interest_score: interaction.interest_score,
+      interaction_type: interaction.interaction_type,
     }));
   }
 
-  async findOne(id: number): Promise<InteractionResponseDTO> {
+  async findOne(id: string): Promise<InteractionResponseDTO> {
     const interaction = await this.interactionRepository.findOne({
       where: { id },
-      relations: ['User', 'course'],
+      relations: ['user', 'course'],
     });
     if (!interaction) {
       throw new NotFoundException(`Interaction with ID ${id} not found`);
     }
     return {
       id: interaction.id,
-      UserId: interaction.user.user_id,
+      userId: interaction.user.user_id,
       courseId: interaction.course.courseId,
-      interest_score: interaction.interest_score,
+      interaction_type: interaction.interaction_type,
     };
   }
 
   async create(data: InteractionRequestDTO): Promise<InteractionResponseDTO> {
-    const user = await this.UserRepository.findOne({
-      where: { user_id: data.UserId },
+    const user = await this.userRepository.findOne({
+      where: { user_id: data.userId },
     });
     if (!user) {
       throw new HttpException(
-        `User with ID ${data.UserId} not found`,
+        `User with ID ${data.userId} not found`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -74,40 +74,68 @@ export class InteractionService {
     const interaction = this.interactionRepository.create({
       user,
       course,
-      interest_score: data.interest_score,
+      interaction_type: data.interaction_type,
     });
     await this.interactionRepository.save(interaction);
     return {
       id: interaction.id,
-      UserId: user.user_id,
+      userId: user.user_id,
       courseId: course.courseId,
-      interest_score: interaction.interest_score,
+      interaction_type: interaction.interaction_type,
     };
   }
 
   async update(
-    id: number,
+    id: string,
     data: Partial<InteractionRequestDTO>,
   ): Promise<InteractionResponseDTO> {
     const interaction = await this.interactionRepository.findOne({
       where: { id },
-      relations: ['User', 'course'],
+      relations: ['user', 'course'],
     });
     if (!interaction) {
       throw new NotFoundException(`Interaction with ID ${id} not found`);
     }
 
-    Object.assign(interaction, data);
+    // Nếu cập nhật userId hoặc courseId, bạn cần xử lý riêng
+    if (data.userId) {
+      const user = await this.userRepository.findOne({
+        where: { user_id: data.userId },
+      });
+      if (!user) {
+        throw new HttpException(
+          `User with ID ${data.userId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      interaction.user = user;
+    }
+    if (data.courseId) {
+      const course = await this.courseRepository.findOne({
+        where: { courseId: data.courseId },
+      });
+      if (!course) {
+        throw new HttpException(
+          `Course with ID ${data.courseId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      interaction.course = course;
+    }
+    if (data.interaction_type) {
+      interaction.interaction_type = data.interaction_type;
+    }
+
     await this.interactionRepository.save(interaction);
     return {
       id: interaction.id,
-      UserId: interaction.user.user_id,
+      userId: interaction.user.user_id,
       courseId: interaction.course.courseId,
-      interest_score: interaction.interest_score,
+      interaction_type: interaction.interaction_type,
     };
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     const result = await this.interactionRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Interaction with ID ${id} not found`);

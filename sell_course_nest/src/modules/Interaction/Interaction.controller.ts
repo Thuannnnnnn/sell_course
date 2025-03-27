@@ -28,7 +28,7 @@ export class InteractionController {
   @Get(':id')
   @ApiOperation({ summary: 'Get an interaction by ID' })
   @ApiResponse({ status: 200, type: InteractionResponseDTO })
-  async findOne(@Param('id') id: number): Promise<InteractionResponseDTO> {
+  async findOne(@Param('id') id: string): Promise<InteractionResponseDTO> {
     return this.interactionService.findOne(id);
   }
 
@@ -45,7 +45,7 @@ export class InteractionController {
   @ApiOperation({ summary: 'Update an interaction' })
   @ApiResponse({ status: 200, type: InteractionResponseDTO })
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() data: Partial<InteractionRequestDTO>,
   ): Promise<InteractionResponseDTO> {
     return this.interactionService.update(id, data);
@@ -54,7 +54,7 @@ export class InteractionController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an interaction' })
   @ApiResponse({ status: 200 })
-  async delete(@Param('id') id: number): Promise<void> {
+  async delete(@Param('id') id: string): Promise<void> {
     return this.interactionService.delete(id);
   }
 }
