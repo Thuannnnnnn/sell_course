@@ -15,7 +15,7 @@ const Banner = () => {
         <div>
           <h1 className="bannerTitle"> {t("bannerTitle")} </h1>
           <p className="bannerDecription"> {t("bannerDecription")} </p>
-          <button>
+          <button className="btn-banner">
             <span>{t("bannerButtom")} </span>
           </button>
         </div>

@@ -81,7 +81,7 @@ section .bannerSection div .imageBanner {
 }
 
 
-button {
+.btn-banner {
   position: relative;
   display: flex;
   justify-content: center;
@@ -95,7 +95,7 @@ button {
   border: none;
 }
 
-button:after {
+.btn-banner:after {
   content: " ";
   width: 0%;
   height: 100%;
@@ -105,13 +105,13 @@ button:after {
   right: 0;
 }
 
-button:hover::after {
+.btn-banner:hover::after {
   right: auto;
   left: 0;
   width: 100%;
 }
 
-button span {
+.btn-banner span {
   text-align: center;
   text-decoration: none;
   width: 100%;
@@ -124,7 +124,7 @@ button span {
   transition: all 0.3s ease-in-out;
 }
 
-button:hover span {
+.btn-banner:hover span {
   color: #183153;
   animation: scaleUp 0.3s ease-in-out;
 }
