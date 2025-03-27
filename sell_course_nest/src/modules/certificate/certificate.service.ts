@@ -7,7 +7,8 @@ import { UpdateCertificateDto } from './dto/update-certificate.dto';
 import * as xmlbuilder from 'xmlbuilder';
 import * as fs from 'fs';
 import * as path from 'path';
-import { MailService } from 'src/utilities/mail.service';
+import { MailService } from '../../utilities/mail.service';
+
 @Injectable()
 export class CertificateService {
   constructor(
@@ -26,13 +27,27 @@ export class CertificateService {
       createdAt: new Date(),
     });
     await this.certificateRepository.save(certificate);
-    console.log(certificate.user.email);
-    this.mailService.sendSimpleEmail(
-      certificate.user.email,
-      'Congratulations! You have successfully completed the course',
-      'Your certificate is ready',
+    const certificateData = await this.findOne(certificate.certificateId);
+
+    // Đọc template HTML
+    const templatePath =
+      './src/modules/certificate/templates/certificate-email.html';
+    console.log(templatePath);
+    let htmlContent = fs.readFileSync(templatePath, 'utf8');
+
+    // Thay thế các biến trong template
+    htmlContent = htmlContent
+      .replace('{{userName}}', certificateData.user.username)
+      .replace('{{courseName}}', certificateData.course.title);
+
+    // Gửi email với template HTML
+    await this.mailService.sendSimpleEmail(
+      certificateData.user.email,
+      '🎉 Chúc mừng bạn đã hoàn thành khóa học!',
+      htmlContent,
     );
-    return certificate;
+
+    return certificateData;
   }
 
   async findAll(): Promise<Certificate[]> {
