@@ -3,7 +3,7 @@
     "title": "About Page"
   },
   "Header": {
-    "viewMore" : "View More ...",
+    "viewMore": "View More ...",
     "title": "RedFlag GoldenStar",
     "home": "Home",
     "cart": "Cart",
@@ -121,18 +121,25 @@
     "passwordMismatch": "password and confirm password do not match"
   },
   "dashBoard": {
-    "Notify":"Notify",
+    "Notify": "Notify",
     "dashboard": "Dashboard",
     "user": "Users",
     "quizz": "Quizz",
     "exam": "Exam",
     "course": "Courses",
-    "report": "Reports",
+    "support": "Support",
     "payment": "Payment",
     "setting": "Settings",
     "signout": "Log Out",
     "category": "Category",
-    "permission": "Permission"
+    "permission": "Permission",
+    "totalCustomers": "Total Customers",
+    "membersPurchased": "Members Purchased",
+    "courses": "Courses",
+    "forumPosts": "Forum Posts",
+    "exportToExcel": "Export to Excel",
+    "statisticsOverview": "Statistics Overview",
+    "customers": "Customers"
   },
   "permission": {
     "title": "Permission",
@@ -539,5 +546,50 @@
     "view_all": "View All",
     "notification_detail": "Notification Detail",
     "close": "Close"
+  },
+  "Support": {
+    "title": "Support Management",
+    "activeSessions": "Active Support Sessions",
+    "noActiveSessions": "No active support sessions",
+    "userId": "User ID",
+    "startTime": "Start Time",
+    "joinSupport": "Join Support",
+    "viewChat": "View Chat",
+    "loading": "Loading...",
+    "errorLoadingSessions": "Could not load active support sessions"
+  },
+  "Settings": {
+    "settingsTitle": "Settings Management",
+    "availableSettings": "Available Settings",
+    "setting": "Setting",
+    "settingDetails": "Setting Details",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "status": "Status",
+    "logo": "Logo",
+    "carousel": "Carousel",
+    "slide": "Slide",
+    "noLogoAvailable": "No logo available",
+    "noCarouselImages": "No carousel images available",
+    "selectSettingPrompt": "Please select a setting to view details",
+    "updateLogo": "Update Logo",
+    "updateCarousel": "Update Carousel",
+    "selectLogo": "Select logo image",
+    "selectCarouselImages": "Select carousel images",
+    "logoFileRequirements": "Logo image should be maximum 5MB in size, JPG, PNG or GIF format.",
+    "carouselFileRequirements": "Each carousel image should be maximum 5MB in size, JPG, PNG or GIF format.",
+    "logoPreview": "Logo preview",
+    "carouselPreview": "Carousel images preview",
+    "cancel": "Cancel",
+    "save": "Save",
+    "uploading": "Uploading...",
+    "noLogoSelected": "No logo selected",
+    "noCarouselSelected": "No carousel images selected",
+    "logoUpdated": "Logo updated successfully",
+    "carouselUpdated": "Carousel images updated successfully",
+    "settingActivated": "Setting has been activated successfully",
+    "invalidImageFormat": "Invalid image format",
+    "someInvalidImages": "Some images have invalid format"
   }
 }

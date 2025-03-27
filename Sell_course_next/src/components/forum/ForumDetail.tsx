@@ -13,7 +13,7 @@ import { Forum, Discussion, Reaction } from "@/app/type/forum/forum";
 import { getForumById, deleteForum } from "@/app/api/forum/forum";
 import { getDiscussionsByForumId } from "@/app/api/discussion/Discussion";
 import { getReactionsByTopic } from "@/app/api/forum/forum";
-import { io, Socket } from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
 const ForumDetail: React.FC = () => {
   const params = useParams();
@@ -26,7 +26,7 @@ const ForumDetail: React.FC = () => {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<typeof Socket | null>(null);
 
   // Đồng bộ reactions
   const syncReactions = useCallback(async () => {

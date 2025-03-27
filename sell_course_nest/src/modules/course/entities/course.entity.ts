@@ -2,6 +2,7 @@ import { Category } from 'src/modules/category/entities/category.entity';
 import { Notify } from 'src/modules/notify/entities/notify.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
+import { Promotion } from 'src/modules/promotion/entities/promotion.entity';
 import {
   Entity,
   PrimaryColumn,
@@ -12,6 +13,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { Certificate } from 'src/modules/certificate/entities/certificate.entity';
 
 @Entity('course')
 export class Course {
@@ -60,4 +62,10 @@ export class Course {
 
   @OneToMany(() => Waitlist, (waitlist) => waitlist.user)
   waitlists: Waitlist[];
+
+  @OneToMany(() => Promotion, (promotion) => promotion.course)
+  promotions: Promotion[];
+
+  @OneToMany(() => Certificate, (certificate) => certificate.course)
+  certificates: Certificate[];
 }
