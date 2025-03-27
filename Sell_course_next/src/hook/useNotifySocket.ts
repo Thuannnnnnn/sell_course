@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import { UserNotify } from "@/app/type/notify/User_notify";
 import { fetchUserNotifications } from "@/app/api/notify/Notify";
 
 export const useSocket = (userId?: string, token?: string) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<typeof Socket | null>(null);
   const [notifications, setNotifications] = useState<UserNotify[]>([]);
 
   useEffect(() => {
     if (!userId || !token) return;
 
-    const newSocket = io(process.env.NEXT_PUBLIC_BACKEND_URL, {
-      transports: ["websocket"],
-      query: { userId },
-    });
+    const newSocket = io(
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
+      {
+        transports: ["websocket"],
+        query: { userId },
+      }
+    );
 
     const fetchNotifications = async () => {
       try {
@@ -29,14 +32,14 @@ export const useSocket = (userId?: string, token?: string) => {
     };
 
     fetchNotifications();
-    newSocket.on("markAllAsSent", (updatedNotifications) => {
+    newSocket.on("markAllAsSent", (updatedNotifications: UserNotify[]) => {
       setNotifications(updatedNotifications);
     });
-    newSocket.on("newNotification", (notification) => {
+    newSocket.on("newNotification", (notification: UserNotify) => {
       setNotifications((prev) => [notification, ...prev]);
     });
 
-    newSocket.on("updateNotification", (updatedNotification) => {
+    newSocket.on("updateNotification", (updatedNotification: UserNotify) => {
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === updatedNotification.id ? updatedNotification : n
@@ -44,7 +47,7 @@ export const useSocket = (userId?: string, token?: string) => {
       );
     });
 
-    newSocket.on("removeNotification", (notificationId) => {
+    newSocket.on("removeNotification", (notificationId: string) => {
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     });
 

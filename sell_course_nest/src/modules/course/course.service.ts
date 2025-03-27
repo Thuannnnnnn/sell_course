@@ -22,12 +22,43 @@ export class CourseService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  private async generateEmbedding(text: string): Promise<number[]> {
+  private async generateEmbeddingCreate(
+    title: string,
+    description: string,
+    category_name: string,
+  ): Promise<number[]> {
     try {
       const response = await axios.post(
         `${process.env.FASTAPI_URL}/create_course_embedding`,
         {
-          text: text,
+          title: title,
+          description: description,
+          category_name: category_name,
+        },
+      );
+      return response.data.embedding;
+    } catch (error) {
+      throw new HttpException(
+        `Không thể tạo embedding: ${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async generateEmbeddingUpdate(
+    course_id: string,
+    title: string,
+    description: string,
+    category_name: string,
+  ): Promise<number[]> {
+    try {
+      const response = await axios.post(
+        `${process.env.FASTAPI_URL}/update_course_embedding`,
+        {
+          course_id: course_id,
+          title: title,
+          description: description,
+          category_name: category_name,
         },
       );
       return response.data.embedding;
@@ -152,8 +183,11 @@ export class CourseService {
       imageUrl = await azureUpload(files.imageInfo[0]);
     }
 
-    const combinedText = `${title} ${course.description} ${categoryData.name}`;
-    const embedding = await this.generateEmbedding(combinedText);
+    const embedding = await this.generateEmbeddingCreate(
+      title,
+      course.description,
+      categoryData.name,
+    );
 
     const newCourse = await this.CourseRepository.save({
       courseId: uuidv4(),
@@ -250,8 +284,12 @@ export class CourseService {
       course.category.categoryId !== originalCategoryId;
 
     if (needsEmbeddingUpdate) {
-      const combinedText = `${course.title} ${course.description} ${course.category.name}`;
-      course.embedding = await this.generateEmbedding(combinedText);
+      course.embedding = await this.generateEmbeddingUpdate(
+        course.courseId,
+        course.title,
+        course.description,
+        course.category.name,
+      );
     }
 
     // Cập nhật thời gian và lưu khóa học
