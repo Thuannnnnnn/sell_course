@@ -104,9 +104,10 @@ import { PromotionModule } from './modules/promotion/promotion.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl:
+        process.env.DATABASE_SSL === 'true'
+          ? { rejectUnauthorized: false }
+          : false,
 
       entities: [
         Interaction,
