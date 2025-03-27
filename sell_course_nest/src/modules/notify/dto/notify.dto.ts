@@ -27,10 +27,10 @@ export class CreateNotifyDto {
   @ApiProperty({
     example: 'USER',
     description: 'Type of notification',
-    enum: ['USER', 'COURSE', 'GLOBAL'],
+    enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
   })
-  @IsEnum(['USER', 'COURSE', 'GLOBAL'])
-  type: 'USER' | 'COURSE' | 'GLOBAL';
+  @IsEnum(['USER', 'COURSE', 'GLOBAL', 'ADMIN'])
+  type: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
 
   @ApiProperty({
     example: false,
@@ -71,12 +71,12 @@ export class UpdateNotifyDto {
 
   @ApiProperty({
     example: 'USER',
-    enum: ['USER', 'COURSE', 'GLOBAL'],
+    enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
     required: false,
   })
   @IsOptional()
-  @IsEnum(['USER', 'COURSE', 'GLOBAL'])
-  type?: 'USER' | 'COURSE' | 'GLOBAL';
+  @IsEnum(['USER', 'COURSE', 'GLOBAL', 'ADMIN'])
+  type?: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
 
   @ApiProperty({ example: false, required: false })
   @IsOptional()

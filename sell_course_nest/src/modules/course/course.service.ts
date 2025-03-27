@@ -9,6 +9,7 @@ import { Category } from '../category/entities/category.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { azureUpload } from 'src/utilities/azure.service';
+import axios from 'axios';
 
 @Injectable()
 export class CourseService {
@@ -20,6 +21,23 @@ export class CourseService {
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
   ) {}
+
+  private async generateEmbedding(text: string): Promise<number[]> {
+    try {
+      const response = await axios.post(
+        `${process.env.FASTAPI_URL}/create_course_embedding`,
+        {
+          text: text,
+        },
+      );
+      return response.data.embedding;
+    } catch (error) {
+      throw new HttpException(
+        `Không thể tạo embedding: ${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     const courses = await this.CourseRepository.find({
@@ -91,6 +109,7 @@ export class CourseService {
   ): Promise<CourseResponseDTO> {
     const { userId, categoryId, title, isPublic } = course;
 
+    // Kiểm tra user
     const userData = await this.userRepository.findOne({
       where: { user_id: userId },
     });
@@ -101,6 +120,7 @@ export class CourseService {
       );
     }
 
+    // Kiểm tra category
     const categoryData = await this.categoryRepository.findOne({
       where: { categoryId },
     });
@@ -111,10 +131,10 @@ export class CourseService {
       );
     }
 
+    // Kiểm tra khóa học trùng lặp
     const courseData = await this.CourseRepository.findOne({
       where: { title },
     });
-
     if (courseData) {
       throw new HttpException(
         `Course with title '${title}' already exists.`,
@@ -122,16 +142,18 @@ export class CourseService {
       );
     }
 
+    // Xử lý file upload (nếu có)
     let videoUrl = '';
     let imageUrl = '';
-
     if (files?.videoInfo?.[0]) {
       videoUrl = await azureUpload(files.videoInfo[0]);
     }
-
     if (files?.imageInfo?.[0]) {
       imageUrl = await azureUpload(files.imageInfo[0]);
     }
+
+    const combinedText = `${title} ${course.description} ${categoryData.name}`;
+    const embedding = await this.generateEmbedding(combinedText);
 
     const newCourse = await this.CourseRepository.save({
       courseId: uuidv4(),
@@ -144,7 +166,8 @@ export class CourseService {
       user: userData,
       createdAt: new Date(),
       updatedAt: new Date(),
-      isPublic: isPublic ?? true, // Added isPublic with fallback to true
+      isPublic: isPublic ?? true,
+      embedding: embedding,
     });
 
     return {
@@ -154,7 +177,7 @@ export class CourseService {
       userAvata: userData.avatarImg,
       categoryId: categoryData.categoryId,
       categoryName: categoryData.name,
-      isPublic: newCourse.isPublic, // Added isPublic
+      isPublic: newCourse.isPublic,
     } as CourseResponseDTO;
   }
 
@@ -166,65 +189,92 @@ export class CourseService {
       imageInfo?: Express.Multer.File[];
     },
   ): Promise<CourseResponseDTO> {
+    // Lấy thông tin khóa học hiện tại
     const course = await this.CourseRepository.findOne({
       where: { courseId },
       relations: ['user', 'category'],
     });
-    const { userId, categoryId, isPublic } = updateData;
-
     if (!course) {
       throw new HttpException(
         `Course with ID ${courseId} not found`,
         HttpStatus.NOT_FOUND,
       );
     }
-    const userData = await this.userRepository.findOne({
-      where: { user_id: userId },
-    });
-    if (!userData) {
-      throw new HttpException(
-        `User with ID ${userId} not found.`,
-        HttpStatus.NOT_FOUND,
-      );
+
+    // Lưu trữ giá trị ban đầu của các trường liên quan đến embedding
+    const originalTitle = course.title;
+    const originalDescription = course.description;
+    const originalCategoryId = course.category.categoryId;
+
+    // Cập nhật user nếu có
+    if (updateData.userId) {
+      const userData = await this.userRepository.findOne({
+        where: { user_id: updateData.userId },
+      });
+      if (!userData) {
+        throw new HttpException(
+          `User with ID ${updateData.userId} not found.`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      course.user = userData;
     }
 
-    const categoryData = await this.categoryRepository.findOne({
-      where: { categoryId },
-    });
-    if (!categoryData) {
-      throw new HttpException(
-        `Category with ID ${categoryId} not found.`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    let videoUrl = course.videoInfo;
-    let imageUrl = course.imageInfo;
-
-    if (files?.videoInfo?.[0]) {
-      videoUrl = await azureUpload(files.videoInfo[0]);
+    // Cập nhật category nếu có
+    if (updateData.categoryId) {
+      const categoryData = await this.categoryRepository.findOne({
+        where: { categoryId: updateData.categoryId },
+      });
+      if (!categoryData) {
+        throw new HttpException(
+          `Category with ID ${updateData.categoryId} not found.`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      course.category = categoryData;
     }
 
-    if (files?.imageInfo?.[0]) {
-      imageUrl = await azureUpload(files.imageInfo[0]);
-    }
-    Object.assign(course, updateData, {
-      category: categoryData,
-      videoInfo: videoUrl,
-      imageInfo: imageUrl,
-      updatedAt: new Date(),
-      isPublic: isPublic !== undefined ? isPublic : course.isPublic, // Added isPublic handling
-    });
+    // Xử lý tải file nếu có
+    if (files?.videoInfo?.[0])
+      course.videoInfo = await azureUpload(files.videoInfo[0]);
+    if (files?.imageInfo?.[0])
+      course.imageInfo = await azureUpload(files.imageInfo[0]);
 
+    // Cập nhật các trường khác từ updateData
+    Object.assign(course, updateData);
+
+    // Kiểm tra xem embedding có cần tạo lại không
+    const needsEmbeddingUpdate =
+      course.title !== originalTitle ||
+      course.description !== originalDescription ||
+      course.category.categoryId !== originalCategoryId;
+
+    if (needsEmbeddingUpdate) {
+      const combinedText = `${course.title} ${course.description} ${course.category.name}`;
+      course.embedding = await this.generateEmbedding(combinedText);
+    }
+
+    // Cập nhật thời gian và lưu khóa học
+    course.updatedAt = new Date();
     const updatedCourse = await this.CourseRepository.save(course);
-    return {
-      ...updatedCourse,
-      userId: userData.user_id,
-      userName: userData.email,
-      userAvata: userData.avatarImg,
-      categoryId: categoryData?.categoryId || updateData.categoryId,
-      categoryName: categoryData.name,
-      isPublic: updatedCourse.isPublic, // Added isPublic
-    } as CourseResponseDTO;
+
+    // Trả về response
+    return new CourseResponseDTO(
+      updatedCourse.courseId,
+      updatedCourse.title,
+      updatedCourse.price,
+      updatedCourse.description,
+      updatedCourse.videoInfo,
+      updatedCourse.imageInfo,
+      updatedCourse.createdAt,
+      updatedCourse.updatedAt,
+      updatedCourse.user.user_id,
+      updatedCourse.user.username,
+      updatedCourse.user.avatarImg,
+      updatedCourse.category.name,
+      updatedCourse.category.categoryId,
+      updatedCourse.isPublic,
+    );
   }
 
   async deleteCourse(courseId: string): Promise<void> {

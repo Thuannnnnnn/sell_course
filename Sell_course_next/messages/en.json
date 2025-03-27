@@ -3,7 +3,7 @@
     "title": "About Page"
   },
   "Header": {
-    "viewMore" : "View More ...",
+    "viewMore": "View More ...",
     "title": "RedFlag GoldenStar",
     "home": "Home",
     "cart": "Cart",
@@ -121,18 +121,25 @@
     "passwordMismatch": "password and confirm password do not match"
   },
   "dashBoard": {
-    "Notify":"Notify",
+    "Notify": "Notify",
     "dashboard": "Dashboard",
     "user": "Users",
     "quizz": "Quizz",
     "exam": "Exam",
     "course": "Courses",
-    "report": "Reports",
+    "support": "Support",
     "payment": "Payment",
     "setting": "Settings",
     "signout": "Log Out",
     "category": "Category",
-    "permission": "Permission"
+    "permission": "Permission",
+    "totalCustomers": "Total Customers",
+    "membersPurchased": "Members Purchased",
+    "courses": "Courses",
+    "forumPosts": "Forum Posts",
+    "exportToExcel": "Export to Excel",
+    "statisticsOverview": "Statistics Overview",
+    "customers": "Customers"
   },
   "permission": {
     "title": "Permission",
@@ -417,6 +424,27 @@
     "upload_error": "Error occurred while uploading the document",
     "file_status": "File is available"
   },
+  "showCourse": {
+    "pageTitle": "Explore Courses",
+    "pageSubtitle": "Find and discover courses that suit you",
+    "searchPlaceholder": "Search for courses...",
+    "loading": "Loading...",
+    "resultsFound": "Found {count} courses",
+    "withKeyword": " with keyword \"{keyword}\"",
+    "inCategory": " in category \"{category}\"",
+    "showingAll": "Showing all {count} courses",
+    "noResults": "No courses found",
+    "noResultsMessage": "No courses match your search criteria.",
+    "clearFilters": "Clear filters",
+    "sortOptions": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "priceLow": "Price low to high",
+      "priceHigh": "Price high to low",
+      "nameAsc": "Name A-Z",
+      "nameDesc": "Name Z-A"
+    }
+  },
   "Forum": {
     "title": "Forum",
     "createPost": "Create New Post",
@@ -539,5 +567,16 @@
     "view_all": "View All",
     "notification_detail": "Notification Detail",
     "close": "Close"
+  },
+  "Support": {
+    "title": "Support Management",
+    "activeSessions": "Active Support Sessions",
+    "noActiveSessions": "No active support sessions",
+    "userId": "User ID",
+    "startTime": "Start Time",
+    "joinSupport": "Join Support",
+    "viewChat": "View Chat Room",
+    "loading": "Loading...",
+    "errorLoadingSessions": "Unable to load active support sessions"
   }
 }

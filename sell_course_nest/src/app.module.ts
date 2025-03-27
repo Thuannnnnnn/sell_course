@@ -72,6 +72,17 @@ import { QaStudy } from './modules/qa_study/entities/qa.entity';
 import { ReactionTopic } from './modules/forum/entities/reaction_topic.entity';
 import { Discussion } from './modules/forum/entities/discussion.entity';
 import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
+import { Interaction } from './modules/Interaction/entities/Interaction.entity';
+import { InteractionModule } from './modules/Interaction/interaction.module';
+import { QuestionHabit } from './modules/questionHabit/entities/questionHabit.entity';
+import { UserAnswer } from './modules/userAnswer/entities/userAnswer.entity';
+import { QuestionHabitModule } from './modules/questionHabit/questionHabit.module';
+import { UserAnswerModule } from './modules/userAnswer/userAnswer.module';
+import { ChatModule } from './modules/support_chat/chat_support.module';
+import { ChatSession } from './modules/support_chat/entities/chat-session.entity';
+import { Message } from './modules/support_chat/entities/message.entity';
+import { Promotion } from './modules/promotion/entities/promotion.entity';
+import { PromotionModule } from './modules/promotion/promotion.module';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -93,11 +104,15 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl:
+        process.env.DATABASE_SSL === 'true'
+          ? { rejectUnauthorized: false }
+          : false,
 
       entities: [
+        Interaction,
+        QuestionHabit,
+        UserAnswer,
         Notify,
         UserNotify,
         User,
@@ -135,10 +150,16 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
         ReactionTopic,
         Discussion,
         ReactionQa,
+        ChatSession,
+        Message,
+        Promotion,
       ],
       synchronize: true,
     }),
     TypeOrmModule.forFeature([User, Permission]),
+    QuestionHabitModule,
+    UserAnswerModule,
+    InteractionModule,
     ProcessModule,
     NotifyModule,
     UserNotifyModule,
@@ -172,6 +193,8 @@ import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
     PaymentModule,
     ResultExamModule,
     QaStudyModule,
+    ChatModule,
+    PromotionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -114,4 +114,33 @@ export class Course_purchaseService {
       message: 'Success',
     };
   }
+
+  async getAllPurchasesForAllUsers(): Promise<CoursePurchasedDTO[]> {
+    try {
+      const coursePurchases = await this.coursePurchasedRepository.find({
+        relations: {
+          course: { category: true },
+          user: true,
+        },
+      });
+
+      return coursePurchases.map(
+        (purchase) =>
+          new CoursePurchasedDTO(
+            purchase.user.email,
+            purchase.coursePurchaseId,
+            purchase.course.courseId,
+            purchase.course.title,
+            purchase.course.category?.name || 'Unknown Category',
+            purchase.course.category?.categoryId || 'Unknown',
+            purchase.course.imageInfo || '',
+          ),
+      );
+    } catch (error) {
+      throw new HttpException(
+        `Error retrieving all course purchases: ${(error as Error).message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
