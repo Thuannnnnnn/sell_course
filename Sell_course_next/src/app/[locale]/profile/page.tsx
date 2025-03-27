@@ -5,10 +5,13 @@ import DashBoardUser from "@/components/DashBoardUser";
 import BannerUser from "@/components/BannerUser";
 import "../../../style/UserProfilePage.css";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { GetUser } from "@/app/type/user/User";
 import SignIn from "../auth/login/page";
-import { deleteWaitingList, fetchWaitingList } from "@/app/api/waitingList/waitingList";
+import {
+  deleteWaitingList,
+  fetchWaitingList,
+} from "@/app/api/waitingList/waitingList";
 import { FaTrash } from "react-icons/fa";
 
 interface Course {
@@ -33,7 +36,8 @@ const DashBoardPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState(session?.user || null);
-  const t = useTranslations('waitListPage');
+  const t = useTranslations("waitListPage");
+  const localActive = useLocale();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -51,7 +55,10 @@ const DashBoardPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchWaitingList(session.user.token, session.user.user_id);
+        const data = await fetchWaitingList(
+          session.user.token,
+          session.user.user_id
+        );
         setWaitList(data.length ? data : null);
       } catch {
         setError("Failed to load waiting list. Please try again later.");
@@ -67,7 +74,9 @@ const DashBoardPage: React.FC = () => {
     try {
       const data = await deleteWaitingList(session.user.token, waitlistId);
       console.log("API Response:", data);
-      setWaitList((prev) => prev?.filter((item) => item.waitlistId !== waitlistId) || null);
+      setWaitList(
+        (prev) => prev?.filter((item) => item.waitlistId !== waitlistId) || null
+      );
     } catch (error) {
       console.error("Error deleting waitlist:", error);
       setError("Failed to delete item.");
@@ -88,9 +97,11 @@ const DashBoardPage: React.FC = () => {
           <DashBoardUser />
         </div>
         <div className="table-profile container">
-          <h1>{t('title')}</h1>
+          <h1>{t("title")}</h1>
 
-          {error && <div className="alert alert-danger text-center">{error}</div>}
+          {error && (
+            <div className="alert alert-danger text-center">{error}</div>
+          )}
 
           {loading ? (
             <div className="d-flex justify-content-center py-5">
@@ -103,32 +114,44 @@ const DashBoardPage: React.FC = () => {
               {waitList.map((waitlist) => (
                 <div key={waitlist.waitlistId} className="col-md-6 col-lg-4">
                   <div className="card border-0 shadow-lg rounded-4 overflow-hidden h-100 hover-effect position-relative">
-                    <Image
-                      src={waitlist.course.imageInfo}
-                      alt="Course Thumbnail"
-                      width={300}
-                      height={160}
-                      className="card-img-top object-fit-cover"
-                    />
-                    <div className="card-body">
-                      <h5 className="card-title text-truncate fw-bold text-dark">{waitlist.course.title}</h5>
-                      <p className="card-text text-muted small">
-                        <strong className="text-primary">Price:</strong> ${waitlist.course.price} <br />
-                        <strong className="text-success">Description:</strong> {waitlist.course.description}
-                      </p>
-                    </div>
-                    <button
-                      className="btn btn-danger position-absolute top-0 end-0 m-2 rounded-circle"
-                      onClick={() => handleDelete(waitlist.waitlistId)}
+                    <div
+                      onClick={() =>
+                        (window.location.href = `/${localActive}/showCourse`)
+                      }
                     >
-                      <FaTrash />
-                    </button>
+                      <Image
+                        src={waitlist.course.imageInfo}
+                        alt="Course Thumbnail"
+                        width={300}
+                        height={160}
+                        className="card-img-top object-fit-cover"
+                      />
+                      <div className="card-body">
+                        <h5 className="card-title text-truncate fw-bold text-dark">
+                          {waitlist.course.title}
+                        </h5>
+                        <p className="card-text text-muted small">
+                          <strong className="text-primary">Price:</strong> $
+                          {waitlist.course.price} <br />
+                          <strong className="text-success">
+                            Description:
+                          </strong>{" "}
+                          {waitlist.course.description}
+                        </p>
+                      </div>
+                      <button
+                        className="btn btn-danger position-absolute top-0 end-0 m-2 rounded-circle"
+                        onClick={() => handleDelete(waitlist.waitlistId)}
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted fs-5">{t('noCourse')}</p>
+            <p className="text-center text-muted fs-5">{t("noCourse")}</p>
           )}
         </div>
       </div>

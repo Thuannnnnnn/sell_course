@@ -119,4 +119,25 @@ export class Course_purchaseController {
       courseId,
     );
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('all')
+  @ApiOperation({
+    summary: 'Get all course purchases for all users',
+    description: 'Returns all purchased courses across all users (admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all purchased courses',
+    type: [CoursePurchasedDTO],
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async getAllPurchasesForAllUsers(): Promise<CoursePurchasedDTO[]> {
+    try {
+      return await this.coursePurchasedService.getAllPurchasesForAllUsers();
+    } catch {
+      throw new HttpException(`Error retrieving all purchases`, 500);
+    }
+  }
 }

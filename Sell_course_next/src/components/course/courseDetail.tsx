@@ -705,13 +705,13 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                   <h2 className="course-price">${courses?.price}</h2>
 
                   <button
-                    className="btn add-to-cart"
+                    className="btn-course-detail add-to-cart"
                     onClick={() => handleAddToCart(courses?.courseId || "")}
                   >
                     {t("addToCart")}
                   </button>
                   <button
-                    className="btn buy-course"
+                    className="btn-course-detail buy-course"
                     onClick={() => handleCheckOut()}
                   >
                     {t("buyCourse")}
@@ -720,7 +720,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               )}
               {!courses?.isPublic && (
                 <button
-                  className="btn waitListCourse"
+                  className="btn-course-detail waitListCourse"
                   onClick={() => handleCreatWaitList()}
                 >
                   {t("addToWaitList")}
@@ -729,7 +729,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
             </div>
           ) : (
             <button
-              className="btn buy-course"
+              className="btn-course-detail buy-course"
               onClick={() => handleGotoCourse()}
             >
               {t("GoToCourse")}

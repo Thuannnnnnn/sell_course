@@ -10,12 +10,14 @@ const Banner = () => {
   const t = useTranslations("banner");
 
   return (
-    <section>
+    <section className="colorBackground">
       <div className="bannerSection">
         <div>
           <h1 className="bannerTitle"> {t("bannerTitle")} </h1>
           <p className="bannerDecription"> {t("bannerDecription")} </p>
-          <button> {t("bannerButtom")} </button>
+          <button className="btn-banner">
+            <span>{t("bannerButtom")} </span>
+          </button>
         </div>
         <div>
           <Image

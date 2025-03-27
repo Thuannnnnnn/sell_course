@@ -33,7 +33,7 @@ const OrderHistoryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { data: session, status } = useSession();
   const [user, setUser] = useState(session?.user || null);
-  const t = useTranslations('orderHistoryPage');
+  const t = useTranslations("orderHistoryPage");
   const token = session?.user?.token;
   const email = session?.user?.email;
 
@@ -81,59 +81,78 @@ const OrderHistoryPage: React.FC = () => {
     fetchOrders();
   }, [session, email, token]);
 
-   if (!user) {
-      return <SignIn />;
-    }
+  if (!user) {
+    return <SignIn />;
+  }
   return (
     <>
-       <div>{user ? <BannerUser  user={user as unknown as GetUser}  /> : <SignIn />}</div>
+      <div>
+        {user ? <BannerUser user={user as unknown as GetUser} /> : <SignIn />}
+      </div>
       <div className="content-profile">
         <div className="dashboard">
           <DashBoardUser />
         </div>
         <div className="table-profile container">
-          <h1>{t('title')}</h1>
+          <h1>{t("title")}</h1>
           {error && <div className="alert alert-danger">{error}</div>}
           <div>
-              {loading ? (
-                  <div className="d-flex justify-content-center py-5">
-                      <div className="spinner-border text-primary" role="status">
-                          <span className="visually-hidden">Loading...</span>
+            {loading ? (
+              <div className="d-flex justify-content-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : error ? (
+              <p className="text-danger text-center">{error}</p>
+            ) : orders && orders.length > 0 ? (
+              <div className="row">
+                {orders.map((order) => (
+                  <div key={order.id} className="col-md-6 col-lg-4 mb-4 mt-4">
+                    <div className="card shadow-lg border-0 rounded-4 overflow-hidden">
+                      <Image
+                        src={order.course.imageInfo}
+                        alt="Course Thumbnail"
+                        width={300}
+                        height={160}
+                        className="card-img-top object-fit-cover"
+                      />
+                      <div className="card-body">
+                        <h5 className="card-title text-truncate">
+                          {order.course.title}
+                        </h5>
+                        <p className="card-text">
+                          <strong>Order ID:</strong> {order.id} <br />
+                          <strong>Amount:</strong>{" "}
+                          <span className="fw-bold text-primary">
+                            ${order.total.toFixed(2)}
+                          </span>{" "}
+                          <br />
+                          <strong>Status:</strong>{" "}
+                          <span
+                            className={`badge ${
+                              order.status === "Completed"
+                                ? "bg-success"
+                                : "bg-warning text-dark"
+                            }`}
+                          >
+                            {order.status}
+                          </span>{" "}
+                          <br />
+                          <strong>Placed on:</strong>{" "}
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
+                    </div>
                   </div>
-              ) : error ? (
-                  <p className="text-danger text-center">{error}</p>
-              ) : orders && orders.length > 0 ? (
-                  <div className="row">
-                      {orders.map((order) => (
-                          <div key={order.id} className="col-md-6 col-lg-4 mb-4 mt-4">
-                              <div className="card shadow-lg border-0 rounded-4 overflow-hidden">
-                                  <Image
-                                      src={order.course.imageInfo}
-                                      alt="Course Thumbnail"
-                                      width={300}
-                                      height={160}
-                                      className="card-img-top object-fit-cover"
-                                  />
-                                  <div className="card-body">
-                                      <h5 className="card-title text-truncate">{order.course.title}</h5>
-                                      <p className="card-text">
-                                          <strong>Order ID:</strong> {order.id} <br />
-                                          <strong>Amount:</strong> <span className="fw-bold text-primary">${order.total.toFixed(2)}</span> <br />
-                                          <strong>Status:</strong> <span className={`badge ${order.status === 'Completed' ? 'bg-success' : 'bg-warning text-dark'}`}>{order.status}</span> <br />
-                                          <strong>Placed on:</strong> {new Date(order.createdAt).toLocaleDateString()}
-                                      </p>
-                                  </div>
-                              </div>
-                          </div>
-                      ))}
-                  </div>
-              ) : (
-                  <p className="text-center text-muted fs-5">{t('noOrder')}</p>
-              )}
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted fs-5">{t("noOrder")}</p>
+            )}
           </div>
         </div>
-    </div>
+      </div>
     </>
   );
 };

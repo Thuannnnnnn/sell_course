@@ -3,6 +3,7 @@ import { Interaction } from 'src/modules/Interaction/entities/Interaction.entity
 import { Notify } from 'src/modules/notify/entities/notify.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
+import { Promotion } from 'src/modules/promotion/entities/promotion.entity';
 import {
   Entity,
   PrimaryColumn,
@@ -67,4 +68,7 @@ export class Course {
 
   @Column('real', { array: true })
   embedding: number[];
+
+  @OneToMany(() => Promotion, (promotion) => promotion.course)
+  promotions: Promotion[];
 }

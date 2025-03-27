@@ -78,6 +78,11 @@ import { QuestionHabit } from './modules/questionHabit/entities/questionHabit.en
 import { UserAnswer } from './modules/userAnswer/entities/userAnswer.entity';
 import { QuestionHabitModule } from './modules/questionHabit/questionHabit.module';
 import { UserAnswerModule } from './modules/userAnswer/userAnswer.module';
+import { ChatModule } from './modules/support_chat/chat_support.module';
+import { ChatSession } from './modules/support_chat/entities/chat-session.entity';
+import { Message } from './modules/support_chat/entities/message.entity';
+import { Promotion } from './modules/promotion/entities/promotion.entity';
+import { PromotionModule } from './modules/promotion/promotion.module';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -99,10 +104,9 @@ import { UserAnswerModule } from './modules/userAnswer/userAnswer.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl:
-        process.env.DATABASE_SSL === 'true'
-          ? { rejectUnauthorized: false }
-          : false,
+      ssl: {
+        rejectUnauthorized: false,
+      },
 
       entities: [
         Interaction,
@@ -145,6 +149,9 @@ import { UserAnswerModule } from './modules/userAnswer/userAnswer.module';
         ReactionTopic,
         Discussion,
         ReactionQa,
+        ChatSession,
+        Message,
+        Promotion,
       ],
       synchronize: true,
     }),
@@ -185,6 +192,8 @@ import { UserAnswerModule } from './modules/userAnswer/userAnswer.module';
     PaymentModule,
     ResultExamModule,
     QaStudyModule,
+    ChatModule,
+    PromotionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
