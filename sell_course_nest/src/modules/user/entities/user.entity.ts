@@ -17,6 +17,7 @@ import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
 import { ReactionTopic } from 'src/modules/forum/entities/reaction_topic.entity';
 import { Discussion } from 'src/modules/forum/entities/discussion.entity';
 import { ReactionQa } from 'src/modules/qa_study/entities/reaction_qa.entity';
+import { Certificate } from 'src/modules/certificate/entities/certificate.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -80,4 +81,6 @@ export class User {
   discussions: Discussion[];
   @OneToMany(() => ReactionQa, (reactionQa) => reactionQa.user)
   reactionQa: ReactionTopic[];
+  @OneToMany(() => Certificate, (certificate) => certificate.user)
+  certificates: Certificate[];
 }

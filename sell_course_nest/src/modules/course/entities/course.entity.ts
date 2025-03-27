@@ -13,6 +13,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { Certificate } from 'src/modules/certificate/entities/certificate.entity';
 
 @Entity('course')
 export class Course {
@@ -64,4 +65,7 @@ export class Course {
 
   @OneToMany(() => Promotion, (promotion) => promotion.course)
   promotions: Promotion[];
+
+  @OneToMany(() => Certificate, (certificate) => certificate.course)
+  certificates: Certificate[];
 }

@@ -77,6 +77,8 @@ import { ChatSession } from './modules/support_chat/entities/chat-session.entity
 import { Message } from './modules/support_chat/entities/message.entity';
 import { Promotion } from './modules/promotion/entities/promotion.entity';
 import { PromotionModule } from './modules/promotion/promotion.module';
+import { SettingModule } from './modules/setting/setting.module';
+import { Setting } from './modules/setting/entities/setting.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -143,6 +145,7 @@ import { PromotionModule } from './modules/promotion/promotion.module';
         ChatSession,
         Message,
         Promotion,
+        Setting,
       ],
       synchronize: true,
     }),
@@ -182,6 +185,7 @@ import { PromotionModule } from './modules/promotion/promotion.module';
     QaStudyModule,
     ChatModule,
     PromotionModule,
+    SettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
