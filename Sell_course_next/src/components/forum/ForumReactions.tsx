@@ -14,7 +14,7 @@ import {
   deleteReactionFromTopic,
   getReactionsByTopic,
 } from "@/app/api/forum/forum";
-import { io, Socket } from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
 interface ForumReactionsProps {
   forumId: string;
@@ -36,7 +36,7 @@ const ForumReactions: React.FC<ForumReactionsProps> = ({
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [allReactions, setAllReactions] = useState<Reaction[]>(reactions);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<typeof Socket | null>(null);
 
   useEffect(() => {
     setAllReactions(reactions);
