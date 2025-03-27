@@ -1,17 +1,18 @@
-import { Course } from "src/modules/course/entities/course.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Course } from 'src/modules/course/entities/course.entity';
+import { User } from 'src/modules/user/entities/user.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('interaction')
 export class Interaction {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @ManyToOne(() => Student, (student) => student.interactions)
-  student: Student;
+  @ManyToOne(() => User, (user) => user.interactions)
+  user: User;
 
   @ManyToOne(() => Course, (course) => course.interactions)
   course: Course;
 
   @Column({ default: 1 })
-  interest_score: number; // Representing student's interest
+  interest_score: number;
 }

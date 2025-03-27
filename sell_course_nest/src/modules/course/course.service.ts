@@ -9,7 +9,10 @@ import { Category } from '../category/entities/category.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { azureUpload } from 'src/utilities/azure.service';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
+const execPromise = promisify(exec);
 @Injectable()
 export class CourseService {
   constructor(
@@ -91,6 +94,7 @@ export class CourseService {
   ): Promise<CourseResponseDTO> {
     const { userId, categoryId, title, isPublic } = course;
 
+    // Kiểm tra user
     const userData = await this.userRepository.findOne({
       where: { user_id: userId },
     });
@@ -101,6 +105,7 @@ export class CourseService {
       );
     }
 
+    // Kiểm tra category
     const categoryData = await this.categoryRepository.findOne({
       where: { categoryId },
     });
@@ -111,10 +116,10 @@ export class CourseService {
       );
     }
 
+    // Kiểm tra khóa học trùng lặp
     const courseData = await this.CourseRepository.findOne({
       where: { title },
     });
-
     if (courseData) {
       throw new HttpException(
         `Course with title '${title}' already exists.`,
@@ -122,40 +127,62 @@ export class CourseService {
       );
     }
 
+    // Xử lý file upload (nếu có)
     let videoUrl = '';
     let imageUrl = '';
-
     if (files?.videoInfo?.[0]) {
       videoUrl = await azureUpload(files.videoInfo[0]);
     }
-
     if (files?.imageInfo?.[0]) {
       imageUrl = await azureUpload(files.imageInfo[0]);
     }
 
-    const newCourse = await this.CourseRepository.save({
-      courseId: uuidv4(),
-      title: course.title,
-      description: course.description,
-      category: categoryData,
-      imageInfo: imageUrl,
-      price: course.price,
-      videoInfo: videoUrl,
-      user: userData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      isPublic: isPublic ?? true, // Added isPublic with fallback to true
-    });
+    // Tạo combinedText để tạo embedding
+    const combinedText = `${title} ${course.description} ${categoryData.name}`;
 
-    return {
-      ...newCourse,
-      userId: userData.user_id,
-      userName: userData.email,
-      userAvata: userData.avatarImg,
-      categoryId: categoryData.categoryId,
-      categoryName: categoryData.name,
-      isPublic: newCourse.isPublic, // Added isPublic
-    } as CourseResponseDTO;
+    // Gọi script Python để tạo embedding
+    try {
+      const pythonScriptPath = 'D:\\python Tool\\generate_embedding.py';
+      const { stdout, stderr } = await execPromise(
+        `python "${pythonScriptPath}" "${combinedText}"`,
+      );
+      if (stderr) {
+        throw new Error(`Embedding generation failed: ${stderr}`);
+      }
+      const embedding = JSON.parse(stdout);
+
+      // Lưu khóa học vào database
+      const newCourse = await this.CourseRepository.save({
+        courseId: uuidv4(),
+        title: course.title,
+        description: course.description,
+        category: categoryData,
+        imageInfo: imageUrl,
+        price: course.price,
+        videoInfo: videoUrl,
+        user: userData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isPublic: isPublic ?? true,
+        embedding: embedding, // Lưu embedding từ Python
+      });
+
+      // Trả về response DTO
+      return {
+        ...newCourse,
+        userId: userData.user_id,
+        userName: userData.email,
+        userAvata: userData.avatarImg,
+        categoryId: categoryData.categoryId,
+        categoryName: categoryData.name,
+        isPublic: newCourse.isPublic,
+      } as CourseResponseDTO;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to generate embedding: ${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async updateCourse(

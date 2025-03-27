@@ -64,4 +64,7 @@ export class Course {
 
   @OneToMany(() => Waitlist, (waitlist) => waitlist.user)
   waitlists: Waitlist[];
+
+  @Column('real', { array: true })
+  embedding: number[];
 }
