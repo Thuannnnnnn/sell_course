@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { getChatActiveSessions } from "@/app/api/support_chat/active-sessions/route";
+import { getChatActiveSessions } from "@/app/api/support_chat/active-sessions/active-session";
 import {
   Container,
   Row,

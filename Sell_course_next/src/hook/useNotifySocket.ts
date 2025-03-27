@@ -32,14 +32,14 @@ export const useSocket = (userId?: string, token?: string) => {
     };
 
     fetchNotifications();
-    newSocket.on("markAllAsSent", (updatedNotifications) => {
+    newSocket.on("markAllAsSent", (updatedNotifications: UserNotify[]) => {
       setNotifications(updatedNotifications);
     });
-    newSocket.on("newNotification", (notification) => {
+    newSocket.on("newNotification", (notification: UserNotify) => {
       setNotifications((prev) => [notification, ...prev]);
     });
 
-    newSocket.on("updateNotification", (updatedNotification) => {
+    newSocket.on("updateNotification", (updatedNotification: UserNotify) => {
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === updatedNotification.id ? updatedNotification : n
@@ -47,7 +47,7 @@ export const useSocket = (userId?: string, token?: string) => {
       );
     });
 
-    newSocket.on("removeNotification", (notificationId) => {
+    newSocket.on("removeNotification", (notificationId: string) => {
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     });
 
