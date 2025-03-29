@@ -12,9 +12,11 @@ export class QuestionHabitService {
     private readonly questionHabitRepository: Repository<QuestionHabit>,
   ) {}
 
-  async create(dto: QuestionHabitDto) {
-    const questionHabit = this.questionHabitRepository.create(dto);
-    return this.questionHabitRepository.save(questionHabit);
+  async create(dto: { question: string }) {
+    const questionHabit = this.questionHabitRepository.create({
+      question: dto.question, // Không truyền "id" vào đây
+    });
+    return await this.questionHabitRepository.save(questionHabit);
   }
 
   async findAll() {

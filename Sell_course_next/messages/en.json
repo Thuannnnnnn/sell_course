@@ -141,7 +141,8 @@
     "exportToExcel": "Export to Excel",
     "statisticsOverview": "Statistics Overview",
     "customers": "Customers",
-    "promotion": "Promotion"
+    "promotion": "Promotion",
+    "questionHabit": "question Habits"
   },
   "permission": {
     "title": "Permission",
@@ -316,7 +317,6 @@
     "yourCart": "Your Cart",
     "emptyCart": "Your cart is empty",
     "emptyCartAlert": "Your cart is empty!",
-
     "summary": "Cart Summary"
   },
   "cartBanner": {
@@ -597,39 +597,51 @@
     "loading": "Loading...",
     "errorLoadingSessions": "Could not load active support sessions"
   },
-  "Settings": {
-    "settingsTitle": "Settings Management",
+  "settings": {
+    "title": "Settings Management",
     "availableSettings": "Available Settings",
-    "setting": "Setting",
     "settingDetails": "Setting Details",
+    "addNew": "Add New",
+    "edit": "Edit",
+    "delete": "Delete",
     "active": "Active",
-    "inactive": "Inactive",
     "activate": "Activate",
-    "status": "Status",
-    "logo": "Logo",
-    "carousel": "Carousel",
-    "slide": "Slide",
-    "noLogoAvailable": "No logo available",
-    "noCarouselImages": "No carousel images available",
-    "selectSettingPrompt": "Please select a setting to view details",
-    "updateLogo": "Update Logo",
-    "updateCarousel": "Update Carousel",
-    "selectLogo": "Select logo image",
-    "selectCarouselImages": "Select carousel images",
-    "logoFileRequirements": "Logo image should be maximum 5MB in size, JPG, PNG or GIF format.",
-    "carouselFileRequirements": "Each carousel image should be maximum 5MB in size, JPG, PNG or GIF format.",
-    "logoPreview": "Logo preview",
-    "carouselPreview": "Carousel images preview",
-    "cancel": "Cancel",
-    "save": "Save",
-    "uploading": "Uploading...",
-    "noLogoSelected": "No logo selected",
-    "noCarouselSelected": "No carousel images selected",
-    "logoUpdated": "Logo updated successfully",
-    "carouselUpdated": "Carousel images updated successfully",
-    "settingActivated": "Setting has been activated successfully",
-    "invalidImageFormat": "Invalid image format",
-    "someInvalidImages": "Some images have invalid format"
+    "logo": {
+      "title": "Logo",
+      "update": "Update Logo",
+      "noLogo": "No logo available",
+      "selectImage": "Select Logo Image"
+    },
+    "carousel": {
+      "title": "Carousel",
+      "update": "Update Carousel",
+      "noCarousel": "No carousel images available",
+      "selectImage": "Select Carousel Image",
+      "deleteConfirm": "Are you sure you want to delete this image?",
+      "viewAll": "View All Images",
+      "slideShow": "Slide Show",
+      "thumbnails": "Thumbnails"
+    },
+    "modal": {
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "editVersion": "Edit Version",
+      "addNewVersion": "Add New Version",
+      "versionTitle": "Version Title",
+      "enterTitle": "Enter version title",
+      "deleteConfirm": "Are you sure you want to delete this version?"
+    }
+  },
+  "questionHabits": {
+    "title": "Question Habits",
+    "loadingText": "Loading questions...",
+    "submitButton": "Submit",
+    "submittingText": "Submitting...",
+    "answerPlaceholder": "Enter your answer",
+    "submissionSuccessful": "Submission successful!",
+    "submissionFailed": "Submission failed. Please try again.",
+    "fetchQuestionsFailed": "Failed to fetch questions. Please refresh the page.",
+    "fillAllFields": "Please answer all questions before submitting."
   },
   "showCourse": {
     "placeHolder": "Search courses...",
@@ -671,5 +683,18 @@
     "courseRequired": "Please select a course",
     "searchCourse": "Search Course",
     "course": "Course"
+  },
+  "manageQuestionAnswer": {
+    "title": "Manage Question Answer",
+    "add_question": "Add Question",
+    "edit_question": "Edit Question",
+    "delete_question": "Delete",
+    "question": "Question",
+    "actions": "Actions",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading questions...",
+    "error": "Failed to load questions.",
+    "placeholder": "Enter question"
   }
 }

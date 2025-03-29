@@ -141,7 +141,8 @@
     "exportToExcel": "Xuất ra Excel",
     "statisticsOverview": "Tổng quan thống kê",
     "customers": "Khách Hàng",
-    "promotion": "Khuyến Mãi"
+    "promotion": "Khuyến Mãi",
+    "questionHabit": "Câu hỏi thối quen"
   },
   "permission": {
     "title": "Quyền",
@@ -328,7 +329,6 @@
     "yourCart": "Giỏ hàng của bạn",
     "emptyCart": "Giỏ hàng của bạn trống",
     "emptyCartAlert": "Giỏ hàng của bạn trống!",
-
     "summary": "Tóm tắt giỏ hàng"
   },
   "checkout": {
@@ -605,39 +605,50 @@
     "loading": "Đang tải...",
     "errorLoadingSessions": "Không thể tải các phiên hỗ trợ đang hoạt động"
   },
-  "Settings": {
-    "settingsTitle": "Quản lý cài đặt",
-    "availableSettings": "Cài đặt có sẵn",
-    "setting": "Cài đặt",
-    "settingDetails": "Chi tiết cài đặt",
-    "active": "Đang hoạt động",
-    "inactive": "Không hoạt động",
-    "activate": "Kích hoạt",
-    "status": "Trạng thái",
-    "logo": "Logo",
-    "carousel": "Trình chiếu",
-    "slide": "Ảnh",
-    "noLogoAvailable": "Chưa có logo",
-    "noCarouselImages": "Chưa có ảnh trình chiếu",
-    "selectSettingPrompt": "Vui lòng chọn một cài đặt để xem chi tiết",
-    "updateLogo": "Cập nhật Logo",
-    "updateCarousel": "Cập nhật trình chiếu",
-    "selectLogo": "Chọn hình ảnh logo",
-    "selectCarouselImages": "Chọn hình ảnh trình chiếu",
-    "logoFileRequirements": "Hình ảnh logo nên có kích thước tối đa 5MB, định dạng JPG, PNG hoặc GIF.",
-    "carouselFileRequirements": "Mỗi hình ảnh trình chiếu nên có kích thước tối đa 5MB, định dạng JPG, PNG hoặc GIF.",
-    "logoPreview": "Xem trước logo",
-    "carouselPreview": "Xem trước ảnh trình chiếu",
-    "cancel": "Hủy",
-    "save": "Lưu",
-    "uploading": "Đang tải lên...",
-    "noLogoSelected": "Chưa chọn logo",
-    "noCarouselSelected": "Chưa chọn ảnh trình chiếu",
-    "logoUpdated": "Cập nhật logo thành công",
-    "carouselUpdated": "Cập nhật ảnh trình chiếu thành công",
-    "settingActivated": "Cài đặt đã được kích hoạt thành công",
-    "invalidImageFormat": "Định dạng ảnh không hợp lệ",
-    "someInvalidImages": "Một số ảnh có định dạng không hợp lệ"
+  "settings": {
+    "title": "Quản Lý Cài Đặt",
+    "availableSettings": "Cài Đặt Khả Dụng",
+    "settingDetails": "Chi Tiết Cài Đặt",
+    "addNew": "Thêm Mới",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "activate": "Đang hoạt động",
+    "active": "Kích Hoạt",
+    "logo": {
+      "title": "Logo",
+      "update": "Cập Nhật Logo",
+      "noLogo": "Chưa có logo",
+      "selectImage": "Chọn Ảnh Logo"
+    },
+    "carousel": {
+      "title": "Băng Chuyền",
+      "update": "Cập Nhật Băng Chuyền",
+      "noCarousel": "Chưa có ảnh băng chuyền",
+      "selectImage": "Chọn Ảnh Băng Chuyền"
+    },
+    "modal": {
+      "cancel": "Hủy",
+      "saveChanges": "Lưu Thay Đổi",
+      "editVersion": "Sửa Phiên Bản",
+      "addNewVersion": "Thêm Phiên Bản Mới",
+      "versionTitle": "Tiêu Đề Phiên Bản",
+      "enterTitle": "Nhập tiêu đề phiên bản",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa phiên bản này?",
+      "viewAll": "Xem tất cả ảnh",
+      "slideShow": "Slide Show",
+      "thumbnails": "Thumbnails"
+    }
+  },
+  "questionHabits": {
+    "title": "Thói Quen Câu Hỏi",
+    "loadingText": "Đang tải câu hỏi...",
+    "submitButton": "Gửi",
+    "submittingText": "Đang gửi...",
+    "answerPlaceholder": "Nhập câu trả lời của bạn",
+    "submissionSuccessful": "Gửi thành công!",
+    "submissionFailed": "Gửi thất bại. Vui lòng thử lại.",
+    "fetchQuestionsFailed": "Tải câu hỏi thất bại. Vui lòng làm mới trang.",
+    "fillAllFields": "Vui lòng trả lời tất cả các câu hỏi trước khi gửi."
   },
   "showCourse": {
     "placeHolder": "Tìm kiếm khóa học...",
@@ -679,5 +690,18 @@
     "courseRequired": "Vui lòng chọn khoá học",
     "searchCourse": "Tìm Kiếm Khoá Học",
     "course": "Course"
+  },
+  "manageQuestionAnswer": {
+    "title": "Quản lý Câu Hỏi Đáp",
+    "add_question": "Thêm Câu Hỏi",
+    "edit_question": "Chỉnh Sửa Câu Hỏi",
+    "delete_question": "Xóa",
+    "question": "Câu Hỏi",
+    "actions": "Hành động",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "loading": "Đang tải câu hỏi...",
+    "error": "Không thể tải câu hỏi.",
+    "placeholder": "Nhập câu hỏi"
   }
 }

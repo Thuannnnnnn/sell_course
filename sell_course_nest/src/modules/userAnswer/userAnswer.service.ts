@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UserAnswer } from './entities/userAnswer.entity';
 import { QuestionHabit } from '../questionHabit/entities/questionHabit.entity';
 import { UserAnswerDto } from './dto/userAnswerDto.dto';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class UserAnswerService {
@@ -12,15 +13,30 @@ export class UserAnswerService {
     private readonly userAnswerRepository: Repository<UserAnswer>,
     @InjectRepository(QuestionHabit)
     private readonly questionHabitRepository: Repository<QuestionHabit>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(dto: UserAnswerDto) {
-    const question = await this.questionHabitRepository.findOneBy({
-      id: dto.questionId,
-    });
-    if (!question) throw new Error('Question not found');
-    const userAnswer = this.userAnswerRepository.create({ ...dto, question });
-    return this.userAnswerRepository.save(userAnswer);
+    const user = await this.userRepository.findOneBy({ user_id: dto.userId });
+    if (!user) throw new Error(`User with ID ${dto.userId} not found`);
+
+    const userAnswers = await Promise.all(
+      dto.answers.map(async (item) => {
+        const question = await this.questionHabitRepository.findOneBy({
+          id: item.questionId,
+        });
+        if (!question)
+          throw new Error(`Question with ID ${item.questionId} not found`);
+
+        return this.userAnswerRepository.create({
+          user: user,
+          question: question,
+          answer: item.answer,
+        });
+      }),
+    );
+    return this.userAnswerRepository.save(userAnswers);
   }
 
   async findAll() {
@@ -32,11 +48,6 @@ export class UserAnswerService {
       where: { id },
       relations: ['question'],
     });
-  }
-
-  async update(id: string, dto: UserAnswerDto) {
-    await this.userAnswerRepository.update(id, dto);
-    return this.findOne(id);
   }
 
   async remove(id: string) {

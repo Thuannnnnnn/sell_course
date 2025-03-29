@@ -83,8 +83,12 @@ import { ChatSession } from './modules/support_chat/entities/chat-session.entity
 import { Message } from './modules/support_chat/entities/message.entity';
 import { Promotion } from './modules/promotion/entities/promotion.entity';
 import { PromotionModule } from './modules/promotion/promotion.module';
-import { SettingModule } from './modules/setting/setting.module';
-import { Setting } from './modules/setting/entities/setting.entity';
+import { CarouselSettingModule } from './modules/carouselSetting/setting.module';
+import { CarouselSetting } from './modules/carouselSetting/entities/setting.entity';
+import { LogoSetting } from './modules/logoSetting/entities/LogoSetting.entity';
+import { LogoSettingModule } from './modules/logoSetting/logoSetting.module';
+import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.module';
+import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -111,6 +115,8 @@ import { Setting } from './modules/setting/entities/setting.entity';
       },
 
       entities: [
+        LogoSetting,
+        VersionSetting,
         Interaction,
         QuestionHabit,
         UserAnswer,
@@ -154,11 +160,13 @@ import { Setting } from './modules/setting/entities/setting.entity';
         ChatSession,
         Message,
         Promotion,
-        Setting,
+        CarouselSetting,
       ],
       synchronize: true,
     }),
     TypeOrmModule.forFeature([User, Permission]),
+    LogoSettingModule,
+    VersionSettingModule,
     QuestionHabitModule,
     UserAnswerModule,
     InteractionModule,
@@ -197,7 +205,7 @@ import { Setting } from './modules/setting/entities/setting.entity';
     QaStudyModule,
     SupportChatModule,
     PromotionModule,
-    SettingModule,
+    CarouselSettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
