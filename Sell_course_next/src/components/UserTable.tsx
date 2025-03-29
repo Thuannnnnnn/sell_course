@@ -184,22 +184,22 @@ const UserTable: React.FC = () => {
                         <span className="text-success">{t("active")}</span>
                       )}
                     </td>
-                    <td>
+                    <td className="btn-action d-flex flex-column flex-md-row gap-1">
                       <Button
                         variant="primary"
                         onClick={() => handleOpenModal(user.user_id)}
                         disabled={loading}
-                        className="me-2"
+                        className="me-2 w-100 md"
                       >
                         {t("addBtn")}
                       </Button>
                       {user.role !== "ADMIN" && (
-                        <>
+                        <div className="d-flex flex-column flex-md-row gap-1">
                           <Button
                             variant="secondary"
                             onClick={() => handleOpenEditModal(user)}
                             disabled={loading}
-                            className="me-2"
+                            className="me-2 w-100 md"
                           >
                             {t("edit")}
                           </Button>
@@ -209,10 +209,11 @@ const UserTable: React.FC = () => {
                               handleBanUser(user.user_id, !user.isBan)
                             }
                             disabled={loading}
+                            className="w-100 md"
                           >
                             {user.isBan ? t("unban") : t("ban")}
                           </Button>
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -247,6 +248,8 @@ const UserTable: React.FC = () => {
                 value={editUser.email || ""}
                 onChange={(e) => handleEditUserChange("email", e.target.value)}
                 disabled={loading}
+                readOnly
+                className="opacity-50"
               />
             </Form.Group>
             <Form.Group className="mb-3">

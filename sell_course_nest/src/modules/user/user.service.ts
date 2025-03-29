@@ -143,6 +143,7 @@ export class UserService {
       user.gender,
       user.birthDay,
       user.phoneNumber,
+      user.isOAuth,
       user.role,
       user.isBan,
     );
@@ -188,6 +189,7 @@ export class UserService {
       user.gender,
       user.birthDay,
       user.phoneNumber,
+      user.isOAuth,
       user.role,
       user.isBan,
     );
@@ -234,6 +236,7 @@ export class UserService {
       user.gender,
       user.birthDay,
       user.phoneNumber,
+      user.isOAuth,
       user.role,
       user.isBan,
     );
@@ -260,6 +263,7 @@ export class UserService {
       user.gender,
       user.birthDay,
       user.phoneNumber,
+      user.isOAuth,
       user.role,
       user.isBan,
     );
