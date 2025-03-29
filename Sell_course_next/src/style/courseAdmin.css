@@ -17,8 +17,7 @@
 .layout-rightHeader .button-create {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 2px;
   border: 2px solid #4f46e5;
   background-color: transparent;
   color: #4f46e5;
@@ -28,6 +27,7 @@
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }
+
 .layout-rightHeader .button-create .icon {
   font-size: 35px;
   font-weight: 700;
@@ -45,7 +45,7 @@
   border-collapse: collapse;
   border-spacing: 0 10px;
   background: #fff;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   display: block;
   text-align: center;

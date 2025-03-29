@@ -18,6 +18,8 @@ import { ReactionTopic } from 'src/modules/forum/entities/reaction_topic.entity'
 import { Discussion } from 'src/modules/forum/entities/discussion.entity';
 import { ReactionQa } from 'src/modules/qa_study/entities/reaction_qa.entity';
 import { Certificate } from 'src/modules/certificate/entities/certificate.entity';
+import { Interaction } from 'src/modules/Interaction/entities/Interaction.entity';
+import { UserAnswer } from 'src/modules/userAnswer/entities/userAnswer.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -43,6 +45,12 @@ export class User {
 
   @Column({ type: 'bigint', nullable: true })
   phoneNumber: number;
+
+  @OneToMany(() => Interaction, (interaction) => interaction.user)
+  interactions: Interaction[];
+
+  @OneToMany(() => UserAnswer, (userAnswer) => userAnswer.user)
+  userAnswer: UserAnswer[];
 
   @ManyToMany(() => Permission, { cascade: true })
   @JoinTable({
