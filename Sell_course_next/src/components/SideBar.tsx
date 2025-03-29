@@ -126,7 +126,7 @@ const Sidebar = () => {
             </Link>
           </li>
           <li className={isActive(`/${locate}/admin/promotion`)}>
-            <Link href={`/${locate}/admin/support`} className="sidebar-link">
+            <Link href={`/${locate}/admin/promotion`} className="sidebar-link">
               <div className="icon-sidebar">
                 <BiSolidDiscount />
               </div>

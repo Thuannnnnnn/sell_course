@@ -48,7 +48,8 @@ export default function Chat() {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      sendMessage(inputValue);
+      const result = sendMessage(inputValue);
+      console.log(result);
       setInputValue("");
     }
   };
@@ -84,9 +85,6 @@ export default function Chat() {
                 }`}
                 style={{ maxWidth: "70%" }}
               >
-                <small className="d-block text-muted">
-                  {msg.sender === "CUSTOMER" ? "You" : "Support"}
-                </small>
                 {msg.messageText}
                 <small className="d-block text-muted mt-1">
                   {new Date(msg.timestamp).toLocaleTimeString()}
