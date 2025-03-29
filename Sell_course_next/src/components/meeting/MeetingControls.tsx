@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 
 interface MeetingControlsProps {
+  localStream: MediaStream | null;
   hasCamera: boolean;
   hasMicrophone: boolean;
   isScreenSharing: boolean;
@@ -28,6 +29,7 @@ interface MeetingControlsProps {
 }
 
 const MeetingControls: React.FC<MeetingControlsProps> = ({
+  localStream,
   hasCamera,
   hasMicrophone,
   isScreenSharing,
@@ -45,27 +47,33 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
 }) => {
   const handleToggleCamera = async () => {
     try {
-      console.log("Toggling camera, current state:", hasCamera);
       await toggleCamera();
-      console.log("Camera toggled, new state:", !hasCamera);
     } catch (error) {
       console.error("Error toggling camera:", error);
-      alert(
-        "Failed to toggle camera. Please check your permissions or device."
-      );
     }
   };
 
   const handleToggleMicrophone = async () => {
     try {
-      console.log("Toggling microphone, current state:", hasMicrophone);
       await toggleMicrophone();
-      console.log("Microphone toggled, new state:", !hasMicrophone);
     } catch (error) {
       console.error("Error toggling microphone:", error);
-      alert(
-        "Failed to toggle microphone. Please check your permissions or device."
-      );
+    }
+  };
+
+  const handleStartScreenShare = async () => {
+    try {
+      await startScreenShare();
+    } catch (error) {
+      console.error("Error starting screen share:", error);
+    }
+  };
+
+  const handleStopScreenShare = async () => {
+    try {
+      await stopScreenShare();
+    } catch (error) {
+      console.error("Error stopping screen share:", error);
     }
   };
 
@@ -89,7 +97,9 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
 
       <button
         className={`control-btn ${isScreenSharing ? "active" : "inactive"}`}
-        onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+        onClick={
+          isScreenSharing ? handleStopScreenShare : handleStartScreenShare
+        }
         title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
       >
         <FaDesktop />

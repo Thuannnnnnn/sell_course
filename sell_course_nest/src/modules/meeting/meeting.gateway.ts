@@ -10,9 +10,7 @@ import { MeetingService } from './meeting.service';
 import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({ namespace: '/meetings', cors: { origin: '*' } })
-export class MeetingGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class MeetingGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -24,14 +22,10 @@ export class MeetingGateway
     const meetingId = client.handshake.query.meetingId as string;
     const userId = client.handshake.query.userId as string;
 
-    this.logger.log(
-      `Client connected: ${client.id}, meetingId: ${meetingId}, userId: ${userId}`,
-    );
+    this.logger.log(`Client connected: ${client.id}, meetingId: ${meetingId}, userId: ${userId}`);
 
     if (!meetingId || !userId) {
-      this.logger.warn(
-        `Invalid connection parameters: meetingId=${meetingId}, userId=${userId}`,
-      );
+      this.logger.warn(`Invalid connection parameters: meetingId=${meetingId}, userId=${userId}`);
       client.disconnect();
       return;
     }
@@ -42,16 +36,11 @@ export class MeetingGateway
       const meeting = await this.meetingService.getMeeting(meetingId);
       const participants = meeting.participants || [];
 
-      this.logger.log(
-        `Emitting current-participants to client ${client.id}:`,
-        participants,
-      );
+      this.logger.log(`Emitting current-participants to client ${client.id}:`, participants);
 
       client.emit('current-participants', participants);
     } catch (error) {
-      this.logger.error(
-        `Error fetching meeting on connection`,
-      );
+      this.logger.error(`Error fetching meeting on connection`);
       client.emit('error', { message: 'Failed to fetch meeting participants' });
       client.disconnect();
     }
@@ -61,14 +50,11 @@ export class MeetingGateway
     const meetingId = client.handshake.query.meetingId as string;
     const userId = client.handshake.query.userId as string;
 
-    this.logger.log(
-      `Client disconnected: ${client.id}, meetingId: ${meetingId}, userId: ${userId}`,
-    );
+    this.logger.log(`Client disconnected: ${client.id}, meetingId: ${meetingId}, userId: ${userId}`);
 
     if (!meetingId || !userId) return;
 
     try {
-      // Since meetingId might be the meetingCode, we need to fetch the actual meeting ID
       const meeting = await this.meetingService.getMeeting(meetingId);
       await this.meetingService.leaveMeeting(meeting.id, userId);
       this.server.to(meetingId).emit('participant-left', { userId });
@@ -77,15 +63,12 @@ export class MeetingGateway
       const participants = updatedMeeting.participants || [];
       this.server.to(meetingId).emit('current-participants', participants);
     } catch (error) {
-      this.logger.error(`Error handling disconnect}`);
+      this.logger.error(`Error handling disconnect`);
     }
   }
 
   @SubscribeMessage('join-meeting')
-  async handleJoinMeeting(
-    client: Socket,
-    payload: { meetingId: string; userId: string },
-  ) {
+  async handleJoinMeeting(client: Socket, payload: { meetingId: string; userId: string }) {
     const { meetingId, userId } = payload;
 
     this.logger.log(`Received join-meeting from client ${client.id}:`, payload);
@@ -103,17 +86,11 @@ export class MeetingGateway
       const meeting = await this.meetingService.getMeeting(meetingId);
       const participants = meeting.participants || [];
 
-      this.logger.log(
-        `Emitting current-participants to all clients in meeting ${meetingId}:`,
-        participants,
-      );
+      this.logger.log(`Emitting current-participants to all clients in meeting ${meetingId}:`, participants);
 
       this.server.to(meetingId).emit('current-participants', participants);
 
-      this.logger.log(
-        `Emitting participant-joined to other clients in meeting ${meetingId}:`,
-        participant,
-      );
+      this.logger.log(`Emitting participant-joined to other clients in meeting ${meetingId}:`, participant);
 
       client.to(meetingId).emit('participant-joined', { participant });
     } catch (error) {
@@ -133,34 +110,26 @@ export class MeetingGateway
       isScreenSharing: boolean;
     },
   ) {
-    const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } =
-      payload;
+    const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } = payload;
 
-    this.logger.log(
-      `Received update-status from client ${client.id}:`,
-      payload,
-    );
+    this.logger.log(`Received update-status from client ${client.id}:`, payload);
 
     try {
-      // Since meetingId might be the meetingCode, we need to fetch the actual meeting ID
       const meeting = await this.meetingService.getMeeting(meetingId);
       await this.meetingService.updateParticipantStatus({
-        meetingId: meeting.id, // Use the actual UUID
+        meetingId: meeting.id,
         userId,
         hasCamera,
         hasMicrophone,
         isScreenSharing,
       });
 
-      this.logger.log(
-        `Emitting participant-status-updated to all clients in meeting ${meetingId}:`,
-        {
-          userId,
-          hasCamera,
-          hasMicrophone,
-          isScreenSharing,
-        },
-      );
+      this.logger.log(`Emitting participant-status-updated to all clients in meeting ${meetingId}:`, {
+        userId,
+        hasCamera,
+        hasMicrophone,
+        isScreenSharing,
+      });
 
       this.server.to(meetingId).emit('participant-status-updated', {
         userId,
@@ -185,21 +154,14 @@ export class MeetingGateway
       receiverId?: string;
     },
   ) {
-    const {
-      meetingId,
-      senderId,
-      message,
-      isPrivate = false,
-      receiverId,
-    } = payload;
+    const { meetingId, senderId, message, isPrivate = false, receiverId } = payload;
 
     this.logger.log(`Received send-message from client ${client.id}:`, payload);
 
     try {
-      // Since meetingId might be the meetingCode, we need to fetch the actual meeting ID
       const meeting = await this.meetingService.getMeeting(meetingId);
       const newMessage = await this.meetingService.sendMessage({
-        meetingId: meeting.id, // Use the actual UUID
+        meetingId: meeting.id,
         senderId,
         message,
         isPrivate,
@@ -207,20 +169,29 @@ export class MeetingGateway
       });
 
       if (isPrivate && receiverId) {
-        const senderSocket = Array.from(
-          this.server.sockets.sockets.values(),
-        ).find((socket) => socket.handshake.query.userId === senderId);
-        const receiverSocket = Array.from(
-          this.server.sockets.sockets.values(),
-        ).find((socket) => socket.handshake.query.userId === receiverId);
+        const sockets = await this.server.fetchSockets();
+        const senderSocket = sockets.find(
+          (socket) => socket.handshake.query.userId === senderId
+        );
+        const receiverSocket = sockets.find(
+          (socket) => socket.handshake.query.userId === receiverId
+        );
 
         if (senderSocket) {
+          this.logger.log(`Emitting private-message to sender ${senderId}`);
           senderSocket.emit('private-message', newMessage);
+        } else {
+          this.logger.warn(`Sender socket for user ${senderId} not found`);
         }
+
         if (receiverSocket) {
+          this.logger.log(`Emitting private-message to receiver ${receiverId}`);
           receiverSocket.emit('private-message', newMessage);
+        } else {
+          this.logger.warn(`Receiver socket for user ${receiverId} not found`);
         }
       } else {
+        this.logger.log(`Emitting public message to meeting ${meetingId}`);
         this.server.to(meetingId).emit('message', newMessage);
       }
     } catch (error) {
@@ -230,102 +201,102 @@ export class MeetingGateway
   }
 
   @SubscribeMessage('raise-hand')
-  handleRaiseHand(
-    client: Socket,
-    payload: { meetingId: string; userId: string },
-  ) {
+  handleRaiseHand(client: Socket, payload: { meetingId: string; userId: string }) {
     const { meetingId, userId } = payload;
     this.logger.log(`Received raise-hand from client ${client.id}:`, payload);
     this.server.to(meetingId).emit('hand-raised', { raisedHandUserId: userId });
   }
 
   @SubscribeMessage('lower-hand')
-  handleLowerHand(
-    client: Socket,
-    payload: { meetingId: string; userId: string },
-  ) {
+  handleLowerHand(client: Socket, payload: { meetingId: string; userId: string }) {
     const { meetingId, userId } = payload;
     this.logger.log(`Received lower-hand from client ${client.id}:`, payload);
-    this.server
-      .to(meetingId)
-      .emit('hand-lowered', { loweredHandUserId: userId });
+    this.server.to(meetingId).emit('hand-lowered', { loweredHandUserId: userId });
   }
 
   @SubscribeMessage('screen-share-started')
-  handleScreenShareStarted(
-    client: Socket,
-    payload: { meetingId: string; userId: string },
-  ) {
+  handleScreenShareStarted(client: Socket, payload: { meetingId: string; userId: string }) {
     const { meetingId, userId } = payload;
-    this.logger.log(
-      `Received screen-share-started from client ${client.id}:`,
-      payload,
-    );
-    this.server
-      .to(meetingId)
-      .emit('screen-share-started', { sharingUserId: userId });
+    this.logger.log(`Received screen-share-started from client ${client.id}:`, payload);
+    this.server.to(meetingId).emit('screen-share-started', { sharingUserId: userId });
   }
 
   @SubscribeMessage('screen-share-stopped')
-  handleScreenShareStopped(
-    client: Socket,
-    payload: { meetingId: string; userId: string },
-  ) {
+  handleScreenShareStopped(client: Socket, payload: { meetingId: string; userId: string }) {
     const { meetingId, userId } = payload;
-    this.logger.log(
-      `Received screen-share-stopped from client ${client.id}:`,
-      payload,
-    );
-    this.server
-      .to(meetingId)
-      .emit('screen-share-stopped', { stoppedSharingUserId: userId });
+    this.logger.log(`Received screen-share-stopped from client ${client.id}:`, payload);
+    this.server.to(meetingId).emit('screen-share-stopped', { stoppedSharingUserId: userId });
   }
 
   @SubscribeMessage('ice-candidate')
-  handleIceCandidate(client: Socket, payload: { to: string; candidate: any }) {
+  async handleIceCandidate(client: Socket, payload: { to: string; candidate: any }) {
     const { to, candidate } = payload;
-    this.logger.log(
-      `Received ice-candidate from client ${client.id}:`,
-      payload,
-    );
-    const targetSocket = Array.from(this.server.sockets.sockets.values()).find(
-      (socket) => socket.handshake.query.userId === to,
-    );
-    if (targetSocket) {
-      targetSocket.emit('ice-candidate', {
-        from: client.handshake.query.userId,
-        candidate,
-      });
+    this.logger.log(`Received ice-candidate from client ${client.id} for user ${to}:`, payload);
+
+    try {
+      const sockets = await this.server.fetchSockets();
+      const targetSocket = sockets.find(
+        (socket) => socket.handshake.query.userId === to
+      );
+
+      if (targetSocket) {
+        this.logger.log(`Found target socket ${targetSocket.id} for user ${to}, emitting ice-candidate`);
+        targetSocket.emit('ice-candidate', { from: client.handshake.query.userId, candidate });
+      } else {
+        this.logger.warn(`Target socket for user ${to} not found`);
+        client.emit('error', { message: `User ${to} not found` });
+      }
+    } catch (error) {
+      this.logger.error(`Error handling ice-candidate`);
+      client.emit('error', { message: 'Failed to handle ICE candidate' });
     }
   }
 
   @SubscribeMessage('offer')
-  handleOffer(client: Socket, payload: { to: string; offer: any }) {
+  async handleOffer(client: Socket, payload: { to: string; offer: any }) {
     const { to, offer } = payload;
-    this.logger.log(`Received offer from client ${client.id}:`, payload);
-    const targetSocket = Array.from(this.server.sockets.sockets.values()).find(
-      (socket) => socket.handshake.query.userId === to,
-    );
-    if (targetSocket) {
-      targetSocket.emit('offer', {
-        from: client.handshake.query.userId,
-        offer,
-      });
+    this.logger.log(`Received offer from client ${client.id} for user ${to}:`, payload);
+
+    try {
+      const sockets = await this.server.fetchSockets();
+      const targetSocket = sockets.find(
+        (socket) => socket.handshake.query.userId === to
+      );
+
+      if (targetSocket) {
+        this.logger.log(`Found target socket ${targetSocket.id} for user ${to}, emitting offer`);
+        targetSocket.emit('offer', { from: client.handshake.query.userId, offer });
+      } else {
+        this.logger.warn(`Target socket for user ${to} not found`);
+        client.emit('error', { message: `User ${to} not found` });
+      }
+    } catch (error) {
+      this.logger.error(`Error handling offer`);
+      client.emit('error', { message: 'Failed to handle offer' });
     }
   }
 
   @SubscribeMessage('answer')
-  handleAnswer(client: Socket, payload: { to: string; answer: any }) {
+  async handleAnswer(client: Socket, payload: { to: string; answer: any }) {
     const { to, answer } = payload;
-    this.logger.log(`Received answer from client ${client.id}:`, payload);
-    const targetSocket = Array.from(this.server.sockets.sockets.values()).find(
-      (socket) => socket.handshake.query.userId === to,
-    );
-    if (targetSocket) {
-      targetSocket.emit('answer', {
-        from: client.handshake.query.userId,
-        answer,
-      });
+    this.logger.log(`Received answer from client ${client.id} for user ${to}:`, payload);
+
+    try {
+      const sockets = await this.server.fetchSockets();
+      const targetSocket = sockets.find(
+        (socket) => socket.handshake.query.userId === to
+      );
+
+      if (targetSocket) {
+        this.logger.log(`Found target socket ${targetSocket.id} for user ${to}, emitting answer`);
+        targetSocket.emit('answer', { from: client.handshake.query.userId, answer });
+      } else {
+        this.logger.warn(`Target socket for user ${to} not found`);
+        client.emit('error', { message: `User ${to} not found` });
+      }
+    } catch (error) {
+      this.logger.error(`Error handling answer`);
+      client.emit('error', { message: 'Failed to handle answer' });
     }
   }
 }

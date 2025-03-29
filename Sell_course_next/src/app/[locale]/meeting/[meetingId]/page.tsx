@@ -24,6 +24,14 @@ enum SidebarView {
   PARTICIPANTS,
 }
 
+// Định nghĩa kiểu cho Meeting
+interface Meeting {
+  title: string;
+  meetingCode: string;
+  startTime: string;
+  hostId: string;
+}
+
 export default function MeetingRoom() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -32,11 +40,11 @@ export default function MeetingRoom() {
   const locale = params.locale as string;
   const t = useTranslations("Meeting");
 
-  const [meeting, setMeeting] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [meeting, setMeeting] = useState<Meeting | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   const [sidebarView, setSidebarView] = useState<SidebarView>(SidebarView.NONE);
-  const [isHandRaised, setIsHandRaised] = useState(false);
+  const [isHandRaised, setIsHandRaised] = useState<boolean>(false);
 
   const {
     localStream,
@@ -71,7 +79,7 @@ export default function MeetingRoom() {
     try {
       const response = await getMeeting(meetingId);
       if (response.success) {
-        setMeeting(response.data);
+        setMeeting(response.data as Meeting); // Ép kiểu dữ liệu cho response.data
       } else {
         setError("Failed to load meeting details");
       }
@@ -140,10 +148,8 @@ export default function MeetingRoom() {
     }
   };
 
-  const getGridClass = () => {
-    const activeParticipantsCount = participants.filter(
-      (p) => p.isActive
-    ).length;
+  const getGridClass = (): string => {
+    const activeParticipantsCount = participants.filter((p) => p.isActive).length;
 
     if (activeParticipantsCount <= 1) {
       return "one-participant";
@@ -238,6 +244,7 @@ export default function MeetingRoom() {
 
           <div className="meeting-controls-container">
             <MeetingControls
+              localStream={localStream} // Thêm localStream để đồng bộ với phiên bản trước
               hasCamera={hasCamera}
               hasMicrophone={hasMicrophone}
               isScreenSharing={isScreenSharing}

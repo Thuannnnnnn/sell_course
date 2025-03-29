@@ -31,22 +31,24 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
   const [playError, setPlayError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(`ParticipantVideo for ${displayName}:`, { stream, hasCamera, isActive });
+    console.log(`ParticipantVideo for ${displayName}:`, {
+      stream,
+      hasCamera,
+      isActive,
+    });
     const videoElement = videoRef.current;
     if (videoElement && stream && hasCamera && isActive) {
       videoElement.srcObject = stream;
       videoElement.play().catch((error) => {
         console.error(`Error playing video for ${displayName}:`, error);
-        setPlayError("Failed to play video. Please ensure autoplay is allowed.");
+        setPlayError("Failed to play video.");
       });
     } else if (videoElement) {
       videoElement.srcObject = null;
     }
   }, [stream, hasCamera, isActive, displayName]);
 
-  if (!isActive) {
-    return null;
-  }
+  if (!isActive) return null;
 
   return (
     <div className={`participant-video ${isSpeaking ? "speaking" : ""}`}>
@@ -65,9 +67,7 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
               <button
                 onClick={() => {
                   if (videoRef.current) {
-                    videoRef.current.play().catch((err) => {
-                      console.error("Retry play error:", err);
-                    });
+                    videoRef.current.play().catch(() => {});
                     setPlayError(null);
                   }
                 }}
@@ -84,7 +84,9 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
             {displayName}
             {isLocal ? " (You)" : ""}
           </div>
-          {!hasCamera && <span className="status-text">Camera Off</span>}
+          <span className="status-text">
+            {hasCamera ? "Stream unavailable" : "Camera Off"}
+          </span>
         </div>
       )}
 
@@ -125,8 +127,6 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
           width: 100%;
           height: 100%;
           object-fit: cover;
-          opacity: 1;
-          transition: opacity 0.5s ease;
         }
 
         .avatar-placeholder {
