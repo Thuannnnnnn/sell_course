@@ -14,16 +14,10 @@ const BottomBar = () => {
     <>
       <div className={`bottom-tab-navbar bg-${theme}`}>
         <ul className="nav justify-content-between w-100">
-          <li className="nav-item d-flex flex-column align-items-center">
+          <li className="nav-item d-flex flex-column align-items-center justify-content-center">
             <Link href={`/${localActive}/`} className={`text-decoration-none side-${theme}`}>
-              <IoMdHome size={25} />
-              <p className="fw-semibold mt-2 page">{t('home')}</p>
-            </Link>
-          </li>
-          <li className="nav-item d-flex flex-column align-items-center">
-            <Link href={`/${localActive}/`} className={`text-decoration-none side-${theme}`}>
-              <IoMdHome size={25} />
-              <p className="fw-semibold mt-2 page">{t('home')}</p>
+              <IoMdHome size={25}  className='mb-1'/>
+              <p className="fw-semibold mt-2  page">{t('home')}</p>
             </Link>
           </li>
         </ul>
