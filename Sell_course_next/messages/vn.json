@@ -620,5 +620,16 @@
     "settingActivated": "Cài đặt đã được kích hoạt thành công",
     "invalidImageFormat": "Định dạng ảnh không hợp lệ",
     "someInvalidImages": "Một số ảnh có định dạng không hợp lệ"
+  },
+  "questionHabits": {
+    "title": "Thói Quen Câu Hỏi",
+    "loadingText": "Đang tải câu hỏi...",
+    "submitButton": "Gửi",
+    "submittingText": "Đang gửi...",
+    "answerPlaceholder": "Nhập câu trả lời của bạn",
+    "submissionSuccessful": "Gửi thành công!",
+    "submissionFailed": "Gửi thất bại. Vui lòng thử lại.",
+    "fetchQuestionsFailed": "Tải câu hỏi thất bại. Vui lòng làm mới trang.",
+    "fillAllFields": "Vui lòng trả lời tất cả các câu hỏi trước khi gửi."
   }
 }

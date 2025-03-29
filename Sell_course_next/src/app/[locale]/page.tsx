@@ -1,5 +1,5 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import logoJava from "../.../../../../public/logoJava_img.jpg";
 import logoJs from "../.../../../../public/logoJS_img.jpg";
 import logoCPlusPlus from "../.../../../../public/logoC++_img.png";
@@ -19,26 +19,41 @@ import { fetchCourses } from "../api/course/CourseAPI";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import "@/style/HomePage.css";
+import { fetchUserAnswersByUserId } from "../api/userAnswer/userAnswerApi";
 export default function HomePage() {
   const t = useTranslations("homePage");
   const tc = useTranslations("cardCourse");
+    const localActive = useLocale();
   const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    if (session && session.user && session.user.user_id) {
+      const checkUserAnswers = async () => {
+        try {
+          const answers = await fetchUserAnswersByUserId(session.user.user_id);
+          if (answers.length === 0) {
+            router.push(`/${localActive}/questionHabits`);
+          }
+        } catch (error) {
+          console.error("Error checking user answers:", error);
+        }
+      };
+      checkUserAnswers();
+    }
+  }, [session]);
 
   useEffect(() => {
     const loadCourses = async () => {
       try {
         const data = await fetchCourses();
         setCourses(data);
-        console.log("Loaded courses:", data);
-      } catch (error) {
-        console.log("Loaded courses error:", error);
+      } catch  {
       } finally {
       }
     };
 
     loadCourses();
-    console.log("check data: " + session);
   }, [session]);
 
   const router = useRouter();

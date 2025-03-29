@@ -612,5 +612,16 @@
     "settingActivated": "Setting has been activated successfully",
     "invalidImageFormat": "Invalid image format",
     "someInvalidImages": "Some images have invalid format"
+  },
+  "questionHabits": {
+    "title": "Question Habits",
+    "loadingText": "Loading questions...",
+    "submitButton": "Submit",
+    "submittingText": "Submitting...",
+    "answerPlaceholder": "Enter your answer",
+    "submissionSuccessful": "Submission successful!",
+    "submissionFailed": "Submission failed. Please try again.",
+    "fetchQuestionsFailed": "Failed to fetch questions. Please refresh the page.",
+    "fillAllFields": "Please answer all questions before submitting."
   }
 }
