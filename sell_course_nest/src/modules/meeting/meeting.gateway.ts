@@ -83,11 +83,18 @@ export class MeetingGateway
       const meetingId = client.data.meetingId as string;
       const userId = client.data.userId as string;
 
-      if (meetingId && userId) {
-        this.logger.log(
-          `Client disconnected: ${client.id} - User: ${userId} - Meeting: ${meetingId}`,
+      if (!meetingId || !userId) {
+        this.logger.warn(
+          `Client disconnected without meeting or user info: ${client.id}`,
         );
+        return;
+      }
 
+      this.logger.log(
+        `Client disconnected: ${client.id} - User: ${userId} - Meeting: ${meetingId}`,
+      );
+
+      try {
         // Update participant status
         await this.meetingService.leaveMeeting(meetingId, userId);
 
@@ -96,9 +103,23 @@ export class MeetingGateway
           userId,
           timestamp: new Date(),
         });
+
+        this.logger.debug(
+          `Successfully processed disconnect for user ${userId} in meeting ${meetingId}`,
+        );
+      } catch (dbError) {
+        this.logger.error(
+          `Failed to update participant status on disconnect: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`,
+          dbError instanceof Error ? dbError.stack : undefined,
+        );
       }
     } catch (error) {
-      this.logger.error(`Error in handleConnection: no connection 2`);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `Error in handleDisconnect: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 
@@ -176,14 +197,23 @@ export class MeetingGateway
       const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } =
         data;
 
+      this.logger.debug(
+        `Updating status for user ${userId} in meeting ${meetingId}: camera=${hasCamera}, mic=${hasMicrophone}, screen=${isScreenSharing}`,
+      );
+
       // Update participant status
-      await this.meetingService.updateParticipantStatus({
-        meetingId,
-        userId,
-        hasCamera,
-        hasMicrophone,
-        isScreenSharing,
-      });
+      const updatedParticipant =
+        await this.meetingService.updateParticipantStatus({
+          meetingId,
+          userId,
+          hasCamera,
+          hasMicrophone,
+          isScreenSharing,
+        });
+
+      if (!updatedParticipant) {
+        throw new Error('Failed to update participant status');
+      }
 
       // Notify all participants about the status change
       this.server.to(meetingId).emit('participant-status-updated', {
@@ -194,10 +224,15 @@ export class MeetingGateway
         timestamp: new Date(),
       });
 
-      return { success: true };
+      return { success: true, participant: updatedParticipant };
     } catch (error) {
-      this.logger.error(`Error in update-status`);
-      return { success: false, error: 'Unable to update participant status' };
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error in update-status: ${errorMessage}`);
+      return {
+        success: false,
+        error: errorMessage || 'Unable to update participant status',
+      };
     }
   }
 
@@ -215,6 +250,19 @@ export class MeetingGateway
     try {
       const { meetingId, senderId, message, isPrivate, receiverId } = data;
 
+      this.logger.debug(
+        `Sending message in meeting ${meetingId} from ${senderId}${isPrivate ? ` to ${receiverId}` : ''}`,
+      );
+
+      // Validate sender is in the meeting
+      const senderParticipant = await this.participantRepository.findOne({
+        where: { meetingId, userId: senderId, isActive: true },
+      });
+
+      if (!senderParticipant) {
+        throw new Error('Sender is not an active participant in this meeting');
+      }
+
       const savedMessage = await this.meetingService.sendMessage({
         meetingId,
         senderId,
@@ -223,7 +271,22 @@ export class MeetingGateway
         receiverId,
       });
 
+      if (!savedMessage) {
+        throw new Error('Failed to save message');
+      }
+
       if (isPrivate && receiverId) {
+        // Validate receiver is in the meeting
+        const receiverParticipant = await this.participantRepository.findOne({
+          where: { meetingId, userId: receiverId, isActive: true },
+        });
+
+        if (!receiverParticipant) {
+          throw new Error(
+            'Receiver is not an active participant in this meeting',
+          );
+        }
+
         const receiverSockets = await this.server.in(meetingId).fetchSockets();
         const receiverSocket = receiverSockets.find(
           (socket) => socket.data.userId === receiverId,
@@ -237,10 +300,13 @@ export class MeetingGateway
         this.server.to(meetingId).emit('new-message', savedMessage);
       }
 
-      return { success: true };
+      return { success: true, message: savedMessage };
     } catch (error) {
       this.logger.error(`Error in send-message`);
-      return { success: false, error: 'error sending message' };
+      return {
+        success: false,
+        error: 'Error sending message',
+      };
     }
   }
 

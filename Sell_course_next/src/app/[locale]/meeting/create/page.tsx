@@ -34,7 +34,7 @@ export default function CreateMeetingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!session?.user?.id) {
+    if (!session?.user?.user_id) {
       setError("You must be logged in to create a meeting");
       return;
     }
@@ -55,20 +55,24 @@ export default function CreateMeetingPage() {
     try {
       const response = await createMeeting({
         ...formData,
-        hostId: session.user.id,
+        hostId: session?.user?.user_id,
       });
 
-      if (response.success) {
-        // If meeting is created successfully and is not scheduled for future,
-        // redirect to the meeting room
-        if (!formData.isScheduled) {
-          router.push(`/${locale}/meeting/${response.data.id}`);
-        } else {
-          // Otherwise, redirect to meetings list
-          router.push(`/${locale}/meeting`);
-        }
+      if (!response || !response.data) {
+        throw new Error("Invalid response from server");
+      }
+
+      if (!response.data.id) {
+        throw new Error("Meeting ID not received from server");
+      }
+
+      // If meeting is created successfully and is not scheduled for future,
+      // redirect to the meeting room
+      if (!formData.isScheduled) {
+        router.push(`/${locale}/meeting/${response.data.id}`);
       } else {
-        setError(response.message || "Failed to create meeting");
+        // Otherwise, redirect to meetings list
+        router.push(`/${locale}/meeting`);
       }
     } catch (error: any) {
       setError(

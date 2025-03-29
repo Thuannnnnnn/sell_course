@@ -37,9 +37,19 @@ export class MeetingService {
    * Create a new meeting
    */
   async createMeeting(createMeetingDto: CreateMeetingDto): Promise<Meeting> {
+    // Validate and process scheduled time
+    let scheduledTime = null;
+    if (createMeetingDto.isScheduled && createMeetingDto.scheduledTime) {
+      scheduledTime = new Date(createMeetingDto.scheduledTime);
+      if (isNaN(scheduledTime.getTime())) {
+        throw new BadRequestException('Invalid scheduled time format');
+      }
+    }
+
     const meeting = this.meetingRepository.create({
       ...createMeetingDto,
       startTime: createMeetingDto.isScheduled ? null : new Date(),
+      scheduledTime: scheduledTime,
       meetingCode: this.generateMeetingCode(),
     });
 
@@ -221,16 +231,52 @@ export class MeetingService {
     const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } =
       updateDto;
 
+    // Check if meeting exists and is active
+    const meeting = await this.meetingRepository.findOne({
+      where: { id: meetingId, isActive: true },
+    });
+
+    if (!meeting) {
+      throw new NotFoundException('Active meeting not found');
+    }
+
+    // Check if user is an active participant
     const participant = await this.participantRepository.findOne({
       where: {
         meetingId,
         userId,
         isActive: true,
       },
+      relations: ['user'],
     });
 
     if (!participant) {
-      throw new NotFoundException('Active participant not found');
+      // Try to find inactive participant and reactivate
+      const inactiveParticipant = await this.participantRepository.findOne({
+        where: {
+          meetingId,
+          userId,
+          isActive: false,
+        },
+        relations: ['user'],
+      });
+
+      if (inactiveParticipant) {
+        // Reactivate participant
+        inactiveParticipant.isActive = true;
+        inactiveParticipant.hasCamera = hasCamera;
+        inactiveParticipant.hasMicrophone = hasMicrophone;
+        inactiveParticipant.isScreenSharing = isScreenSharing;
+        return await this.participantRepository.save(inactiveParticipant);
+      }
+
+      // If no participant found, try to rejoin the meeting
+      return await this.joinMeeting({
+        meetingId,
+        userId,
+        hasCamera,
+        hasMicrophone,
+      });
     }
 
     participant.hasCamera = hasCamera;

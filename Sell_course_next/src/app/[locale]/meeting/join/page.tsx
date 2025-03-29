@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -25,7 +26,7 @@ export default function JoinMeetingPage() {
   const handleJoinMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!session?.user?.id) {
+    if (!session?.user?.user_id) {
       setError("You must be logged in to join a meeting");
       return;
     }
@@ -41,7 +42,7 @@ export default function JoinMeetingPage() {
     try {
       const response = await joinMeeting({
         meetingId: meetingCode,
-        userId: session.user.id,
+        userId: session.user.user_id,
         hasCamera,
         hasMicrophone,
       });
@@ -50,7 +51,7 @@ export default function JoinMeetingPage() {
         // Redirect to the meeting room
         router.push(`/${locale}/meeting/${response.data.meetingId}`);
       } else {
-        setError(response.message || "Failed to join meeting");
+        setError(response.message || "Failed to join meeting 12334");
       }
     } catch (error: any) {
       setError(

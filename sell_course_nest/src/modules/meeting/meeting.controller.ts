@@ -41,8 +41,12 @@ export class MeetingController {
         data: meeting,
       };
     } catch (error) {
+      console.error('Error creating meeting:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException(
-        'Failed to create meeting',
+        'Failed to create meeting nè',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -123,7 +127,10 @@ export class MeetingController {
         data: participant,
       };
     } catch (error) {
-      throw new HttpException('Failed to join meeting', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Failed to join meeting 9999',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

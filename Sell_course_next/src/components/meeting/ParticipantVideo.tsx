@@ -1,5 +1,10 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { FaMicrophone, FaMicrophoneSlash, FaDesktop, FaUser } from 'react-icons/fa';
+import React, { useRef, useEffect } from "react";
+import {
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaDesktop,
+  FaUser,
+} from "react-icons/fa";
 
 interface ParticipantVideoProps {
   stream: MediaStream | null;
@@ -20,59 +25,61 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
   hasMicrophone,
   isScreenSharing,
   isLocal = false,
-  isSpeaking = false
+  isSpeaking = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-      
-      // Handle video loaded event
-      const handleVideoLoaded = () => {
-        setVideoLoaded(true);
-      };
-      
-      videoRef.current.addEventListener('loadedmetadata', handleVideoLoaded);
-      
-      return () => {
-        if (videoRef.current) {
-          videoRef.current.removeEventListener('loadedmetadata', handleVideoLoaded);
-        }
-      };
+    const videoElement = videoRef.current;
+    if (videoElement && stream && hasCamera) {
+      videoElement.srcObject = stream;
+      videoElement.play().catch((error) => {
+        console.error("Error playing video:", error);
+      });
+    } else if (videoElement) {
+      videoElement.srcObject = null;
     }
-  }, [stream]);
+  }, [stream, hasCamera]);
 
   if (!isActive) {
     return null;
   }
 
   return (
-    <div className={`participant-video ${isSpeaking ? 'speaking' : ''}`}>
-      {hasCamera && stream ? (
+    <div className={`participant-video ${isSpeaking ? "speaking" : ""}`}>
+      {stream && hasCamera ? (
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted={isLocal}
-          className={videoLoaded ? 'visible' : 'hidden'}
+          className="video-stream"
         />
       ) : (
         <div className="avatar-placeholder">
-          <FaUser />
-          <div className="display-name">{displayName}</div>
+          <FaUser size={48} />
+          <div className="display-name">
+            {displayName}
+            {isLocal ? " (You)" : ""}
+          </div>
+          {!hasCamera && <span className="status-text">Camera Off</span>}
         </div>
       )}
-      
+
       <div className="participant-info">
-        <div className="display-name">{displayName}{isLocal ? ' (You)' : ''}</div>
+        <div className="display-name">
+          {displayName}
+          {isLocal ? " (You)" : ""}
+        </div>
         <div className="participant-controls">
-          {isScreenSharing && <FaDesktop className="control-icon screen-share" />}
-          {hasMicrophone ? 
-            <FaMicrophone className="control-icon" /> : 
+          {isScreenSharing && (
+            <FaDesktop className="control-icon screen-share" />
+          )}
+          {hasMicrophone ? (
+            <FaMicrophone className="control-icon" />
+          ) : (
             <FaMicrophoneSlash className="control-icon muted" />
-          }
+          )}
         </div>
       </div>
 
@@ -87,26 +94,19 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
           transition: all 0.3s ease;
         }
-        
+
         .participant-video.speaking {
           border: 2px solid #0d6efd;
         }
-        
-        .participant-video video {
+
+        .video-stream {
           width: 100%;
           height: 100%;
           object-fit: cover;
-        }
-        
-        .participant-video video.hidden {
-          opacity: 0;
-        }
-        
-        .participant-video video.visible {
           opacity: 1;
           transition: opacity 0.5s ease;
         }
-        
+
         .avatar-placeholder {
           display: flex;
           flex-direction: column;
@@ -116,9 +116,14 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
           height: 100%;
           background-color: #333;
           color: white;
-          font-size: 3rem;
+          gap: 8px;
         }
-        
+
+        .status-text {
+          font-size: 12px;
+          color: #ccc;
+        }
+
         .participant-info {
           position: absolute;
           bottom: 0;
@@ -128,31 +133,33 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
           justify-content: space-between;
           align-items: center;
           padding: 8px;
-          background-color: rgba(0, 0, 0, 0.5);
+          background-color: rgba(0, 0, 0, 0.6);
           color: white;
         }
-        
+
         .display-name {
           font-size: 14px;
           font-weight: 500;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          max-width: 150px;
         }
-        
+
         .participant-controls {
           display: flex;
           gap: 8px;
+          align-items: center;
         }
-        
+
         .control-icon {
           font-size: 14px;
         }
-        
+
         .control-icon.muted {
           color: #dc3545;
         }
-        
+
         .control-icon.screen-share {
           color: #0d6efd;
         }

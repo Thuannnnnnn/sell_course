@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { 
-  FaMicrophone, 
-  FaMicrophoneSlash, 
-  FaVideo, 
-  FaVideoSlash, 
-  FaDesktop, 
+import React from "react";
+import {
+  FaMicrophone,
+  FaMicrophoneSlash,
+  FaVideo,
+  FaVideoSlash,
+  FaDesktop,
   FaPhoneSlash,
   FaCommentAlt,
   FaHandPaper,
-  FaEllipsisH
-} from 'react-icons/fa';
-import { Dropdown } from 'react-bootstrap';
+} from "react-icons/fa";
 
 interface MeetingControlsProps {
   hasCamera: boolean;
@@ -43,66 +41,79 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
   toggleChat,
   raiseHand,
   lowerHand,
-  isHandRaised
+  isHandRaised,
 }) => {
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const handleToggleCamera = async () => {
+    try {
+      await toggleCamera();
+    } catch (error) {
+      console.error("Error toggling camera:", error);
+      alert(
+        "Failed to toggle camera. Please check your permissions or device."
+      );
+    }
+  };
+
+  const handleToggleMicrophone = async () => {
+    try {
+      await toggleMicrophone();
+    } catch (error) {
+      console.error("Error toggling microphone:", error);
+      alert(
+        "Failed to toggle microphone. Please check your permissions or device."
+      );
+    }
+  };
 
   return (
     <div className="meeting-controls">
-      <button 
-        className={`control-btn ${hasMicrophone ? 'active' : ''}`}
-        onClick={toggleMicrophone}
-        title={hasMicrophone ? 'Mute microphone' : 'Unmute microphone'}
+      <button
+        className={`control-btn ${hasMicrophone ? "active" : "inactive"}`}
+        onClick={handleToggleMicrophone}
+        title={hasMicrophone ? "Mute microphone" : "Unmute microphone"}
       >
         {hasMicrophone ? <FaMicrophone /> : <FaMicrophoneSlash />}
       </button>
 
-      <button 
-        className={`control-btn ${hasCamera ? 'active' : ''}`}
-        onClick={toggleCamera}
-        title={hasCamera ? 'Turn off camera' : 'Turn on camera'}
+      <button
+        className={`control-btn ${hasCamera ? "active" : "inactive"}`}
+        onClick={handleToggleCamera}
+        title={hasCamera ? "Turn off camera" : "Turn on camera"}
       >
         {hasCamera ? <FaVideo /> : <FaVideoSlash />}
       </button>
 
-      <button 
-        className={`control-btn ${isScreenSharing ? 'active' : ''}`}
+      <button
+        className={`control-btn ${isScreenSharing ? "active" : "inactive"}`}
         onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-        title={isScreenSharing ? 'Stop sharing screen' : 'Share screen'}
+        title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
       >
         <FaDesktop />
       </button>
 
-      <button 
-        className="control-btn"
-        onClick={toggleChat}
-        title="Toggle chat"
-      >
+      <button className="control-btn" onClick={toggleChat} title="Toggle chat">
         <FaCommentAlt />
       </button>
 
-      <button 
-        className={`control-btn ${isHandRaised ? 'active' : ''}`}
+      <button
+        className={`control-btn ${isHandRaised ? "active" : "inactive"}`}
         onClick={isHandRaised ? lowerHand : raiseHand}
-        title={isHandRaised ? 'Lower hand' : 'Raise hand'}
+        title={isHandRaised ? "Lower hand" : "Raise hand"}
       >
         <FaHandPaper />
       </button>
 
-      <Dropdown>
-        <Dropdown.Toggle as="button" className="control-btn">
-          <FaEllipsisH />
-        </Dropdown.Toggle>
+      {isHost && endMeeting && (
+        <button
+          className="control-btn end-btn"
+          onClick={endMeeting}
+          title="End meeting for all"
+        >
+          End
+        </button>
+      )}
 
-        <Dropdown.Menu>
-          {isHost && (
-            <Dropdown.Item onClick={endMeeting}>End meeting for all</Dropdown.Item>
-          )}
-          <Dropdown.Item onClick={leaveMeeting}>Leave meeting</Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown>
-
-      <button 
+      <button
         className="control-btn leave-btn"
         onClick={leaveMeeting}
         title="Leave meeting"
@@ -116,39 +127,57 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
           justify-content: center;
           align-items: center;
           background-color: #1a1a1a;
-          padding: 15px;
-          border-radius: 10px;
-          margin-top: 10px;
+          padding: 10px;
+          border-radius: 50px;
+          gap: 10px;
+          margin: 10px auto;
+          width: fit-content;
         }
-        
+
         .control-btn {
           display: flex;
           justify-content: center;
           align-items: center;
-          width: 50px;
-          height: 50px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           background-color: #333;
           color: white;
           border: none;
-          margin: 0 10px;
           cursor: pointer;
           transition: all 0.3s ease;
+          font-size: 16px;
         }
-        
+
         .control-btn:hover {
           background-color: #444;
         }
-        
+
         .control-btn.active {
           background-color: #0d6efd;
         }
-        
+
+        .control-btn.inactive {
+          background-color: #333;
+        }
+
         .control-btn.leave-btn {
           background-color: #dc3545;
         }
-        
+
         .control-btn.leave-btn:hover {
+          background-color: #bb2d3b;
+        }
+
+        .control-btn.end-btn {
+          background-color: #dc3545;
+          border-radius: 20px;
+          padding: 0 15px;
+          font-size: 14px;
+          width: auto;
+        }
+
+        .control-btn.end-btn:hover {
           background-color: #bb2d3b;
         }
       `}</style>

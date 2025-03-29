@@ -1,40 +1,48 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { FaPlus, FaVideo, FaCalendarAlt, FaClock, FaUser } from 'react-icons/fa';
-import { getUserMeetings, Meeting } from '@/app/api/meeting/meeting';
-import { format } from 'date-fns';
-import { useTranslations } from 'next-intl';
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import {
+  FaPlus,
+  FaVideo,
+  FaCalendarAlt,
+  FaClock,
+  FaUser,
+} from "react-icons/fa";
+import { getUserMeetings, Meeting } from "@/app/api/meeting/meeting";
+import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 export default function MeetingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
-  const t = useTranslations('Meeting');
-  const [activeTab, setActiveTab] = useState<'hosted' | 'participated'>('hosted');
+  const t = useTranslations("Meeting");
+  const [activeTab, setActiveTab] = useState<"hosted" | "participated">(
+    "hosted"
+  );
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id) {
+    if (status === "authenticated" && session?.user?.user_id) {
       fetchMeetings(activeTab);
-    } else if (status === 'unauthenticated') {
-      router.push('/auth/login');
+    } else if (status === "unauthenticated") {
+      router.push("/auth/login");
     }
   }, [status, session, activeTab, router]);
 
-  const fetchMeetings = async (type: 'hosted' | 'participated') => {
-    if (!session?.user?.id) return;
-    
+  const fetchMeetings = async (type: "hosted" | "participated") => {
+    if (!session?.user?.user_id) return;
+
     setLoading(true);
     try {
-      const response = await getUserMeetings(session.user.id, type);
+      const response = await getUserMeetings(session.user.user_id, type);
       setMeetings(response.data || []);
     } catch (error) {
-      console.error('Error fetching meetings:', error);
+      console.error("Error fetching meetings:", error);
     } finally {
       setLoading(false);
     }
@@ -53,10 +61,10 @@ export default function MeetingsPage() {
   };
 
   const formatMeetingDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMM dd, yyyy • HH:mm');
+    return format(new Date(dateString), "MMM dd, yyyy • HH:mm");
   };
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return <div className="text-center py-5">Loading...</div>;
   }
 
@@ -75,15 +83,17 @@ export default function MeetingsPage() {
       </div>
 
       <div className="meetings-tabs">
-        <div 
-          className={`meetings-tab ${activeTab === 'hosted' ? 'active' : ''}`}
-          onClick={() => setActiveTab('hosted')}
+        <div
+          className={`meetings-tab ${activeTab === "hosted" ? "active" : ""}`}
+          onClick={() => setActiveTab("hosted")}
         >
           Meetings You Host
         </div>
-        <div 
-          className={`meetings-tab ${activeTab === 'participated' ? 'active' : ''}`}
-          onClick={() => setActiveTab('participated')}
+        <div
+          className={`meetings-tab ${
+            activeTab === "participated" ? "active" : ""
+          }`}
+          onClick={() => setActiveTab("participated")}
         >
           Meetings You Joined
         </div>
@@ -93,39 +103,49 @@ export default function MeetingsPage() {
         <div className="text-center py-4">Loading meetings...</div>
       ) : meetings.length === 0 ? (
         <div className="text-center py-4">
-          {activeTab === 'hosted' 
-            ? "You haven't created any meetings yet." 
+          {activeTab === "hosted"
+            ? "You haven't created any meetings yet."
             : "You haven't joined any meetings yet."}
         </div>
       ) : (
         <div className="meetings-list">
-          {meetings.map(meeting => (
+          {meetings.map((meeting) => (
             <div key={meeting.id} className="meeting-card">
               <div className="meeting-card-info">
                 <h3 className="meeting-card-title">{meeting.title}</h3>
                 <div className="meeting-card-details">
                   {meeting.isScheduled ? (
-                    <span><FaCalendarAlt className="me-1" /> {formatMeetingDate(meeting.scheduledTime || meeting.startTime)}</span>
+                    <span>
+                      <FaCalendarAlt className="me-1" />{" "}
+                      {formatMeetingDate(
+                        meeting.scheduledTime || meeting.startTime
+                      )}
+                    </span>
                   ) : (
-                    <span><FaClock className="me-1" /> {formatMeetingDate(meeting.startTime)}</span>
+                    <span>
+                      <FaClock className="me-1" />{" "}
+                      {formatMeetingDate(meeting.startTime)}
+                    </span>
                   )}
-                  <span><FaUser className="me-1" /> Host: {meeting.host?.name || 'Unknown'}</span>
-                  {meeting.isActive && <span className="badge bg-success">Active</span>}
+                  <span>
+                    <FaUser className="me-1" /> Host:{" "}
+                    {meeting.host?.name || "Unknown"}
+                  </span>
+                  {meeting.isActive && (
+                    <span className="badge bg-success">Active</span>
+                  )}
                 </div>
               </div>
               <div className="meeting-card-actions">
                 {meeting.isActive ? (
-                  <button 
+                  <button
                     className="btn-primary"
                     onClick={() => handleJoinExistingMeeting(meeting.id)}
                   >
                     <FaVideo className="me-1" /> Join Now
                   </button>
                 ) : (
-                  <button 
-                    className="btn-secondary"
-                    disabled
-                  >
+                  <button className="btn-secondary" disabled>
                     Meeting Ended
                   </button>
                 )}

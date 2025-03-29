@@ -2,6 +2,11 @@ import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+const getAuthHeader = () => {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 // Types
 export interface Meeting {
   id: string;
@@ -55,7 +60,9 @@ export const createMeeting = async (meetingData: {
   isRecorded?: boolean;
 }) => {
   try {
-    const response = await axios.post(`${API_URL}/meetings`, meetingData);
+    const response = await axios.post(`${API_URL}/meetings`, meetingData, {
+      headers: getAuthHeader(),
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating meeting:", error);
@@ -66,7 +73,9 @@ export const createMeeting = async (meetingData: {
 // Get meeting by ID or code
 export const getMeeting = async (meetingIdOrCode: string) => {
   try {
-    const response = await axios.get(`${API_URL}/meetings/${meetingIdOrCode}`);
+    const response = await axios.get(`${API_URL}/meetings/${meetingIdOrCode}`, {
+      headers: getAuthHeader(),
+    });
     return response.data;
   } catch (error) {
     console.error("Error getting meeting:", error);
@@ -77,7 +86,9 @@ export const getMeeting = async (meetingIdOrCode: string) => {
 // Get all active meetings
 export const getActiveMeetings = async () => {
   try {
-    const response = await axios.get(`${API_URL}/meetings`);
+    const response = await axios.get(`${API_URL}/meetings`, {
+      headers: getAuthHeader(),
+    });
     return response.data;
   } catch (error) {
     console.error("Error getting active meetings:", error);
@@ -86,9 +97,17 @@ export const getActiveMeetings = async () => {
 };
 
 // Get meetings for a user (hosted or participated)
-export const getUserMeetings = async (userId: string, type: 'hosted' | 'participated' = 'hosted') => {
+export const getUserMeetings = async (
+  userId: string,
+  type: "hosted" | "participated" = "hosted"
+) => {
   try {
-    const response = await axios.get(`${API_URL}/meetings/user/${userId}?type=${type}`);
+    const response = await axios.get(
+      `${API_URL}/meetings/user/${userId}?type=${type}`,
+      {
+        headers: getAuthHeader(),
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error getting user meetings:", error);
@@ -104,7 +123,9 @@ export const joinMeeting = async (joinData: {
   hasMicrophone?: boolean;
 }) => {
   try {
-    const response = await axios.post(`${API_URL}/meetings/join`, joinData);
+    const response = await axios.post(`${API_URL}/meetings/join`, joinData, {
+      headers: getAuthHeader(),
+    });
     return response.data;
   } catch (error) {
     console.error("Error joining meeting:", error);
@@ -115,7 +136,13 @@ export const joinMeeting = async (joinData: {
 // Leave a meeting
 export const leaveMeeting = async (meetingId: string, userId: string) => {
   try {
-    const response = await axios.post(`${API_URL}/meetings/leave`, { meetingId, userId });
+    const response = await axios.post(
+      `${API_URL}/meetings/leave`,
+      { meetingId, userId },
+      {
+        headers: getAuthHeader(),
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error leaving meeting:", error);
@@ -126,7 +153,13 @@ export const leaveMeeting = async (meetingId: string, userId: string) => {
 // End a meeting (host only)
 export const endMeeting = async (meetingId: string, hostId: string) => {
   try {
-    const response = await axios.post(`${API_URL}/meetings/end`, { meetingId, hostId });
+    const response = await axios.post(
+      `${API_URL}/meetings/end`,
+      { meetingId, hostId },
+      {
+        headers: getAuthHeader(),
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error ending meeting:", error);
@@ -143,7 +176,13 @@ export const updateParticipantStatus = async (updateData: {
   isScreenSharing: boolean;
 }) => {
   try {
-    const response = await axios.put(`${API_URL}/meetings/participant/status`, updateData);
+    const response = await axios.put(
+      `${API_URL}/meetings/participant/status`,
+      updateData,
+      {
+        headers: getAuthHeader(),
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error updating participant status:", error);
@@ -160,7 +199,13 @@ export const sendMessage = async (messageData: {
   receiverId?: string;
 }) => {
   try {
-    const response = await axios.post(`${API_URL}/meetings/message`, messageData);
+    const response = await axios.post(
+      `${API_URL}/meetings/message`,
+      messageData,
+      {
+        headers: getAuthHeader(),
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error sending message:", error);
@@ -171,7 +216,12 @@ export const sendMessage = async (messageData: {
 // Get meeting messages
 export const getMeetingMessages = async (meetingId: string, userId: string) => {
   try {
-    const response = await axios.get(`${API_URL}/meetings/${meetingId}/messages?userId=${userId}`);
+    const response = await axios.get(
+      `${API_URL}/meetings/${meetingId}/messages?userId=${userId}`,
+      {
+        headers: getAuthHeader(),
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error getting meeting messages:", error);
