@@ -26,6 +26,8 @@ import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
 import { creatWaitingList } from "@/app/api/waitingList/waitingList";
 import { fetchLesson } from "@/app/api/course/LessonAPI";
 import { Lesson } from "@/app/type/course/Lesson";
+import { interactionApi } from "@/app/api/interaction/interactionApi";
+import { InteractionType } from "@/app/type/Interaction/Interaction";
 interface CourseCardProps {
   courseId: string;
 }
@@ -93,6 +95,21 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           session?.user.email
         );
         if (data === 200) {
+          if (session?.user?.user_id) {
+            try {
+              await interactionApi.createOrUpdateInteraction({
+                user: {
+                  user_id: session.user.user_id,
+                },
+                course: {
+                  courseId: courseId,
+                },
+                interaction_type: InteractionType.PURCHASE,
+              });
+            } catch (error) {
+              console.error("Error creating interaction:", error);
+            }
+          }
           setIsPurchased(true);
           return;
         }

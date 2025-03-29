@@ -1,17 +1,9 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Put,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { InteractionResponseDTO } from './dto/InteractionResponseDTO.dto';
 import { InteractionService } from './Interaction.service';
-import { InteractionRequestDTO } from './dto/InteractionRequestDTO.dto';
+import { Interaction } from './entities/Interaction.entity';
 
 @ApiTags('Interactions')
 @Controller('interactions')
@@ -35,20 +27,8 @@ export class InteractionController {
   @Post()
   @ApiOperation({ summary: 'Create a new interaction' })
   @ApiResponse({ status: 201, type: InteractionResponseDTO })
-  async create(
-    @Body() data: InteractionRequestDTO,
-  ): Promise<InteractionResponseDTO> {
-    return this.interactionService.create(data);
-  }
-
-  @Put(':id')
-  @ApiOperation({ summary: 'Update an interaction' })
-  @ApiResponse({ status: 200, type: InteractionResponseDTO })
-  async update(
-    @Param('id') id: string,
-    @Body() data: Partial<InteractionRequestDTO>,
-  ): Promise<InteractionResponseDTO> {
-    return this.interactionService.update(id, data);
+  async create(@Body() data: Interaction): Promise<InteractionResponseDTO> {
+    return this.interactionService.createOrUpdate(data);
   }
 
   @Delete(':id')
