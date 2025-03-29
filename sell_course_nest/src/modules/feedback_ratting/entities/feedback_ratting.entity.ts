@@ -29,4 +29,7 @@ export class FeedbackRatting {
 
   @Column({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @Column('real', { array: true })
+  embedding: number[];
 }
