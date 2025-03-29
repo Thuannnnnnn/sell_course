@@ -201,7 +201,7 @@ export class CourseService {
       createdAt: new Date(),
       updatedAt: new Date(),
       isPublic: isPublic ?? true,
-      embedding: [1, 3, 2],
+      embedding: embedding,
     });
 
     return {
