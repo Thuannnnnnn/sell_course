@@ -152,8 +152,8 @@ export class CourseService {
       imageUrl = await azureUpload(files.imageInfo[0]);
     }
 
-    const combinedText = `${title} ${course.description} ${categoryData.name}`;
-    const embedding = await this.generateEmbedding(combinedText);
+    // const combinedText = `${title} ${course.description} ${categoryData.name}`;
+    // const embedding = await this.generateEmbedding(combinedText);
 
     const newCourse = await this.CourseRepository.save({
       courseId: uuidv4(),
@@ -167,7 +167,7 @@ export class CourseService {
       createdAt: new Date(),
       updatedAt: new Date(),
       isPublic: isPublic ?? true,
-      embedding: embedding,
+      embedding: [1, 3, 2],
     });
 
     return {

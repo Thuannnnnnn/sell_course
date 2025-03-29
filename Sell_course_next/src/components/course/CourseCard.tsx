@@ -98,7 +98,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   };
 
   return (
-    <div className="card">
+    <div className="cardListCourse">
       <div className="header">
         <Image
           src={course.userAvata || ""}
@@ -125,7 +125,6 @@ export default function CourseCard({ course }: CourseCardProps) {
       <div className="content-courseCard">
         <div className="tt">
           <span className="category">{course.categoryName}</span>
-          <p className="lessons">12 Lessons</p>
           <h3 className="title">{course.title}</h3>
         </div>
       </div>

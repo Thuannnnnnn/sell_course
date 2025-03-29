@@ -33,58 +33,6 @@ export class UserService {
 
     return new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() });
   }
-
-  /*
-   * async changePassword(
-   *   email: string,
-   *   currentPassword: string,
-   *   newPassword: string,
-   *   confirmPassword: string,
-   * ): Promise<string> {
-   *   // Find the user by user_id (which matches the value from the token)
-   *   const user = await this.userRepository.findOne({ where: { email } });
-   *   if (!user) {
-   *     throw new NotFoundException('User not found');
-   *   }
-   *   // Validate current password
-   *   const isCurrentPasswordValid = await bcrypt.compare(
-   *     currentPassword,
-   *     user.password,
-   *   );
-   *   if (!isCurrentPasswordValid) {
-   *     throw new UnauthorizedException('Current password is incorrect');
-   *   }
-   *   // Check if new password matches confirm password
-   *   if (newPassword !== confirmPassword) {
-   *     throw new BadRequestException(
-   *       'New password and confirm password do not match',
-   *     );
-   *   }
-   *   // Hash the new password
-   *   const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-   *   // Update the user's password
-   *   user.password = hashedNewPassword;
-   *   await this.userRepository.save(user); // Ensure that this saves the updated user in the database
-   *   return 'Password changed successfully';
-   * }
-   * async updateProfile(
-   *   email: string,
-   *   updateProfileDto: UpdateProfileDto,
-   * ): Promise<User> {
-   *   const user = await this.userRepository.findOne({ where: { email } });
-   */
-
-  /*
-   *   if (!user) {
-   *     throw new NotFoundException('User not found');
-   *   }
-   */
-
-  /*
-   *   Object.assign(user, updateProfileDto);
-   *   return this.userRepository.save(user);
-   * }
-   */
   async findAll(): Promise<UserDTO[] | null> {
     const users = await this.userRepository.find({
       relations: ['permissions'],
@@ -196,10 +144,9 @@ export class UserService {
       user.birthDay,
       user.phoneNumber,
       user.role,
+      user.isBan,
     );
   }
-
-  // get user
   async getMe(email: string): Promise<UserDTO> {
     const user = await this.userRepository.findOne({
       where: { email },
@@ -218,24 +165,90 @@ export class UserService {
     updateData: Partial<UserDto>,
     file?: Express.Multer.File,
   ): Promise<UserDto | null> {
-    // Tìm user bằng email
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
       return null;
     }
-
-    // Nếu có file, upload avatar mới lên Azure Blob Storage
     if (file) {
       try {
-        const avatarUrl = await azureUpload(file); // Upload file lên Azure Blob
+        const avatarUrl = await azureUpload(file);
         updateData.avatarImg = avatarUrl;
       } catch {
         throw new Error('Failed to upload avatar to Azure Blob Storage.');
       }
     }
     console.log('Update data:', file, updateData);
-
     Object.assign(user, updateData);
+    await this.userRepository.save(user);
+    return new UserDto(
+      user.user_id,
+      user.email,
+      user.username,
+      user.avatarImg,
+      user.gender,
+      user.birthDay,
+      user.phoneNumber,
+      user.role,
+      user.isBan,
+    );
+  }
+
+  async updateUser(
+    userId: string,
+    updateData: Partial<UserDto>,
+  ): Promise<UserDto> {
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (updateData.email) {
+      const existingUserWithEmail = await this.userRepository.findOne({
+        where: { email: updateData.email },
+      });
+      if (existingUserWithEmail && existingUserWithEmail.user_id !== userId) {
+        throw new BadRequestException('Email already exists.');
+      }
+    }
+
+    if (updateData.username) {
+      const existingUserWithUsername = await this.userRepository.findOne({
+        where: { username: updateData.username },
+      });
+      if (
+        existingUserWithUsername &&
+        existingUserWithUsername.user_id !== userId
+      ) {
+        throw new BadRequestException('Username already exists.');
+      }
+    }
+    Object.assign(user, updateData);
+    await this.userRepository.save(user);
+    return new UserDto(
+      user.user_id,
+      user.email,
+      user.username,
+      user.avatarImg,
+      user.gender,
+      user.birthDay,
+      user.phoneNumber,
+      user.role,
+      user.isBan,
+    );
+  }
+  async banUser(userId: string, isBan: boolean): Promise<UserDto> {
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Cập nhật trạng thái isBan
+    user.isBan = isBan;
     await this.userRepository.save(user);
 
     // Trả về UserDto
@@ -248,6 +261,7 @@ export class UserService {
       user.birthDay,
       user.phoneNumber,
       user.role,
+      user.isBan,
     );
   }
 }

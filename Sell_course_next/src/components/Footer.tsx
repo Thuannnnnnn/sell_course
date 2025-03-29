@@ -1,12 +1,14 @@
 "use client";
 import React from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Image } from "react-bootstrap";
 import "../style/Footer.css";
 import StartChatButton from "./chat_support/startChatButton";
+import Link from "next/link";
 
 const Footer: React.FC = () => {
   const t = useTranslations("footer");
+  const locale = useLocale();
   return (
     <footer className="footer">
       <div className="container">
@@ -45,30 +47,16 @@ const Footer: React.FC = () => {
               <li>{t("productList.2")}</li>
               <li>{t("productList.3")}</li>
               <li>{t("productList.4")}</li>
-              <li>{t("productList.5")}</li>
+              <li>
+                <Link
+                  href={`/${locale}/chats/history`}
+                  className="text-black text-decoration-none"
+                >
+                  {t("chatHistory")}
+                </Link>
+              </li>
               <StartChatButton />
             </ul>
-          </div>
-          <div className="col-md-2 mb-1">
-            <h5>{t("tools")}</h5>
-            <ul className="list-unstyled">
-              <li>{t("toolsList.0")}</li>
-              <li>{t("toolsList.1")}</li>
-              <li>{t("toolsList.2")}</li>
-              <li>{t("toolsList.3")}</li>
-              <li>{t("toolsList.4")}</li>
-              <li>{t("toolsList.5")}</li>
-            </ul>
-          </div>
-          <div className="col-md-4 mb-1">
-            <h5 className="title-custom">
-              {t("companyName")}
-              <span className="red-flag">RedFlag</span>
-              <span className="golden-star">GoldenStar</span>
-            </h5>
-            <p>{t("taxCode")}</p>
-            <p>{t("foundingDate")}</p>
-            <p>{t("activityField")}</p>
           </div>
         </div>
 

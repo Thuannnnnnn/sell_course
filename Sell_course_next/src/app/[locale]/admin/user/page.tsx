@@ -1,46 +1,19 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { Spinner } from 'react-bootstrap';
-import UserTable from '@/components/UserTable';
-import { fetchUsers } from '@/app/api/user/User';
-import { User } from '@/app/type/user/User';
-import { useSession } from 'next-auth/react';
-import Sidebar from '@/components/SideBar';
-import '@/style/User.css';
-import { useTranslations } from 'next-intl';
+"use client";
+import Sidebar from "@/components/SideBar";
+import UserTable from "@/components/UserTable";
+import "@/style/User.css";
+import { useTranslations } from "next-intl";
 
 const UsersPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
-  const t = useTranslations('user');
-  useEffect(() => {
-    const getUsers = async () => {
-      const token = session?.user.token;
-      if (!token) return;
-
-      const usersData = await fetchUsers(token);
-      setUsers(usersData);
-      setLoading(false);
-    };
-
-    getUsers();
-  }, [session]);
-  const handleUpdateUsers = (updatedUsers: User[]) => {
-    setUsers(updatedUsers);
-  };
+  const t = useTranslations("user");
   return (
     <div className="page-container">
       <div className="sidebar-container">
         <Sidebar />
       </div>
       <div className="content-container">
-        <h3 className="page-title">{t('title')}</h3>
-        {loading ? (
-          <Spinner animation="border" />
-        ) : (
-          <UserTable users={users} onUpdateUsers={handleUpdateUsers} />
-        )}
+        <h3 className="page-title">{t("title")}</h3>
+        <UserTable />
       </div>
     </div>
   );

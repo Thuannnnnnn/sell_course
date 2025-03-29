@@ -52,7 +52,8 @@
     "taxCode": "Mã số thuế: 0109922901",
     "foundingDate": "Ngày thành lập: 05/01/2025",
     "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
-    "copyright": ". Nền tảng học lập trình hàng đầu tại Việt Nam."
+    "copyright": ". Nền tảng học lập trình hàng đầu tại Việt Nam.",
+    "chatHistory": "Lịch sử trò truyện"
   },
   "detail": {
     "title": "Chi tiết"
@@ -139,7 +140,8 @@
     "forumPosts": "Bài đăng diễn đàn",
     "exportToExcel": "Xuất ra Excel",
     "statisticsOverview": "Tổng quan thống kê",
-    "customers": "Khách Hàng"
+    "customers": "Khách Hàng",
+    "promotion": "Khuyến Mãi"
   },
   "permission": {
     "title": "Quyền",
@@ -181,7 +183,20 @@
     "noPermisssion": "Không có quyền",
     "addBtn": "Thêm quyền",
     "remove": "Xóa",
-    "removing": "Đang xóa..."
+    "removing": "Đang xóa...",
+    "userManagement": "Quản Lý Người Dùng",
+    "edit": "Chỉnh sửa",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "editUser": "Chỉnh Sửa Thông Tin Người Dùng",
+    "banned": "Người Dùng Bị Khoá",
+    "status": "Trạng thái",
+    "active": "Đang hoạt động",
+    "ban": "Khoá",
+    "unban": "Mở Khoá",
+    "searchPlaceholder": "Nhập Tên Để Tìm Kiếm",
+    "noPermission": "Không có quyền!",
+    "loading": "Đang tải..."
   },
   "categories": {
     "create": "TẠO THỂ LOẠI",
@@ -238,7 +253,8 @@
     "description": "Mô tả",
     "category": "Thể loại",
     "dateCreated": "Ngày tải lên",
-    "actions": "Tính năng"
+    "actions": "Tính năng",
+    "searchPlaceholder": "Nhập Tên Để Tìm Kiếm"
   },
   "coursesForm": {
     "editCourse": "CHỈNH SỬA KHÓA HỌC",
@@ -308,7 +324,12 @@
     "price": "Giá",
     "product": "Sản phẩm",
     "thumbnail": "Hình ảnh",
-    "removeConfirmation": "Bạn có chắc muốn xóa sản phẩm này không?"
+    "removeConfirmation": "Bạn có chắc muốn xóa sản phẩm này không?",
+    "yourCart": "Giỏ hàng của bạn",
+    "emptyCart": "Giỏ hàng của bạn trống",
+    "emptyCartAlert": "Giỏ hàng của bạn trống!",
+
+    "summary": "Tóm tắt giỏ hàng"
   },
   "checkout": {
     "title": "Thanh toán",
@@ -327,34 +348,52 @@
     "failureMessage": "Rất tiếc, thanh toán của bạn không thể thực hiện. Vui lòng thử lại.",
     "home_button": "Quay về trang chủ",
     "checkout": "Thanh toán",
-    "subtotal": "Tạm tính"
+    "subtotal": "Tạm tính",
+    "subtitle": "Hoàn tất đơn hàng của bạn",
+    "yourCart": "Giỏ hàng của bạn",
+    "emptyCart": "Giỏ hàng của bạn trống",
+    "discount": "Giảm giá",
+    "enterPromoCode": "Nhập mã giảm giá",
+    "applyPromoCode": "Áp dụng mã giảm giá",
+    "paymentError": "Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại.",
+    "invalidPromoCode": "Mã giảm giá không hợp lệ",
+    "authError": "Bạn cần đăng nhập để áp dụng mã giảm giá",
+    "summary": "Tóm tắt đơn hàng"
   },
   "courseDetailForm": {
-    "teacher": "Giáo viên",
+    "teacher": "Giảng viên",
     "category": "Danh mục",
     "lastUpdate": "Cập nhật lần cuối",
     "rating": "Đánh giá",
-    "aboutCourse": "Giới thiệu khóa học",
-    "courseCurriculum": "Chương trình học",
-    "inTroToCourse": "Giới thiệu khóa học",
-    "exam": "Bài kiểm tra",
+    "aboutCourse": "Về khóa học này",
+    "collapse": "Thu gọn",
+    "readMore": "Đọc thêm",
+    "courseCurriculum": "Chương trình khóa học",
+    "inTroToCourse": "Giới thiệu về khóa học",
+    "exam": "Kỳ thi",
+    "purFedback": "Mua khóa học để để lại phản hồi.",
+    "questionsAndAnswers": "Hỏi và Đáp",
+    "enterDescription": "Nhập câu hỏi của bạn tại đây...",
+    "noQuestionsYet": "Chưa có câu hỏi nào.",
+    "reply": "Trả lời",
     "addToCart": "Thêm vào giỏ hàng",
     "buyCourse": "Mua khóa học",
-    "readMore": "Đọc thêm",
-    "collapse": "Thu gọn",
-    "success": "Thành công",
-    "error": "Lỗi",
+    "addToWaitList": "Thêm vào danh sách chờ",
+    "GoToCourse": "Đi đến khóa học",
+    "loginRequired": "Bạn cần đăng nhập để thực hiện hành động này.",
+    "warning": "Cảnh báo",
     "addedToCartSuccess": "Khóa học đã được thêm vào giỏ hàng thành công!",
+    "success": "Thành công",
     "addedToCartFail": "Không thể thêm khóa học vào giỏ hàng.",
-    "questionsAndAnswers": "Questions and Answers",
-    "reply": "trả lời",
-    "noQuestionsYet": "Chưa có câu hỏi",
-    "enterDescription": "Nhập câu hỏi",
-    "addToWaitList": "Thêm khóa chờ",
-    "addedToWaitListSuccess": "Khóa học đã được thêm vào danh sách chờ thành công!",
-    "addedToWaitListFail": "Không thể thêm khóa học vào danh sách chờ.",
-    "purFedback": "Bạn cần mua khóa học này để đánh giá",
-    "GoToCourse": "Vào Học"
+    "error": "Lỗi",
+    "feedbacks": "Phản hồi",
+    "feedbackPlaceholder": "Chia sẻ trải nghiệm của bạn...",
+    "ratingLabel": "Đánh giá",
+    "submitFeedback": "Gửi phản hồi",
+    "noFeedbacksYet": "Chưa có phản hồi nào",
+    "sendingQuestion": "Đang gửi...",
+    "sendQuestion": "Gửi câu hỏi",
+    "delete": "Xoá"
   },
   "forgotPasswordPage": {
     "title": "Quên Mật Khẩu",
@@ -412,27 +451,6 @@
     "title_exists_error": "Tên tài liệu đã tồn tại",
     "upload_error": "Có lỗi xảy ra khi tải tài liệu lên",
     "file_status": "Tệp tin đã có sẵn"
-  },
-  "showCourse": {
-    "pageTitle": "Khám Phá Khóa Học",
-    "pageSubtitle": "Tìm kiếm và khám phá các khóa học phù hợp với bạn",
-    "searchPlaceholder": "Tìm kiếm khóa học...",
-    "loading": "Đang tải...",
-    "resultsFound": "Tìm thấy {count} khóa học",
-    "withKeyword": " với từ khóa \"{keyword}\"",
-    "inCategory": " trong danh mục \"{category}\"",
-    "showingAll": "Hiển thị tất cả {count} khóa học",
-    "noResults": "Không tìm thấy khóa học",
-    "noResultsMessage": "Không có khóa học nào phù hợp với tiêu chí tìm kiếm của bạn.",
-    "clearFilters": "Xóa bộ lọc",
-    "sortOptions": {
-      "newest": "Mới nhất",
-      "oldest": "Cũ nhất",
-      "priceLow": "Giá thấp đến cao",
-      "priceHigh": "Giá cao đến thấp",
-      "nameAsc": "Tên A-Z",
-      "nameDesc": "Tên Z-A"
-    }
   },
   "Forum": {
     "title": "Diễn đàn",
@@ -620,5 +638,46 @@
     "settingActivated": "Cài đặt đã được kích hoạt thành công",
     "invalidImageFormat": "Định dạng ảnh không hợp lệ",
     "someInvalidImages": "Một số ảnh có định dạng không hợp lệ"
+  },
+  "showCourse": {
+    "placeHolder": "Tìm kiếm khóa học...",
+    "loading": "Đang tải khóa học...",
+    "resultsFound": "Đã tìm thấy {count} kết quả",
+    "withKeyword": "với từ khóa '{keyword}'",
+    "inCategory": "trong danh mục '{category}'",
+    "showingAll": "Hiển thị tất cả {count} khóa học",
+    "noResults": "Không tìm thấy kết quả",
+    "noResultsMessage": "Hãy thử điều chỉnh tìm kiếm hoặc bộ lọc để tìm thứ bạn đang cần.",
+    "clearFilters": "Xóa tất cả bộ lọc",
+    "sortOptions": {
+      "newest": "Mới nhất trước",
+      "oldest": "Cũ nhất trước",
+      "priceLow": "Giá: Thấp đến Cao",
+      "priceHigh": "Giá: Cao đến Thấp",
+      "nameAsc": "Tên: A đến Z",
+      "nameDesc": "Tên: Z đến A"
+    }
+  },
+  "promotion": {
+    "title": "Khuyến mãi",
+    "create": "Tạo khuyến mãi",
+    "name": "Tên",
+    "discount": "Giảm giá (%)",
+    "code": "Mã",
+    "actions": "Hành động",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "fetchError": "Không thể tải danh sách khuyến mãi. Vui lòng thử lại.",
+    "saveError": "Không thể lưu khuyến mãi. Vui lòng thử lại.",
+    "deleteError": "Không thể xóa khuyến mãi. Vui lòng thử lại.",
+    "invalidDiscount": "Giảm giá phải là một số hợp lệ lớn hơn hoặc bằng 0.",
+    "editPromotion": "Sửa khuyến mãi",
+    "createPromotion": "Tạo khuyến mãi",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "selectCourse": "Chọn khóa học",
+    "courseRequired": "Vui lòng chọn khoá học",
+    "searchCourse": "Tìm Kiếm Khoá Học",
+    "course": "Course"
   }
 }

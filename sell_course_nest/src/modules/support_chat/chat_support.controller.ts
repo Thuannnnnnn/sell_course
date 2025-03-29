@@ -39,4 +39,31 @@ export class ChatController {
       );
     }
   }
+  @Get('history')
+  @ApiOperation({
+    summary: 'Lấy lịch sử chat của người dùng',
+    description: 'Trả về lịch sử các phiên chat và tin nhắn của người dùng',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lịch sử chat của người dùng',
+  })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy lịch sử chat' })
+  async getChatHistory(@Body() body: { userId: string }) {
+    try {
+      const history = await this.chatService.getChatHistory(body.userId);
+      if (!history.length) {
+        throw new HttpException(
+          'Không tìm thấy lịch sử chat',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return history;
+    } catch {
+      throw new HttpException(
+        'Không thể lấy lịch sử chat',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

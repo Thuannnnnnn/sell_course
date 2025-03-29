@@ -15,7 +15,7 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { SiWebauthn } from "react-icons/si";
 import { usePathname } from "next/navigation";
-
+import { BiSolidDiscount } from "react-icons/bi";
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const t = useTranslations("dashBoard");
@@ -123,6 +123,14 @@ const Sidebar = () => {
                 <TbMessageReportFilled />
               </div>
               <div>{t("support")}</div>
+            </Link>
+          </li>
+          <li className={isActive(`/${locate}/admin/promotion`)}>
+            <Link href={`/${locate}/admin/support`} className="sidebar-link">
+              <div className="icon-sidebar">
+                <BiSolidDiscount />
+              </div>
+              <div>{t("promotion")}</div>
             </Link>
           </li>
           <li className={isActive(`/${locate}/admin/authority`)}>

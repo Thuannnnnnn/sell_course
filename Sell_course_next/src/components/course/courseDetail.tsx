@@ -24,6 +24,8 @@ import {
 import { ResponseFeedbackRatingDto } from "@/app/type/feedbackRating/feedbackRating";
 import { CoursePurchaseAPI } from "@/app/api/coursePurchased/coursePurchased";
 import { creatWaitingList } from "@/app/api/waitingList/waitingList";
+import { fetchLesson } from "@/app/api/course/LessonAPI";
+import { Lesson } from "@/app/type/course/Lesson";
 interface CourseCardProps {
   courseId: string;
 }
@@ -59,6 +61,8 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   const [newFeedback, setNewFeedback] = useState("");
   const [newStar, setNewStar] = useState(5);
   const [isPurchased, setIsPurchased] = useState(false);
+
+  const [lessons, setLessons] = useState<Lesson[]>([]);
   const t = useTranslations("courseDetailForm");
 
   useEffect(() => {
@@ -96,6 +100,17 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         console.error("Error fetching course purchase:", error);
       }
     };
+    const loadLessons = async () => {
+      if (!courseId || !session?.user?.token) return;
+
+      try {
+        const data = await fetchLesson(courseId, session.user.token);
+        setLessons(data?.lessons || []);
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
+      }
+    };
+    loadLessons();
     handleCoursePurchase(courseId);
     fetchQaData();
   }, [courseId, session]);
@@ -105,23 +120,27 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       const token = session?.user.token;
       const userId = session?.user.user_id;
       if (!token || !userId) {
-        NotificationManager.warning("Login required", "Warning", 2000);
+        NotificationManager.warning(t("loginRequired"), t("warning"), 2000);
         return;
       }
 
       const response = await creatWaitingList(token, userId, courseId);
       console.log("📩 API Response:", response);
 
-      // Sửa kiểm tra status đúng với Axios
       if (response && response.waitlistId) {
-        NotificationManager.success("Added to waitlist", "Success", 2000);
+        NotificationManager.success("Added to waitlist", t("success"), 2000);
       } else {
-        NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+        NotificationManager.error(
+          "Failed to add to waitlist",
+          t("error"),
+          2000
+        );
       }
     } catch {
-      NotificationManager.error("Failed to add to waitlist", "Error", 2000);
+      NotificationManager.error("Failed to add to waitlist", t("error"), 2000);
     }
   };
+
   useEffect(() => {
     const fetchFeedbackRatings = async () => {
       if (!courseId) return;
@@ -138,29 +157,17 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
   const handleSubmitFeedback = async () => {
     if (!session || !session.user || !session.user.user_id) {
-      NotificationManager.warning(
-        t("loginRequired") || "You need to log in to submit feedback.",
-        t("warning") || "Warning",
-        2000
-      );
+      NotificationManager.warning(t("loginRequired"), t("warning"), 2000);
       return;
     }
 
     if (!newFeedback.trim()) {
-      NotificationManager.error(
-        "Feedback cannot be empty",
-        t("error") || "Error",
-        2000
-      );
+      NotificationManager.error(t("emptyFeedback"), t("error"), 2000);
       return;
     }
 
     if (newStar < 1 || newStar > 5) {
-      NotificationManager.error(
-        "Rating must be between 1 and 5 stars",
-        t("error") || "Error",
-        2000
-      );
+      NotificationManager.error(t("invalidRating"), t("error"), 2000);
       return;
     }
 
@@ -172,7 +179,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
       if (existingFeedback) {
         console.log("Updating existing feedback...");
-
         setFeedbacks((prev) =>
           prev.map((fb) =>
             fb.user && String(fb.user.user_id) === userId
@@ -180,11 +186,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               : fb
           )
         );
-        NotificationManager.success(
-          "Feedback updated successfully",
-          t("success") || "Success",
-          2000
-        );
+        NotificationManager.success(t("feedbackUpdated"), t("success"), 2000);
       } else {
         console.log("Creating new feedback...");
         const feedback = await createFeedbackRating(
@@ -196,54 +198,35 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         );
 
         setFeedbacks((prev) => [feedback, ...prev]);
-        NotificationManager.success(
-          "Feedback submitted successfully",
-          t("success") || "Success",
-          2000
-        );
+        NotificationManager.success(t("feedbackSubmitted"), t("success"), 2000);
       }
 
       setNewFeedback("");
       setNewStar(5);
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      NotificationManager.error(
-        "Failed to submit feedback",
-        t("error") || "Error",
-        2000
-      );
+      NotificationManager.error(t("feedbackFailed"), t("error"), 2000);
     }
   };
 
   const handleDeleteFeedback = async (feedbackId: string) => {
     if (!session) {
-      NotificationManager.warning(
-        "You need to log in to delete feedback.",
-        t("warning") || "Warning",
-        2000
-      );
+      NotificationManager.warning(t("loginRequired"), t("warning"), 2000);
       return;
     }
-    if (!confirm("Are you sure you want to delete this feedback?")) return;
+    if (!confirm(t("confirmDeleteFeedback"))) return;
     try {
       await deleteFeedbackRating(feedbackId, session.user.token);
       setFeedbacks((prev) =>
         prev.filter((fb) => fb.feedbackRattingId !== feedbackId)
       );
-      NotificationManager.success(
-        "Feedback deleted successfully",
-        t("success") || "Success",
-        2000
-      );
+      NotificationManager.success(t("feedbackDeleted"), t("success"), 2000);
     } catch (error) {
       console.error("Error deleting feedback:", error);
-      NotificationManager.error(
-        "Failed to delete feedback",
-        t("error") || "Error",
-        2000
-      );
+      NotificationManager.error(t("deleteFeedbackFailed"), t("error"), 2000);
     }
   };
+
   useEffect(() => {
     if (session?.user?.user_id && feedbacks.length > 0) {
       const currentUserFeedback = feedbacks.find(
@@ -266,6 +249,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
   useEffect(() => {
     const loadCourses = async () => {
       try {
@@ -275,6 +259,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       } catch (error) {
         console.log("Loaded courses error:", error);
       } finally {
+        setLoading(false);
       }
     };
     loadCourses();
@@ -307,6 +292,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       NotificationManager.error(t("addedToCartFail"), t("error"), 2000);
     }
   };
+
   const handleCheckOut = () => {
     if (!courses) return;
 
@@ -324,12 +310,12 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     ];
 
     const encodedData = encodeURIComponent(JSON.stringify(checkoutData));
-
     router.push(`/${locale}/payment?data=${encodedData}`);
   };
+
   const handleCreateQa = async () => {
     if (!text.trim()) {
-      setError("Nội dung câu hỏi không được để trống!");
+      setError(t("emptyQuestion"));
       return;
     }
 
@@ -341,31 +327,33 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
         setText("");
         setError(null);
       } else {
-        setError("Bạn phải đăng kí để có thể Q&A");
+        setError(t("loginRequiredForQa"));
       }
     } catch (error) {
-      setError("Không thể tạo câu hỏi. Vui lòng thử lại!" + error);
+      setError(t("createQuestionFailed") + error);
     }
     setLoading(false);
   };
 
   const handleDeleteQa = async (qaId: string, email: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xoá câu hỏi này?")) return;
+    if (!confirm(t("confirmDeleteQuestion"))) return;
     try {
       if (email?.toLowerCase() === session?.user?.email?.toLowerCase()) {
         await deleteQa(qaId);
         setQaData((prevQa) => prevQa.filter((qa) => qa.qaId !== qaId));
       } else {
-        setError("Bạn không có quyền xoá câu hỏi này");
+        setError(t("noPermissionToDelete"));
       }
     } catch (error) {
-      setError("Không thể xoá câu hỏi." + error);
+      setError(t("deleteQuestionFailed") + error);
     }
   };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <p>{t("loading")}</p>
       </div>
     );
   }
@@ -378,7 +366,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
   return (
     <div className="container">
       <div className="button-wrapper">
-        <button onClick={handleClick} title="Go back">
+        <button onClick={handleClick} title={t("goBack")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -401,7 +389,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           <div className="avatar">
             <Image
               src={courses?.userAvata || ""}
-              alt="Course Thumbnail"
+              alt={t("courseThumbnailAlt")}
               width={250}
               height={140}
               className="avatar-img"
@@ -421,7 +409,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           </div>
           <div>
             <p>⭐⭐⭐⭐⭐</p>
-            <h3>{t("rating")}:5/5</h3>
+            <h3>{t("rating")}: 5/5</h3>
           </div>
         </div>
       </div>
@@ -454,41 +442,25 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               </h3>
               {expandedSections.intro && (
                 <ul>
-                  <li>📹 Lesson 1: Video: Course Intro</li>
-                  <li>📹 Lesson 2: Video: Course Intro</li>
-                  <li>📹 Lesson 3: Video: Course Intro</li>
-                  <li>📹 Lesson 4: Video: Course Intro</li>
-                </ul>
-              )}
-            </div>
-
-            <div className="curriculum-section">
-              <h3
-                onClick={() => toggleSection("exam")}
-                className="section-title"
-              >
-                {t("exam")} {expandedSections.exam ? "▼" : "▶"}
-              </h3>
-              {expandedSections.exam && (
-                <ul>
-                  <li>✅ Final Exam Course</li>
+                  {lessons.map((lesson: Lesson) => (
+                    <li key={lesson.lessonId}>{lesson.lessonName}</li>
+                  ))}
                 </ul>
               )}
             </div>
           </div>
-
           <div className="feedback-section">
-            <h2>Feedbacks</h2>
+            <h2>{t("feedbacks")}</h2>
             {isPurchased ? (
               <div className="feedback-input-container">
                 <textarea
                   value={newFeedback}
                   onChange={(e) => setNewFeedback(e.target.value)}
-                  placeholder="Share your experience..."
+                  placeholder={t("feedbackPlaceholder")}
                   className="feedback-textarea"
                 />
                 <div className="rating-container">
-                  <span>Rating</span>
+                  <span>{t("ratingLabel")}</span>
                   <div className="star-rating">
                     {Array.from({ length: 5 }, (_, index) => (
                       <span
@@ -505,7 +477,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                   className="submit-feedback-btn"
                   onClick={handleSubmitFeedback}
                 >
-                  Submit Feedback
+                  {t("submitFeedback")}
                 </button>
               </div>
             ) : (
@@ -514,14 +486,14 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
             {feedbacks.length > 0 ? (
               feedbacks
-                .slice() // Tạo bản sao để không ảnh hưởng mảng gốc
+                .slice()
                 .sort((a, b) => {
                   const currentUserId = session?.user?.user_id;
                   const isACurrentUser =
                     a.user && String(a.user.user_id) === String(currentUserId);
                   const isBCurrentUser =
                     b.user && String(b.user.user_id) === String(currentUserId);
-                  return isBCurrentUser ? 1 : isACurrentUser ? -1 : 0; // Đưa feedback của user hiện tại lên đầu
+                  return isBCurrentUser ? 1 : isACurrentUser ? -1 : 0;
                 })
                 .map((feedback) => (
                   <div
@@ -533,7 +505,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                         {feedback.user?.avatarImg ? (
                           <Image
                             src={feedback.user.avatarImg}
-                            alt="User Avatar"
+                            alt={t("userAvatarAlt")}
                             width={32}
                             height={32}
                             className="feedback-avatar"
@@ -545,10 +517,10 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                         )}
                         <div className="feedback-user-details">
                           <span className="feedback-author">
-                            {feedback.user?.username || "Anonymous"}
+                            {feedback.user?.username || t("anonymous")}
                           </span>
                           <span className="feedback-role">
-                            {feedback.user?.role || "No Role"}
+                            {feedback.user?.role || t("noRole")}
                           </span>
                         </div>
                       </div>
@@ -557,7 +529,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                         onClick={() =>
                           handleDeleteFeedback(feedback.feedbackRattingId)
                         }
-                        title="Delete Feedback"
+                        title={t("deleteFeedback")}
                       >
                         🗑️
                       </button>
@@ -578,7 +550,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                   </div>
                 ))
             ) : (
-              <p>No feedbacks yet</p>
+              <p>{t("noFeedbacksYet")}</p>
             )}
           </div>
 
@@ -604,7 +576,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               className="m-2 bg-primary text-white px-4 py-2 rounded"
               disabled={loading}
             >
-              {loading ? "Đang gửi..." : "Gửi câu hỏi"}
+              {loading ? t("sendingQuestion") : t("sendQuestion")}
             </button>
             {qaData.length > 0 ? (
               <div className="qa-list space-y-6">
@@ -624,18 +596,15 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                             {question.avatarImg && (
                               <Image
                                 src={question.avatarImg}
-                                alt="User Avatar"
+                                alt={t("userAvatarAlt")}
                                 width={40}
                                 height={40}
                                 className="rounded-circle"
                               />
                             )}
                             <div>
-                              <h4 className="font-semibold text-lg flex items-center gap-2 flex items-center gap-2">
+                              <h4 className="font-semibold text-lg flex items-center gap-2">
                                 {question.username}
-                                {/* <span className="dateTime text-sm text-gray-500 font-normal">
-                                  {getRelativeTime(question.createdAt)}
-                                </span> */}
                               </h4>
                               <p className="textQuestion mt-2 text-gray-700">
                                 <div
@@ -656,17 +625,11 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                                 }
                                 className="mt-2 text-red-500 hover:text-red-700"
                               >
-                                Xoá
+                                {t("delete")}
                               </button>
                             </div>
                           </div>
-                          <button
-                            // onClick={() => {
-                            //   setSelectedQuestionId(question.qaId);
-                            //   setShowReplyPopup(true);
-                            // }}
-                            className="mt-2 text-blue-600 hover:text-blue-800 font-medium buttonReply"
-                          >
+                          <button className="mt-2 text-blue-600 hover:text-blue-800 font-medium buttonReply">
                             {t("reply")}
                           </button>
                         </div>
@@ -675,7 +638,9 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                             key={answer.qaId}
                             className="answer ml-8 mt-4 bg-blue-50 p-4 rounded-lg"
                           >
-                            <p className="text-lg mb-2">A: {answer.text}</p>
+                            <p className="text-lg mb-2">
+                              {t("answerPrefix")}: {answer.text}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -692,7 +657,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
 
         <div className="course-sidebar">
           <iframe
-            title="Course Video"
+            title={t("courseVideoTitle")}
             width="100%"
             height="150"
             src={courses?.videoInfo}
@@ -703,7 +668,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
               {courses?.isPublic && (
                 <div>
                   <h2 className="course-price">${courses?.price}</h2>
-
                   <button
                     className="btn-course-detail add-to-cart"
                     onClick={() => handleAddToCart(courses?.courseId || "")}

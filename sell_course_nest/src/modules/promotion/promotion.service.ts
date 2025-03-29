@@ -18,7 +18,7 @@ export class PromotionService {
     const course = await this.courseRepository.findOne({
       where: { courseId: createPromotionDto.courseId },
     });
-
+    console.log(course);
     if (!course) {
       throw new NotFoundException('Course not found');
     }
@@ -35,9 +35,9 @@ export class PromotionService {
     return this.promotionRepository.find({ relations: ['course'] });
   }
 
-  async findOne(id: string): Promise<Promotion> {
+  async findOne(code: string): Promise<Promotion> {
     const promotion = await this.promotionRepository.findOne({
-      where: { id },
+      where: { code },
       relations: ['course'],
     });
 
@@ -51,13 +51,13 @@ export class PromotionService {
     id: string,
     updatePromotionDto: UpdatePromotionDto,
   ): Promise<Promotion> {
-    const promotion = await this.findOne(id);
+    const promotion = await this.promotionRepository.findOne({ where: { id } });
     Object.assign(promotion, updatePromotionDto);
     return this.promotionRepository.save(promotion);
   }
 
   async remove(id: string): Promise<void> {
-    const promotion = await this.findOne(id);
+    const promotion = await this.promotionRepository.findOne({ where: { id } });
     await this.promotionRepository.remove(promotion);
   }
 }

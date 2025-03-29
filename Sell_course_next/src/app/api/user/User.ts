@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { User } from '@/app/type/user/User';
+import axios from "axios";
+import { User } from "@/app/type/user/User";
 
 export const fetchUsers = async (token: string): Promise<User[]> => {
   try {
@@ -13,7 +13,7 @@ export const fetchUsers = async (token: string): Promise<User[]> => {
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error("Error fetching users:", error);
     return [];
   }
 };
@@ -30,13 +30,13 @@ export const AssignPermission = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
     return response.data;
   } catch (error) {
-    console.error('Error assigning permissions:', error);
+    console.error("Error assigning permissions:", error);
     return null;
   }
 };
@@ -52,12 +52,52 @@ export const removePermission = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
     return response.data;
   } catch {
     return null;
+  }
+};
+export const updateUserProfile = async (formData: FormData, token: string) => {
+  try {
+    const response = await axios.put(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_URL
+      }/api/admin/users/update_user/${formData.get("user_id")}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch {
+    throw "Error updating profile.";
+  }
+};
+export const banUser = async (
+  token: string,
+  userId: string,
+  isBan: boolean
+): Promise<User> => {
+  try {
+    const response = await axios.put(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/users/ban/${userId}`,
+      { isBan },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch {
+    throw "Error banning/unbanning user.";
   }
 };

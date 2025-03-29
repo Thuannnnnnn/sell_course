@@ -4,6 +4,23 @@ export interface StartChatResponse {
   sessionId: string;
 }
 
+export interface ChatHistoryResponse {
+  session: {
+    id: string;
+    userId: string;
+    startTime: string;
+    isActive: boolean;
+    endTime?: string;
+  };
+  messages: {
+    id: string;
+    sessionId: string;
+    sender: string;
+    messageText: string;
+    timestamp: string;
+  }[];
+}
+
 const notifyAdminNewChat = async (userId: string, token: string) => {
   try {
     await axios.post(
@@ -48,6 +65,30 @@ export const StartChat = async (
     return response.data;
   } catch (error) {
     console.error("chat error", error);
+    return undefined;
+  }
+};
+
+export const GetChatHistory = async (
+  userId: string,
+  token: string
+): Promise<ChatHistoryResponse[] | undefined> => {
+  try {
+    const response: AxiosResponse<ChatHistoryResponse[]> = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/chats/history`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          userId: userId,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch chat history", error);
     return undefined;
   }
 };

@@ -422,7 +422,7 @@ export default function SettingPage() {
               {logoPreview && (
                 <div className="text-center mt-3 mb-3">
                   <p>{t("logoPreview")}</p>
-                  <img
+                  <Image
                     src={logoPreview}
                     alt="Logo preview"
                     style={{
@@ -455,7 +455,7 @@ export default function SettingPage() {
                   <p>{t("carouselPreview")}</p>
                   <div className="d-flex flex-wrap gap-2">
                     {carouselPreviews.map((preview, index) => (
-                      <img
+                      <Image
                         key={index}
                         src={preview}
                         alt={`Preview ${index + 1}`}

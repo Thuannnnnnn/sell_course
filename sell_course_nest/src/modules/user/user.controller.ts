@@ -215,4 +215,30 @@ export class UserController {
       );
     }
   }
+  @Put('admin/users/update_user/:id')
+  async updateUserAdmin(
+    @Param('id') userId: string,
+    @Body() updateData: Partial<UserDto>,
+  ): Promise<UserDto> {
+    return this.userService.updateUser(userId, updateData);
+  }
+  @Put('/admin/users/ban/:id')
+  async banUser(
+    @Param('id') userId: string,
+    @Body() body: { isBan: boolean },
+  ): Promise<{ message: string; user: UserDto }> {
+    try {
+      const updatedUser = await this.userService.banUser(userId, body.isBan);
+      return {
+        message: `User has been ${body.isBan ? 'banned' : 'unbanned'} successfully`,
+        user: updatedUser,
+      };
+    } catch {
+      console.error('Error banning user:');
+      throw new HttpException(
+        'Failed to ban/unban user',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 }
