@@ -6,7 +6,7 @@ import logoCPlusPlus from "../.../../../../public/logoC++_img.png";
 import logoCSharp from "../.../../../../public/logoC_img.jpg";
 import logoNodeJs from "../.../../../../public/logoSQL_img.jpg";
 import logoSQL from "../.../../../../public/logoSQL_img.jpg";
-import { HiOutlineCheck } from "react-icons/hi";
+import poster from "../.../../../../public/poster_img.jpg";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -22,6 +22,7 @@ import "@/style/HomePage.css";
 import { fetchUserAnswersByUserId } from "../api/userAnswer/userAnswerApi";
 import { interactionApi } from "../api/interaction/interactionApi";
 import { InteractionType } from "../type/Interaction/Interaction";
+import { recommend } from "../api/recomend/recomend";
 export default function HomePage() {
   const t = useTranslations("homePage");
   const tc = useTranslations("cardCourse");
@@ -46,16 +47,31 @@ export default function HomePage() {
   }, [session]);
 
   useEffect(() => {
-    const loadCourses = async () => {
-      try {
-        const data = await fetchCourses();
-        setCourses(data);
-      } catch {
-      } finally {
-      }
-    };
+    if (session && session.user && session.user.user_id) {
+      const loadCourses = async () => {
+        try {
+          const coursesData = await fetchCourses();
+          const recData = await recommend(session.user.user_id);
 
-    loadCourses();
+          if (!recData || !recData.recommended_courses) {
+            console.warn("No recommended courses found");
+            return;
+          }
+
+          const recommendedIds = recData.recommended_courses;
+
+          const filteredCourses = coursesData.filter((course) =>
+            recommendedIds.includes(course.courseId)
+          );
+
+          setCourses(filteredCourses);
+        } catch (error) {
+          console.error("Error fetching courses:", error);
+        }
+      };
+
+      loadCourses();
+    }
   }, [session]);
 
   const router = useRouter();
@@ -160,145 +176,78 @@ export default function HomePage() {
             </SwiperSlide>
           </Swiper>
         </div>
-        <div className="content-container">
-          <h1 className="course-title">{t("homePageTitle")}</h1>
-          <p className="course-description">{t("homePageContent")}</p>
-          <div className="course-carousel">
-            <Swiper
-              spaceBetween={50}
-              slidesPerView={1}
-              loop={true}
-              pagination={{ clickable: true }}
-              breakpoints={{
-                600: {
-                  slidesPerView: 1,
-                },
-                740: {
-                  slidesPerView: 2,
-                },
-                1024: {
-                  slidesPerView: 4,
-                },
-              }}
-            >
-              {courses.map((course) => (
-                <SwiperSlide key={course.courseId}>
-                  <div
-                    className="course-card"
-                    style={{
-                      maxWidth: "400px",
-                      width: "100%",
-                      margin: "auto",
-                    }}
-                  >
-                    {course.imageInfo ? (
-                      <Image
-                        src={course.imageInfo}
-                        alt="Course Thumbnail"
-                        width={50}
-                        height={60}
-                        style={{ objectFit: "contain" }}
-                      />
-                    ) : (
-                      "N/A"
-                    )}
-                    <h2>{course.title}</h2>
-                    <ul>
-                      <li>
-                        <div className="icon">
-                          <HiOutlineCheck className="icon-check" />
+        <div className="content-container py-5">
+          <h1 className="course-title text-center mb-4">
+            {t("homePageTitle")}
+          </h1>
+          <p className="course-description text-center mb-5">
+            {t("homePageContent")}
+          </p>
+
+          <div className="content-container py-5">
+            <h1 className="course-title text-center mb-4">
+              {t("homePageTitle")}
+            </h1>
+            <p className="course-description text-center mb-5">
+              {t("homePageContent")}
+            </p>
+
+            <div className="content-container py-5">
+              <h1 className="course-title text-center mb-4">
+                {t("homePageTitle")}
+              </h1>
+              <p className="course-description text-center mb-5">
+                {t("homePageContent")}
+              </p>
+
+              <div className="container">
+                <div className="row g-4">
+                  {courses.map((course) => (
+                    <div key={course.courseId} className="col-md-2-4">
+                      <div className="card h-100 shadow-sm hover-card">
+                        <div className="position-relative card-img-wrapper">
+                          {course.imageInfo ? (
+                            <Image
+                              src={course.imageInfo}
+                              alt={course.title}
+                              width={300}
+                              height={200}
+                              className="card-img-top"
+                              style={{ objectFit: "cover", height: "150px" }}
+                            />
+                          ) : (
+                            <Image
+                              src={poster}
+                              alt="Default Thumbnail"
+                              width={300}
+                              height={200}
+                              className="card-img-top"
+                              style={{ objectFit: "cover", height: "150px" }}
+                            />
+                          )}
                         </div>
-                        {tc("0")}
-                      </li>
-                      <li>
-                        <div className="icon">
-                          <HiOutlineCheck className="icon-check" />
+                        <div className="card-body d-flex flex-column">
+                          <h6
+                            className="card-title"
+                            style={{ minHeight: "48px", lineHeight: "1.4" }}
+                          >
+                            {course.title}
+                          </h6>
+                          <div className="mt-auto">
+                            <button
+                              className="btn btn-primary w-100"
+                              onClick={() => handleClick(course.courseId)}
+                            >
+                              {tc("4")}
+                            </button>
+                          </div>
                         </div>
-                        {tc("1")}
-                      </li>
-                      <li>
-                        <div className="icon">
-                          <HiOutlineCheck className="icon-check" />
-                        </div>
-                        {tc("2")}
-                      </li>
-                    </ul>
-                    <p className="course-price">
-                      {" "}
-                      {tc("3")} <strong>${course.price}</strong>
-                    </p>
-                    <button
-                      className="get-started-btn"
-                      onClick={() => handleClick(course.courseId)}
-                    >
-                      {tc("4")}
-                    </button>
-                  </div>
-                </SwiperSlide>
-              ))}
-              {/* <SwiperSlide>
-                <div className="course-card">
-                  <Image src={logoJs} alt="JavaScript" />
-                  <h2>JavaScript</h2>
-                  <ul>
-                    <li>
-                      <div className="icon">
-                        <HiOutlineCheck className="icon-check" />
                       </div>
-                      {tc("0")}
-                    </li>
-                    <li>
-                      <div className="icon">
-                        <HiOutlineCheck className="icon-check" />
-                      </div>
-                      {tc("1")}
-                    </li>
-                    <li>
-                      <div className="icon">
-                        <HiOutlineCheck className="icon-check" />
-                      </div>
-                      {tc("2")}
-                    </li>
-                  </ul>
-                  <p className="course-price">
-                    {" "}
-                    {tc("3")} <strong>$100.00</strong>
-                  </p>
-                  <button className="get-started-btn">{tc("4")}</button>
+                    </div>
+                  ))}
                 </div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="course-card">
-                  <Image src={logoJs} alt="JavaScript" />
-                  <h2>JavaScript</h2>
-                  <ul>
-                    <li>
-                      <div className="icon">
-                        <HiOutlineCheck className="icon-check" />
-                      </div>
-                      {tc("0")}
-                    </li>
-                    <li>
-                      <div className="icon">
-                        <HiOutlineCheck className="icon-check" />
-                      </div>
-                      {tc("1")}
-                    </li>
-                    <li>
-                      <div className="icon">
-                        <HiOutlineCheck className="icon-check" />
-                      </div>
-                      {tc("2")}
-                    </li>
-                  </ul>
-                  <p className="course-price">
-                    {" "}
-                    {tc("3")} <strong>$100.00</strong>
-                  </p>
-                  <button className="get-started-btn">{tc("4")}</button>
-                </div>
-              </SwiperSlide> */}
-            </Swiper>
+              </div>
+            </div>
           </div>
         </div>
       </div>
