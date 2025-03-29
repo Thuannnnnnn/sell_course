@@ -1,0 +1,31 @@
+.carousel {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .carousel-item img {
+    transition: transform 0.3s ease;
+  }
+  
+  .carousel-item:hover img {
+    transform: scale(1.02);
+  }
+  
+  .thumbnail-grid img {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .thumbnail-grid img:hover {
+    transform: scale(1.05);
+  }
+  
+  .delete-button {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  .thumbnail-grid .position-relative:hover .delete-button {
+    opacity: 1;
+  }

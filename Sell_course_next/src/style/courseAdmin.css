@@ -191,3 +191,7 @@
   color: white;
   border-color: #007bff;
 }
+.text-Control {
+  overflow: "hidden";
+  resize: "none";
+}

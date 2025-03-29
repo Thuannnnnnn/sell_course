@@ -1,289 +1,253 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Row,
   Col,
   Card,
-  Carousel,
   Button,
   Alert,
   Form,
   Modal,
+  Carousel,
 } from "react-bootstrap";
 import Image from "next/image";
+import "@/style/Settings.css";
+import {
+  VersionSetting,
+  LogoSetting,
+  CarouselSetting,
+} from "@/app/type/settings/Settings";
+import { settingsApi } from "@/app/api/setting/setting";
 import { useTranslations } from "next-intl";
-import { getSetting, UpdateSetting, Setting } from "@/app/api/setting/setting";
-import { useSession } from "next-auth/react";
 
-export default function SettingPage() {
-  const [settings, setSettings] = useState<Setting[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedSetting, setSelectedSetting] = useState<Setting | null>(null);
-  const [showModal, setShowModal] = useState<boolean>(false);
+export default function SettingsPage() {
+  const [versions, setVersions] = useState<VersionSetting[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<VersionSetting | null>(
+    null
+  );
+  const [logoSetting, setLogoSetting] = useState<LogoSetting | null>(null);
+  const [carouselSetting, setCarouselSetting] = useState<CarouselSetting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<"logo" | "carousel">("logo");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [carouselFiles, setCarouselFiles] = useState<File[]>([]);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [carouselPreviews, setCarouselPreviews] = useState<string[]>([]);
-  const [uploading, setUploading] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const carouselInputRef = useRef<HTMLInputElement>(null);
-
-  const t = useTranslations("Settings");
-  const { data: session } = useSession();
+  const [showVersionModal, setShowVersionModal] = useState(false);
+  const [editingVersion, setEditingVersion] = useState<VersionSetting | null>(
+    null
+  );
+  const [versionTitle, setVersionTitle] = useState("");
+  const [versionActive, setVersionActive] = useState(false);
+  const t = useTranslations("settings");
+  useEffect(() => {
+    loadVersions();
+  }, []);
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        setLoading(true);
-        const token = session?.user?.token as string;
-        if (!token) {
-          setError("Bạn cần đăng nhập để xem cài đặt");
-          setLoading(false);
-          return;
-        }
+    if (selectedVersion?.versionSettingId) {
+      loadVersionDetails();
+    }
+  }, [selectedVersion?.versionSettingId]);
 
-        const response = await getSetting(token);
-        if ("message" in response) {
-          throw new Error(response.message);
-        }
-
-        setSettings(response);
-        // Mặc định chọn setting đang active
-        const activeSetting = response.find((s: Setting) => s.isActive);
-        setSelectedSetting(activeSetting || response[0]);
-      } catch (err) {
-        setError("Không thể tải cài đặt. Vui lòng thử lại sau.");
-        console.error("Lỗi khi tải cài đặt:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, [session]);
-
-  const handleActivateSetting = async (id: string) => {
+  const loadVersions = async () => {
     try {
-      const token = session?.user?.token as string;
-      if (!token) {
-        setError("Bạn cần đăng nhập để thực hiện thao tác này");
-        return;
+      const data = await settingsApi.getVersionSettings();
+      setVersions(data);
+      if (data.length > 0) {
+        const activeVersion = data.find((v) => v.isActive) || data[0];
+        setSelectedVersion(activeVersion);
       }
-
-      const request = new Request("", {
-        method: "PATCH",
-        body: JSON.stringify({ id, isActive: true }),
-      });
-
-      const response = await UpdateSetting(request, token);
-
-      if ("message" in response) {
-        throw new Error(response.message);
-      }
-
-      // Cập nhật trạng thái local
-      const updatedSettings = settings.map((setting) => ({
-        ...setting,
-        isActive: setting.id === id,
-      }));
-
-      setSettings(updatedSettings);
-      setSelectedSetting(updatedSettings.find((s) => s.id === id) || null);
-      setError(null);
-      showSuccessMessage(t("settingActivated"));
-    } catch (err) {
-      setError("Không thể kích hoạt cài đặt. Vui lòng thử lại.");
-      console.error("Lỗi khi kích hoạt cài đặt:", err);
-    }
-  };
-
-  const handleSelectSetting = (setting: Setting) => {
-    setSelectedSetting(setting);
-  };
-
-  const openModal = (type: "logo" | "carousel") => {
-    setModalType(type);
-    setShowModal(true);
-
-    // Reset các state khi mở modal
-    setLogoFile(null);
-    setCarouselFiles([]);
-    setLogoPreview(null);
-    setCarouselPreviews([]);
-    setError(null);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      if (file.type.startsWith("image/")) {
-        setLogoFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setLogoPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setError(t("invalidImageFormat"));
-      }
-    }
-  };
-
-  const handleCarouselChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const files = Array.from(e.target.files);
-      const validFiles = files.filter((file) => file.type.startsWith("image/"));
-
-      if (validFiles.length !== files.length) {
-        setError(t("someInvalidImages"));
-      }
-
-      if (validFiles.length > 0) {
-        setCarouselFiles(validFiles);
-
-        // Tạo previews cho các files
-        const previews: string[] = [];
-        validFiles.forEach((file) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            previews.push(reader.result as string);
-            if (previews.length === validFiles.length) {
-              setCarouselPreviews([...previews]);
-            }
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      setUploading(true);
-      const token = session?.user?.token as string;
-      if (!token) {
-        setError("Bạn cần đăng nhập để thực hiện thao tác này");
-        setUploading(false);
-        return;
-      }
-
-      if (!selectedSetting) {
-        setError("Không có cài đặt nào được chọn");
-        setUploading(false);
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("id", selectedSetting.id);
-
-      if (modalType === "logo" && logoFile) {
-        formData.append("logo", logoFile);
-      } else if (modalType === "carousel" && carouselFiles.length > 0) {
-        carouselFiles.forEach((file) => {
-          formData.append("carousel", file);
-        });
-      } else {
-        setError(
-          modalType === "logo" ? t("noLogoSelected") : t("noCarouselSelected")
-        );
-        setUploading(false);
-        return;
-      }
-
-      const request = new Request("", {
-        method: "PATCH",
-        body: formData,
-      });
-
-      const response = await UpdateSetting(request, token);
-
-      if ("message" in response) {
-        throw new Error(response.message);
-      }
-
-      // Cập nhật dữ liệu local
-      const updatedSettings = settings.map((setting) =>
-        setting.id === selectedSetting.id ? response : setting
-      );
-
-      setSettings(updatedSettings);
-      setSelectedSetting(response);
-      closeModal();
-      showSuccessMessage(
-        modalType === "logo" ? t("logoUpdated") : t("carouselUpdated")
-      );
-    } catch (err) {
-      setError(
-        `Không thể cập nhật ${
-          modalType === "logo" ? "logo" : "carousel"
-        }. Vui lòng thử lại.`
-      );
-      console.error(`Lỗi khi cập nhật ${modalType}:`, err);
+    } catch {
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
-  const showSuccessMessage = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => {
-      setSuccessMessage(null);
-    }, 3000);
+  const handleDeleteCarousel = async (carouselId: string) => {
+    if (window.confirm(t("carousel.deleteConfirm"))) {
+      try {
+        await settingsApi.deleteCarousel(carouselId);
+        await loadVersionDetails();
+      } catch (error) {
+        console.error("Failed to delete carousel:", error);
+      }
+    }
+  };
+
+  const loadVersionDetails = async () => {
+    if (!selectedVersion) return;
+
+    try {
+      const [logo, carousel] = await Promise.all([
+        settingsApi.getLogoByVersionId(selectedVersion.versionSettingId),
+        settingsApi.getCarouselByVersionId(selectedVersion.versionSettingId),
+      ]);
+      setLogoSetting(logo[0]);
+      setCarouselSetting(carousel);
+    } catch {}
+  };
+
+  const handleVersionSelect = (version: VersionSetting) => {
+    // Reset current states
+    setLogoSetting(null);
+    setCarouselSetting([]);
+
+    // Set new version
+    setSelectedVersion(version);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const handleToggleActive = async (version: VersionSetting) => {
+    try {
+      // Nếu version đang active thì không cho tắt
+      if (version.isActive) {
+        return;
+      }
+
+      await settingsApi.updateVersionActive(version.versionSettingId, true);
+      await loadVersions();
+    } catch {}
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedVersion || !selectedFile) return;
+
+    try {
+      if (modalType === "logo") {
+        await settingsApi.updateLogo(
+          selectedVersion.versionSettingId,
+          selectedFile
+        );
+      } else {
+        await settingsApi.updateCarousel(
+          selectedVersion.versionSettingId,
+          selectedFile
+        );
+      }
+      await loadVersionDetails();
+      setShowModal(false);
+    } catch {}
+  };
+  const handleAddVersion = () => {
+    setEditingVersion(null);
+    setVersionTitle("");
+    setVersionActive(false);
+    setShowVersionModal(true);
+  };
+
+  const handleEditVersion = (version: VersionSetting) => {
+    setEditingVersion(version);
+    setVersionTitle(version.VersionSettingtitle);
+    setVersionActive(version.isActive);
+    setShowVersionModal(true);
+  };
+
+  const handleSaveVersion = async () => {
+    try {
+      if (editingVersion) {
+        await settingsApi.updateVersion(editingVersion.versionSettingId, {
+          VersionSettingtitle: versionTitle,
+          isActive: versionActive,
+        });
+      } else {
+        // Create new version
+        await settingsApi.createVersion({
+          VersionSettingtitle: versionTitle,
+          isActive: versionActive,
+        });
+      }
+      setShowVersionModal(false);
+      loadVersions();
+    } catch {}
+  };
+
+  const handleDeleteVersion = async (versionId: string) => {
+    if (window.confirm(t("modal.deleteConfirm"))) {
+      try {
+        await settingsApi.deleteVersion(versionId);
+        loadVersions();
+      } catch {}
+    }
   };
 
   if (loading) {
-    return (
-      <Container className="py-5 text-center">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Đang tải...</span>
-        </div>
-      </Container>
-    );
+    return <div>Loading...</div>;
   }
 
   return (
     <Container className="py-4">
-      <h1 className="mb-4 text-center">{t("settingsTitle")}</h1>
-
-      {error && <Alert variant="danger">{error}</Alert>}
-      {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      <h1 className="text-center mb-4">{t("title")}</h1>
 
       <Row>
         <Col md={4}>
-          <Card className="mb-4">
-            <Card.Header className="bg-primary text-white">
+          <Card>
+            <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
               <h5 className="mb-0">{t("availableSettings")}</h5>
+              <Button variant="light" size="sm" onClick={handleAddVersion}>
+                {t("addNew")}
+              </Button>
             </Card.Header>
             <Card.Body>
               <div className="list-group">
-                {settings.map((setting) => (
-                  <Button
-                    key={setting.id}
-                    variant={
-                      selectedSetting?.id === setting.id
-                        ? "primary"
-                        : "outline-primary"
-                    }
-                    className="mb-2 text-start d-flex justify-content-between align-items-center"
-                    onClick={() => handleSelectSetting(setting)}
+                {versions.map((version) => (
+                  <div
+                    key={version.versionSettingId}
+                    className="d-flex flex-column mb-2"
                   >
-                    <span>
-                      {t("setting")} #
-                      {setting.id ? setting.id.substring(0, 8) : ""}
-                    </span>
-                    {setting.isActive && (
-                      <span className="badge bg-success">{t("active")}</span>
-                    )}
-                  </Button>
+                    <div className="d-flex align-items-center mb-1">
+                      <Button
+                        variant={
+                          selectedVersion?.versionSettingId ===
+                          version.versionSettingId
+                            ? "primary"
+                            : "outline-primary"
+                        }
+                        className="flex-grow-1 text-start d-flex justify-content-between align-items-center me-2"
+                        onClick={() => handleVersionSelect(version)}
+                      >
+                        <span>{version.VersionSettingtitle}</span>
+                      </Button>
+                      <div className="d-flex gap-1">
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => handleEditVersion(version)}
+                        >
+                          {t("edit")}
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() =>
+                            handleDeleteVersion(version.versionSettingId)
+                          }
+                          disabled={version.isActive}
+                        >
+                          {t("delete")}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center ps-2">
+                      <Form.Check
+                        type="switch"
+                        id={`active-switch-${version.versionSettingId}`}
+                        label={t("active")}
+                        checked={version.isActive}
+                        onChange={() => handleToggleActive(version)}
+                        disabled={version.isActive}
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
             </Card.Body>
@@ -291,200 +255,219 @@ export default function SettingPage() {
         </Col>
 
         <Col md={8}>
-          {selectedSetting ? (
+          {selectedVersion ? (
             <Card>
               <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">{t("settingDetails")}</h5>
-                {!selectedSetting.isActive && (
-                  <Button
-                    variant="success"
-                    size="sm"
-                    onClick={() => handleActivateSetting(selectedSetting.id)}
-                  >
+                {selectedVersion.isActive && (
+                  <Button variant="success" size="sm">
                     {t("activate")}
                   </Button>
                 )}
               </Card.Header>
               <Card.Body>
-                <Row className="mb-4">
-                  <Col
-                    md={12}
-                    className="d-flex justify-content-between align-items-center mb-2"
-                  >
-                    <h5>{t("logo")}</h5>
+                <div className="mb-4">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <h5>{t("logo.title")}</h5>
                     <Button
                       variant="outline-primary"
                       size="sm"
-                      onClick={() => openModal("logo")}
+                      onClick={() => {
+                        setModalType("logo");
+                        setShowModal(true);
+                      }}
                     >
-                      {t("updateLogo")}
+                      {t("logo.update")}
                     </Button>
-                  </Col>
-                  <Col md={12}>
-                    <div className="text-center p-3 border rounded mb-3">
-                      {selectedSetting.logo ? (
-                        <Image
-                          src={selectedSetting.logo}
-                          alt="Logo"
-                          width={200}
-                          height={100}
-                          style={{ objectFit: "contain" }}
-                        />
-                      ) : (
-                        <p className="text-muted">{t("noLogoAvailable")}</p>
-                      )}
-                    </div>
-                  </Col>
-                </Row>
+                  </div>
+                  <div className="border rounded p-3 text-center">
+                    {logoSetting?.logo ? (
+                      <Image
+                        src={logoSetting.logo}
+                        alt="Logo"
+                        width={200}
+                        height={100}
+                        style={{ objectFit: "contain" }}
+                      />
+                    ) : (
+                      <p className="text-muted">{t("logo.noLogo")}</p>
+                    )}
+                  </div>
+                </div>
 
-                <Row>
-                  <Col
-                    md={12}
-                    className="d-flex justify-content-between align-items-center mb-2"
-                  >
-                    <h5>{t("carousel")}</h5>
+                <div>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <h5>{t("carousel.title")}</h5>
                     <Button
                       variant="outline-primary"
                       size="sm"
-                      onClick={() => openModal("carousel")}
+                      onClick={() => {
+                        setModalType("carousel");
+                        setShowModal(true);
+                      }}
                     >
-                      {t("updateCarousel")}
+                      {t("carousel.update")}
                     </Button>
-                  </Col>
-                  <Col md={12}>
-                    {selectedSetting.carousel &&
-                    selectedSetting.carousel.length > 0 ? (
-                      <Carousel>
-                        {selectedSetting.carousel.map((image, index) => (
-                          <Carousel.Item key={index}>
-                            <div
-                              style={{ height: "300px", position: "relative" }}
-                            >
-                              <Image
-                                src={image}
-                                alt={`Carousel image ${index + 1}`}
-                                fill
-                                style={{ objectFit: "cover" }}
-                              />
-                            </div>
-                            <Carousel.Caption>
-                              <h3>
-                                {t("slide")} {index + 1}
-                              </h3>
-                            </Carousel.Caption>
+                  </div>
+
+                  {carouselSetting.length > 0 ? (
+                    <>
+                      {/* Carousel Slider */}
+                      <Carousel className="mb-3">
+                        {carouselSetting.map((image) => (
+                          <Carousel.Item key={image.carouselSettingId}>
+                            <Image
+                              className="d-block w-100"
+                              src={image.carousel}
+                              alt="Carousel"
+                              width={1200}
+                              height={300}
+                              style={{ height: "300px", objectFit: "cover" }}
+                              priority
+                            />
                           </Carousel.Item>
                         ))}
                       </Carousel>
-                    ) : (
-                      <p className="text-muted text-center p-3 border rounded">
-                        {t("noCarouselImages")}
-                      </p>
-                    )}
-                  </Col>
-                </Row>
+
+                      {/* Thumbnail Grid */}
+                      <div className="border rounded p-3">
+                        <Row xs={2} md={3} lg={4} className="g-3">
+                          {carouselSetting.map((image) => (
+                            <Col key={image.carouselSettingId}>
+                              <div className="position-relative">
+                                <Image
+                                  src={image.carousel}
+                                  alt="Carousel thumbnail"
+                                  width={200}
+                                  height={150}
+                                  style={{
+                                    width: "100%",
+                                    height: "150px",
+                                    objectFit: "cover",
+                                    borderRadius: "4px",
+                                  }}
+                                />
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  className="position-absolute top-0 end-0 m-1"
+                                  onClick={() =>
+                                    handleDeleteCarousel(
+                                      image.carouselSettingId
+                                    )
+                                  }
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </Button>
+                              </div>
+                            </Col>
+                          ))}
+                        </Row>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-muted text-center">
+                      {t("carousel.noCarousel")}
+                    </p>
+                  )}
+                </div>
               </Card.Body>
-              <Card.Footer>
-                <small className="text-muted">
-                  ID: {selectedSetting.id} | {t("status")}:{" "}
-                  {selectedSetting.isActive ? t("active") : t("inactive")}
-                </small>
-              </Card.Footer>
             </Card>
           ) : (
-            <Alert variant="info">{t("selectSettingPrompt")}</Alert>
+            <Alert variant="info">{t("pleaseSelect")}</Alert>
           )}
         </Col>
       </Row>
 
-      {/* Modal cập nhật Logo/Carousel */}
-      <Modal show={showModal} onHide={closeModal}>
+      {/* Update Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>
-            {modalType === "logo" ? t("updateLogo") : t("updateCarousel")}
+            {modalType === "logo" ? t("logo.update") : t("carousel.update")}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {modalType === "logo" ? (
-            <div>
-              <Form.Group controlId="logoUpload" className="mb-3">
-                <Form.Label>{t("selectLogo")}</Form.Label>
-                <Form.Control
-                  type="file"
-                  accept="image/*"
-                  ref={logoInputRef}
-                  onChange={handleLogoChange}
-                />
-                <Form.Text className="text-muted">
-                  {t("logoFileRequirements")}
-                </Form.Text>
-              </Form.Group>
-
-              {logoPreview && (
-                <div className="text-center mt-3 mb-3">
-                  <p>{t("logoPreview")}</p>
-                  <Image
-                    src={logoPreview}
-                    alt="Logo preview"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "200px",
-                      objectFit: "contain",
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              <Form.Group controlId="carouselUpload" className="mb-3">
-                <Form.Label>{t("selectCarouselImages")}</Form.Label>
-                <Form.Control
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  ref={carouselInputRef}
-                  onChange={handleCarouselChange}
-                />
-                <Form.Text className="text-muted">
-                  {t("carouselFileRequirements")}
-                </Form.Text>
-              </Form.Group>
-
-              {carouselPreviews.length > 0 && (
-                <div className="mt-3 mb-3">
-                  <p>{t("carouselPreview")}</p>
-                  <div className="d-flex flex-wrap gap-2">
-                    {carouselPreviews.map((preview, index) => (
-                      <Image
-                        key={index}
-                        src={preview}
-                        alt={`Preview ${index + 1}`}
-                        style={{
-                          width: "100px",
-                          height: "100px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+          <Form.Group>
+            <Form.Label>
+              {modalType === "logo"
+                ? t("logo.selectImage")
+                : t("carousel.selectImage")}
+            </Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+            />
+          </Form.Group>
+          {previewUrl && (
+            <div className="mt-3 text-center">
+              <h6>{t("modal.preview")}</h6>
+              <Image
+                src={previewUrl}
+                alt="Preview"
+                width={200}
+                height={200}
+                style={{ objectFit: "contain" }}
+              />
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={closeModal}>
-            {t("cancel")}
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            {t("modal.cancel")}
           </Button>
           <Button
             variant="primary"
-            onClick={handleSubmit}
-            disabled={
-              uploading ||
-              (modalType === "logo" ? !logoFile : carouselFiles.length === 0)
-            }
+            onClick={handleUpdate}
+            disabled={!selectedFile}
           >
-            {uploading ? t("uploading") : t("save")}
+            {t("modal.saveChanges")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Version Modal */}
+      <Modal show={showVersionModal} onHide={() => setShowVersionModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editingVersion ? t("modal.editVersion") : t("modal.addNewVersion")}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>{t("modal.versionTitle")}</Form.Label>
+              <Form.Control
+                type="text"
+                value={versionTitle}
+                onChange={(e) => setVersionTitle(e.target.value)}
+                placeholder={t("modal.enterTitle")}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label={t("active")}
+                checked={versionActive}
+                onChange={(e) => setVersionActive(e.target.checked)}
+                disabled={editingVersion?.isActive}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowVersionModal(false)}
+          >
+            {t("modal.cancel")}
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSaveVersion}
+            disabled={!versionTitle}
+          >
+            {t("modal.saveChanges")}
           </Button>
         </Modal.Footer>
       </Modal>

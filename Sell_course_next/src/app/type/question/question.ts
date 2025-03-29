@@ -1,5 +1,5 @@
 // src/types/question.ts
-export interface Question {
+export interface QuestionHabit {
   id: string;
   question: string;
 }

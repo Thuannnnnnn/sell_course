@@ -1,15 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Question } from "@/app/type/quizz/quizz";
-import { fetchQuestions } from "@/app/api/questionHabit/questionHabitApi";
 import { submitUserAnswer } from "@/app/api/userAnswer/userAnswerApi";
 import { useSession } from "next-auth/react";
+import { QuestionHabit } from "@/app/type/question/question";
+import { fetchQuestionHabits } from "@/app/api/questionHabit/questionHabitApi";
 
 const QuestionHabits: React.FC = () => {
   const t = useTranslations("questionHabits");
 
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<QuestionHabit[]>([]);
   const [answers, setAnswers] = useState<
     { questionId: string; answer: string }[]
   >([]);
@@ -26,12 +26,12 @@ const QuestionHabits: React.FC = () => {
     const loadQuestions = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchQuestions();
+        const data = await fetchQuestionHabits();
         if (!Array.isArray(data))
           throw new Error("Questions response is not an array");
 
         setQuestions(data);
-        setAnswers(data.map((q) => ({ questionId: q.questionId, answer: "" }))); // Khởi tạo mảng trả lời đúng format
+        setAnswers(data.map((q) => ({ questionId: q.id, answer: "" }))); // Khởi tạo mảng trả lời đúng format
       } catch (error) {
         console.error("Error fetching questions:", error);
         setSubmitStatus({ message: t("fetchQuestionsFailed"), type: "danger" });
@@ -102,7 +102,7 @@ const QuestionHabits: React.FC = () => {
       ) : questions.length > 0 ? (
         <form onSubmit={handleSubmit}>
           {questions.map((question, index) => (
-            <div key={question.questionId} className="mb-3">
+            <div key={question.id} className="mb-3">
               <label
                 htmlFor={`question-${index}`}
                 className="form-label fw-bold"
