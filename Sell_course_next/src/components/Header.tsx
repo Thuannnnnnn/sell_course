@@ -250,6 +250,9 @@ const Header: React.FC = () => {
             <Link href={`/${localActive}/forum`} className="nav-link me-4">
               {t("forum")}
             </Link>
+            <Link href={`/${localActive}/meeting`} className="nav-link me-4">
+              {t("meeting")}
+            </Link>
             <LocalSwitcher />
             {status === "loading" ? (
               <span className="nav-link mx-4">{s("loading")}</span>

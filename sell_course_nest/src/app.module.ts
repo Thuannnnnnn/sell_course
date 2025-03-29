@@ -1,5 +1,6 @@
 import { OrderModule } from './modules/order/order.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { MeetingModule } from './modules/meeting/meeting.module';
 // app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -85,6 +86,9 @@ import { Promotion } from './modules/promotion/entities/promotion.entity';
 import { PromotionModule } from './modules/promotion/promotion.module';
 import { SettingModule } from './modules/setting/setting.module';
 import { Setting } from './modules/setting/entities/setting.entity';
+import { Meeting } from './modules/meeting/entities/meeting.entity';
+import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
+import { MeetingMessage } from './modules/meeting/entities/meeting-message.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -106,9 +110,9 @@ import { Setting } from './modules/setting/entities/setting.entity';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
 
       entities: [
         Interaction,
@@ -155,6 +159,9 @@ import { Setting } from './modules/setting/entities/setting.entity';
         Message,
         Promotion,
         Setting,
+        Meeting,
+        MeetingParticipant,
+        MeetingMessage,
       ],
       synchronize: true,
     }),
@@ -198,6 +205,7 @@ import { Setting } from './modules/setting/entities/setting.entity';
     SupportChatModule,
     PromotionModule,
     SettingModule,
+    MeetingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
