@@ -83,6 +83,7 @@ const UpdateMyProfilePage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     if (formData.birthDay && !isUserAtLeast10YearsOld(formData.birthDay)) {
       setError(t('errorBirthDateAtLeast'));
       return;
@@ -141,9 +142,11 @@ const UpdateMyProfilePage: React.FC = () => {
               <Link className="link-profile" href={`/${localActive}/profile/setting/updateMyProfile`}>
                 <h6 className="active">{t('title-profile')}</h6>
               </Link>
-              <Link className="link-profile" href={`/${localActive}/profile/setting/changePassword`}>
+              {!user?.isOAuth && (
+                <Link className="link-profile" href={`/${localActive}/profile/setting/changePassword`}>
                 <h6>{t('title-password')}</h6>
               </Link>
+              )}
             </div>
           </div>
           <div className="form-update">

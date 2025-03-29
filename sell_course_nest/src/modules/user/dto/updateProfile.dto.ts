@@ -54,6 +54,7 @@ export class UserDto {
   gender: string | null;
   birthDay: string | null;
   phoneNumber: number;
+  isOAuth: boolean;
   role: string;
   isBan: boolean;
 
@@ -65,6 +66,7 @@ export class UserDto {
     gender: string | null,
     birthDay: string | null,
     phoneNumber: number,
+    isOAuth: boolean,
     role: string,
     isBan: boolean,
   ) {
@@ -75,6 +77,7 @@ export class UserDto {
     this.gender = gender;
     this.birthDay = birthDay;
     this.phoneNumber = phoneNumber;
+    this.isOAuth = isOAuth;
     this.role = role;
     this.isBan = isBan;
   }

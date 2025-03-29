@@ -6,6 +6,7 @@
   transition: all 0.3s ease;
 }
 
+
 .sidebar-container.closed .sidebar div:not(.icon-sidebar) {
   width: 60px;
 }
@@ -33,6 +34,8 @@
   z-index: 1001;
   font-size: 20px;
 }
+
+
 
 .sidebar {
   margin: 20px;

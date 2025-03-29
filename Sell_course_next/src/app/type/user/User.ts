@@ -34,6 +34,7 @@ export interface GetUser {
   gender: null;
   birthDay: null;
   phoneNumber: string;
+  isOAuth: boolean;
   role: string;
 }
 
