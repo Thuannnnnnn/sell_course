@@ -16,10 +16,32 @@ export const settingsApi = {
   },
 
   getVersionSettingsActive: async () => {
-    const response = await axios.get<VersionSetting>(
-      `${API_URL}/active`
-    );
-    return  response.data;
+    try {
+      // First try getting all versions
+      const allVersions = await axios.get<VersionSetting[]>(
+        `${API_URL}/version-settings`
+      );
+      
+      // Then find the active one
+      const activeVersion = Array.isArray(allVersions.data) 
+        ? allVersions.data.find(version => version.isActive) 
+        : null;
+      
+      if (activeVersion) {
+        console.log("Found active version from list:", activeVersion);
+        return activeVersion;
+      }
+      
+      // If no active version found, try direct endpoint as fallback
+      console.log("No active version found in list, trying direct endpoint");
+      const response = await axios.get<VersionSetting>(
+        `${API_URL}/version-settings/active`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching active version:", error);
+      return null;
+    }
   },
 
   createVersion: async (data: {
