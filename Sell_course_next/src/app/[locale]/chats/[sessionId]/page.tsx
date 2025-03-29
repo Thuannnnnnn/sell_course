@@ -48,7 +48,8 @@ export default function Chat() {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      sendMessage(inputValue);
+      const result = sendMessage(inputValue);
+      console.log(result);
       setInputValue("");
     }
   };
