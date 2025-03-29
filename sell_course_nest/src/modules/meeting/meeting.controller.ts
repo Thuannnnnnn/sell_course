@@ -120,17 +120,22 @@ export class MeetingController {
   @ApiResponse({ status: 404, description: 'Meeting not found' })
   async joinMeeting(@Body() joinMeetingDto: JoinMeetingDto) {
     try {
+      console.log(
+        `Attempting to join meeting with ID: ${joinMeetingDto.meetingId} for user: ${joinMeetingDto.userId}`,
+      );
       const participant = await this.meetingService.joinMeeting(joinMeetingDto);
+      console.log(`Successfully joined meeting: ${joinMeetingDto.meetingId}`);
       return {
         success: true,
         message: 'Successfully joined meeting',
         data: participant,
       };
     } catch (error) {
-      throw new HttpException(
-        'Failed to join meeting 9999',
-        HttpStatus.BAD_REQUEST,
-      );
+      console.error('Error joining meeting:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Failed to join meeting', HttpStatus.BAD_REQUEST);
     }
   }
 

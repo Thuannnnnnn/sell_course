@@ -118,9 +118,11 @@ export class MeetingService {
     } = joinMeetingDto;
 
     // Find the meeting by ID or code
-    const meeting = await this.meetingRepository.findOne({
-      where: [{ id: meetingId }, { meetingCode: meetingId }],
-    });
+    const meeting = await this.meetingRepository
+      .createQueryBuilder('meeting')
+      .where('meeting.meetingCode = :meetingCode', { meetingCode: meetingId })
+      .orWhere('meeting.id = :id', { id: meetingId })
+      .getOne();
 
     if (!meeting) {
       throw new NotFoundException('Meeting not found');

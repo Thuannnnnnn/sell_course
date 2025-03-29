@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Socket } from "socket.io-client";
 import io from "socket.io-client";
 import { MeetingParticipant, MeetingMessage } from "../app/api/meeting/meeting";
+import { debounce } from "lodash";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -70,6 +71,7 @@ const useMeetingSocket = (
     ],
   };
 
+  // Kiểm tra thiết bị camera và mic
   const checkDevices = async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -78,76 +80,88 @@ const useMeetingSocket = (
 
       if (!hasVideo && !hasAudio) {
         setError("No camera or microphone detected on your device.");
-        return false;
+        return { hasVideo: false, hasAudio: false };
       }
-      return true;
+      return { hasVideo, hasAudio };
     } catch (err) {
       setError("Unable to enumerate devices: " + (err as Error).message);
-      return false;
+      return { hasVideo: false, hasAudio: false };
     }
   };
 
-  const initializeStream = useCallback(async (forceReinitialize = false) => {
-    if (localStream && !forceReinitialize) {
-      return localStream;
-    }
-
-    const devicesAvailable = await checkDevices();
-    if (!devicesAvailable) {
-      setIsConnecting(false);
-      return null;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-
-      const videoTracks = stream.getVideoTracks();
-      const audioTracks = stream.getAudioTracks();
-
-      if (videoTracks.length > 0) {
-        videoTracks.forEach((track) => {
-          track.enabled = false;
-          console.log("Initial video track state:", track.enabled);
-        });
-        setHasCamera(false);
-      } else {
-        setHasCamera(false);
-        setError("No camera available.");
+  // Khởi tạo stream
+  const initializeStream = useCallback(
+    async (forceReinitialize = false) => {
+      if (localStream && !forceReinitialize) {
+        console.log("Stream already initialized:", localStream);
+        return localStream;
       }
 
-      if (audioTracks.length > 0) {
-        audioTracks.forEach((track) => {
-          track.enabled = false;
-          console.log("Initial audio track state:", track.enabled);
-        });
-        setHasMicrophone(false);
-      } else {
-        setHasMicrophone(false);
-        setError("No microphone available.");
+      const devices = await checkDevices();
+      if (!devices.hasVideo && !devices.hasAudio) {
+        setIsConnecting(false);
+        return null;
       }
 
-      setLocalStream(stream);
-      setIsConnecting(false);
-      console.log("Stream initialized:", stream);
-      return stream;
-    } catch (err) {
-      console.error("Error accessing media devices:", err);
-      if (err instanceof Error) {
-        if (err.name === "NotAllowedError") {
-          setError("Camera and microphone access denied. Please allow permissions.");
-        } else if (err.name === "NotFoundError") {
-          setError("No camera or microphone found on your device.");
+      try {
+        const constraints = {
+          video: devices.hasVideo ? true : false,
+          audio: devices.hasAudio ? true : false,
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log("Stream initialized successfully:", stream);
+
+        const videoTracks = stream.getVideoTracks();
+        const audioTracks = stream.getAudioTracks();
+
+        // Khởi tạo trạng thái ban đầu
+        if (videoTracks.length > 0) {
+          videoTracks.forEach((track) => {
+            track.enabled = false; // Tắt camera mặc định
+            console.log("Initial video track state:", track.enabled);
+          });
+          setHasCamera(false);
         } else {
-          setError("An error occurred while accessing media devices: " + err.message);
+          setHasCamera(false);
+          setError((prev) => prev || "No camera available.");
         }
+
+        if (audioTracks.length > 0) {
+          audioTracks.forEach((track) => {
+            track.enabled = false; // Tắt mic mặc định
+            console.log("Initial audio track state:", track.enabled);
+          });
+          setHasMicrophone(false);
+        } else {
+          setHasMicrophone(false);
+          setError((prev) => prev || "No microphone available.");
+        }
+
+        setLocalStream(stream);
+        setIsConnecting(false);
+        return stream;
+      } catch (err) {
+        console.error("Error accessing media devices:", err);
+        if (err instanceof Error) {
+          if (err.name === "NotAllowedError") {
+            setError(
+              "Camera and microphone access denied. Please allow permissions in your browser settings."
+            );
+          } else if (err.name === "NotFoundError") {
+            setError("No camera or microphone found on your device.");
+          } else {
+            setError(
+              "An error occurred while accessing media devices: " + err.message
+            );
+          }
+        }
+        setIsConnecting(false);
+        return null;
       }
-      setIsConnecting(false);
-      return null;
-    }
-  }, [localStream]);
+    },
+    [localStream]
+  );
 
   useEffect(() => {
     if (!meetingId || !userId) return;
@@ -158,6 +172,7 @@ const useMeetingSocket = (
 
     setSocket(newSocket);
 
+    // Khởi tạo stream khi socket được thiết lập
     initializeStream().then((stream) => {
       if (stream) {
         newSocket.emit("join-meeting", { meetingId, userId });
@@ -168,6 +183,10 @@ const useMeetingSocket = (
           hasMicrophone: false,
           isScreenSharing: false,
         });
+      } else {
+        setError(
+          "Failed to initialize media stream. Please check your camera and microphone."
+        );
       }
     });
 
@@ -183,6 +202,7 @@ const useMeetingSocket = (
     newSocket.on(
       "current-participants",
       (currentParticipants: MeetingParticipant[]) => {
+        console.log("Received current participants:", currentParticipants);
         setParticipants(currentParticipants);
 
         currentParticipants.forEach((participant) => {
@@ -196,6 +216,7 @@ const useMeetingSocket = (
     newSocket.on(
       "participant-joined",
       ({ participant }: { participant: MeetingParticipant }) => {
+        console.log("Participant joined:", participant);
         setParticipants((prev) => {
           const exists = prev.some((p) => p.userId === participant.userId);
           if (exists) {
@@ -216,6 +237,7 @@ const useMeetingSocket = (
     newSocket.on(
       "participant-left",
       ({ userId: leftUserId }: { userId: string }) => {
+        console.log("Participant left:", leftUserId);
         setParticipants((prev) =>
           prev.map((p) =>
             p.userId === leftUserId ? { ...p, isActive: false } : p
@@ -249,6 +271,14 @@ const useMeetingSocket = (
         hasMicrophone: boolean;
         isScreenSharing: boolean;
       }) => {
+        console.log(
+          `Received participant-status-updated for user ${updatedUserId}:`,
+          {
+            hasCamera: updatedHasCamera,
+            hasMicrophone: updatedHasMicrophone,
+            isScreenSharing: updatedIsScreenSharing,
+          }
+        );
         setParticipants((prev) =>
           prev.map((p) =>
             p.userId === updatedUserId
@@ -370,7 +400,10 @@ const useMeetingSocket = (
 
     if (localStream) {
       localStream.getTracks().forEach((track) => {
-        console.log(`Adding track to peer connection for ${participantId}:`, track);
+        console.log(
+          `Adding track to peer connection for ${participantId}:`,
+          track
+        );
         connection.addTrack(track, localStream);
       });
     }
@@ -393,7 +426,10 @@ const useMeetingSocket = (
 
     connection.ontrack = (event) => {
       const [remoteStream] = event.streams;
-      console.log(`Received remote stream from ${participantId}:`, remoteStream);
+      console.log(
+        `Received remote stream from ${participantId}:`,
+        remoteStream
+      );
       setRemoteStreams((prev) => {
         const newStreams = new Map(prev);
         newStreams.set(participantId, remoteStream);
@@ -464,89 +500,161 @@ const useMeetingSocket = (
     }
   };
 
-  const toggleCamera = async () => {
-    if (!localStream) {
-      const stream = await initializeStream(true);
-      if (!stream) return;
-    }
+  const toggleCamera = useCallback(() => {
+    const debouncedToggle = debounce(async () => {
+      console.log("Executing debounced toggleCamera");
+      if (!localStream) {
+        const stream = await initializeStream(true);
+        if (!stream) {
+          setError("Failed to initialize stream. Please check your camera.");
+          return;
+        }
+      }
 
-    const videoTracks = localStream?.getVideoTracks();
-    if (!videoTracks || videoTracks.length === 0) {
-      setError("No camera available to toggle.");
-      return;
-    }
+      const videoTracks = localStream?.getVideoTracks();
+      if (!videoTracks || videoTracks.length === 0) {
+        setError("No camera available to toggle.");
+        return;
+      }
 
-    const newState = !hasCamera;
-    videoTracks.forEach((track) => {
-      track.enabled = newState;
-      console.log(`Video track enabled state after toggle: ${track.enabled}`);
-    });
-
-    setHasCamera(newState);
-
-    if (socket) {
-      socket.emit("update-status", {
-        meetingId,
-        userId,
-        hasCamera: newState,
-        hasMicrophone,
-        isScreenSharing,
-      });
-    }
-
-    // Cập nhật peer connections để gửi stream mới
-    peerConnections.current.forEach((peer) => {
-      const senders = peer.connection.getSenders();
+      const newState = !hasCamera;
       videoTracks.forEach((track) => {
-        const sender = senders.find((s) => s.track?.kind === "video");
-        if (sender) {
-          sender.replaceTrack(newState ? track : null);
+        track.enabled = newState;
+        console.log(`Video track enabled state after toggle: ${track.enabled}`);
+      });
+
+      setHasCamera(newState);
+
+      if (socket) {
+        socket.emit("update-status", {
+          meetingId,
+          userId,
+          hasCamera: newState,
+          hasMicrophone,
+          isScreenSharing,
+        });
+      }
+
+      peerConnections.current.forEach((peer) => {
+        const senders = peer.connection.getSenders();
+        videoTracks.forEach((track) => {
+          const sender = senders.find((s) => s.track?.kind === "video");
+          if (sender) {
+            console.log("Replacing video track in peer connection:", track);
+            sender.replaceTrack(newState ? track : null);
+          }
+        });
+      });
+    }, 500);
+
+    // Wrap the debounced function to ensure it always returns a Promise<void>
+    return new Promise<void>((resolve) => {
+      const result = debouncedToggle();
+      if (result) {
+        console.log("toggleCamera: Debounced function returned a Promise");
+        result
+          .then(() => resolve())
+          .catch((err) => {
+            console.error("toggleCamera: Error in debounced function:", err);
+            resolve(); // Resolve even on error to avoid hanging
+          });
+      } else {
+        console.log(
+          "toggleCamera: Debounced function was throttled, resolving immediately"
+        );
+        resolve();
+      }
+    });
+  }, [
+    localStream,
+    hasCamera,
+    socket,
+    meetingId,
+    userId,
+    hasMicrophone,
+    isScreenSharing,
+    initializeStream,
+  ]);
+
+  const toggleMicrophone = useCallback(() => {
+    const debouncedToggle = debounce(async () => {
+      console.log("Executing debounced toggleMicrophone");
+      if (!localStream) {
+        const stream = await initializeStream(true);
+        if (!stream) {
+          setError(
+            "Failed to initialize stream. Please check your microphone."
+          );
+          return;
         }
-      });
-    });
-  };
+      }
 
-  const toggleMicrophone = async () => {
-    if (!localStream) {
-      const stream = await initializeStream(true);
-      if (!stream) return;
-    }
+      const audioTracks = localStream?.getAudioTracks();
+      if (!audioTracks || audioTracks.length === 0) {
+        setError("No microphone available to toggle.");
+        return;
+      }
 
-    const audioTracks = localStream?.getAudioTracks();
-    if (!audioTracks || audioTracks.length === 0) {
-      setError("No microphone available to toggle.");
-      return;
-    }
-
-    const newState = !hasMicrophone;
-    audioTracks.forEach((track) => {
-      track.enabled = newState;
-      console.log(`Audio track enabled state after toggle: ${track.enabled}`);
-    });
-
-    setHasMicrophone(newState);
-
-    if (socket) {
-      socket.emit("update-status", {
-        meetingId,
-        userId,
-        hasCamera,
-        hasMicrophone: newState,
-        isScreenSharing,
-      });
-    }
-
-    // Cập nhật peer connections để gửi stream mới
-    peerConnections.current.forEach((peer) => {
-      const senders = peer.connection.getSenders();
+      const newState = !hasMicrophone;
       audioTracks.forEach((track) => {
-        const sender = senders.find((s) => s.track?.kind === "audio");
-        if (sender) {
-          sender.replaceTrack(newState ? track : null);
-        }
+        track.enabled = newState;
+        console.log(`Audio track enabled state after toggle: ${track.enabled}`);
       });
+
+      setHasMicrophone(newState);
+
+      if (socket) {
+        socket.emit("update-status", {
+          meetingId,
+          userId,
+          hasCamera,
+          hasMicrophone: newState,
+          isScreenSharing,
+        });
+      }
+
+      peerConnections.current.forEach((peer) => {
+        const senders = peer.connection.getSenders();
+        audioTracks.forEach((track) => {
+          const sender = senders.find((s) => s.track?.kind === "audio");
+          if (sender) {
+            sender.replaceTrack(newState ? track : null);
+          }
+        });
+      });
+    }, 500);
+
+    // Wrap the debounced function to ensure it always returns a Promise<void>
+    return new Promise<void>((resolve) => {
+      const result = debouncedToggle();
+      if (result) {
+        console.log("toggleMicrophone: Debounced function returned a Promise");
+        result
+          .then(() => resolve())
+          .catch((err) => {
+            console.error(
+              "toggleMicrophone: Error in debounced function:",
+              err
+            );
+            resolve(); // Resolve even on error to avoid hanging
+          });
+      } else {
+        console.log(
+          "toggleMicrophone: Debounced function was throttled, resolving immediately"
+        );
+        resolve();
+      }
     });
-  };
+  }, [
+    localStream,
+    hasMicrophone,
+    socket,
+    meetingId,
+    userId,
+    hasCamera,
+    isScreenSharing,
+    initializeStream,
+  ]);
 
   const startScreenShare = async () => {
     try {

@@ -45,7 +45,9 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
 }) => {
   const handleToggleCamera = async () => {
     try {
+      console.log("Toggling camera, current state:", hasCamera);
       await toggleCamera();
+      console.log("Camera toggled, new state:", !hasCamera);
     } catch (error) {
       console.error("Error toggling camera:", error);
       alert(
@@ -56,7 +58,9 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
 
   const handleToggleMicrophone = async () => {
     try {
+      console.log("Toggling microphone, current state:", hasMicrophone);
       await toggleMicrophone();
+      console.log("Microphone toggled, new state:", !hasMicrophone);
     } catch (error) {
       console.error("Error toggling microphone:", error);
       alert(

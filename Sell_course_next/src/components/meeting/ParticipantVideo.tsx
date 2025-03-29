@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import {
   FaMicrophone,
   FaMicrophoneSlash,
@@ -28,18 +28,21 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
   isSpeaking = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [playError, setPlayError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log(`ParticipantVideo for ${displayName}:`, { stream, hasCamera, isActive });
     const videoElement = videoRef.current;
-    if (videoElement && stream && hasCamera) {
+    if (videoElement && stream && hasCamera && isActive) {
       videoElement.srcObject = stream;
       videoElement.play().catch((error) => {
-        console.error("Error playing video:", error);
+        console.error(`Error playing video for ${displayName}:`, error);
+        setPlayError("Failed to play video. Please ensure autoplay is allowed.");
       });
     } else if (videoElement) {
       videoElement.srcObject = null;
     }
-  }, [stream, hasCamera]);
+  }, [stream, hasCamera, isActive, displayName]);
 
   if (!isActive) {
     return null;
@@ -48,13 +51,32 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
   return (
     <div className={`participant-video ${isSpeaking ? "speaking" : ""}`}>
       {stream && hasCamera ? (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted={isLocal}
-          className="video-stream"
-        />
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted={isLocal}
+            className="video-stream"
+          />
+          {playError && (
+            <div className="play-error">
+              {playError}
+              <button
+                onClick={() => {
+                  if (videoRef.current) {
+                    videoRef.current.play().catch((err) => {
+                      console.error("Retry play error:", err);
+                    });
+                    setPlayError(null);
+                  }
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="avatar-placeholder">
           <FaUser size={48} />
@@ -162,6 +184,28 @@ const ParticipantVideo: React.FC<ParticipantVideoProps> = ({
 
         .control-icon.screen-share {
           color: #0d6efd;
+        }
+
+        .play-error {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 10px;
+          border-radius: 5px;
+          text-align: center;
+        }
+
+        .play-error button {
+          margin-top: 10px;
+          padding: 5px 10px;
+          background-color: #0d6efd;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
         }
       `}</style>
     </div>

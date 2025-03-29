@@ -60,7 +60,11 @@ export default function MeetingRoom() {
     } else if (status === "unauthenticated") {
       router.push(`/${locale}/auth/login`);
     }
-  }, [status, session, meetingId, router]);
+  }, [status, session, meetingId, router, locale]);
+
+  useEffect(() => {
+    console.log("Participants in MeetingRoom:", participants);
+  }, [participants]);
 
   const fetchMeetingDetails = async () => {
     setLoading(true);
@@ -158,6 +162,16 @@ export default function MeetingRoom() {
     return (
       <div className="alert alert-danger m-5" role="alert">
         {error || socketError}
+        {socketError && socketError.includes("permissions") && (
+          <div>
+            <button
+              className="btn btn-primary mt-3"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        )}
       </div>
     );
   }

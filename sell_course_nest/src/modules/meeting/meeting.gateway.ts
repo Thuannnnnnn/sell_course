@@ -1,269 +1,164 @@
 import {
-  WebSocketGateway,
   SubscribeMessage,
+  WebSocketGateway,
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Meeting } from './entities/meeting.entity';
-import { MeetingParticipant } from './entities/meeting-participant.entity';
-import { MeetingMessage } from './entities/meeting-message.entity';
 import { MeetingService } from './meeting.service';
 import { Logger } from '@nestjs/common';
+import { MeetingParticipant } from './entities/meeting-participant.entity';
 
-@WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
-  namespace: 'meetings',
-})
-export class MeetingGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
-  private readonly logger = new Logger(MeetingGateway.name);
+@WebSocketGateway({ namespace: '/meetings', cors: { origin: '*' } })
+export class MeetingGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer()
+  server: Server;
 
-  @WebSocketServer() server: Server;
+  private logger: Logger = new Logger('MeetingGateway');
 
-  constructor(
-    private readonly meetingService: MeetingService,
-    @InjectRepository(Meeting)
-    private meetingRepository: Repository<Meeting>,
-    @InjectRepository(MeetingParticipant)
-    private participantRepository: Repository<MeetingParticipant>,
-  ) {}
+  constructor(private readonly meetingService: MeetingService) {}
 
   async handleConnection(client: Socket) {
+    const meetingId = client.handshake.query.meetingId as string;
+    const userId = client.handshake.query.userId as string;
+
+    this.logger.log(`Client connected: ${client.id}, meetingId: ${meetingId}, userId: ${userId}`);
+
+    if (!meetingId || !userId) {
+      this.logger.warn(`Invalid connection parameters: meetingId=${meetingId}, userId=${userId}`);
+      client.disconnect();
+      return;
+    }
+
+    // Join the meeting room
+    client.join(meetingId);
+
     try {
-      const { meetingId, userId } = client.handshake.query;
+      // Fetch the meeting and its participants
+      const meeting = await this.meetingService.getMeeting(meetingId);
+      const participants = meeting.participants || [];
 
-      if (!meetingId || !userId) {
-        client.disconnect();
-        return;
-      }
+      this.logger.log(`Emitting current-participants to client ${client.id}:`, participants);
 
-      this.logger.log(
-        `Client connected: ${client.id} - User: ${userId} - Meeting: ${meetingId}`,
-      );
-
-      // Join the meeting room
-      client.join(meetingId as string);
-
-      // Store user and meeting info in socket data
-      client.data.meetingId = meetingId;
-      client.data.userId = userId;
-
-      // Notify others that a new participant has joined
-      const participant = await this.participantRepository.findOne({
-        where: {
-          meetingId: meetingId as string,
-          userId: userId as string,
-          isActive: true,
-        },
-        relations: ['user'],
-      });
-
-      if (participant) {
-        this.server.to(meetingId as string).emit('participant-joined', {
-          participant,
-          timestamp: new Date(),
-        });
-      }
+      // Emit the current participants to the newly connected client
+      client.emit('current-participants', participants);
     } catch (error) {
-      this.logger.error(`Error in handleConnection: no connection 1`);
+      this.logger.error(`Error fetching meeting on connection`);
+      client.emit('error', { message: 'Failed to fetch meeting participants' });
       client.disconnect();
     }
   }
 
   async handleDisconnect(client: Socket) {
+    const meetingId = client.handshake.query.meetingId as string;
+    const userId = client.handshake.query.userId as string;
+
+    this.logger.log(`Client disconnected: ${client.id}, meetingId: ${meetingId}, userId: ${userId}`);
+
+    if (!meetingId || !userId) return;
+
     try {
-      const meetingId = client.data.meetingId as string;
-      const userId = client.data.userId as string;
+      // Mark the participant as inactive
+      await this.meetingService.leaveMeeting(meetingId, userId);
 
-      if (!meetingId || !userId) {
-        this.logger.warn(
-          `Client disconnected without meeting or user info: ${client.id}`,
-        );
-        return;
-      }
+      // Notify other clients in the room
+      this.server.to(meetingId).emit('participant-left', { userId });
 
-      this.logger.log(
-        `Client disconnected: ${client.id} - User: ${userId} - Meeting: ${meetingId}`,
-      );
-
-      try {
-        // Update participant status
-        await this.meetingService.leaveMeeting(meetingId, userId);
-
-        // Notify others that participant has left
-        this.server.to(meetingId).emit('participant-left', {
-          userId,
-          timestamp: new Date(),
-        });
-
-        this.logger.debug(
-          `Successfully processed disconnect for user ${userId} in meeting ${meetingId}`,
-        );
-      } catch (dbError) {
-        this.logger.error(
-          `Failed to update participant status on disconnect: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`,
-          dbError instanceof Error ? dbError.stack : undefined,
-        );
-      }
+      // Fetch updated participants list and emit to all clients
+      const meeting = await this.meetingService.getMeeting(meetingId);
+      const participants = meeting.participants || [];
+      this.server.to(meetingId).emit('current-participants', participants);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(
-        `Error in handleDisconnect: ${errorMessage}`,
-        error instanceof Error ? error.stack : undefined,
-      );
+      this.logger.error(`Error handling disconnect`);
     }
   }
 
   @SubscribeMessage('join-meeting')
-  async handleJoinMeeting(
-    client: Socket,
-    data: { meetingId: string; userId: string },
-  ) {
+  async handleJoinMeeting(client: Socket, payload: { meetingId: string; userId: string }) {
+    const { meetingId, userId } = payload;
+
+    this.logger.log(`Received join-meeting from client ${client.id}:`, payload);
+
     try {
-      const { meetingId, userId } = data;
-
-      // Join the meeting room
-      client.join(meetingId);
-
-      // Get all active participants
-      const meeting = await this.meetingRepository.findOne({
-        where: { id: meetingId },
-        relations: ['participants', 'participants.user'],
+      // Join the meeting using the MeetingService
+      const participant = await this.meetingService.joinMeeting({
+        meetingId,
+        userId,
+        hasCamera: false,
+        hasMicrophone: false,
       });
 
-      if (!meeting) {
-        throw new WsException('Meeting not found');
-      }
+      // Join the Socket.IO room
+      client.join(meetingId);
 
-      // Send current participants to the new joiner
-      const activeParticipants = meeting.participants.filter((p) => p.isActive);
-      client.emit('current-participants', activeParticipants);
+      // Fetch the updated meeting with participants
+      const meeting = await this.meetingService.getMeeting(meetingId);
+      const participants = meeting.participants || [];
 
-      return { success: true };
+      this.logger.log(`Emitting current-participants to all clients in meeting ${meetingId}:`, participants);
+
+      // Emit the updated participants list to all clients in the room
+      this.server.to(meetingId).emit('current-participants', participants);
+
+      this.logger.log(`Emitting participant-joined to other clients in meeting ${meetingId}:`, participant);
+
+      // Emit participant-joined event to other clients in the room
+      client.to(meetingId).emit('participant-joined', { participant });
     } catch (error) {
-      this.logger.error(`Error in join-meeting`);
-      return { success: false, error: 'Meeting not found' };
+      this.logger.error(`Error joining meeting`);
+      client.emit('error', { message: 'Failed to join meeting' });
     }
-  }
-
-  @SubscribeMessage('offer')
-  handleOffer(client: Socket, data: { to: string; offer: any }) {
-    const { to, offer } = data;
-    this.server.to(to).emit('offer', {
-      from: client.id,
-      offer,
-    });
-  }
-
-  @SubscribeMessage('answer')
-  handleAnswer(client: Socket, data: { to: string; answer: any }) {
-    const { to, answer } = data;
-    this.server.to(to).emit('answer', {
-      from: client.id,
-      answer,
-    });
-  }
-
-  @SubscribeMessage('ice-candidate')
-  handleIceCandidate(client: Socket, data: { to: string; candidate: any }) {
-    const { to, candidate } = data;
-    this.server.to(to).emit('ice-candidate', {
-      from: client.id,
-      candidate,
-    });
   }
 
   @SubscribeMessage('update-status')
   async handleUpdateStatus(
     client: Socket,
-    data: {
-      meetingId: string;
-      userId: string;
-      hasCamera: boolean;
-      hasMicrophone: boolean;
-      isScreenSharing: boolean;
-    },
+    payload: { meetingId: string; userId: string; hasCamera: boolean; hasMicrophone: boolean; isScreenSharing: boolean }
   ) {
+    const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } = payload;
+
+    this.logger.log(`Received update-status from client ${client.id}:`, payload);
+
     try {
-      const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } =
-        data;
+      // Update participant status using the MeetingService
+      await this.meetingService.updateParticipantStatus({
+        meetingId,
+        userId,
+        hasCamera,
+        hasMicrophone,
+        isScreenSharing,
+      });
 
-      this.logger.debug(
-        `Updating status for user ${userId} in meeting ${meetingId}: camera=${hasCamera}, mic=${hasMicrophone}, screen=${isScreenSharing}`,
-      );
+      this.logger.log(`Emitting participant-status-updated to all clients in meeting ${meetingId}:`, {
+        userId,
+        hasCamera,
+        hasMicrophone,
+        isScreenSharing,
+      });
 
-      // Update participant status
-      const updatedParticipant =
-        await this.meetingService.updateParticipantStatus({
-          meetingId,
-          userId,
-          hasCamera,
-          hasMicrophone,
-          isScreenSharing,
-        });
-
-      if (!updatedParticipant) {
-        throw new Error('Failed to update participant status');
-      }
-
-      // Notify all participants about the status change
+      // Emit participant-status-updated to all clients in the room
       this.server.to(meetingId).emit('participant-status-updated', {
         userId,
         hasCamera,
         hasMicrophone,
         isScreenSharing,
-        timestamp: new Date(),
       });
-
-      return { success: true, participant: updatedParticipant };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(`Error in update-status: ${errorMessage}`);
-      return {
-        success: false,
-        error: errorMessage || 'Unable to update participant status',
-      };
+      this.logger.error(`Error updating participant status`);
+      client.emit('error', { message: 'Failed to update participant status' });
     }
   }
 
   @SubscribeMessage('send-message')
-  async handleSendMessage(
-    client: Socket,
-    data: {
-      meetingId: string;
-      senderId: string;
-      message: string;
-      isPrivate?: boolean;
-      receiverId?: string;
-    },
-  ) {
+  async handleSendMessage(client: Socket, payload: { meetingId: string; senderId: string; message: string; isPrivate?: boolean; receiverId?: string }) {
+    const { meetingId, senderId, message, isPrivate = false, receiverId } = payload;
+
+    this.logger.log(`Received send-message from client ${client.id}:`, payload);
+
     try {
-      const { meetingId, senderId, message, isPrivate, receiverId } = data;
-
-      this.logger.debug(
-        `Sending message in meeting ${meetingId} from ${senderId}${isPrivate ? ` to ${receiverId}` : ''}`,
-      );
-
-      // Validate sender is in the meeting
-      const senderParticipant = await this.participantRepository.findOne({
-        where: { meetingId, userId: senderId, isActive: true },
-      });
-
-      if (!senderParticipant) {
-        throw new Error('Sender is not an active participant in this meeting');
-      }
-
-      const savedMessage = await this.meetingService.sendMessage({
+      // Save the message using the MeetingService
+      const newMessage = await this.meetingService.sendMessage({
         meetingId,
         senderId,
         message,
@@ -271,123 +166,92 @@ export class MeetingGateway
         receiverId,
       });
 
-      if (!savedMessage) {
-        throw new Error('Failed to save message');
-      }
-
       if (isPrivate && receiverId) {
-        // Validate receiver is in the meeting
-        const receiverParticipant = await this.participantRepository.findOne({
-          where: { meetingId, userId: receiverId, isActive: true },
-        });
-
-        if (!receiverParticipant) {
-          throw new Error(
-            'Receiver is not an active participant in this meeting',
-          );
-        }
-
-        const receiverSockets = await this.server.in(meetingId).fetchSockets();
-        const receiverSocket = receiverSockets.find(
-          (socket) => socket.data.userId === receiverId,
+        // Emit private message to the sender and receiver
+        const senderSocket = Array.from(this.server.sockets.sockets.values()).find(
+          (socket) => socket.handshake.query.userId === senderId
+        );
+        const receiverSocket = Array.from(this.server.sockets.sockets.values()).find(
+          (socket) => socket.handshake.query.userId === receiverId
         );
 
+        if (senderSocket) {
+          senderSocket.emit('private-message', newMessage);
+        }
         if (receiverSocket) {
-          receiverSocket.emit('new-message', savedMessage);
-          client.emit('new-message', savedMessage);
+          receiverSocket.emit('private-message', newMessage);
         }
       } else {
-        this.server.to(meetingId).emit('new-message', savedMessage);
+        // Emit public message to all clients in the room
+        this.server.to(meetingId).emit('message', newMessage);
       }
-
-      return { success: true, message: savedMessage };
     } catch (error) {
-      this.logger.error(`Error in send-message`);
-      return {
-        success: false,
-        error: 'Error sending message',
-      };
+      this.logger.error(`Error sending message`);
+      client.emit('error', { message: 'Failed to send message' });
     }
   }
 
-  @SubscribeMessage('start-recording')
-  handleStartRecording(client: Socket, data: { meetingId: string }) {
-    const { meetingId } = data;
-    this.server.to(meetingId).emit('recording-started', {
-      timestamp: new Date(),
-    });
-  }
-
-  @SubscribeMessage('stop-recording')
-  handleStopRecording(client: Socket, data: { meetingId: string }) {
-    const { meetingId } = data;
-    this.server.to(meetingId).emit('recording-stopped', {
-      timestamp: new Date(),
-    });
-  }
-
   @SubscribeMessage('raise-hand')
-  handleRaiseHand(client: Socket, data: { meetingId: string; userId: string }) {
-    const { meetingId, userId } = data;
-    this.server.to(meetingId).emit('hand-raised', {
-      userId,
-      timestamp: new Date(),
-    });
+  handleRaiseHand(client: Socket, payload: { meetingId: string; userId: string }) {
+    const { meetingId, userId } = payload;
+    this.logger.log(`Received raise-hand from client ${client.id}:`, payload);
+    this.server.to(meetingId).emit('hand-raised', { raisedHandUserId: userId });
   }
 
   @SubscribeMessage('lower-hand')
-  handleLowerHand(client: Socket, data: { meetingId: string; userId: string }) {
-    const { meetingId, userId } = data;
-    this.server.to(meetingId).emit('hand-lowered', {
-      userId,
-      timestamp: new Date(),
-    });
+  handleLowerHand(client: Socket, payload: { meetingId: string; userId: string }) {
+    const { meetingId, userId } = payload;
+    this.logger.log(`Received lower-hand from client ${client.id}:`, payload);
+    this.server.to(meetingId).emit('hand-lowered', { loweredHandUserId: userId });
   }
 
-  @SubscribeMessage('share-screen')
-  handleShareScreen(
-    client: Socket,
-    data: { meetingId: string; userId: string },
-  ) {
-    const { meetingId, userId } = data;
-    this.server.to(meetingId).emit('screen-shared', {
-      userId,
-      timestamp: new Date(),
-    });
+  @SubscribeMessage('screen-share-started')
+  handleScreenShareStarted(client: Socket, payload: { meetingId: string; userId: string }) {
+    const { meetingId, userId } = payload;
+    this.logger.log(`Received screen-share-started from client ${client.id}:`, payload);
+    this.server.to(meetingId).emit('screen-share-started', { sharingUserId: userId });
   }
 
-  @SubscribeMessage('stop-screen-share')
-  handleStopScreenShare(
-    client: Socket,
-    data: { meetingId: string; userId: string },
-  ) {
-    const { meetingId, userId } = data;
-    this.server.to(meetingId).emit('screen-share-stopped', {
-      userId,
-      timestamp: new Date(),
-    });
+  @SubscribeMessage('screen-share-stopped')
+  handleScreenShareStopped(client: Socket, payload: { meetingId: string; userId: string }) {
+    const { meetingId, userId } = payload;
+    this.logger.log(`Received screen-share-stopped from client ${client.id}:`, payload);
+    this.server.to(meetingId).emit('screen-share-stopped', { stoppedSharingUserId: userId });
   }
 
-  @SubscribeMessage('end-meeting')
-  async handleEndMeeting(
-    client: Socket,
-    data: { meetingId: string; hostId: string },
-  ) {
-    try {
-      const { meetingId, hostId } = data;
+  @SubscribeMessage('ice-candidate')
+  handleIceCandidate(client: Socket, payload: { to: string; candidate: any }) {
+    const { to, candidate } = payload;
+    this.logger.log(`Received ice-candidate from client ${client.id}:`, payload);
+    const targetSocket = Array.from(this.server.sockets.sockets.values()).find(
+      (socket) => socket.handshake.query.userId === to
+    );
+    if (targetSocket) {
+      targetSocket.emit('ice-candidate', { from: client.handshake.query.userId, candidate });
+    }
+  }
 
-      // End the meeting
-      await this.meetingService.endMeeting(meetingId, hostId);
+  @SubscribeMessage('offer')
+  handleOffer(client: Socket, payload: { to: string; offer: any }) {
+    const { to, offer } = payload;
+    this.logger.log(`Received offer from client ${client.id}:`, payload);
+    const targetSocket = Array.from(this.server.sockets.sockets.values()).find(
+      (socket) => socket.handshake.query.userId === to
+    );
+    if (targetSocket) {
+      targetSocket.emit('offer', { from: client.handshake.query.userId, offer });
+    }
+  }
 
-      // Notify all participants that the meeting has ended
-      this.server.to(meetingId).emit('meeting-ended', {
-        timestamp: new Date(),
-      });
-
-      return { success: true };
-    } catch (error) {
-      this.logger.error(`Error in end-meeting`);
-      return { success: false, error: 'Error ending meeting' };
+  @SubscribeMessage('answer')
+  handleAnswer(client: Socket, payload: { to: string; answer: any }) {
+    const { to, answer } = payload;
+    this.logger.log(`Received answer from client ${client.id}:`, payload);
+    const targetSocket = Array.from(this.server.sockets.sockets.values()).find(
+      (socket) => socket.handshake.query.userId === to
+    );
+    if (targetSocket) {
+      targetSocket.emit('answer', { from: client.handshake.query.userId, answer });
     }
   }
 }
