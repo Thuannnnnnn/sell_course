@@ -85,9 +85,6 @@ export default function Chat() {
                 }`}
                 style={{ maxWidth: "70%" }}
               >
-                <small className="d-block text-muted">
-                  {msg.sender === "CUSTOMER" ? "You" : "Support"}
-                </small>
                 {msg.messageText}
                 <small className="d-block text-muted mt-1">
                   {new Date(msg.timestamp).toLocaleTimeString()}

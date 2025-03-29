@@ -32,7 +32,7 @@ const useSocket = (sessionId: string | string[]): UseSocketResult => {
   // Khởi tạo và quản lý kết nối WebSocket
   useEffect(() => {
     console.log("Initializing WebSocket connection with sessionId:", sessionId);
-    const newSocket = io("http://localhost:8080", {
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
       autoConnect: true,
       query: { sessionId },
     });

@@ -353,7 +353,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        <p>{t("loading")}</p>
       </div>
     );
   }
@@ -398,10 +397,6 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
           <div>
             <p>{t("teacher")}</p>
             <h3>{courses?.userName}</h3>
-          </div>
-          <div>
-            <p>{t("category")}</p>
-            <h3>{courses?.categoryName}</h3>
           </div>
           <div>
             <p>{t("lastUpdate")}</p>
