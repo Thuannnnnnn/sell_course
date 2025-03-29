@@ -15,6 +15,13 @@ export const settingsApi = {
     return Array.isArray(response.data) ? response.data : [];
   },
 
+  getVersionSettingsActive: async () => {
+    const response = await axios.get<VersionSetting>(
+      `${API_URL}/active`
+    );
+    return  response.data;
+  },
+
   createVersion: async (data: {
     VersionSettingtitle: string;
     isActive: boolean;
