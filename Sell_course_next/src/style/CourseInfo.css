@@ -244,3 +244,248 @@
 .course-header .course-title {
   font-family: Arial, sans-serif;
 }
+/* ==================== Responsive Design ==================== */
+
+/* Điện thoại nhỏ (dưới 480px) */
+@media (max-width: 480px) {
+  .course-header {
+    padding: 8px 5px;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .course-progress {
+    font-size: 12px;
+    margin-left: 0;
+  }
+
+  /* Main Layout */
+  .course-content-wrapper {
+    flex-direction: column;
+    padding: 8px;
+  }
+
+  .course-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .course-video-section {
+    width: 100%;
+  }
+
+  .video-player {
+    height: 200px;
+  }
+
+  .video-play-icon {
+    font-size: 40px;
+  }
+
+  .course-navigation {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-prev,
+  .btn-next {
+    width: 100%;
+    padding: 8px 15px;
+    font-size: 12px;
+    text-align: center;
+  }
+}
+
+/* Điện thoại tiêu chuẩn và máy tính bảng nhỏ (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .course-header {
+    padding: 10px;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .course-progress {
+    font-size: 14px;
+    margin-left: 0;
+  }
+
+  /* Main Layout */
+  .course-content-wrapper {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .course-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .course-video-section {
+    width: 100%;
+  }
+
+  .video-player {
+    height: 250px;
+  }
+
+  .video-play-icon {
+    font-size: 45px;
+  }
+
+  .course-navigation {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-prev,
+  .btn-next {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+/* Máy tính bảng lớn (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .course-header {
+    padding: 12px 15px;
+    flex-direction: row;
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .course-progress {
+    font-size: 14px;
+    margin-left: auto;
+  }
+
+  /* Main Layout */
+  .course-content-wrapper {
+    flex-direction: row;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .course-sidebar {
+    width: 35%;
+    border-right: 1px solid #ddd;
+    border-bottom: none;
+  }
+
+  .course-video-section {
+    width: 65%;
+  }
+
+  .video-player {
+    height: 300px;
+  }
+
+  .video-play-icon {
+    font-size: 50px;
+  }
+
+  .course-navigation {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .btn-prev,
+  .btn-next {
+    width: auto;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Desktop nhỏ (1025px - 1280px) - Nếu cần điều chỉnh thêm */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .course-header {
+    padding: 15px 20px;
+    justify-content: flex-end;
+  }
+
+  .course-progress {
+    font-size: 14px;
+    margin-left: auto;
+  }
+
+  .course-content-wrapper {
+    flex-direction: row;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .course-sidebar {
+    width: 25%;
+    border-right: 1px solid #ddd;
+  }
+
+  .course-video-section {
+    width: 75%;
+  }
+
+  .video-player {
+    height: 400px;
+  }
+
+  .course-navigation {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .btn-prev,
+  .btn-next {
+    width: auto;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Desktop lớn (1281px trở lên) - Giữ nguyên như thiết kế gốc */
+@media (min-width: 1281px) {
+  .course-header {
+    padding: 15px 20px;
+    justify-content: flex-end;
+  }
+
+  .course-progress {
+    font-size: 14px;
+    margin-left: auto;
+  }
+
+  .course-content-wrapper {
+    flex-direction: row;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .course-sidebar {
+    width: 25%;
+    border-right: 1px solid #ddd;
+  }
+
+  .course-video-section {
+    width: 75%;
+  }
+
+  .video-player {
+    height: 400px;
+  }
+
+  .course-navigation {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .btn-prev,
+  .btn-next {
+    width: auto;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
