@@ -20,6 +20,8 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import "@/style/HomePage.css";
 import { fetchUserAnswersByUserId } from "../api/userAnswer/userAnswerApi";
+import { interactionApi } from "../api/interaction/interactionApi";
+import { InteractionType } from "../type/Interaction/Interaction";
 export default function HomePage() {
   const t = useTranslations("homePage");
   const tc = useTranslations("cardCourse");
@@ -61,6 +63,21 @@ export default function HomePage() {
   const handleClick = async (courseDetaill: string) => {
     const locale = params.locale;
 
+    if (session?.user?.user_id) {
+      try {
+        await interactionApi.createOrUpdateInteraction({
+          user: {
+            user_id: session.user.user_id,
+          },
+          course: {
+            courseId: courseDetaill,
+          },
+          interaction_type: InteractionType.VIEW,
+        });
+      } catch (error) {
+        console.error("Error creating interaction:", error);
+      }
+    }
     router.push(`/${locale}/courseDetail/${courseDetaill}`);
   };
   return (

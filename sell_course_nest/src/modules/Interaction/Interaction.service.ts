@@ -51,82 +51,53 @@ export class InteractionService {
     };
   }
 
-  async create(data: InteractionRequestDTO): Promise<InteractionResponseDTO> {
+  async createOrUpdate(data: Interaction): Promise<InteractionResponseDTO> {
+    // Validate user existence
     const user = await this.userRepository.findOne({
-      where: { user_id: data.userId },
+      where: { user_id: data.user.user_id },
     });
     if (!user) {
       throw new HttpException(
-        `User with ID ${data.userId} not found`,
+        `User with ID ${data.user.user_id} not found`,
         HttpStatus.NOT_FOUND,
       );
     }
+
+    // Validate course existence
     const course = await this.courseRepository.findOne({
-      where: { courseId: data.courseId },
+      where: { courseId: data.course.courseId },
     });
     if (!course) {
       throw new HttpException(
-        `Course with ID ${data.courseId} not found`,
+        `Course with ID ${data.course.courseId} not found`,
         HttpStatus.NOT_FOUND,
       );
     }
 
-    const interaction = this.interactionRepository.create({
-      user,
-      course,
-      interaction_type: data.interaction_type,
-    });
-    await this.interactionRepository.save(interaction);
-    return {
-      id: interaction.id,
-      userId: user.user_id,
-      courseId: course.courseId,
-      interaction_type: interaction.interaction_type,
-    };
-  }
-
-  async update(
-    id: string,
-    data: Partial<InteractionRequestDTO>,
-  ): Promise<InteractionResponseDTO> {
-    const interaction = await this.interactionRepository.findOne({
-      where: { id },
+    // Attempt to find an existing interaction based on user and course
+    let interaction = await this.interactionRepository.findOne({
+      where: {
+        user: { user_id: data.user.user_id },
+        course: { courseId: data.course.courseId },
+      },
       relations: ['user', 'course'],
     });
-    if (!interaction) {
-      throw new NotFoundException(`Interaction with ID ${id} not found`);
-    }
 
-    // Nếu cập nhật userId hoặc courseId, bạn cần xử lý riêng
-    if (data.userId) {
-      const user = await this.userRepository.findOne({
-        where: { user_id: data.userId },
-      });
-      if (!user) {
-        throw new HttpException(
-          `User with ID ${data.userId} not found`,
-          HttpStatus.NOT_FOUND,
-        );
+    // If interaction exists, update it; otherwise, create a new one.
+    if (interaction) {
+      if (data.interaction_type) {
+        interaction.interaction_type = data.interaction_type;
       }
-      interaction.user = user;
-    }
-    if (data.courseId) {
-      const course = await this.courseRepository.findOne({
-        where: { courseId: data.courseId },
+    } else {
+      interaction = this.interactionRepository.create({
+        user,
+        course,
+        interaction_type: data.interaction_type,
       });
-      if (!course) {
-        throw new HttpException(
-          `Course with ID ${data.courseId} not found`,
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      interaction.course = course;
-    }
-    if (data.interaction_type) {
-      interaction.interaction_type = data.interaction_type;
     }
 
     await this.interactionRepository.save(interaction);
+
     return {
       id: interaction.id,
       userId: interaction.user.user_id,
