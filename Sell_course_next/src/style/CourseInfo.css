@@ -308,7 +308,7 @@
   }
 
   .course-progress {
-    font-size: 14px; /* Giữ kích thước lớn hơn một chút */
+    font-size: 14px;
     margin-left: 0;
   }
 
@@ -329,7 +329,7 @@
   }
 
   .video-player {
-    height: 250px; /* Cao hơn một chút so với điện thoại nhỏ */
+    height: 250px;
   }
 
   .video-play-icon {
@@ -354,7 +354,7 @@
 @media (min-width: 769px) and (max-width: 1024px) {
   .course-header {
     padding: 12px 15px;
-    flex-direction: row; /* Giữ layout ngang */
+    flex-direction: row;
     justify-content: flex-end;
     text-align: right;
   }
@@ -366,23 +366,23 @@
 
   /* Main Layout */
   .course-content-wrapper {
-    flex-direction: row; /* Sidebar và content nằm ngang */
+    flex-direction: row;
     padding: 15px;
     gap: 15px;
   }
 
   .course-sidebar {
-    width: 35%; /* Giảm chiều rộng sidebar so với desktop */
+    width: 35%;
     border-right: 1px solid #ddd;
     border-bottom: none;
   }
 
   .course-video-section {
-    width: 65%; /* Phần còn lại cho nội dung */
+    width: 65%;
   }
 
   .video-player {
-    height: 300px; /* Cao hơn một chút cho tablet */
+    height: 300px;
   }
 
   .video-play-icon {
@@ -390,13 +390,13 @@
   }
 
   .course-navigation {
-    flex-direction: row; /* Nút ngang trên tablet */
+    flex-direction: row;
     gap: 10px;
   }
 
   .btn-prev,
   .btn-next {
-    width: auto; /* Không full width */
+    width: auto;
     padding: 10px 20px;
     font-size: 14px;
   }
@@ -430,7 +430,7 @@
   }
 
   .video-player {
-    height: 400px; /* Kích thước mặc định */
+    height: 400px;
   }
 
   .course-navigation {
@@ -449,7 +449,7 @@
 /* Desktop lớn (1281px trở lên) - Giữ nguyên như thiết kế gốc */
 @media (min-width: 1281px) {
   .course-header {
-    padding: 15px 20px; /* Như thiết kế gốc */
+    padding: 15px 20px;
     justify-content: flex-end;
   }
 
