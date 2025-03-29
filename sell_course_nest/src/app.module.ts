@@ -106,9 +106,9 @@ import { Setting } from './modules/setting/entities/setting.entity';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
 
       entities: [
         Interaction,

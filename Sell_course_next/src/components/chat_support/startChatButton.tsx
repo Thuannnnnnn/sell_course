@@ -6,6 +6,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useState } from "react";
+import styles from "../../style/StartChatButton.module.css"; // Import CSS module
 
 export default function StartChatButton() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function StartChatButton() {
   const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleStartChat = async (): Promise<void> => {
+  const handleStartChat = async () => {
     // Type guard for session and user_id
     if (!session?.user?.user_id && !session?.user?.token) {
       console.log("User not authenticated or user_id missing");
@@ -42,10 +43,12 @@ export default function StartChatButton() {
   };
 
   return (
-    <button
-      onClick={handleStartChat}
-      disabled={isLoading || !session?.user?.user_id}
+    <button 
+      onClick={handleStartChat} 
+      disabled={isLoading} 
+      className={styles.startChatButton}
     >
+      {isLoading && <span className={styles.buttonLoader}></span>}
       {isLoading ? "Starting..." : "Start Chat"}
     </button>
   );

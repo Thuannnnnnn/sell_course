@@ -138,6 +138,38 @@ const DashBoardTotal = () => {
 
   return (
     <div className="container-fluid px-3 px-md-4 mt-4">
+      {/* Chart Section for Mobile - Displayed at the top on mobile */}
+      <Card className="p-3 mb-4 shadow-sm d-md-none">
+        <h4 className="text-center mb-3 fs-5">
+          {t("statisticsOverview")}
+        </h4>
+        <div style={{ width: "100%", height: "280px" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 5, right: 10, left: 0, bottom: 40 }}
+            >
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 10 }} 
+                height={40}
+                angle={-45}
+                textAnchor="end"
+              />
+              <YAxis tick={{ fontSize: 10 }} width={40} />
+              <Tooltip />
+              <Legend 
+                wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} 
+                verticalAlign="top"
+                height={30}
+              />
+              <Bar dataKey="value" fill="#8884d8" barSize={30} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      {/* Stats Cards */}
       <Row className="g-3 mb-4">
         <Col xs={12} sm={6} md={3}>
           <Card className="text-center p-3 shadow-sm h-100">
@@ -171,26 +203,31 @@ const DashBoardTotal = () => {
         </Col>
       </Row>
 
+      {/* Export Buttons */}
       <Row className="mb-3">
-        <Col className="text-end">
+        <Col xs={12} sm={6} className="mb-2 mb-sm-0">
           <Button
             variant="success"
             onClick={exportToExcel}
-            className="w-100 w-sm-auto me-2"
+            className="w-100"
           >
             <FaFileExport className="me-2" />
             {t("exportToExcel")}
           </Button>
+        </Col>
+        <Col xs={12} sm={6}>
           <Button
             variant="primary"
             onClick={exportExamScoreToExcel}
-            className="w-100 w-sm-auto mt-4"
+            className="w-100"
           >
             <FaFileExport className="me-2" />
             Export Exam Scores
           </Button>
         </Col>
       </Row>
+
+      {/* Chart Section for Desktop */}
       <Card className="p-3 p-md-4 shadow-sm d-none d-md-block">
         <h4 className="text-center mb-3 fs-5 fs-md-4">
           {t("statisticsOverview")}
