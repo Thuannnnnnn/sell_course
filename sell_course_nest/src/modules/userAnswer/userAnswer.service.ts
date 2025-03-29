@@ -45,7 +45,7 @@ export class UserAnswerService {
 
   async findOne(id: string) {
     return this.userAnswerRepository.findOne({
-      where: { id },
+      where: { user: { user_id: id } },
       relations: ['question'],
     });
   }

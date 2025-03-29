@@ -23,7 +23,7 @@ import { fetchUserAnswersByUserId } from "../api/userAnswer/userAnswerApi";
 export default function HomePage() {
   const t = useTranslations("homePage");
   const tc = useTranslations("cardCourse");
-    const localActive = useLocale();
+  const localActive = useLocale();
   const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
 
@@ -48,7 +48,7 @@ export default function HomePage() {
       try {
         const data = await fetchCourses();
         setCourses(data);
-      } catch  {
+      } catch {
       } finally {
       }
     };
