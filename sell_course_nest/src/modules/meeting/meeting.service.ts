@@ -12,7 +12,7 @@ import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { JoinMeetingDto } from './dto/join-meeting.dto';
 import { UpdateParticipantStatusDto } from './dto/update-participant-status.dto';
 import { SendMessageDto } from './dto/send-message.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
 
 @Injectable()
 export class MeetingService {
@@ -29,7 +29,6 @@ export class MeetingService {
    * Generate a unique meeting code
    */
   private generateMeetingCode(): string {
-    // Generate a 10-character alphanumeric code
     return Math.random().toString(36).substring(2, 12).toUpperCase();
   }
 
@@ -37,7 +36,6 @@ export class MeetingService {
    * Create a new meeting
    */
   async createMeeting(createMeetingDto: CreateMeetingDto): Promise<Meeting> {
-    // Validate and process scheduled time
     let scheduledTime = null;
     if (createMeetingDto.isScheduled && createMeetingDto.scheduledTime) {
       scheduledTime = new Date(createMeetingDto.scheduledTime);
@@ -60,10 +58,20 @@ export class MeetingService {
    * Get meeting by ID or code
    */
   async getMeeting(meetingIdOrCode: string): Promise<Meeting> {
-    const meeting = await this.meetingRepository.findOne({
-      where: [{ id: meetingIdOrCode }, { meetingCode: meetingIdOrCode }],
-      relations: ['participants', 'participants.user'],
-    });
+    let meeting: Meeting | null;
+
+    // Check if the meetingIdOrCode is a valid UUID
+    if (uuidValidate(meetingIdOrCode)) {
+      meeting = await this.meetingRepository.findOne({
+        where: { id: meetingIdOrCode },
+        relations: ['participants', 'participants.user'],
+      });
+    } else {
+      meeting = await this.meetingRepository.findOne({
+        where: { meetingCode: meetingIdOrCode },
+        relations: ['participants', 'participants.user'],
+      });
+    }
 
     if (!meeting) {
       throw new NotFoundException('Meeting not found');
@@ -107,9 +115,7 @@ export class MeetingService {
   /**
    * Join a meeting
    */
-  async joinMeeting(
-    joinMeetingDto: JoinMeetingDto,
-  ): Promise<MeetingParticipant> {
+  async joinMeeting(joinMeetingDto: JoinMeetingDto): Promise<MeetingParticipant> {
     const {
       meetingId,
       userId,
@@ -118,11 +124,18 @@ export class MeetingService {
     } = joinMeetingDto;
 
     // Find the meeting by ID or code
-    const meeting = await this.meetingRepository
-      .createQueryBuilder('meeting')
-      .where('meeting.meetingCode = :meetingCode', { meetingCode: meetingId })
-      .orWhere('meeting.id = :id', { id: meetingId })
-      .getOne();
+    let meeting: Meeting | null;
+
+    // Check if meetingId is a valid UUID
+    if (uuidValidate(meetingId)) {
+      meeting = await this.meetingRepository.findOne({
+        where: { id: meetingId },
+      });
+    } else {
+      meeting = await this.meetingRepository.findOne({
+        where: { meetingCode: meetingId },
+      });
+    }
 
     if (!meeting) {
       throw new NotFoundException('Meeting not found');
@@ -243,7 +256,7 @@ export class MeetingService {
     }
 
     // Check if user is an active participant
-    const participant = await this.participantRepository.findOne({
+    let participant = await this.participantRepository.findOne({
       where: {
         meetingId,
         userId,
