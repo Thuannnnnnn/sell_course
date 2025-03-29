@@ -35,6 +35,30 @@ export interface Certificate {
   user: User;
 }
 
+// Hàm tạo chứng chỉ
+export const createCertificate = async (createCertificateData: {
+  courseId: string;
+  userId: string;
+  title: string;
+}): Promise<Certificate> => {
+  try {
+    console.log(createCertificateData);
+    const response = await axios.post<Certificate>(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/certificates`,
+      createCertificateData
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Có lỗi xảy ra khi tạo chứng chỉ"
+      );
+    }
+    throw error;
+  }
+};
+
+// Các hàm khác bạn đã cung cấp
 export const getCertificateByUserId = async (
   userId: string
 ): Promise<Certificate[]> => {
@@ -80,7 +104,6 @@ export const verifyCertificate = async (
     const response = await axios.get<boolean>(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/certificates/${certificateId}/verify`
     );
-    console.log(response.data);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

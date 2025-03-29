@@ -20,8 +20,8 @@ export class CartService {
   ) {}
 
   async addToCart(createCartDto: CreateCartDto) {
-    const { email, courseId } = createCartDto;
-    console.log(email, courseId);
+    const { email, course_id } = createCartDto;
+    console.log(email, course_id);
     const user = await this.userRepository.findOne({
       where: { email: email },
     });
@@ -29,7 +29,9 @@ export class CartService {
       throw new NotFoundException('User not found');
     }
 
-    const course = await this.courseRepository.findOne({ where: { courseId } });
+    const course = await this.courseRepository.findOne({
+      where: { courseId: course_id },
+    });
     if (!course) {
       throw new NotFoundException('Course not found');
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import "@/style/courseAdmin.css";
 import { Course } from "@/app/type/course/Course";
 import { deleteCourse } from "@/app/api/course/CourseAPI";
@@ -21,8 +21,13 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
   const { data: session } = useSession();
   const router = useRouter();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const maxVisiblePages = 5; // Maximum number of visible pages in pagination
+
   const handleDelete = async (e: React.MouseEvent, courseId: string) => {
-    e.stopPropagation(); // Ngăn sự kiện click lan truyền lên <tr>
+    e.stopPropagation();
     try {
       if (!session?.user.token) {
         return;
@@ -38,12 +43,50 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
   };
 
   const handleEdit = (e: React.MouseEvent, courseId: string) => {
-    e.stopPropagation(); // Ngăn sự kiện click lan truyền lên <tr>
+    e.stopPropagation();
     router.push(`/${locale}/admin/courseAdmin/edit/${courseId}`);
+  };
+
+  const filteredCourses = courses.filter((course) =>
+    course.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const paginatedCourses = filteredCourses.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to the first page when searching
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const getVisiblePages = () => {
+    const startPage =
+      Math.floor((currentPage - 1) / maxVisiblePages) * maxVisiblePages + 1;
+    const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, index) => startPage + index
+    );
   };
 
   return (
     <Container className="course-table">
+      <div className="filter-container">
+        <input
+          type="text"
+          placeholder={t("searchPlaceholder")}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="search-input"
+        />
+      </div>
       <table>
         <thead>
           <tr>
@@ -57,7 +100,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
           </tr>
         </thead>
         <tbody>
-          {courses.map((course, index) => (
+          {paginatedCourses.map((course, index) => (
             <tr
               key={course.courseId}
               onClick={() =>
@@ -66,7 +109,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
                 )
               }
             >
-              <td>{index + 1}</td>
+              <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
               <td>
                 {course.imageInfo ? (
                   <Image
@@ -103,7 +146,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
                     viewBox="0 0 16 16"
                   >
                     <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
-                    <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                    <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
                   </svg>
                 </button>
                 <button
@@ -127,6 +170,30 @@ const CourseList: React.FC<CourseListProps> = ({ courses, setCourses }) => {
           ))}
         </tbody>
       </table>
+      <div className="pagination">
+        {Math.ceil(currentPage / maxVisiblePages) > 1 && (
+          <button onClick={() => handlePageChange(getVisiblePages()[0] - 1)}>
+            &lt;
+          </button>
+        )}
+        {getVisiblePages().map((page) => (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={currentPage === page ? "active" : ""}
+          >
+            {page}
+          </button>
+        ))}
+        {Math.ceil(currentPage / maxVisiblePages) <
+          Math.ceil(totalPages / maxVisiblePages) && (
+          <button
+            onClick={() => handlePageChange(getVisiblePages().slice(-1)[0] + 1)}
+          >
+            &gt;
+          </button>
+        )}
+      </div>
     </Container>
   );
 };

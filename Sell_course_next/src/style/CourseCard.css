@@ -1,4 +1,4 @@
-.card {
+.cardListCourse {
   width: 250px;
   background: white;
   border-radius: 10px;
@@ -11,7 +11,7 @@
   flex-direction: column;
 }
 
-.card:hover {
+.cardListCourse:hover {
   transform: translateY(-5px);
 }
 

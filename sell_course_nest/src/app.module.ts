@@ -78,7 +78,7 @@ import { QuestionHabit } from './modules/questionHabit/entities/questionHabit.en
 import { UserAnswer } from './modules/userAnswer/entities/userAnswer.entity';
 import { QuestionHabitModule } from './modules/questionHabit/questionHabit.module';
 import { UserAnswerModule } from './modules/userAnswer/userAnswer.module';
-import { ChatModule } from './modules/support_chat/chat_support.module';
+import { SupportChatModule } from './modules/support_chat/chat_support.module';
 import { ChatSession } from './modules/support_chat/entities/chat-session.entity';
 import { Message } from './modules/support_chat/entities/message.entity';
 import { Promotion } from './modules/promotion/entities/promotion.entity';
@@ -106,10 +106,9 @@ import { Setting } from './modules/setting/entities/setting.entity';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl:
-        process.env.DATABASE_SSL === 'true'
-          ? { rejectUnauthorized: false }
-          : false,
+      ssl: {
+        rejectUnauthorized: false,
+      },
 
       entities: [
         Interaction,
@@ -196,7 +195,7 @@ import { Setting } from './modules/setting/entities/setting.entity';
     PaymentModule,
     ResultExamModule,
     QaStudyModule,
-    ChatModule,
+    SupportChatModule,
     PromotionModule,
     SettingModule,
   ],

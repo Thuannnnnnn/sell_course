@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { fetchQuestion, getExamResults, submitExam } from "@/app/api/exam/exam";
 import "../../style/ExamPage.css";
+import { createCertificate } from "@/app/api/certificate/certificate";
 
 interface Answer {
   answerId: string;
@@ -18,7 +19,7 @@ interface Question {
 }
 
 const ExamPage = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // id của exam/course
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -29,8 +30,6 @@ const ExamPage = () => {
   const [hasPreviousResult, setHasPreviousResult] = useState(false);
 
   const { data: session, status } = useSession();
-
-  console.log(loading, error)
 
   useEffect(() => {
     if (status === "loading" || !session?.user?.token) return;
@@ -43,7 +42,10 @@ const ExamPage = () => {
           setScore(result.score);
           setHasPreviousResult(true);
         } else {
-          const examQuestions = await fetchQuestion(session.user.token, id as string);
+          const examQuestions = await fetchQuestion(
+            session.user.token,
+            id as string
+          );
           setQuestions(examQuestions);
         }
       } catch {
@@ -63,18 +65,36 @@ const ExamPage = () => {
   const handleSubmit = async () => {
     if (!session?.user?.token) return;
 
-    const formattedAnswers = Object.entries(answers).map(([questionId, answerId]) => ({
-      questionId,
-      answerId,
-    }));
+    const formattedAnswers = Object.entries(answers).map(
+      ([questionId, answerId]) => ({
+        questionId,
+        answerId,
+      })
+    );
 
     try {
-      const result = await submitExam(session.user.token, id as string, formattedAnswers);
+      const result = await submitExam(
+        session.user.token,
+        id as string,
+        formattedAnswers
+      );
       setScore(result.score);
       setSubmitted(true);
       setHasPreviousResult(true);
-    } catch {
-      setError("Failed to submit exam. Please try again.");
+      if (result.score >= 80) {
+        const certificateData = {
+          courseId: id as string,
+          userId: session?.user.user_id ?? "",
+          title: `Certificate for Exam ${id}`,
+        };
+        await createCertificate(certificateData);
+        console.log("Certificate created successfully!");
+      }
+    } catch (error) {
+      setError(
+        "Failed to submit exam or create certificate. Please try again."
+      );
+      console.error(error);
     }
   };
 
@@ -89,7 +109,10 @@ const ExamPage = () => {
 
     try {
       if (!session?.user?.token) return;
-      const examQuestions = await fetchQuestion(session.user.token, id as string);
+      const examQuestions = await fetchQuestion(
+        session.user.token,
+        id as string
+      );
       setQuestions(examQuestions);
     } catch {
       setError("Failed to reload exam questions.");
@@ -110,14 +133,28 @@ const ExamPage = () => {
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   if (hasPreviousResult) {
     return (
       <div className="exam-container">
         <h1>Exam Result</h1>
-        <div className={`score ${score && score >= 50 ? "scoreSuccess" : "scoreFail"}`}>
+        <div
+          className={`score ${
+            score && score >= 50 ? "scoreSuccess" : "scoreFail"
+          }`}
+        >
           Your Score: {score}
         </div>
-        <button className="retry-button" onClick={handleRetry}>Retry Exam</button>
+        <button className="retry-button" onClick={handleRetry}>
+          Retry Exam
+        </button>
       </div>
     );
   }
@@ -141,8 +178,15 @@ const ExamPage = () => {
                     type="radio"
                     name={currentQuestion.questionId}
                     value={answer.answerId}
-                    checked={answers[currentQuestion.questionId] === answer.answerId}
-                    onChange={() => handleSelectAnswer(currentQuestion.questionId, answer.answerId)}
+                    checked={
+                      answers[currentQuestion.questionId] === answer.answerId
+                    }
+                    onChange={() =>
+                      handleSelectAnswer(
+                        currentQuestion.questionId,
+                        answer.answerId
+                      )
+                    }
                     disabled={submitted}
                   />
                   {answer.answer}
@@ -152,12 +196,22 @@ const ExamPage = () => {
           </div>
         )}
         <div className="navigation-buttons">
-          <button className="nav-button" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>Previous</button>
+          <button
+            className="nav-button"
+            onClick={handlePreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+          >
+            Previous
+          </button>
           {currentQuestionIndex < questions.length - 1 ? (
-            <button className="nav-button" onClick={handleNextQuestion}>Next</button>
+            <button className="nav-button" onClick={handleNextQuestion}>
+              Next
+            </button>
           ) : (
             !submitted && (
-              <button className="submit-button" onClick={handleSubmit}>Submit Exam</button>
+              <button className="submit-button" onClick={handleSubmit}>
+                Submit Exam
+              </button>
             )
           )}
         </div>

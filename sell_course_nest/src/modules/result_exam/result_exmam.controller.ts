@@ -42,4 +42,12 @@ export class ResultExamController {
       throw new NotFoundException('Exam not found');
     }
   }
+  @Get('exam/results/all')
+  async getAllExamResults() {
+    try {
+      return await this.resultExamService.getAll();
+    } catch {
+      throw new NotFoundException('Failed to fetch all exam results');
+    }
+  }
 }

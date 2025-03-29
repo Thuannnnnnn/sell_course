@@ -19,6 +19,7 @@ export class UserDTO {
   birthDay: string | null;
   phoneNumber: string;
   role: string;
+  isBan: boolean;
   permissions: PermissionDTO[];
 
   constructor(user: {
@@ -30,6 +31,7 @@ export class UserDTO {
     birthDay: string | null;
     phoneNumber: string;
     role: string;
+    isBan: boolean;
     permissions: {
       id: number;
       name: string;
@@ -44,6 +46,7 @@ export class UserDTO {
     this.birthDay = user.birthDay;
     this.phoneNumber = user.phoneNumber;
     this.role = user.role;
+    this.isBan = user.isBan;
     this.permissions = user.permissions.map(
       (permission) => new PermissionDTO(permission),
     );

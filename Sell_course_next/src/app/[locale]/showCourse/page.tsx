@@ -41,15 +41,15 @@ const ShowCoursePage: React.FC = () => {
     loadCourses();
   }, []);
 
-  const categories = useMemo(() => {
-    const uniqueCategories = new Set<string>();
-    courses.forEach((course) => {
-      if (course.categoryName) {
-        uniqueCategories.add(course.categoryName);
-      }
-    });
-    return Array.from(uniqueCategories).sort();
-  }, [courses]);
+  // const categories = useMemo(() => {
+  //   const uniqueCategories = new Set<string>();
+  //   courses.forEach((course) => {
+  //     if (course.categoryName) {
+  //       uniqueCategories.add(course.categoryName);
+  //     }
+  //   });
+  //   return Array.from(uniqueCategories).sort();
+  // }, [courses]);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
@@ -102,9 +102,9 @@ const ShowCoursePage: React.FC = () => {
     setSortOption("newest");
   };
 
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category === selectedCategory ? "" : category);
-  };
+  // const handleCategorySelect = (category: string) => {
+  //   setSelectedCategory(category === selectedCategory ? "" : category);
+  // };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortOption(e.target.value as SortOption);
@@ -112,19 +112,14 @@ const ShowCoursePage: React.FC = () => {
 
   return (
     <div className="course-page-container">
-      <div className="header-section">
-        <h1 className="page-title">{t("pageTitle")}</h1>
-        <p className="page-subtitle">{t("pageSubtitle")}</p>
-      </div>
-
       <div className="search-filter-section">
         <div className="search-container">
           <div className="search-input-container">
             <input
               type="text"
               className="search-input"
-              placeholder={t("searchPlaceholder")}
               value={searchQuery}
+              placeholder={t("placeHolder")}
               onChange={handleSearchChange}
             />
             {searchQuery ? (
@@ -138,7 +133,7 @@ const ShowCoursePage: React.FC = () => {
           </div>
         </div>
 
-        {categories.length > 0 && (
+        {/* {categories.length > 0 && (
           <div className="category-filters">
             {categories.map((category) => (
               <button
@@ -152,7 +147,7 @@ const ShowCoursePage: React.FC = () => {
               </button>
             ))}
           </div>
-        )}
+        )} */}
       </div>
 
       {loading ? (
@@ -166,21 +161,37 @@ const ShowCoursePage: React.FC = () => {
             <div className="results-count">
               {searchQuery || selectedCategory ? (
                 <p>
-                  <span dangerouslySetInnerHTML={{
-                    __html: t.raw('resultsFound').replace('{count}', `<strong>${filteredCourses.length}</strong>`)
-                  }} />
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: t
+                        .raw("resultsFound")
+                        .replace(
+                          "{count}",
+                          `<strong>${filteredCourses.length}</strong>`
+                        ),
+                    }}
+                  />
                   {searchQuery && (
-                    <span>{t('withKeyword', { keyword: searchQuery })}</span>
+                    <span>{t("withKeyword", { keyword: searchQuery })}</span>
                   )}
                   {selectedCategory && (
-                    <span>{t('inCategory', { category: selectedCategory })}</span>
+                    <span>
+                      {t("inCategory", { category: selectedCategory })}
+                    </span>
                   )}
                 </p>
               ) : (
                 <p>
-                  <span dangerouslySetInnerHTML={{
-                    __html: t.raw('showingAll').replace('{count}', `<strong>${courses.length}</strong>`)
-                  }} />
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: t
+                        .raw("showingAll")
+                        .replace(
+                          "{count}",
+                          `<strong>${courses.length}</strong>`
+                        ),
+                    }}
+                  />
                 </p>
               )}
             </div>

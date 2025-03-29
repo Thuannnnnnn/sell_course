@@ -70,7 +70,8 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
+  @Column({ default: false })
+  isBan: boolean;
   @BeforeInsert()
   prePersist() {
     if (!this.user_id) {

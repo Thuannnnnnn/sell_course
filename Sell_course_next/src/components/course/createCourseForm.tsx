@@ -144,18 +144,19 @@ const CourseForm = () => {
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = Number(e.target.value);
-    if (newValue > 10000) {
-      setPrice(newValue);
-    } else {
+    setPrice(newValue);
+  };
+
+  const handlePriceBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const newValue = Number(e.target.value);
+    if (newValue < 10000) {
       NotificationManager.error(
         "Giá phải lớn hơn 10000",
         "Lỗi nhập liệu",
         2000
       );
-      setPrice(100000);
     }
   };
-
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith("video/")) {
@@ -345,6 +346,7 @@ const CourseForm = () => {
                     type="text"
                     value={price}
                     onChange={handlePriceChange}
+                    onBlur={handlePriceBlur}
                     className="price-field"
                     title="Price"
                     placeholder="Enter price"
@@ -352,8 +354,6 @@ const CourseForm = () => {
                 </InputGroup>
                 <p>{t("price")}</p>
               </div>
-
-              {/* Added isPublic toggle */}
               <div>
                 <h3>{t("visibility")}</h3>
                 <label>

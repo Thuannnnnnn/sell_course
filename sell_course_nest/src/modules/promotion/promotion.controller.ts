@@ -43,15 +43,15 @@ export class PromotionController {
     return this.promotionService.findAll();
   }
 
-  @Get('admin/promotion/show_promotion_id/:id')
+  @Get('promotion/show_promotion_code/:code')
   @ApiOperation({ summary: 'Get a promotion by ID' })
   @ApiResponse({
     status: 200,
     description: 'Promotion details',
     type: Promotion,
   })
-  findOne(@Param('id') id: string): Promise<Promotion> {
-    return this.promotionService.findOne(id);
+  findOne(@Param('code') code: string): Promise<Promotion> {
+    return this.promotionService.findOne(code);
   }
 
   @Put('admin/promotion/update_promotion/:id')

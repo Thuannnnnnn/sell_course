@@ -52,7 +52,8 @@
     "taxCode": "Tax code: 010232101123",
     "foundingDate": "Established: 05/01/2025",
     "activityField": "Field of activity: Education, technology - programming. We focus on building and developing products that bring value to the Vietnamese programming community.",
-    "copyright": ". Leading programming learning platform in Vietnam."
+    "copyright": ". Leading programming learning platform in Vietnam.",
+    "chatHistory": "Chat History"
   },
   "detail": {
     "title": "detail"
@@ -139,7 +140,8 @@
     "forumPosts": "Forum Posts",
     "exportToExcel": "Export to Excel",
     "statisticsOverview": "Statistics Overview",
-    "customers": "Customers"
+    "customers": "Customers",
+    "promotion": "Promotion"
   },
   "permission": {
     "title": "Permission",
@@ -181,7 +183,20 @@
     "noPermisssion": "No Permission",
     "addBtn": "Add Permission",
     "remove": "Remove",
-    "removing": "Removing..."
+    "removing": "Removing...",
+    "userManagement": "User Management",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editUser": "Edit User",
+    "banned": "User is Blocked",
+    "status": "Status",
+    "active": "Active",
+    "ban": "Lock",
+    "unban": "Unblock",
+    "searchPlaceholder": "Enter Name to Search",
+    "noPermission": "No Permission",
+    "loading": "Loading..."
   },
   "categories": {
     "create": "Create Category",
@@ -234,7 +249,8 @@
     "description": "Description",
     "category": "Category",
     "dateCreated": "Date Created",
-    "actions": "Actions"
+    "actions": "Actions",
+    "searchPlaceholder": "Enter Name to Search"
   },
   "coursesForm": {
     "editCourse": "EDIT COURSE",
@@ -296,7 +312,12 @@
     "remove": "Remove",
     "subtotal": "Subtotal",
     "total": "Total",
-    "checkout": "Proceed to Checkout"
+    "checkout": "Proceed to Checkout",
+    "yourCart": "Your Cart",
+    "emptyCart": "Your cart is empty",
+    "emptyCartAlert": "Your cart is empty!",
+
+    "summary": "Cart Summary"
   },
   "cartBanner": {
     "title": "Your Cart",
@@ -319,34 +340,52 @@
     "failureMessage": "Unfortunately, your payment could not be processed. Please try again.",
     "home_button": "Go Home",
     "subtotal": "Subtotal",
-    "checkout": "Proceed to Checkout"
+    "checkout": "Proceed to Checkout",
+    "subtitle": "Complete your purchase",
+    "yourCart": "Your Cart",
+    "emptyCart": "Your cart is empty",
+    "discount": "Discount",
+    "enterPromoCode": "Enter promo code",
+    "applyPromoCode": "Apply Promo Code",
+    "paymentError": "An error occurred during payment. Please try again.",
+    "invalidPromoCode": "Invalid promo code",
+    "authError": "You must be logged in to apply a promo code",
+    "summary": "Order Summary"
   },
   "courseDetailForm": {
     "teacher": "Teacher",
     "category": "Category",
     "lastUpdate": "Last Update",
     "rating": "Rating",
-    "aboutCourse": "About Course",
-    "courseCurriculum": "Course Curriculum",
-    "inTroToCourse": "Intro to course",
-    "exam": "Exam",
-    "addToCart": "Add to cart",
-    "buyCourse": "Buy course",
-    "readMore": "Read More",
+    "aboutCourse": "About this course",
     "collapse": "Collapse",
-    "success": "Success",
-    "error": "Error",
-    "addedToCartSuccess": "Course successfully added to cart!",
-    "addedToCartFail": "Failed to add course to cart.",
+    "readMore": "Read more",
+    "courseCurriculum": "Course Curriculum",
+    "inTroToCourse": "Introduction to Course",
+    "exam": "Exam",
+    "purFedback": "Purchase the course to leave feedback.",
     "questionsAndAnswers": "Questions and Answers",
+    "enterDescription": "Enter your question here...",
+    "noQuestionsYet": "No questions yet.",
     "reply": "Reply",
-    "noQuestionsYet": "No Question",
-    "enterDescription": "Enter your question",
-    "addedToWaitListSuccess": "Course successfully added to Waitlist!",
-    "addedToWaitListFail": "Failed to add course to Waitlist.",
+    "addToCart": "Add to Cart",
+    "buyCourse": "Buy Course",
     "addToWaitList": "Add to Waitlist",
-    "purFedback": "You need to buy this course to give feedback",
-    "GoToCourse": "Go To Course"
+    "GoToCourse": "Go to Course",
+    "loginRequired": "You need to log in to perform this action.",
+    "warning": "Warning",
+    "addedToCartSuccess": "Course added to cart successfully!",
+    "success": "Success",
+    "addedToCartFail": "Failed to add course to cart.",
+    "error": "Error",
+    "feedbacks": "Feedbacks",
+    "feedbackPlaceholder": "Share your experience...",
+    "ratingLabel": "Rating",
+    "submitFeedback": "Submit Feedback",
+    "noFeedbacksYet": "No feedbacks yet",
+    "sendingQuestion": "Sending...",
+    "sendQuestion": "Send Question",
+    "delete": "Delete"
   },
   "forgotPasswordPage": {
     "title": "Forgot Password",
@@ -423,27 +462,6 @@
     "title_exists_error": "Document title already exists",
     "upload_error": "Error occurred while uploading the document",
     "file_status": "File is available"
-  },
-  "showCourse": {
-    "pageTitle": "Explore Courses",
-    "pageSubtitle": "Find and discover courses that suit you",
-    "searchPlaceholder": "Search for courses...",
-    "loading": "Loading...",
-    "resultsFound": "Found {count} courses",
-    "withKeyword": " with keyword \"{keyword}\"",
-    "inCategory": " in category \"{category}\"",
-    "showingAll": "Showing all {count} courses",
-    "noResults": "No courses found",
-    "noResultsMessage": "No courses match your search criteria.",
-    "clearFilters": "Clear filters",
-    "sortOptions": {
-      "newest": "Newest",
-      "oldest": "Oldest",
-      "priceLow": "Price low to high",
-      "priceHigh": "Price high to low",
-      "nameAsc": "Name A-Z",
-      "nameDesc": "Name Z-A"
-    }
   },
   "Forum": {
     "title": "Forum",
@@ -623,5 +641,46 @@
     "submissionFailed": "Submission failed. Please try again.",
     "fetchQuestionsFailed": "Failed to fetch questions. Please refresh the page.",
     "fillAllFields": "Please answer all questions before submitting."
+  },
+  "showCourse": {
+    "placeHolder": "Search courses...",
+    "loading": "Loading courses...",
+    "resultsFound": "{count} results found",
+    "withKeyword": "with keyword '{keyword}'",
+    "inCategory": "in category '{category}'",
+    "showingAll": "Showing all {count} courses",
+    "noResults": "No results found",
+    "noResultsMessage": "Try adjusting your search or filters to find what you're looking for.",
+    "clearFilters": "Clear all filters",
+    "sortOptions": {
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low",
+      "nameAsc": "Name: A to Z",
+      "nameDesc": "Name: Z to A"
+    }
+  },
+  "promotion": {
+    "title": "Promotions",
+    "create": "Create Promotion",
+    "name": "Name",
+    "discount": "Discount (%)",
+    "code": "Code",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "fetchError": "Failed to fetch promotions. Please try again.",
+    "saveError": "Failed to save promotion. Please try again.",
+    "deleteError": "Failed to delete promotion. Please try again.",
+    "invalidDiscount": "Discount must be a valid number greater than or equal to 0.",
+    "editPromotion": "Edit Promotion",
+    "createPromotion": "Create Promotion",
+    "cancel": "Cancel",
+    "save": "Save",
+    "selectCourse": "Select a course",
+    "courseRequired": "Please select a course",
+    "searchCourse": "Search Course",
+    "course": "Course"
   }
 }

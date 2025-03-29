@@ -29,6 +29,7 @@ import {
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { getAllExamResults } from "@/app/api/exam/exam";
 
 const DashBoardTotal = () => {
   const [coursePurchasedData, setCoursePurchasedData] = useState<
@@ -60,12 +61,53 @@ const DashBoardTotal = () => {
     fetchData();
   }, [session]);
 
-  const chartData = [
-    { name: t("customers"), value: userData.length },
-    { name: t("membersPurchased"), value: coursePurchasedData.length },
-    { name: t("courses"), value: courses.length },
-    { name: t("forumPosts"), value: forumData.length },
-  ];
+  const exportExamScoreToExcel = async () => {
+    if (!session?.user?.token) {
+      console.error("No token available");
+      return;
+    }
+
+    try {
+      // Gọi API để lấy tất cả kết quả bài kiểm tra
+      const examResults = await getAllExamResults(session.user.token);
+
+      // Tạo map để tra cứu courseName từ courseId
+      const courseMap = new Map(
+        courses.map((course) => [course.courseId, course.title])
+      );
+
+      // Chuẩn bị dữ liệu cho Excel
+      const formattedData = examResults.map(
+        (result: {
+          resultExamId: string;
+          email: string;
+          exam: { courseId: string };
+          score: number;
+          createdAt: string | number | Date;
+        }) => ({
+          ResultExamId: result.resultExamId,
+          UserEmail: result.email,
+          CourseName: courseMap.get(result.exam.courseId) || "Unknown Course", // Thay courseId bằng courseName
+          Score: result.score,
+          CreatedAt: new Date(result.createdAt).toLocaleString(),
+        })
+      );
+
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "ExamResults");
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+      const data = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+      saveAs(data, "ExamScores.xlsx");
+    } catch (error) {
+      console.error("Error exporting exam scores:", error);
+    }
+  };
 
   const exportToExcel = () => {
     const workbook = XLSX.utils.book_new();
@@ -86,6 +128,13 @@ const DashBoardTotal = () => {
     });
     saveAs(data, "DashboardData.xlsx");
   };
+
+  const chartData = [
+    { name: t("customers"), value: userData.length },
+    { name: t("membersPurchased"), value: coursePurchasedData.length },
+    { name: t("courses"), value: courses.length },
+    { name: t("forumPosts"), value: forumData.length },
+  ];
 
   return (
     <div className="container-fluid px-3 px-md-4 mt-4">
@@ -127,10 +176,18 @@ const DashBoardTotal = () => {
           <Button
             variant="success"
             onClick={exportToExcel}
-            className="w-100 w-sm-auto"
+            className="w-100 w-sm-auto me-2"
           >
             <FaFileExport className="me-2" />
             {t("exportToExcel")}
+          </Button>
+          <Button
+            variant="primary"
+            onClick={exportExamScoreToExcel}
+            className="w-100 w-sm-auto mt-4"
+          >
+            <FaFileExport className="me-2" />
+            Export Exam Scores
           </Button>
         </Col>
       </Row>

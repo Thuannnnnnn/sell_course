@@ -6,5 +6,5 @@ export class CreateCartDto {
 
   @IsUUID()
   @IsNotEmpty()
-  courseId: string;
+  course_id: string;
 }

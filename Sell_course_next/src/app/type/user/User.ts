@@ -13,6 +13,7 @@ export interface User {
   birthDay: string | null;
   phoneNumber: string;
   role: string;
+  isBan: boolean;
   permissions: Permission[];
 }
 
@@ -27,7 +28,7 @@ export interface UserGetAllCoursePurchase {
 }
 export interface GetUser {
   user_id: null;
-  email:  undefined;
+  email: undefined;
   username: null;
   avatarImg: null;
   gender: null;
@@ -47,4 +48,3 @@ export interface UserGetAllWishlist {
     description: string;
   };
 }
-

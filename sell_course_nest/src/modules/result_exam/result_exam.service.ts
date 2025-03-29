@@ -143,4 +143,19 @@ export class ResultExamService {
     const totalQuestionsToReturn = Math.min(10, shuffledQuestions.length);
     return shuffledQuestions.slice(0, totalQuestionsToReturn);
   }
+
+  async getAll(): Promise<ResultExam[]> {
+    const results = await this.resultExamRepository.find({
+      relations: ['exam', 'user'], // Load thông tin liên quan
+      order: {
+        createdAt: 'DESC', // Sắp xếp theo thời gian tạo, mới nhất trước
+      },
+    });
+
+    if (!results || results.length === 0) {
+      throw new NotFoundException('No exam results found');
+    }
+
+    return results;
+  }
 }
