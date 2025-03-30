@@ -7,7 +7,7 @@ import { HiUserGroup } from "react-icons/hi2";
 import { MdQuiz } from "react-icons/md";
 import { SiCoursera } from "react-icons/si";
 import { BiSolidCategory } from "react-icons/bi";
-import { TbDevicesQuestion, TbMessageReportFilled } from "react-icons/tb";
+import {  TbMessageReportFilled } from "react-icons/tb";
 import { FaBell } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
 import { FaSignOutAlt } from "react-icons/fa";

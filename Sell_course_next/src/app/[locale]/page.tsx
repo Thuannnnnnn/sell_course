@@ -29,7 +29,7 @@ export default function HomePage() {
   const localActive = useLocale();
   const { data: session } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
-
+  const router = useRouter();
   useEffect(() => {
     if (session && session.user && session.user.user_id) {
       const checkUserAnswers = async () => {
@@ -44,7 +44,7 @@ export default function HomePage() {
       };
       checkUserAnswers();
     }
-  }, [session]);
+  }, [session, localActive, router]);
 
   useEffect(() => {
     if (session && session.user && session.user.user_id) {
@@ -74,7 +74,6 @@ export default function HomePage() {
     }
   }, [session]);
 
-  const router = useRouter();
   const params = useParams();
   const handleClick = async (courseDetaill: string) => {
     const locale = params.locale;
@@ -184,9 +183,7 @@ export default function HomePage() {
           <p className="course-description text-center mb-5">
             {t("homePageContent")}
           </p>
-          <h2 className="course-title text-center mb-4">
-            {t("recommended")}
-          </h2>
+          <h2 className="course-title text-center mb-4">{t("recommended")}</h2>
           <div className="container">
             <div className="row g-4">
               {courses.map((course) => (

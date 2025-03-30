@@ -461,7 +461,7 @@ const useMeetingSocket = (
 
         peerConnections.current.forEach((peer) => {
           const senders = peer.connection.getSenders();
-          videoTracks.forEach((track) => {
+          videoTracks.forEach(() => {
             const sender = senders.find((s) => s.track?.kind === "video");
             if (sender) sender.replaceTrack(null);
           });
@@ -533,7 +533,7 @@ const useMeetingSocket = (
 
         peerConnections.current.forEach((peer) => {
           const senders = peer.connection.getSenders();
-          audioTracks.forEach((track) => {
+          audioTracks.forEach(() => {
             const sender = senders.find((s) => s.track?.kind === "audio");
             if (sender) sender.replaceTrack(null);
           });

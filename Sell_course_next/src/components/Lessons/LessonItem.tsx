@@ -26,7 +26,6 @@ interface LessonItemProps {
     contentId: string,
     contentName: string
   ) => void;
-  t: (key: string) => string;
 }
 
 export const LessonItem = ({
@@ -39,7 +38,6 @@ export const LessonItem = ({
   handleShowModal,
   handleContentClick,
   handleShowContentModal,
-  t,
 }: LessonItemProps) => {
   const [, lessonRef] = useDrag({
     type: ItemTypes.LESSON,
@@ -92,7 +90,7 @@ export const LessonItem = ({
         style={{ cursor: "move" }}
       >
         <div className={styles.contentItem}>
-          <div 
+          <div
             className={styles.contentText}
             onClick={() => handleContentClick(content)}
           >

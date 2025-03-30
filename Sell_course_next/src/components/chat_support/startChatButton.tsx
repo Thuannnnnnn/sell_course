@@ -16,9 +16,9 @@ export default function StartChatButton() {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleStartChat = async () => {
-    // Type guard for session and user_id
-    if (!session?.user?.user_id && !session?.user?.token) {
-      console.log("User not authenticated or user_id missing");
+    if (!session?.user?.user_id || !session?.user?.token) {
+      // Đổi từ && thành ||
+      console.log("User not authenticated or user_id/token missing");
       return;
     }
 
@@ -26,13 +26,12 @@ export default function StartChatButton() {
     try {
       const response: StartChatResponse | undefined = await StartChat(
         session.user.user_id,
-        session?.user?.token
+        session.user.token
       );
 
       if (response?.sessionId) {
-        const sessionId: string = response.sessionId;
-        console.log("Chat session started with ID:", sessionId);
-        router.push(`/${locale}/chats/${sessionId}`);
+        console.log("Chat session started with ID:", response.sessionId);
+        router.push(`/${locale}/chats/${response.sessionId}`);
       } else {
         console.log("Failed to start chat: No response or invalid response");
       }
@@ -43,30 +42,19 @@ export default function StartChatButton() {
     }
   };
 
-  // Create a style tag for keyframes animation
-  const keyframesStyle = `
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  `;
-
-  // Combine styles based on state
-  const buttonStyle = {
-    ...styles.button,
-    ...(isHovered && !isLoading && !(!session?.user?.user_id) ? {
-      backgroundColor: "#3a76d8",
-      transform: "translateY(-1px)",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    } : {}),
-    ...(isLoading || !session?.user?.user_id ? styles.buttonDisabled : {}),
-    ...(isLoading ? styles.loadingButton : {}),
-  };
-
   return (
-    <button 
-      onClick={handleStartChat} 
-      disabled={isLoading} 
-      className={styles.startChatButton}
+    <button
+      onClick={handleStartChat}
+      disabled={isLoading || !session?.user?.user_id} // Đảm bảo chỉ bật khi có user_id
+      className={`${styles.startChatButton} ${
+        isLoading ? styles.loadingButton : ""
+      } ${
+        isHovered && !isLoading && session?.user?.user_id
+          ? styles.hoveredButton
+          : ""
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {isLoading && <span className={styles.buttonLoader}></span>}
       {isLoading ? "Starting..." : "Start Chat"}

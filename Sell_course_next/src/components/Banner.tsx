@@ -7,11 +7,10 @@ import { Carousel, Spinner } from "react-bootstrap";
 import banner_img from "../../public/IMG_3922-1024x661.png";
 import "../style/Banner.css";
 import { settingsApi } from "@/app/api/setting/setting";
-import { CarouselSetting, VersionSetting } from "@/app/type/settings/Settings";
+import { CarouselSetting } from "@/app/type/settings/Settings";
 
 const Banner = () => {
   const t = useTranslations("banner");
-  const [activeVersionSetting, setActiveVersionSetting] = useState<VersionSetting | null>(null);
   const [carouselImages, setCarouselImages] = useState<CarouselSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,27 +21,25 @@ const Banner = () => {
         setLoading(true);
         setError(null);
         console.log("Fetching active version settings for Banner");
-        
+
         // Get active version
         const activeVersion = await settingsApi.getVersionSettingsActive();
-        
+
         if (activeVersion) {
-          console.log("Active version found for Banner:", activeVersion);
-          setActiveVersionSetting(activeVersion);
-          
-          // Get carousel images for this version
-          console.log("Fetching carousel for version ID:", activeVersion.versionSettingId);
-          const carouselData = await settingsApi.getCarouselByVersionId(activeVersion.versionSettingId);
-          
+          console.log(
+            "Fetching carousel for version ID:",
+            activeVersion.versionSettingId
+          );
+          const carouselData = await settingsApi.getCarouselByVersionId(
+            activeVersion.versionSettingId
+          );
+
           if (carouselData && carouselData.length > 0) {
-            console.log("Carousel data found:", carouselData.length, "images");
             setCarouselImages(carouselData);
           } else {
-            console.log("No carousel images found for this version");
             setCarouselImages([]);
           }
         } else {
-          console.log("No active version found");
           setError("No active version settings found");
         }
       } catch (error) {
@@ -52,7 +49,7 @@ const Banner = () => {
         setLoading(false);
       }
     };
-    
+
     fetchActiveSettings();
   }, []);
 
@@ -99,7 +96,11 @@ const Banner = () => {
     <section className="colorBackground">
       {carouselImages.length > 0 ? (
         <div className="carousel-wrapper">
-          <Carousel className="carousel-container" indicators={true} controls={true}>
+          <Carousel
+            className="carousel-container"
+            indicators={true}
+            controls={true}
+          >
             {carouselImages.map((image, index) => (
               <Carousel.Item key={image.carouselSettingId || index}>
                 <div className="carousel-image-container">

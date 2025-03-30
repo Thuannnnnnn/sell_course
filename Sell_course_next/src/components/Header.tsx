@@ -27,7 +27,7 @@ import { useSocket } from "@/hook/useNotifySocket";
 import { Notify } from "@/app/type/notify/Notify";
 import "@/style/NotificationDropdown.css";
 import { settingsApi } from "@/app/api/setting/setting";
-import { LogoSetting, VersionSetting } from "@/app/type/settings/Settings";
+import { LogoSetting } from "@/app/type/settings/Settings";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
@@ -46,8 +46,7 @@ const Header: React.FC = () => {
   const [isResponsive, setIsResponsive] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   
-  // State for active version settings and logo
-  const [activeVersionSetting, setActiveVersionSetting] = useState<VersionSetting | null>(null);
+
   const [logoSetting, setLogoSetting] = useState<LogoSetting | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -60,20 +59,19 @@ const Header: React.FC = () => {
         const activeVersion = await settingsApi.getVersionSettingsActive();
         
         if (activeVersion) {
-          console.log("Active version found:", activeVersion);
-          setActiveVersionSetting(activeVersion);
+
           
-          console.log("Fetching logo for version ID:", activeVersion.versionSettingId);
+
           const logoData = await settingsApi.getLogoByVersionId(activeVersion.versionSettingId);
           
           if (logoData && logoData.length > 0) {
-            console.log("Logo found:", logoData[0]);
+
             setLogoSetting(logoData[0]);
           } else {
             console.log("No logo found for this version");
           }
         } else {
-          console.log("No active version found");
+          console.log("No active version fFound");
         }
       } catch (error) {
         console.error("Error fetching active settings:", error);

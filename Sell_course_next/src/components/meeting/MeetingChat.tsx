@@ -1,12 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FaPaperPlane, FaTimes } from 'react-icons/fa';
-import { MeetingMessage } from '../../app/api/meeting/meeting';
-import { format } from 'date-fns';
+import React, { useState, useRef, useEffect } from "react";
+import { FaPaperPlane, FaTimes } from "react-icons/fa";
+import { MeetingMessage } from "../../app/api/meeting/meeting";
+import { format } from "date-fns";
 
 interface MeetingChatProps {
   messages: MeetingMessage[];
-  sendMessage: (message: string, isPrivate?: boolean, receiverId?: string) => void;
-  participants: any[];
+  sendMessage: (
+    message: string,
+    isPrivate?: boolean,
+    receiverId?: string
+  ) => void;
+  participants: string[];
   currentUserId: string;
   onClose: () => void;
 }
@@ -16,35 +20,39 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
   sendMessage,
   participants,
   currentUserId,
-  onClose
+  onClose,
 }) => {
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
-  const [selectedReceiverId, setSelectedReceiverId] = useState('');
+  const [selectedReceiverId, setSelectedReceiverId] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (messageText.trim()) {
-      sendMessage(messageText, isPrivate, isPrivate ? selectedReceiverId : undefined);
-      setMessageText('');
+      sendMessage(
+        messageText,
+        isPrivate,
+        isPrivate ? selectedReceiverId : undefined
+      );
+      setMessageText("");
     }
   };
 
   const formatTimestamp = (timestamp: string) => {
-    return format(new Date(timestamp), 'HH:mm');
+    return format(new Date(timestamp), "HH:mm");
   };
 
   const getParticipantName = (userId: string) => {
-    const participant = participants.find(p => p.userId === userId);
-    return participant?.user?.name || 'Unknown User';
+    const participant = participants.find((p) => p.userId === userId);
+    return participant?.user?.name || "Unknown User";
   };
 
   return (
@@ -60,21 +68,30 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
         {messages.length === 0 ? (
           <div className="no-messages">No messages yet</div>
         ) : (
-          messages.map(message => (
-            <div 
-              key={message.id} 
-              className={`message ${message.senderId === currentUserId ? 'sent' : 'received'} ${message.isPrivate ? 'private' : ''}`}
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`message ${
+                message.senderId === currentUserId ? "sent" : "received"
+              } ${message.isPrivate ? "private" : ""}`}
             >
               <div className="message-header">
                 <span className="sender-name">
-                  {message.senderId === currentUserId ? 'You' : getParticipantName(message.senderId)}
+                  {message.senderId === currentUserId
+                    ? "You"
+                    : getParticipantName(message.senderId)}
                 </span>
                 {message.isPrivate && (
                   <span className="private-badge">
-                    Private to {message.receiverId === currentUserId ? 'you' : getParticipantName(message.receiverId || '')}
+                    Private to{" "}
+                    {message.receiverId === currentUserId
+                      ? "you"
+                      : getParticipantName(message.receiverId || "")}
                   </span>
                 )}
-                <span className="timestamp">{formatTimestamp(message.timestamp)}</span>
+                <span className="timestamp">
+                  {formatTimestamp(message.timestamp)}
+                </span>
               </div>
               <div className="message-content">{message.message}</div>
             </div>
@@ -86,34 +103,33 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
       <form className="message-form" onSubmit={handleSendMessage}>
         <div className="message-options">
           <label className="private-checkbox">
-            <input 
-              type="checkbox" 
-              checked={isPrivate} 
-              onChange={() => setIsPrivate(!isPrivate)} 
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={() => setIsPrivate(!isPrivate)}
             />
             Private message
           </label>
-          
+
           {isPrivate && (
-            <select 
-              value={selectedReceiverId} 
+            <select
+              value={selectedReceiverId}
               onChange={(e) => setSelectedReceiverId(e.target.value)}
               required
               className="receiver-select"
             >
               <option value="">Select recipient</option>
               {participants
-                .filter(p => p.userId !== currentUserId && p.isActive)
-                .map(p => (
+                .filter((p) => p.userId !== currentUserId && p.isActive)
+                .map((p) => (
                   <option key={p.userId} value={p.userId}>
-                    {p.user?.name || 'Unknown User'}
+                    {p.user?.name || "Unknown User"}
                   </option>
-                ))
-              }
+                ))}
             </select>
           )}
         </div>
-        
+
         <div className="input-container">
           <input
             type="text"
@@ -122,7 +138,11 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
             placeholder="Type a message..."
             className="message-input"
           />
-          <button type="submit" className="send-btn" disabled={!messageText.trim() || (isPrivate && !selectedReceiverId)}>
+          <button
+            type="submit"
+            className="send-btn"
+            disabled={!messageText.trim() || (isPrivate && !selectedReceiverId)}
+          >
             <FaPaperPlane />
           </button>
         </div>
@@ -137,7 +157,7 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
           background-color: #f8f9fa;
           border-left: 1px solid #dee2e6;
         }
-        
+
         .chat-header {
           display: flex;
           justify-content: space-between;
@@ -146,25 +166,25 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
           background-color: #f1f3f5;
           border-bottom: 1px solid #dee2e6;
         }
-        
+
         .chat-header h5 {
           margin: 0;
           font-size: 16px;
         }
-        
+
         .close-btn {
           background: none;
           border: none;
           cursor: pointer;
           color: #6c757d;
         }
-        
+
         .messages-container {
           flex: 1;
           overflow-y: auto;
           padding: 15px;
         }
-        
+
         .no-messages {
           display: flex;
           justify-content: center;
@@ -173,40 +193,40 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
           color: #6c757d;
           font-style: italic;
         }
-        
+
         .message {
           margin-bottom: 15px;
           padding: 10px;
           border-radius: 8px;
           max-width: 85%;
         }
-        
+
         .message.sent {
           background-color: #d1e7ff;
           margin-left: auto;
         }
-        
+
         .message.received {
           background-color: #e9ecef;
           margin-right: auto;
         }
-        
+
         .message.private {
           background-color: #ffe8d9;
         }
-        
+
         .message-header {
           display: flex;
           flex-wrap: wrap;
           margin-bottom: 5px;
           font-size: 12px;
         }
-        
+
         .sender-name {
           font-weight: bold;
           margin-right: 8px;
         }
-        
+
         .private-badge {
           background-color: #fd7e14;
           color: white;
@@ -215,50 +235,50 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
           font-size: 10px;
           margin-right: 8px;
         }
-        
+
         .timestamp {
           color: #6c757d;
           margin-left: auto;
         }
-        
+
         .message-content {
           word-break: break-word;
         }
-        
+
         .message-form {
           padding: 10px;
           border-top: 1px solid #dee2e6;
         }
-        
+
         .message-options {
           display: flex;
           flex-wrap: wrap;
           gap: 10px;
           margin-bottom: 10px;
         }
-        
+
         .private-checkbox {
           display: flex;
           align-items: center;
           font-size: 14px;
           cursor: pointer;
         }
-        
+
         .private-checkbox input {
           margin-right: 5px;
         }
-        
+
         .receiver-select {
           flex: 1;
           padding: 5px;
           border-radius: 4px;
           border: 1px solid #ced4da;
         }
-        
+
         .input-container {
           display: flex;
         }
-        
+
         .message-input {
           flex: 1;
           padding: 8px 12px;
@@ -266,7 +286,7 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
           border-radius: 4px 0 0 4px;
           outline: none;
         }
-        
+
         .send-btn {
           background-color: #0d6efd;
           color: white;
@@ -275,7 +295,7 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
           padding: 8px 12px;
           cursor: pointer;
         }
-        
+
         .send-btn:disabled {
           background-color: #6c757d;
           cursor: not-allowed;

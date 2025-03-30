@@ -29,7 +29,6 @@ interface MeetingControlsProps {
 }
 
 const MeetingControls: React.FC<MeetingControlsProps> = ({
-  localStream,
   hasCamera,
   hasMicrophone,
   isScreenSharing,
