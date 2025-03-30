@@ -3,7 +3,7 @@ import axios from "axios";
 export const recommend = async (userId: string) => {
   try {
     const response = await axios.post(
-      `${process.env.PYTHON_BACKEND_URL}/recommend`,
+      `${process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL}/recommend`,
       {
         user_id: userId,
       }

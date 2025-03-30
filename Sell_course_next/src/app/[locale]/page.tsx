@@ -100,6 +100,7 @@ export default function HomePage() {
       <Banner />
       <div className="main-container">
         <div className="header-section">
+   
           <Swiper
             spaceBetween={10}
             slidesPerView={1}
