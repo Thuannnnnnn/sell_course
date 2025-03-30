@@ -26,6 +26,8 @@ import {
 import { useSocket } from "@/hook/useNotifySocket";
 import { Notify } from "@/app/type/notify/Notify";
 import "@/style/NotificationDropdown.css";
+import { settingsApi } from "@/app/api/setting/setting";
+import { LogoSetting, VersionSetting } from "@/app/type/settings/Settings";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
@@ -42,7 +44,46 @@ const Header: React.FC = () => {
     useState<Notify | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isResponsive, setIsResponsive] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // Thêm state để toggle menu
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // State for active version settings and logo
+  const [activeVersionSetting, setActiveVersionSetting] = useState<VersionSetting | null>(null);
+  const [logoSetting, setLogoSetting] = useState<LogoSetting | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch active version settings and logo
+  useEffect(() => {
+    const fetchActiveSettings = async () => {
+      try {
+        setIsLoading(true);
+        console.log("Fetching active version settings");
+        const activeVersion = await settingsApi.getVersionSettingsActive();
+        
+        if (activeVersion) {
+          console.log("Active version found:", activeVersion);
+          setActiveVersionSetting(activeVersion);
+          
+          console.log("Fetching logo for version ID:", activeVersion.versionSettingId);
+          const logoData = await settingsApi.getLogoByVersionId(activeVersion.versionSettingId);
+          
+          if (logoData && logoData.length > 0) {
+            console.log("Logo found:", logoData[0]);
+            setLogoSetting(logoData[0]);
+          } else {
+            console.log("No logo found for this version");
+          }
+        } else {
+          console.log("No active version found");
+        }
+      } catch (error) {
+        console.error("Error fetching active settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchActiveSettings();
+  }, []);
 
   // Kiểm tra kích thước màn hình để xác định chế độ responsive
   useEffect(() => {
@@ -185,13 +226,25 @@ const Header: React.FC = () => {
       <Container fluid>
         <div className="header-brand">
           <Link href={`/${localActive}`} className="brand-link">
-            <Image
-              src="/RedFlag_GoldenStar.png"
-              alt="logo"
-              className="brand-logo"
-              width={80}
-              height={80}
-            />
+            {isLoading ? (
+              <div className="loading-placeholder" style={{ width: '80px', height: '80px', background: '#f0f0f0', borderRadius: '5px' }}></div>
+            ) : logoSetting?.logo ? (
+              <Image
+                src={logoSetting.logo}
+                alt="logo"
+                className="brand-logo"
+                width={80}
+                height={80}
+              />
+            ) : (
+              <Image
+                src="/RedFlag_GoldenStar.png"
+                alt="logo"
+                className="brand-logo"
+                width={80}
+                height={80}
+              />
+            )}
             <span className="brand-text">
               <span className="brand-text-red">RedFlag</span>{" "}
               <span className="brand-text-gold">GoldenStar</span>
