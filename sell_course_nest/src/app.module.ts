@@ -1,5 +1,6 @@
 import { OrderModule } from './modules/order/order.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { MeetingModule } from './modules/meeting/meeting.module';
 // app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -89,6 +90,9 @@ import { LogoSetting } from './modules/logoSetting/entities/LogoSetting.entity';
 import { LogoSettingModule } from './modules/logoSetting/logoSetting.module';
 import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.module';
 import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
+import { Meeting } from './modules/meeting/entities/meeting.entity';
+import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
+import { MeetingMessage } from './modules/meeting/entities/meeting-message.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -110,9 +114,9 @@ import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.e
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
 
       entities: [
         LogoSetting,
@@ -160,7 +164,6 @@ import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.e
         ChatSession,
         Message,
         Promotion,
-        CarouselSetting,
       ],
       synchronize: true,
     }),
@@ -205,7 +208,6 @@ import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.e
     QaStudyModule,
     SupportChatModule,
     PromotionModule,
-    CarouselSettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
