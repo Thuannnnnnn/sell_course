@@ -1,6 +1,5 @@
 import React from "react";
 import { Metadata } from "next";
-import Footer from "@/components/Footer";
 import "@/style/Meeting.css";
 
 export const metadata: Metadata = {
@@ -16,7 +15,6 @@ export default function MeetingLayout({
   return (
     <div>
       <main>{children}</main>
-      <Footer />
     </div>
   );
 }

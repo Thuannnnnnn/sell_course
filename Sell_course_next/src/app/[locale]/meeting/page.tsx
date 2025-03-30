@@ -12,14 +12,12 @@ import {
 } from "react-icons/fa";
 import { getUserMeetings, Meeting } from "@/app/api/meeting/meeting";
 import { format } from "date-fns";
-import { useTranslations } from "next-intl";
 
 export default function MeetingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
-  const t = useTranslations("Meeting");
   const [activeTab, setActiveTab] = useState<"hosted" | "participated">(
     "hosted"
   );
