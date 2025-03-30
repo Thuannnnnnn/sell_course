@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -24,27 +24,30 @@ export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchMeetings = useCallback(
+    async (type: "hosted" | "participated") => {
+      if (!session?.user?.user_id) return;
+
+      setLoading(true);
+      try {
+        const response = await getUserMeetings(session.user.user_id, type);
+        setMeetings(response.data || []);
+      } catch (error) {
+        console.error("Error fetching meetings:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [session]
+  );
+
   useEffect(() => {
     if (status === "authenticated" && session?.user?.user_id) {
       fetchMeetings(activeTab);
     } else if (status === "unauthenticated") {
       router.push("/auth/login");
     }
-  }, [status, session, activeTab, router]);
-
-  const fetchMeetings = async (type: "hosted" | "participated") => {
-    if (!session?.user?.user_id) return;
-
-    setLoading(true);
-    try {
-      const response = await getUserMeetings(session.user.user_id, type);
-      setMeetings(response.data || []);
-    } catch (error) {
-      console.error("Error fetching meetings:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [status, session, activeTab, router, fetchMeetings]);
 
   const handleCreateMeeting = () => {
     router.push(`/${locale}/meeting/create`);
@@ -127,7 +130,7 @@ export default function MeetingsPage() {
                   )}
                   <span>
                     <FaUser className="me-1" /> Host:{" "}
-                    {meeting.host?.name || "Unknown"}
+                    {meeting.host?.username || "Unknown"}
                   </span>
                   {meeting.isActive && (
                     <span className="badge bg-success">Active</span>

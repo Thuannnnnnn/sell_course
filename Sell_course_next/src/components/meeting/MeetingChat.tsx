@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaPaperPlane, FaTimes } from "react-icons/fa";
-import { MeetingMessage } from "../../app/api/meeting/meeting";
+import {
+  MeetingMessage,
+  MeetingParticipant,
+} from "../../app/api/meeting/meeting"; // Import MeetingParticipant
 import { format } from "date-fns";
 
 interface MeetingChatProps {
@@ -10,7 +13,7 @@ interface MeetingChatProps {
     isPrivate?: boolean,
     receiverId?: string
   ) => void;
-  participants: string[];
+  participants: MeetingParticipant[]; // Fix type from string[] to MeetingParticipant[]
   currentUserId: string;
   onClose: () => void;
 }
@@ -52,7 +55,7 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
 
   const getParticipantName = (userId: string) => {
     const participant = participants.find((p) => p.userId === userId);
-    return participant?.user?.name || "Unknown User";
+    return participant?.user?.username || "Unknown User";
   };
 
   return (
@@ -120,10 +123,10 @@ const MeetingChat: React.FC<MeetingChatProps> = ({
             >
               <option value="">Select recipient</option>
               {participants
-                .filter((p) => p.userId !== currentUserId && p.isActive)
+                .filter((p) => p.userId !== currentUserId && p.isActive) // Use userId instead of assuming p is string
                 .map((p) => (
                   <option key={p.userId} value={p.userId}>
-                    {p.user?.name || "Unknown User"}
+                    {p.user?.username || "Unknown User"}
                   </option>
                 ))}
             </select>

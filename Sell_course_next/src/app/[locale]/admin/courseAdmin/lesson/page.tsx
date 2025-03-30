@@ -356,7 +356,7 @@ const LessonPage = () => {
                 handleShowModal={handleShowModal}
                 handleContentClick={handleContentClick}
                 handleShowContentModal={handleShowContentModal}
-                t={t}
+      
               />
             ))}
             <Button

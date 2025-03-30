@@ -1,4 +1,5 @@
 import axios from "axios";
+import { User } from "../../type/user/User";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -13,7 +14,7 @@ export interface Meeting {
   title: string;
   description?: string;
   hostId: string;
-  host?: any;
+  host?: User;
   startTime: string;
   endTime?: string;
   isActive: boolean;
@@ -29,7 +30,7 @@ export interface MeetingParticipant {
   id: string;
   meetingId: string;
   userId: string;
-  user?: any;
+  user?: User;
   joinTime: string;
   leaveTime?: string;
   isActive: boolean;
@@ -42,12 +43,12 @@ export interface MeetingMessage {
   id: string;
   meetingId: string;
   senderId: string;
-  sender?: any;
+  sender?: User;
   message: string;
   timestamp: string;
   isPrivate: boolean;
   receiverId?: string;
-  receiver?: any;
+  receiver?: User;
 }
 
 // Create a new meeting
@@ -225,6 +226,19 @@ export const getMeetingMessages = async (meetingId: string, userId: string) => {
     return response.data;
   } catch (error) {
     console.error("Error getting meeting messages:", error);
+    throw error;
+  }
+};
+
+// Get meeting details
+export const getMeetingDetails = async (meetingId: string) => {
+  try {
+    const response = await axios.get(`${API_URL}/meetings/${meetingId}`, {
+      headers: getAuthHeader(),
+    });
+    return response;
+  } catch (error) {
+    console.error("Error getting meeting details:", error);
     throw error;
   }
 };
