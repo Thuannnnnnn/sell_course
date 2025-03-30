@@ -84,4 +84,50 @@ export class NotifyController {
   async deleteNotify(@Param('id') id: string): Promise<string> {
     return await this.notifyService.removeNotification(id);
   }
+
+  @Get(':id/users')
+  @ApiOperation({ summary: 'Get user IDs who received this notification' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of user IDs',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Notification not found' })
+  async getNotifyUserIds(@Param('id') id: string): Promise<string[]> {
+    return await this.notifyService.getNotifyUserIds(id);
+  }
+
+  @Get(':id/courses')
+  @ApiOperation({ summary: 'Get course IDs associated with this notification' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification type and list of course IDs',
+    schema: {
+      type: 'object',
+      properties: {
+        type: {
+          type: 'string',
+          enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
+        },
+        courseIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Notification not found' })
+  async getNotifyCourseIds(@Param('id') id: string): Promise<{
+    type: string;
+    courseIds: string[];
+  }> {
+    return await this.notifyService.getNotifyCourseIds(id);
+  }
 }

@@ -318,7 +318,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
       {
         cart_id: courses.courseId,
         course_id: courses.courseId,
-        user_id: session?.user?.id,
+        user_id: session?.user?.user_id,
         user_name: session?.user?.name,
         course_title: courses.title,
         course_price: courses.price,

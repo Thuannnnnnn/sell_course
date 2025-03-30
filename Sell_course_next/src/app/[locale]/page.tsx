@@ -176,6 +176,7 @@ export default function HomePage() {
             </SwiperSlide>
           </Swiper>
         </div>
+
         <div className="content-container py-5">
           <h1 className="course-title text-center mb-4">
             {t("homePageTitle")}
@@ -183,70 +184,54 @@ export default function HomePage() {
           <p className="course-description text-center mb-5">
             {t("homePageContent")}
           </p>
-
-          <div className="content-container py-5">
-            <h1 className="course-title text-center mb-4">
-              {t("homePageTitle")}
-            </h1>
-            <p className="course-description text-center mb-5">
-              {t("homePageContent")}
-            </p>
-
-            <div className="content-container py-5">
-              <h1 className="course-title text-center mb-4">
-                {t("homePageTitle")}
-              </h1>
-              <p className="course-description text-center mb-5">
-                {t("homePageContent")}
-              </p>
-
-              <div className="container">
-                <div className="row g-4">
-                  {courses.map((course) => (
-                    <div key={course.courseId} className="col-md-2-4">
-                      <div className="card h-100 shadow-sm hover-card">
-                        <div className="position-relative card-img-wrapper">
-                          {course.imageInfo ? (
-                            <Image
-                              src={course.imageInfo}
-                              alt={course.title}
-                              width={300}
-                              height={200}
-                              className="card-img-top"
-                              style={{ objectFit: "cover", height: "150px" }}
-                            />
-                          ) : (
-                            <Image
-                              src={poster}
-                              alt="Default Thumbnail"
-                              width={300}
-                              height={200}
-                              className="card-img-top"
-                              style={{ objectFit: "cover", height: "150px" }}
-                            />
-                          )}
-                        </div>
-                        <div className="card-body d-flex flex-column">
-                          <h6
-                            className="card-title"
-                            style={{ minHeight: "48px", lineHeight: "1.4" }}
-                          >
-                            {course.title}
-                          </h6>
-                          <div className="mt-auto">
-                            <button
-                              className="btn btn-primary w-100"
-                              onClick={() => handleClick(course.courseId)}
-                            >
-                              {tc("4")}
-                            </button>
-                          </div>
-                        </div>
+          <h2 className="course-title text-center mb-4">
+            {t("recommended")}
+          </h2>
+          <div className="container">
+            <div className="row g-4">
+              {courses.map((course) => (
+                <div key={course.courseId} className="col-md-2-4">
+                  <div className="card h-100 shadow-sm hover-card">
+                    <div className="position-relative card-img-wrapper">
+                      {course.imageInfo ? (
+                        <Image
+                          src={course.imageInfo}
+                          alt={course.title}
+                          width={300}
+                          height={400}
+                          className="card-img-top"
+                          style={{ objectFit: "cover", height: "150px" }}
+                        />
+                      ) : (
+                        <Image
+                          src={poster}
+                          alt="Default Thumbnail"
+                          width={300}
+                          height={400}
+                          className="card-img-top"
+                          style={{ objectFit: "cover", height: "150px" }}
+                        />
+                      )}
+                    </div>
+                    <div className="card-body d-flex flex-column">
+                      <h6
+                        className="card-title"
+                        style={{ minHeight: "48px", lineHeight: "1.4" }}
+                      >
+                        {course.title}
+                      </h6>
+                      <div className="mt-auto">
+                        <button
+                          className="btn btn-primary w-100"
+                          onClick={() => handleClick(course.courseId)}
+                        >
+                          {tc("4")}
+                        </button>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

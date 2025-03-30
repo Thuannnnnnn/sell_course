@@ -24,6 +24,7 @@
     "hls.js": "^1.5.20",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
+    "lodash": "^4.17.21",
     "mammoth": "^1.9.0",
     "next": "^14.2.26",
     "next-auth": "^5.0.0-beta.25",
@@ -40,6 +41,7 @@
     "react-notifications": "^1.7.4",
     "react-pdf": "^9.2.1",
     "react-quill": "^2.0.0",
+    "react-select": "^5.10.1",
     "recharts": "^2.15.1",
     "sharp": "^0.33.5",
     "socket.io-client": "^4.8.1",
@@ -48,6 +50,7 @@
   },
   "devDependencies": {
     "@types/file-saver": "^2.0.7",
+    "@types/lodash": "^4.17.16",
     "@types/node": "^20.17.6",
     "@types/react": "^18.3.20",
     "@types/react-beautiful-dnd": "^13.1.8",
