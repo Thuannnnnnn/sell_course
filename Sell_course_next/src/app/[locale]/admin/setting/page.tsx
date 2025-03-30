@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Row,
@@ -45,12 +45,6 @@ export default function SettingsPage() {
     loadVersions();
   }, []);
 
-  useEffect(() => {
-    if (selectedVersion?.versionSettingId) {
-      loadVersionDetails();
-    }
-  }, [selectedVersion?.versionSettingId]);
-
   const loadVersions = async () => {
     try {
       const data = await settingsApi.getVersionSettings();
@@ -76,7 +70,7 @@ export default function SettingsPage() {
     }
   };
 
-  const loadVersionDetails = async () => {
+  const loadVersionDetails = useCallback(async () => {
     if (!selectedVersion) return;
 
     try {
@@ -87,7 +81,17 @@ export default function SettingsPage() {
       setLogoSetting(logo[0]);
       setCarouselSetting(carousel);
     } catch {}
-  };
+  }, [selectedVersion]);
+
+  useEffect(() => {
+    loadVersions();
+  }, []);
+
+  useEffect(() => {
+    if (selectedVersion?.versionSettingId) {
+      loadVersionDetails();
+    }
+  }, [selectedVersion?.versionSettingId, loadVersionDetails]);
 
   const handleVersionSelect = (version: VersionSetting) => {
     // Reset current states

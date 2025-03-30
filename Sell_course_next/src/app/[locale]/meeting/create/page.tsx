@@ -4,14 +4,12 @@ import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { createMeeting } from "@/app/api/meeting/meeting";
-import { useTranslations } from "next-intl";
 
 export default function CreateMeetingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
-  const t = useTranslations("Meeting");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -20,8 +18,6 @@ export default function CreateMeetingPage() {
     isRecorded: false,
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -35,22 +31,19 @@ export default function CreateMeetingPage() {
     e.preventDefault();
 
     if (!session?.user?.user_id) {
-      setError("You must be logged in to create a meeting");
+      router.push(`/${locale}/auth/login`);
       return;
     }
 
     if (!formData.title.trim()) {
-      setError("Meeting title is required");
       return;
     }
 
     if (formData.isScheduled && !formData.scheduledTime) {
-      setError("Scheduled time is required for scheduled meetings");
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       const response = await createMeeting({
@@ -66,19 +59,13 @@ export default function CreateMeetingPage() {
         throw new Error("Meeting ID not received from server");
       }
 
-      // If meeting is created successfully and is not scheduled for future,
-      // redirect to the meeting room
       if (!formData.isScheduled) {
         router.push(`/${locale}/meeting/${response.data.id}`);
       } else {
-        // Otherwise, redirect to meetings list
         router.push(`/${locale}/meeting`);
       }
-    } catch (error: any) {
-      setError(
-        error.response?.data?.message ||
-          "An error occurred while creating the meeting"
-      );
+    } catch (err) {
+      console.error("Error creating meeting:", err);
     } finally {
       setLoading(false);
     }
@@ -97,13 +84,7 @@ export default function CreateMeetingPage() {
     <div className="create-meeting-container">
       <h1 className="create-meeting-title">Create a New Meeting</h1>
 
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="create-meeting-form">
         <div className="form-group">
           <label htmlFor="title" className="form-label">
             Meeting Title*
@@ -115,13 +96,14 @@ export default function CreateMeetingPage() {
             className="form-control"
             value={formData.title}
             onChange={handleChange}
+            placeholder="Enter meeting title"
             required
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="description" className="form-label">
-            Description (Optional)
+            Description
           </label>
           <textarea
             id="description"
@@ -129,11 +111,12 @@ export default function CreateMeetingPage() {
             className="form-control"
             value={formData.description}
             onChange={handleChange}
+            placeholder="Enter meeting description"
             rows={3}
           />
         </div>
 
-        <div className="form-check">
+        <div className="form-check mb-3">
           <input
             type="checkbox"
             id="isScheduled"
@@ -142,7 +125,7 @@ export default function CreateMeetingPage() {
             checked={formData.isScheduled}
             onChange={handleChange}
           />
-          <label htmlFor="isScheduled" className="form-check-label">
+          <label className="form-check-label" htmlFor="isScheduled">
             Schedule for later
           </label>
         </div>
@@ -159,12 +142,12 @@ export default function CreateMeetingPage() {
               className="form-control"
               value={formData.scheduledTime}
               onChange={handleChange}
-              required={formData.isScheduled}
+              required
             />
           </div>
         )}
 
-        <div className="form-check">
+        <div className="form-check mb-3">
           <input
             type="checkbox"
             id="isRecorded"
@@ -173,27 +156,14 @@ export default function CreateMeetingPage() {
             checked={formData.isRecorded}
             onChange={handleChange}
           />
-          <label htmlFor="isRecorded" className="form-check-label">
-            Record this meeting
+          <label className="form-check-label" htmlFor="isRecorded">
+            Record meeting
           </label>
         </div>
 
-        <div className="mt-4 d-flex justify-content-between">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => router.push(`/${locale}/meeting`)}
-          >
-            Cancel
-          </button>
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading
-              ? "Creating..."
-              : formData.isScheduled
-              ? "Schedule Meeting"
-              : "Start Meeting Now"}
-          </button>
-        </div>
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? "Creating..." : "Create Meeting"}
+        </button>
       </form>
     </div>
   );

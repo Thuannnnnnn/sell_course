@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Socket } from "socket.io-client";
 import io from "socket.io-client";
 import { MeetingParticipant, MeetingMessage } from "../app/api/meeting/meeting";
@@ -54,14 +54,17 @@ const useMeetingSocket = (
   const peerConnections = useRef<Map<string, PeerConnection>>(new Map());
   const screenShareStream = useRef<MediaStream | null>(null);
 
-  const iceServers = {
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" },
-    ],
-  };
+  const iceServers = useMemo(
+    () => ({
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+      ],
+    }),
+    []
+  );
 
-  const checkDevices = async (): Promise<{
+  const checkDevices = useCallback(async (): Promise<{
     hasVideo: boolean;
     hasAudio: boolean;
   }> => {
@@ -74,7 +77,23 @@ const useMeetingSocket = (
       console.error("Unable to enumerate devices:", err);
       return { hasVideo: false, hasAudio: false };
     }
-  };
+  }, []);
+
+  const renegotiatePeerConnection = useCallback(
+    async (participantId: string, connection: RTCPeerConnection) => {
+      try {
+        const offer = await connection.createOffer();
+        await connection.setLocalDescription(offer);
+        socket?.emit("offer", {
+          to: participantId,
+          offer: connection.localDescription,
+        });
+      } catch (err) {
+        console.error("Error renegotiating peer connection:", err);
+      }
+    },
+    [socket]
+  );
 
   const initializeStream = useCallback(
     async (
@@ -85,12 +104,10 @@ const useMeetingSocket = (
         console.log("Stream initialized successfully:", stream);
         setLocalStream(stream);
 
-        // Thêm track vào peer connections ngay khi khởi tạo
         peerConnections.current.forEach((peer) => {
           stream.getTracks().forEach((track) => {
             peer.connection.addTrack(track, stream);
           });
-          // Tạo lại offer để gửi stream mới
           renegotiatePeerConnection(peer.userId, peer.connection);
         });
 
@@ -101,31 +118,112 @@ const useMeetingSocket = (
         return null;
       }
     },
+    [renegotiatePeerConnection]
+  );
+
+  // Moved createPeerConnection, handleOffer, handleAnswer, and handleIceCandidate before useEffect
+  const createPeerConnection = useCallback(
+    (participantId: string, socket: typeof Socket): PeerConnection => {
+      const connection = new RTCPeerConnection(iceServers);
+      const peerConnection: PeerConnection = {
+        userId: participantId,
+        connection,
+      };
+
+      if (localStream) {
+        localStream.getTracks().forEach((track) => {
+          if (track.enabled) {
+            console.log(`Adding track to peer ${participantId}:`, track);
+            connection.addTrack(track, localStream);
+          }
+        });
+      }
+
+      connection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit("ice-candidate", {
+            to: participantId,
+            candidate: event.candidate,
+          });
+        }
+      };
+
+      connection.ontrack = (event) => {
+        const [remoteStream] = event.streams;
+        console.log(
+          `Received remote stream from ${participantId}:`,
+          remoteStream
+        );
+        setRemoteStreams((prev) =>
+          new Map(prev).set(participantId, remoteStream)
+        );
+        peerConnection.stream = remoteStream;
+      };
+
+      if (userId < participantId) {
+        connection
+          .createOffer()
+          .then((offer) => connection.setLocalDescription(offer))
+          .then(() =>
+            socket.emit("offer", {
+              to: participantId,
+              offer: connection.localDescription,
+            })
+          )
+          .catch((err) => console.error("Error creating offer:", err));
+      }
+
+      peerConnections.current.set(participantId, peerConnection);
+      return peerConnection;
+    },
+    [localStream, userId, iceServers]
+  );
+
+  const handleOffer = useCallback(
+    async (
+      from: string,
+      offer: RTCSessionDescriptionInit,
+      socket: typeof Socket
+    ): Promise<void> => {
+      let peerConnection = peerConnections.current.get(from);
+      if (!peerConnection) peerConnection = createPeerConnection(from, socket);
+
+      await peerConnection.connection.setRemoteDescription(
+        new RTCSessionDescription(offer)
+      );
+      const answer = await peerConnection.connection.createAnswer();
+      await peerConnection.connection.setLocalDescription(answer);
+      socket.emit("answer", {
+        to: from,
+        answer: peerConnection.connection.localDescription,
+      });
+    },
+    [createPeerConnection]
+  );
+
+  const handleAnswer = useCallback(
+    async (from: string, answer: RTCSessionDescriptionInit): Promise<void> => {
+      const peerConnection = peerConnections.current.get(from);
+      if (peerConnection) {
+        await peerConnection.connection.setRemoteDescription(
+          new RTCSessionDescription(answer)
+        );
+      }
+    },
     []
   );
 
-  const stopStreamTracks = (stream: MediaStream, kind: "audio" | "video") => {
-    const tracks =
-      kind === "audio" ? stream.getAudioTracks() : stream.getVideoTracks();
-    tracks.forEach((track) => track.stop());
-    console.log(`${kind} tracks stopped`);
-  };
-
-  const renegotiatePeerConnection = async (
-    participantId: string,
-    connection: RTCPeerConnection
-  ) => {
-    try {
-      const offer = await connection.createOffer();
-      await connection.setLocalDescription(offer);
-      socket?.emit("offer", {
-        to: participantId,
-        offer: connection.localDescription,
-      });
-    } catch (err) {
-      console.error("Error renegotiating peer connection:", err);
-    }
-  };
+  const handleIceCandidate = useCallback(
+    async (from: string, candidate: RTCIceCandidateInit): Promise<void> => {
+      const peerConnection = peerConnections.current.get(from);
+      if (peerConnection && peerConnection.connection.remoteDescription) {
+        await peerConnection.connection.addIceCandidate(
+          new RTCIceCandidate(candidate)
+        );
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (!meetingId || !userId) return;
@@ -305,6 +403,8 @@ const useMeetingSocket = (
       setMessages((prev) => [...prev, message]);
     });
 
+    const currentPeerConnections = peerConnections.current;
+
     return () => {
       if (localStream) {
         localStream.getTracks().forEach((track) => track.stop());
@@ -313,167 +413,30 @@ const useMeetingSocket = (
       if (screenShareStream.current) {
         screenShareStream.current.getTracks().forEach((track) => track.stop());
       }
-      peerConnections.current.forEach((pc) => pc.connection.close());
-      peerConnections.current.clear();
+      currentPeerConnections.forEach((pc) => pc.connection.close());
+      currentPeerConnections.clear();
       newSocket.disconnect();
     };
-  }, [meetingId, userId]);
-
-  const createPeerConnection = (
-    participantId: string,
-    socket: typeof Socket
-  ): PeerConnection => {
-    const connection = new RTCPeerConnection(iceServers);
-    const peerConnection: PeerConnection = {
-      userId: participantId,
-      connection,
-    };
-
-    if (localStream) {
-      localStream.getTracks().forEach((track) => {
-        if (track.enabled) {
-          console.log(`Adding track to peer ${participantId}:`, track);
-          connection.addTrack(track, localStream);
-        }
-      });
-    }
-
-    connection.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit("ice-candidate", {
-          to: participantId,
-          candidate: event.candidate,
-        });
-      }
-    };
-
-    connection.ontrack = (event) => {
-      const [remoteStream] = event.streams;
-      console.log(
-        `Received remote stream from ${participantId}:`,
-        remoteStream
-      );
-      setRemoteStreams((prev) =>
-        new Map(prev).set(participantId, remoteStream)
-      );
-      peerConnection.stream = remoteStream;
-    };
-
-    // Tạo offer ngay khi kết nối nếu userId nhỏ hơn
-    if (userId < participantId) {
-      connection
-        .createOffer()
-        .then((offer) => connection.setLocalDescription(offer))
-        .then(() =>
-          socket.emit("offer", {
-            to: participantId,
-            offer: connection.localDescription,
-          })
-        )
-        .catch((err) => console.error("Error creating offer:", err));
-    }
-
-    peerConnections.current.set(participantId, peerConnection);
-    return peerConnection;
-  };
-
-  const handleOffer = async (
-    from: string,
-    offer: RTCSessionDescriptionInit,
-    socket: typeof Socket
-  ): Promise<void> => {
-    let peerConnection = peerConnections.current.get(from);
-    if (!peerConnection) peerConnection = createPeerConnection(from, socket);
-
-    await peerConnection.connection.setRemoteDescription(
-      new RTCSessionDescription(offer)
-    );
-    const answer = await peerConnection.connection.createAnswer();
-    await peerConnection.connection.setLocalDescription(answer);
-    socket.emit("answer", {
-      to: from,
-      answer: peerConnection.connection.localDescription,
-    });
-  };
-
-  const handleAnswer = async (
-    from: string,
-    answer: RTCSessionDescriptionInit
-  ): Promise<void> => {
-    const peerConnection = peerConnections.current.get(from);
-    if (peerConnection) {
-      await peerConnection.connection.setRemoteDescription(
-        new RTCSessionDescription(answer)
-      );
-    }
-  };
-
-  const handleIceCandidate = async (
-    from: string,
-    candidate: RTCIceCandidateInit
-  ): Promise<void> => {
-    const peerConnection = peerConnections.current.get(from);
-    if (peerConnection && peerConnection.connection.remoteDescription) {
-      await peerConnection.connection.addIceCandidate(
-        new RTCIceCandidate(candidate)
-      );
-    }
-  };
+  }, [
+    meetingId,
+    userId,
+    localStream,
+    createPeerConnection,
+    handleOffer,
+    handleAnswer,
+    handleIceCandidate,
+    renegotiatePeerConnection,
+  ]);
 
   const toggleCamera = useCallback(async (): Promise<void> => {
-    const devices = await checkDevices();
-    if (!devices.hasVideo) {
-      setError("No camera available.");
-      return;
-    }
-
-    if (!localStream || !localStream.getVideoTracks().length) {
-      const stream = await initializeStream({
-        video: true,
-        audio: hasMicrophone,
-      });
-      if (!stream) return;
-
-      setHasCamera(true);
-      socket?.emit("update-status", {
-        meetingId,
-        userId,
-        hasCamera: true,
-        hasMicrophone,
-        isScreenSharing,
-      });
-    } else {
-      const videoTracks = localStream.getVideoTracks();
-      if (hasCamera) {
-        stopStreamTracks(localStream, "video");
-        setHasCamera(false);
-        socket?.emit("update-status", {
-          meetingId,
-          userId,
-          hasCamera: false,
-          hasMicrophone,
-          isScreenSharing,
-        });
-
-        if (!localStream.getAudioTracks().length) {
-          setLocalStream(null);
-        }
-
-        peerConnections.current.forEach((peer) => {
-          const senders = peer.connection.getSenders();
-          videoTracks.forEach(() => {
-            const sender = senders.find((s) => s.track?.kind === "video");
-            if (sender) sender.replaceTrack(null);
-          });
-          renegotiatePeerConnection(peer.userId, peer.connection);
-        });
-      } else {
-        const stream = await initializeStream({
-          video: true,
-          audio: hasMicrophone,
-        });
-        if (!stream) return;
-
+    if (!localStream) {
+      const { hasVideo } = await checkDevices();
+      if (!hasVideo) {
+        setError("No camera found");
+        return;
+      }
+      const stream = await initializeStream({ video: true });
+      if (stream) {
         setHasCamera(true);
         socket?.emit("update-status", {
           meetingId,
@@ -483,69 +446,40 @@ const useMeetingSocket = (
           isScreenSharing,
         });
       }
-    }
-  }, [
-    localStream,
-    hasCamera,
-    hasMicrophone,
-    socket,
-    meetingId,
-    userId,
-    isScreenSharing,
-    initializeStream,
-  ]);
-
-  const toggleMicrophone = useCallback(async (): Promise<void> => {
-    const devices = await checkDevices();
-    if (!devices.hasAudio) {
-      setError("No microphone available.");
-      return;
-    }
-
-    if (!localStream || !localStream.getAudioTracks().length) {
-      const stream = await initializeStream({ video: hasCamera, audio: true });
-      if (!stream) return;
-
-      setHasMicrophone(true);
-      socket?.emit("update-status", {
-        meetingId,
-        userId,
-        hasCamera,
-        hasMicrophone: true,
-        isScreenSharing,
-      });
     } else {
-      const audioTracks = localStream.getAudioTracks();
-      if (hasMicrophone) {
-        stopStreamTracks(localStream, "audio");
-        setHasMicrophone(false);
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setHasCamera(videoTrack.enabled);
         socket?.emit("update-status", {
           meetingId,
           userId,
-          hasCamera,
-          hasMicrophone: false,
+          hasCamera: videoTrack.enabled,
+          hasMicrophone,
           isScreenSharing,
         });
+      }
+    }
+  }, [
+    localStream,
+    socket,
+    meetingId,
+    userId,
+    hasMicrophone,
+    isScreenSharing,
+    initializeStream,
+    checkDevices,
+  ]);
 
-        if (!localStream.getVideoTracks().length) {
-          setLocalStream(null);
-        }
-
-        peerConnections.current.forEach((peer) => {
-          const senders = peer.connection.getSenders();
-          audioTracks.forEach(() => {
-            const sender = senders.find((s) => s.track?.kind === "audio");
-            if (sender) sender.replaceTrack(null);
-          });
-          renegotiatePeerConnection(peer.userId, peer.connection);
-        });
-      } else {
-        const stream = await initializeStream({
-          video: hasCamera,
-          audio: true,
-        });
-        if (!stream) return;
-
+  const toggleMicrophone = useCallback(async (): Promise<void> => {
+    if (!localStream) {
+      const { hasAudio } = await checkDevices();
+      if (!hasAudio) {
+        setError("No microphone found");
+        return;
+      }
+      const stream = await initializeStream({ audio: true });
+      if (stream) {
         setHasMicrophone(true);
         socket?.emit("update-status", {
           meetingId,
@@ -555,16 +489,29 @@ const useMeetingSocket = (
           isScreenSharing,
         });
       }
+    } else {
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setHasMicrophone(audioTrack.enabled);
+        socket?.emit("update-status", {
+          meetingId,
+          userId,
+          hasCamera,
+          hasMicrophone: audioTrack.enabled,
+          isScreenSharing,
+        });
+      }
     }
   }, [
     localStream,
-    hasMicrophone,
-    hasCamera,
     socket,
     meetingId,
     userId,
+    hasCamera,
     isScreenSharing,
     initializeStream,
+    checkDevices,
   ]);
 
   const startScreenShare = async (): Promise<void> => {

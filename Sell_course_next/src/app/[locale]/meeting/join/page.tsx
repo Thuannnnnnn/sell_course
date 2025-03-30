@@ -27,12 +27,12 @@ export default function JoinMeetingPage() {
     e.preventDefault();
 
     if (!session?.user?.user_id) {
-      setError("You must be logged in to join a meeting");
+      setError(t("error.login_required"));
       return;
     }
 
     if (!meetingCode.trim()) {
-      setError("Meeting code is required");
+      setError(t("error.meeting_code_required"));
       return;
     }
 
@@ -48,12 +48,12 @@ export default function JoinMeetingPage() {
       });
 
       if (response.success) {
-        // Redirect to the meeting room
         router.push(`/${locale}/meeting/${response.data.meetingId}`);
       } else {
-        setError(response.message || "Failed to join meeting 12334");
+        setError(response.message || "Failed to join meeting");
       }
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
       setError(
         error.response?.data?.message ||
           "An error occurred while joining the meeting"
@@ -74,18 +74,18 @@ export default function JoinMeetingPage() {
 
   return (
     <div className="join-meeting-container">
-      <h1 className="join-meeting-title">Join a Meeting</h1>
+      <h1 className="join-meeting-title">{t("join_meeting.title")}</h1>
 
       {error && (
         <div className="alert alert-danger" role="alert">
-          {error}
+          {t("error.join_meeting")}
         </div>
       )}
 
       <form onSubmit={handleJoinMeeting} className="join-meeting-form">
         <div className="form-group">
           <label htmlFor="meetingCode" className="form-label">
-            Meeting Code or ID*
+            {t("join_meeting.code_label")}*
           </label>
           <input
             type="text"
@@ -109,7 +109,9 @@ export default function JoinMeetingPage() {
               <FaVideoSlash className="option-icon" />
             )}
             <span className="option-label">
-              {hasCamera ? "Camera On" : "Camera Off"}
+              {hasCamera
+                ? t("join_meeting.camera_on")
+                : t("join_meeting.camera_off")}
             </span>
           </div>
 
@@ -123,7 +125,9 @@ export default function JoinMeetingPage() {
               <FaMicrophoneSlash className="option-icon" />
             )}
             <span className="option-label">
-              {hasMicrophone ? "Microphone On" : "Microphone Off"}
+              {hasMicrophone
+                ? t("join_meeting.mic_on")
+                : t("join_meeting.mic_off")}
             </span>
           </div>
         </div>
@@ -134,10 +138,10 @@ export default function JoinMeetingPage() {
             className="btn-secondary"
             onClick={() => router.push(`/${locale}/meeting`)}
           >
-            Cancel
+            {t("join_meeting.cancel")}
           </button>
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Joining..." : "Join Meeting"}
+            {loading ? t("join_meeting.joining") : t("join_meeting.join")}
           </button>
         </div>
       </form>
