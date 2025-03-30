@@ -6,9 +6,9 @@ import DashBoardUser from "@/components/DashBoardUser";
 import BannerUser from "@/components/BannerUser";
 import SignIn from "../../auth/login/page";
 import "../../../../style/UserProfilePage.css";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { GetUser } from "@/app/type/user/User";
+
 
 interface Item {
   name: string;
@@ -26,6 +26,7 @@ interface Order {
 }
 
 const OrderHistoryPage: React.FC = () => {
+  const localActive = useLocale();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +106,9 @@ const OrderHistoryPage: React.FC = () => {
                     <div className="card shadow-lg border-0 rounded-4 overflow-hidden">
                       {order.items.map((item) => (
                         <React.Fragment key={item.courseId}>
+                          <div onClick={() =>
+                            (window.location.href = `/${localActive}/courseDetail/${item.courseId}`)
+                          }>
                           {/* <Image
                             src={item.name} // Nếu có ảnh, thay bằng `item.imageInfo`
                             alt="Course Thumbnail"
@@ -137,6 +141,7 @@ const OrderHistoryPage: React.FC = () => {
                               <strong>Placed on:</strong>{" "}
                               {new Date(order.createdAt).toLocaleDateString()}
                             </p>
+                          </div>
                           </div>
                         </React.Fragment>
                       ))}

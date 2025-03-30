@@ -138,9 +138,10 @@ const WishListPage: React.FC = () => {
                             <h5 className="card-title">
                               {course.title || "No Title"}
                             </h5>
-                            <p className="card-text">
-                              {course.description || "No Description"}
-                            </p>
+                            <div
+                              className="card-text"
+                              dangerouslySetInnerHTML={{ __html: course.description ?? "No Description" }}
+                            ></div>
                           </div>
                         </div>
                       </div>
