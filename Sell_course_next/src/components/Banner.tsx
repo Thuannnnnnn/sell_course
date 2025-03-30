@@ -84,6 +84,9 @@ const Banner = () => {
               className="imageBanner"
               src={banner_img}
               alt="Learning Banner"
+              width={553}
+              height={426}
+              style={{ objectFit: "contain", objectPosition: "center" }}
             />
           </div>
         </div>
@@ -107,6 +110,7 @@ const Banner = () => {
                     width={1600}
                     height={600}
                     priority={index === 0}
+                    style={{ objectFit: "cover", objectPosition: "center 30%" }}
                   />
                 </div>
                 <Carousel.Caption className="carousel-caption">
@@ -136,6 +140,9 @@ const Banner = () => {
               className="imageBanner"
               src={banner_img}
               alt="Learning Banner"
+              width={553}
+              height={426}
+              style={{ objectFit: "contain", objectPosition: "center" }}
             />
           </div>
         </div>

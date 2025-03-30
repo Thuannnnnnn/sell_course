@@ -17,7 +17,7 @@ export class LogoSetting {
   @Column({ nullable: false })
   logo: string;
 
-  @ManyToOne(() => VersionSetting)
+  @ManyToOne(() => VersionSetting, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'version_setting_id' })
   versionSetting: VersionSetting;
 
