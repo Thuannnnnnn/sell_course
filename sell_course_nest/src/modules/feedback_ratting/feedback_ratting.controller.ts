@@ -1,4 +1,3 @@
-// src/feedback-ratting/feedback-ratting.controller.ts
 import {
   Controller,
   Get,
@@ -10,7 +9,7 @@ import {
   UsePipes,
   ValidationPipe,
   UseGuards,
-} from '@nestjs/common'; // Add Delete
+} from '@nestjs/common';
 import { FeedbackRattingService } from './feedback_ratting.service';
 import { CreateFeedbackRattingDto } from './dto/create-feedback-ratting.dto';
 import { UpdateFeedbackRattingDto } from './dto/update-feedback-ratting.dto';
@@ -59,26 +58,31 @@ export class FeedbackRattingController {
     return this.feedbackRattingService.findAll();
   }
 
-@Get(':id')
-@ApiOperation({ summary: 'Get feedback rating by course ID' })
-@ApiParam({
-  name: 'id',
-  description: 'Feedback Rating course ID',
-  type: String,
-})
-@ApiResponse({
-  status: 200,
-  description: 'Successful retrieval',
-  type: FeedbackRatting,
-})
-@ApiResponse({ status: 404, description: 'Feedback not found' })
-async findOne(@Param('id') id: string) {
-  const feedback = await this.feedbackRattingService.findOne(id);
-  if (!feedback) {
-    return { message: 'No feedback found for this course' };
+  @Get(':id')
+  @ApiOperation({ summary: 'Get feedback ratings by course ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'Course ID',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successful retrieval',
+    type: [FeedbackRatting],
+  })
+  @ApiResponse({ status: 404, description: 'Feedback not found' })
+  async findOne(@Param('id') id: string) {
+    if (!id || id === 'undefined') {
+      return [];
+    }
+    
+    const feedbacks = await this.feedbackRattingService.findOne(id);
+    if (!feedbacks || feedbacks.length === 0) {
+      return [];
+    }
+    
+    return feedbacks;
   }
-  return feedback;
-}
 
   @Put(':id')
   @ApiBearerAuth('Authorization')
@@ -97,8 +101,13 @@ async findOne(@Param('id') id: string) {
     @Param('id') id: string,
     @Body() updateFeedbackRattingDto: UpdateFeedbackRattingDto,
   ) {
+    if (!id || id === 'undefined') {
+      return { error: 'Invalid feedback rating ID' };
+    }
+    
     return this.feedbackRattingService.update(id, updateFeedbackRattingDto);
   }
+  
   @Delete(':id')
   @ApiBearerAuth('Authorization')
   @UseGuards(JwtAuthGuard)
@@ -107,6 +116,10 @@ async findOne(@Param('id') id: string) {
   @ApiResponse({ status: 200, description: 'Feedback deleted successfully' })
   @ApiResponse({ status: 404, description: 'Feedback not found' })
   remove(@Param('id') id: string) {
+    if (!id || id === 'undefined') {
+      return { error: 'Invalid feedback rating ID' };
+    }
+    
     return this.feedbackRattingService.remove(id);
   }
 }
