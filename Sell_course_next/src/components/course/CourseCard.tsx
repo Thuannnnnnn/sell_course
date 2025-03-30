@@ -11,7 +11,10 @@ import { useEffect, useState } from "react";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 import axios from "axios";
-
+import { interactionApi } from "@/app/api/interaction/interactionApi";
+import { InteractionType } from "@/app/type/Interaction/Interaction";
+import defait from "../.../../../../public/defait-img.png";
+import poster from "../.../../../../public/poster_img.jpg";
 interface Course {
   courseId: string;
   userAvata?: string;
@@ -78,6 +81,21 @@ export default function CourseCard({ course }: CourseCardProps) {
       alert("Bạn cần đăng nhập để thêm vào wishlist!");
       return;
     }
+    if (session?.user?.user_id) {
+      try {
+        await interactionApi.createOrUpdateInteraction({
+          user: {
+            user_id: session.user.user_id,
+          },
+          course: {
+            courseId: course.courseId,
+          },
+          interaction_type: InteractionType.WISHLIST,
+        });
+      } catch (error) {
+        console.error("Error creating interaction:", error);
+      }
+    }
 
     try {
       if (isWishlisted) {
@@ -94,6 +112,21 @@ export default function CourseCard({ course }: CourseCardProps) {
   };
 
   const handleGotoCourseDetail = async (courseId: string) => {
+    if (session?.user?.user_id) {
+      try {
+        await interactionApi.createOrUpdateInteraction({
+          user: {
+            user_id: session.user.user_id,
+          },
+          course: {
+            courseId: courseId,
+          },
+          interaction_type: InteractionType.VIEW,
+        });
+      } catch (error) {
+        console.error("Error creating interaction:", error);
+      }
+    }
     router.push(`/${localActive}/courseDetail/${courseId}`);
   };
 
@@ -101,7 +134,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     <div className="cardListCourse">
       <div className="header">
         <Image
-          src={course.userAvata || ""}
+          src={course.userAvata || defait}
           alt="Avatar"
           width={30}
           height={30}
@@ -114,7 +147,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         onClick={() => handleGotoCourseDetail(course.courseId)}
       >
         <Image
-          src={course.imageInfo}
+          src={course.imageInfo || poster}
           alt="Course Thumbnail"
           width={250}
           height={140}

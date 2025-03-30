@@ -29,4 +29,106 @@
     font-size: 3.5rem;
     font-weight: bold;
 }
+/* Điện thoại tiêu chuẩn (375px - 768px) */
+@media (min-width: 375px) and (max-width: 768px) {
+  .banner-content {
+    width: 100%;
+    padding: 2rem 1rem;
+    text-align: center;
+  }
 
+  .banner-icon {
+    justify-content: center;
+  }
+
+  .banner-icon p {
+    font-size: 1rem;
+    margin-left: 0.3rem;
+  }
+
+  .home-ios {
+    margin-right: 0.3rem;
+  }
+
+  .banner-title h1 {
+    font-size: 0.9rem;
+  }
+}
+
+/* Máy tính bảng (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .banner-content {
+    width: max-content;
+    padding: 3rem 0 3rem 5rem;
+    text-align: left;
+  }
+
+  .banner-icon {
+    justify-content: flex-start;
+  }
+
+  .banner-icon p {
+    font-size: 1.5rem;
+    margin-left: 0.3rem;
+  }
+
+  .home-ios {
+    margin-right: 0.3rem;
+  }
+
+  .banner-title h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Desktop nhỏ (1025px - 1280px) */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .banner-content {
+    width: max-content;
+    padding: 3.5rem 0 3.5rem 10rem;
+    text-align: left;
+  }
+
+  .banner-icon {
+    justify-content: flex-start;
+  }
+
+  .banner-icon p {
+    font-size: 1.7rem;
+    margin-left: 0.3rem;
+  }
+
+  .home-ios {
+    margin-right: 0.3rem;
+  }
+
+  .banner-title h1 {
+    font-size: 3rem;
+  }
+}
+
+/* Desktop lớn (1281px trở lên) */
+@media (min-width: 1281px) {
+  .banner-content {
+    width: max-content;
+    padding: 3.5rem 0 3.5rem 15rem;
+    text-align: left;
+  }
+
+  .banner-icon {
+    justify-content: flex-start;
+  }
+
+  .banner-icon p {
+    font-size: 1.7rem;
+    margin-left: 0.3rem;
+  }
+
+  .home-ios {
+    margin-right: 0.3rem;
+  }
+
+  .banner-title h1 {
+    font-size: 3.5rem;
+  }
+}

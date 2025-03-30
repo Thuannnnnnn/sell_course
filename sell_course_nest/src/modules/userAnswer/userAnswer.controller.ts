@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-} from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
 import { UserAnswerService } from './userAnswer.service';
 import { UserAnswerDto } from './dto/userAnswerDto.dto';
 
@@ -27,11 +19,6 @@ export class UserAnswerController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.userAnswerService.findOne(id);
-  }
-
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: UserAnswerDto) {
-    return this.userAnswerService.update(id, dto);
   }
 
   @Delete(':id')

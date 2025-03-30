@@ -6,28 +6,27 @@ import DashBoardUser from "@/components/DashBoardUser";
 import BannerUser from "@/components/BannerUser";
 import SignIn from "../../auth/login/page";
 import "../../../../style/UserProfilePage.css";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { GetUser } from "@/app/type/user/User";
 
-interface Course {
-  courseId: string;
-  title: string;
-  description: string;
-  imageInfo: string;
+
+interface Item {
+  name: string;
+  quantity: number;
   price: number;
-  videoInfo: string;
+  courseId: string;
 }
 
 interface Order {
   id: string;
-  total: number;
-  status: string;
+  amount: number;
+  paymentStatus: string;
   createdAt: string;
-  course: Course;
+  items: Item[];
 }
 
 const OrderHistoryPage: React.FC = () => {
+  const localActive = useLocale();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,24 +53,18 @@ const OrderHistoryPage: React.FC = () => {
         const data = await fetchOrderHistory(token, email);
         console.log("API Response:", data);
 
-        interface ApiOrder {
-          id: string;
-          amount: number;
-          paymentStatus?: string;
-          createdAt: string;
-          course: Course;
-        }
-
-        const formattedOrders = data.map((order: ApiOrder) => ({
+        // Định dạng lại dữ liệu trả về từ BE
+        const formattedOrders = data.map((order: Order) => ({
           id: order.id,
-          total: order.amount,
-          status: order.paymentStatus || "UNKNOWN",
+          amount: order.amount,
+          paymentStatus: order.paymentStatus || "UNKNOWN",
           createdAt: order.createdAt,
-          course: order.course,
+          items: order.items,
         }));
 
         setOrders(formattedOrders);
-      } catch {
+      } catch (err) {
+        console.error("Error fetching orders:", err);
         setError("Failed to load order history. Please try again later.");
       } finally {
         setLoading(false);
@@ -84,6 +77,7 @@ const OrderHistoryPage: React.FC = () => {
   if (!user) {
     return <SignIn />;
   }
+
   return (
     <>
       <div>
@@ -110,39 +104,47 @@ const OrderHistoryPage: React.FC = () => {
                 {orders.map((order) => (
                   <div key={order.id} className="col-md-6 col-lg-4 mb-4 mt-4">
                     <div className="card shadow-lg border-0 rounded-4 overflow-hidden">
-                      <Image
-                        src={order.course.imageInfo}
-                        alt="Course Thumbnail"
-                        width={300}
-                        height={160}
-                        className="card-img-top object-fit-cover"
-                      />
-                      <div className="card-body">
-                        <h5 className="card-title text-truncate">
-                          {order.course.title}
-                        </h5>
-                        <p className="card-text">
-                          <strong>Order ID:</strong> {order.id} <br />
-                          <strong>Amount:</strong>{" "}
-                          <span className="fw-bold text-primary">
-                            ${order.total.toFixed(2)}
-                          </span>{" "}
-                          <br />
-                          <strong>Status:</strong>{" "}
-                          <span
-                            className={`badge ${
-                              order.status === "Completed"
-                                ? "bg-success"
-                                : "bg-warning text-dark"
-                            }`}
-                          >
-                            {order.status}
-                          </span>{" "}
-                          <br />
-                          <strong>Placed on:</strong>{" "}
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                      {order.items.map((item) => (
+                        <React.Fragment key={item.courseId}>
+                          <div onClick={() =>
+                            (window.location.href = `/${localActive}/courseDetail/${item.courseId}`)
+                          }>
+                          {/* <Image
+                            src={item.name} // Nếu có ảnh, thay bằng `item.imageInfo`
+                            alt="Course Thumbnail"
+                            width={300}
+                            height={160}
+                            className="card-img-top object-fit-cover"
+                          /> */}
+                          <div className="card-body">
+                            <h5 className="card-title text-truncate">
+                              {item.name}
+                            </h5>
+                            <p className="card-text">
+                              <strong>Order ID:</strong> {order.id} <br />
+                              <strong>Amount:</strong>{" "}
+                              <span className="fw-bold text-primary">
+                                ${order.amount.toFixed(2)}
+                              </span>{" "}
+                              <br />
+                              <strong>Status:</strong>{" "}
+                              <span
+                                className={`badge ${
+                                  order.paymentStatus === "COMPLETED"
+                                    ? "bg-success"
+                                    : "bg-warning text-dark"
+                                }`}
+                              >
+                                {order.paymentStatus}
+                              </span>{" "}
+                              <br />
+                              <strong>Placed on:</strong>{" "}
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          </div>
+                        </React.Fragment>
+                      ))}
                     </div>
                   </div>
                 ))}

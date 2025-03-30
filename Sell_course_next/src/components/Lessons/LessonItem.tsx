@@ -1,8 +1,7 @@
-// LessonItem.tsx
 import { Lesson } from "@/app/type/course/Lesson";
 import { ListGroup, Button, Card } from "react-bootstrap";
 import { useDrag, useDrop } from "react-dnd";
-import styles from "@/style/lesson.module.css";
+import styles from "@/style/LessonPage.module.css";
 import { deleteContent } from "@/app/api/course/ContentAPI";
 
 const ItemTypes = {
@@ -40,6 +39,7 @@ export const LessonItem = ({
   handleShowModal,
   handleContentClick,
   handleShowContentModal,
+  t,
 }: LessonItemProps) => {
   const [, lessonRef] = useDrag({
     type: ItemTypes.LESSON,
@@ -89,38 +89,45 @@ export const LessonItem = ({
           contentRef(node);
           contentDrop(node);
         }}
-        onClick={() => handleContentClick(content)}
-        className={styles.cursorPointer}
         style={{ cursor: "move" }}
       >
-        {content.order}. [{content.contentType.toUpperCase()}]{" "}
-        {content.contentName}
-        <Button
-          variant="danger"
-          className="ms-2"
-          onClick={(event) => {
-            event.stopPropagation();
-            deleteContent(
-              content.contentId,
-              sessionStorage.getItem("token") || ""
-            );
-          }}
-        >
-          🗑️
-        </Button>
-        <Button
-          variant="warning"
-          className="ms-2"
-          onClick={(event) =>
-            handleShowContentModal(
-              event,
-              content.contentId,
-              content.contentName
-            )
-          }
-        >
-          ✏️
-        </Button>
+        <div className={styles.contentItem}>
+          <div 
+            className={styles.contentText}
+            onClick={() => handleContentClick(content)}
+          >
+            {content.order}. [{content.contentType.toUpperCase()}]{" "}
+            {content.contentName}
+          </div>
+          <div className={styles.buttonContainer}>
+            <Button
+              variant="warning"
+              size="sm"
+              onClick={(event) =>
+                handleShowContentModal(
+                  event,
+                  content.contentId,
+                  content.contentName
+                )
+              }
+            >
+              ✏️
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={(event) => {
+                event.stopPropagation();
+                deleteContent(
+                  content.contentId,
+                  sessionStorage.getItem("token") || ""
+                );
+              }}
+            >
+              🗑️
+            </Button>
+          </div>
+        </div>
       </ListGroup.Item>
     );
   };
@@ -136,27 +143,31 @@ export const LessonItem = ({
       style={{ cursor: "move" }}
     >
       <Card.Body>
-        <Card.Title>
-          {lesson.order}. {lesson.lessonName}
-          <Button
-            variant="danger"
-            className="ms-2"
-            onClick={() => handleDeleteLesson(lesson.lessonId)}
-          >
-            🗑️
-          </Button>
-          <Button
-            variant="warning"
-            className="ms-2"
-            onClick={() =>
-              handleShowUpdateModal(lesson.lessonId, lesson.lessonName)
-            }
-          >
-            ✏️
-          </Button>
-        </Card.Title>
+        <div className={styles.titleContainer}>
+          <Card.Title>
+            {lesson.order}. {lesson.lessonName}
+          </Card.Title>
+          <div className={styles.buttonContainer}>
+            <Button
+              variant="warning"
+              size="sm"
+              onClick={() =>
+                handleShowUpdateModal(lesson.lessonId, lesson.lessonName)
+              }
+            >
+              ✏️
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => handleDeleteLesson(lesson.lessonId)}
+            >
+              🗑️
+            </Button>
+          </div>
+        </div>
 
-        <ListGroup>
+        <ListGroup className="mt-3">
           {lesson.contents.map((content, contentIndex) => (
             <ContentItem
               key={content.contentId}

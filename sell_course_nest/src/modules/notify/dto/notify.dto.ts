@@ -46,7 +46,7 @@ export class CreateNotifyDto {
   })
   @IsOptional()
   @IsUUID()
-  courseId?: string;
+  courseIds?: string[];
 
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',
@@ -55,30 +55,13 @@ export class CreateNotifyDto {
   })
   @IsOptional()
   @IsUUID()
-  userId?: string;
+  userIds?: string[];
 }
 
 export class UpdateNotifyDto {
-  @ApiProperty({ example: 'Updated Notification Title', required: false })
-  @IsOptional()
-  @IsString()
   title?: string;
-
-  @ApiProperty({ example: 'Updated notification message.', required: false })
-  @IsOptional()
-  @IsString()
   message?: string;
-
-  @ApiProperty({
-    example: 'USER',
-    enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(['USER', 'COURSE', 'GLOBAL', 'ADMIN'])
   type?: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
-
-  @ApiProperty({ example: false, required: false })
-  @IsOptional()
-  isGlobal?: boolean;
+  courseIds?: string[];
+  userIds?: string[];
 }

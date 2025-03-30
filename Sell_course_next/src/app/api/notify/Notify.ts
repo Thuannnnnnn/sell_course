@@ -37,8 +37,17 @@ export const fetchNotificationByid = async (
   }
 };
 
+interface NotificationCreateData {
+  title: string;
+  message: string;
+  type: "GLOBAL" | "USER" | "COURSE" | "ADMIN";
+  isGlobal: boolean;
+  courseIds?: string[];
+  userIds?: string[];
+}
+
 export const addNotification = async (
-  notification: Notify,
+  notification: NotificationCreateData,
   token: string
 ): Promise<Notify> => {
   try {
@@ -56,7 +65,7 @@ export const addNotification = async (
 
 export const updateNotification = async (
   id: string,
-  notification: Notify,
+  notification: NotificationCreateData,
   token: string
 ): Promise<Notify> => {
   try {
@@ -154,3 +163,4 @@ export const markAllNotificationsAsSent = async (
     throw error;
   }
 };
+

@@ -13,6 +13,7 @@ export default function StartChatButton() {
   const { data: session } = useSession();
   const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleStartChat = async () => {
     // Type guard for session and user_id
@@ -31,7 +32,7 @@ export default function StartChatButton() {
       if (response?.sessionId) {
         const sessionId: string = response.sessionId;
         console.log("Chat session started with ID:", sessionId);
-        router.push(`/${locale}/chats/${sessionId}`); // Added leading slash for consistency
+        router.push(`/${locale}/chats/${sessionId}`);
       } else {
         console.log("Failed to start chat: No response or invalid response");
       }
@@ -40,6 +41,25 @@ export default function StartChatButton() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Create a style tag for keyframes animation
+  const keyframesStyle = `
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  `;
+
+  // Combine styles based on state
+  const buttonStyle = {
+    ...styles.button,
+    ...(isHovered && !isLoading && !(!session?.user?.user_id) ? {
+      backgroundColor: "#3a76d8",
+      transform: "translateY(-1px)",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    } : {}),
+    ...(isLoading || !session?.user?.user_id ? styles.buttonDisabled : {}),
+    ...(isLoading ? styles.loadingButton : {}),
   };
 
   return (
