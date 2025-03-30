@@ -13,7 +13,8 @@ import { FaRegHeart, FaHeart } from "react-icons/fa";
 import axios from "axios";
 import { interactionApi } from "@/app/api/interaction/interactionApi";
 import { InteractionType } from "@/app/type/Interaction/Interaction";
-
+import defait from "../.../../../../public/defait-img.png";
+import poster from "../.../../../../public/poster_img.jpg";
 interface Course {
   courseId: string;
   userAvata?: string;
@@ -133,7 +134,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     <div className="cardListCourse">
       <div className="header">
         <Image
-          src={course.userAvata || ""}
+          src={course.userAvata || defait}
           alt="Avatar"
           width={30}
           height={30}
@@ -146,7 +147,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         onClick={() => handleGotoCourseDetail(course.courseId)}
       >
         <Image
-          src={course.imageInfo}
+          src={course.imageInfo || poster}
           alt="Course Thumbnail"
           width={250}
           height={140}
