@@ -7,6 +7,7 @@ import { UpdateFeedbackRattingDto } from './dto/update-feedback-ratting.dto';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import axios from 'axios';
+
 @Injectable()
 export class FeedbackRattingService {
   constructor(
@@ -17,8 +18,13 @@ export class FeedbackRattingService {
     @InjectRepository(Course)
     private courseRepository: Repository<Course>,
   ) {}
+
   private async generateEmbeddingCreate(feedback: string): Promise<number[]> {
     try {
+      if (!feedback || feedback.trim() === '') {
+        return [];
+      }
+      
       const response = await axios.post(
         `${process.env.FASTAPI_URL}/create_course_embedding`,
         {
@@ -27,21 +33,57 @@ export class FeedbackRattingService {
       );
       return response.data.embedding;
     } catch (error) {
-      throw new HttpException(
-        `Không thể tạo embedding: ${error}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error('Embedding generation error:', error);
+      return [];
     }
   }
+
   async create(
     createFeedbackRattingDto: CreateFeedbackRattingDto,
   ): Promise<FeedbackRatting> {
     const { user_id, courseId, star, feedback } = createFeedbackRattingDto;
+    
+    if (!user_id) {
+      throw new HttpException('User ID is required', HttpStatus.BAD_REQUEST);
+    }
+    
+    if (!courseId) {
+      throw new HttpException('Course ID is required', HttpStatus.BAD_REQUEST);
+    }
+
     const user = await this.userRepository.findOne({ where: { user_id } });
-    if (!user) throw new Error('User not found');
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
     const course = await this.courseRepository.findOne({ where: { courseId } });
-    if (!course) throw new Error('Course not found');
-    const embedding = await this.generateEmbeddingCreate(feedback);
+    if (!course) {
+      throw new HttpException('Course not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Check if user already has a rating for this course
+    const existingRating = await this.feedbackRattingRepository.findOne({
+      where: {
+        user: { user_id },
+        course: { courseId },
+      },
+    });
+
+    if (existingRating) {
+      // Update existing rating
+      existingRating.star = star;
+      existingRating.feedback = feedback || existingRating.feedback;
+      
+      if (feedback && feedback !== existingRating.feedback) {
+        existingRating.embedding = await this.generateEmbeddingCreate(feedback);
+      }
+      
+      return this.feedbackRattingRepository.save(existingRating);
+    }
+
+    // Create new rating
+    const embedding = await this.generateEmbeddingCreate(feedback || '');
+    
     const feedbackRatting = this.feedbackRattingRepository.create({
       user,
       course,
@@ -50,40 +92,70 @@ export class FeedbackRattingService {
       createdAt: new Date(),
       embedding,
     });
+    
     return this.feedbackRattingRepository.save(feedbackRatting);
   }
+
   async findAll(): Promise<FeedbackRatting[]> {
     return this.feedbackRattingRepository.find({
       relations: ['user', 'course'],
     });
   }
-  // Fix for src/feedback-ratting/feedback-ratting.service.ts
-  async findOne(courseId: string): Promise<FeedbackRatting | null> {
-    const feedback = await this.feedbackRattingRepository.findOne({
+
+  async findOne(courseId: string): Promise<FeedbackRatting[]> {
+    if (!courseId) {
+      throw new HttpException('Course ID is required', HttpStatus.BAD_REQUEST);
+    }
+    
+    const feedbacks = await this.feedbackRattingRepository.find({
       where: { course: { courseId } },
       relations: ['user', 'course'],
     });
-    return feedback;
+    
+    return feedbacks;
   }
+
   async update(
     id: string,
     updateFeedbackRattingDto: UpdateFeedbackRattingDto,
   ): Promise<FeedbackRatting> {
+    if (!id) {
+      throw new HttpException('Feedback Rating ID is required', HttpStatus.BAD_REQUEST);
+    }
+    
     const feedback = await this.feedbackRattingRepository.findOne({
       where: { feedbackRattingId: id },
     });
+    
+    if (!feedback) {
+      throw new HttpException('Feedback Rating not found', HttpStatus.NOT_FOUND);
+    }
+
     if (updateFeedbackRattingDto.star !== undefined) {
       feedback.star = updateFeedbackRattingDto.star;
     }
+    
     if (updateFeedbackRattingDto.feedback !== undefined) {
       feedback.feedback = updateFeedbackRattingDto.feedback;
+      feedback.embedding = await this.generateEmbeddingCreate(updateFeedbackRattingDto.feedback);
     }
+    
     return this.feedbackRattingRepository.save(feedback);
   }
+
   async remove(id: string): Promise<void> {
+    if (!id) {
+      throw new HttpException('Feedback Rating ID is required', HttpStatus.BAD_REQUEST);
+    }
+    
     const feedback = await this.feedbackRattingRepository.findOne({
       where: { feedbackRattingId: id },
     });
+    
+    if (!feedback) {
+      throw new HttpException('Feedback Rating not found', HttpStatus.NOT_FOUND);
+    }
+    
     await this.feedbackRattingRepository.remove(feedback);
   }
 }
