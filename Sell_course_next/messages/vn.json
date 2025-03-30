@@ -66,7 +66,8 @@
   "homePage": {
     "homePageTitle": "Học Tập Khóa Học",
     "homePageContent": "Chào mừng bạn đến với mạng lưới khóa học! Kiểm tra tất cả các lộ trình học, học theo tốc độ của bạn, và phát triển kỹ năng. Chúng tôi rất vui mừng được đồng hành cùng bạn trên con đường đến với kiến thức có ý nghĩa.",
-    "title": "Trang chủ"
+    "title": "Trang chủ",
+    "recommended": "Những khóa học được gợi ý"
   },
   "cardCourse": {
     "0": "Cơ bản (lý thuyết và cú pháp)",

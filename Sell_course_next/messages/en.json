@@ -66,7 +66,8 @@
   "homePage": {
     "homePageTitle": "Course Learning",
     "homePageContent": "Welcome to the course network! Check all the learning paths, learn at your pace, and grow your skills. We are thrilled to accompany you on your path to meaningful knowledge.",
-    "title": "Home Page"
+    "title": "Home Page",
+    "recommended":"recommend courses"
   },
   "cardCourse": {
     "0": " Basic  (theory and syntax)",
