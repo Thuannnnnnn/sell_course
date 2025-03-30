@@ -39,7 +39,7 @@ export default function PromotionPage() {
     name: "",
     discount: 0,
     code: "",
-    course: "",
+    courseId: "",
   });
   const [course, setCourse] = useState<Course[] | null>(null);
   const [courseSearch, setCourseSearch] = useState(""); // State cho tìm kiếm khóa học
@@ -81,7 +81,7 @@ export default function PromotionPage() {
         name: formData.name,
         discount: formData.discount,
         code: formData.code,
-        course: formData.course,
+        courseId: formData.courseId,
       };
 
       if (isNaN(formData.discount) || formData.discount < 0) {
@@ -89,7 +89,7 @@ export default function PromotionPage() {
         return;
       }
 
-      if (!promotionData.course) {
+      if (!promotionData.courseId) {
         setError(t("courseRequired"));
         return;
       }
@@ -101,7 +101,7 @@ export default function PromotionPage() {
       }
 
       setShowModal(false);
-      setFormData({ name: "", discount: 0, code: "", course: "" });
+      setFormData({ name: "", discount: 0, code: "", courseId: "" });
       setCurrentPromotion(null);
       setCourseSearch(""); // Reset tìm kiếm
       const updatedPromotions = await getAllPromotions(token);
@@ -130,14 +130,14 @@ export default function PromotionPage() {
       name: promotion.name,
       discount: promotion.discount,
       code: promotion.code,
-      course: promotion.course.courseId,
+      courseId: promotion.course.courseId,
     });
     setShowModal(true);
   };
 
   const handleCreatePromotion = () => {
     setCurrentPromotion(null);
-    setFormData({ name: "", discount: 0, code: "", course: "" });
+    setFormData({ name: "", discount: 0, code: "", courseId: "" });
     setCourseSearch(""); // Reset tìm kiếm khi tạo mới
     setShowModal(true);
   };
@@ -234,14 +234,14 @@ export default function PromotionPage() {
                 />
                 <Form.Select
                   name="courseId"
-                  value={formData.course || ""}
+                  value={formData.courseId || ""}
                   onChange={(e) => {
                     const selectedCourse = course?.find(
                       (c) => c.courseId === e.target.value
                     );
                     setFormData({
                       ...formData,
-                      course: selectedCourse?.courseId || "",
+                      courseId: selectedCourse?.courseId || "",
                     });
                   }}
                 >
