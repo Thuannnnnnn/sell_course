@@ -114,9 +114,9 @@ import { MeetingMessage } from './modules/meeting/entities/meeting-message.entit
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
 
       entities: [
         LogoSetting,
