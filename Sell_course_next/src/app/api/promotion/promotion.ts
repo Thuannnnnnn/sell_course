@@ -12,7 +12,7 @@ export interface PromotionData {
   name: string;
   discount: number;
   code: string;
-  course: string;
+  courseId: string;
 }
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`;
