@@ -29,9 +29,11 @@ export class OrderService {
   }
 
   async findOrderByEmail(email: string): Promise<Order[]> {
-    return this.orderRepository.find({
+    const result = await this.orderRepository.find({
       where: { email },
       relations: ['user', 'course'],
     });
+    console.log('result', result);
+    return result;
   }
 }
