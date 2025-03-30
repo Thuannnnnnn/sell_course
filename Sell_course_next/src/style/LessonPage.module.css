@@ -1,0 +1,28 @@
+/* Add to your existing lesson.module.css file */
+.cursorPointer {
+    cursor: pointer;
+  }
+  
+  .buttonContainer {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+  }
+  
+  .titleContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .contentItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .contentText {
+    cursor: pointer;
+  }
