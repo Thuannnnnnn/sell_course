@@ -1,5 +1,6 @@
 import { OrderModule } from './modules/order/order.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { MeetingModule } from './modules/meeting/meeting.module';
 // app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -89,6 +90,9 @@ import { LogoSetting } from './modules/logoSetting/entities/LogoSetting.entity';
 import { LogoSettingModule } from './modules/logoSetting/logoSetting.module';
 import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.module';
 import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
+import { Meeting } from './modules/meeting/entities/meeting.entity';
+import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
+import { MeetingMessage } from './modules/meeting/entities/meeting-message.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -118,6 +122,10 @@ import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.e
         LogoSetting,
         VersionSetting,
         Interaction,
+        MeetingParticipant,
+        MeetingMessage,
+        CarouselSetting,
+        Meeting,
         QuestionHabit,
         UserAnswer,
         Notify,
@@ -160,7 +168,6 @@ import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.e
         ChatSession,
         Message,
         Promotion,
-        CarouselSetting,
       ],
       synchronize: true,
     }),
@@ -206,6 +213,7 @@ import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.e
     SupportChatModule,
     PromotionModule,
     CarouselSettingModule,
+    MeetingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
