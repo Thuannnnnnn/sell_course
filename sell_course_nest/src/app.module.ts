@@ -114,14 +114,18 @@ import { MeetingMessage } from './modules/meeting/entities/meeting-message.entit
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      // ssl: {
-      //   rejectUnauthorized: false,
-      // },
+      ssl: {
+        rejectUnauthorized: false,
+      },
 
       entities: [
         LogoSetting,
         VersionSetting,
         Interaction,
+        MeetingParticipant,
+        MeetingMessage,
+        CarouselSetting,
+        Meeting,
         QuestionHabit,
         UserAnswer,
         Notify,
@@ -208,6 +212,8 @@ import { MeetingMessage } from './modules/meeting/entities/meeting-message.entit
     QaStudyModule,
     SupportChatModule,
     PromotionModule,
+    CarouselSettingModule,
+    MeetingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
