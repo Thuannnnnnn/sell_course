@@ -77,7 +77,6 @@ const MeetingChat: React.FC<MeetingChatProps> = ({ meetingId, userId }) => {
         startScreenShare={startScreenShare}
         stopScreenShare={stopScreenShare}
         leaveMeeting={() => {}}
-        toggleChat={() => {}}
         raiseHand={() => {}}
         lowerHand={() => {}}
         isHandRaised={false}
