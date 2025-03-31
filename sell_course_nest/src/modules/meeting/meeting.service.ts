@@ -27,6 +27,13 @@ export class MeetingService {
 
   /**
    * Generate a unique meeting code
+/**
+   * Common error handler for meeting operations
+   */
+  private handleError(error: any, message: string, statusCode: number = HttpStatus.BAD_REQUEST): void {
+    this.logger.error(message, error);
+    throw new HttpException(message, statusCode);
+  }
    */
   private generateMeetingCode(): string {
     return Math.random().toString(36).substring(2, 12).toUpperCase();
@@ -145,16 +152,20 @@ export class MeetingService {
       throw new BadRequestException('Meeting is not active');
     }
 
-    // Check if user is already a participant
-    let participant = await this.participantRepository.findOne({
-      where: {
-        meetingId: meeting.id,
-        userId,
-      },
-    });
+// Check if user is already a participant
+  let participant = await this.participantRepository.findOne({
+    where: {
+      meetingId: meeting.id,
+      userId,
+    },
+  });
 
-    if (participant) {
-      // If participant exists but is not active, reactivate them
+  if (participant) {
+    if (!participant.isActive) {
+      return this.reactivateParticipant(participant, hasCamera, hasMicrophone);
+    }
+    return participant;
+  }
       if (!participant.isActive) {
         participant.isActive = true;
         participant.joinTime = new Date();
@@ -165,6 +176,17 @@ export class MeetingService {
       }
       return participant;
     }
+/**
+   * Reactivate an inactive participant
+   */
+  private reactivateParticipant(participant: MeetingParticipant, hasCamera: boolean, hasMicrophone: boolean): Promise<MeetingParticipant> {
+    participant.isActive = true;
+    participant.joinTime = new Date();
+    participant.leaveTime = null;
+    participant.hasCamera = hasCamera;
+    participant.hasMicrophone = hasMicrophone;
+    return this.participantRepository.save(participant);
+  }
 
     // Create new participant
     participant = this.participantRepository.create({
@@ -188,15 +210,21 @@ export class MeetingService {
         userId,
         isActive: true,
       },
-    });
+const participant = await this.participantRepository.findOne({
+    where: {
+      meetingId,
+      userId,
+      isActive: true,
+    },
+  });
 
-    if (!participant) {
-      throw new NotFoundException('Active participant not found');
-    }
+  if (!participant) {
+    this.handleError(null, 'Active participant not found', HttpStatus.NOT_FOUND);
+  }
 
-    participant.isActive = false;
-    participant.leaveTime = new Date();
-    await this.participantRepository.save(participant);
+  participant.isActive = false;
+  participant.leaveTime = new Date();
+  await this.participantRepository.save(participant);
   }
 
   /**
@@ -211,11 +239,9 @@ export class MeetingService {
       },
     });
 
-    if (!meeting) {
-      throw new NotFoundException(
-        'Active meeting not found or you are not the host',
-      );
-    }
+if (!meeting) {
+    this.handleError(null, 'Active meeting not found or you are not the host', HttpStatus.NOT_FOUND);
+  }
 
     meeting.isActive = false;
     meeting.endTime = new Date();

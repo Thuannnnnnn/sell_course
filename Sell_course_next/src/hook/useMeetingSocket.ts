@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { Socket } from "socket.io-client";
-import io from "socket.io-client";
-import { MeetingParticipant, MeetingMessage } from "../app/api/meeting/meeting";
+import io, { Socket } from "socket.io-client";
+import { MeetingParticipant } from "../app/api/meeting/meeting"; // Chỉ giữ lại MeetingParticipant
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+type SocketType = typeof Socket;
 
 interface PeerConnection {
   userId: string;
@@ -18,9 +19,11 @@ interface UseMeetingSocketResult {
   localStream: MediaStream | null;
   remoteStreams: Map<string, MediaStream>;
   participants: MeetingParticipant[];
-  messages: MeetingMessage[];
   isConnecting: boolean;
   error: string | null;
+  hasCamera: boolean;
+  hasMicrophone: boolean;
+  isScreenSharing: boolean;
   toggleCamera: () => Promise<void>;
   toggleMicrophone: () => Promise<void>;
   startScreenShare: () => Promise<void>;
@@ -44,7 +47,6 @@ const useMeetingSocket = (
     new Map()
   );
   const [participants, setParticipants] = useState<MeetingParticipant[]>([]);
-  const [messages, setMessages] = useState<MeetingMessage[]>([]);
   const [isConnecting, setIsConnecting] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [hasCamera, setHasCamera] = useState<boolean>(false);
@@ -123,7 +125,7 @@ const useMeetingSocket = (
 
   // Moved createPeerConnection, handleOffer, handleAnswer, and handleIceCandidate before useEffect
   const createPeerConnection = useCallback(
-    (participantId: string, socket: typeof Socket): PeerConnection => {
+    (participantId: string, socket: SocketType): PeerConnection => {
       const connection = new RTCPeerConnection(iceServers);
       const peerConnection: PeerConnection = {
         userId: participantId,
@@ -183,10 +185,12 @@ const useMeetingSocket = (
     async (
       from: string,
       offer: RTCSessionDescriptionInit,
-      socket: typeof Socket
+      socket: SocketType
     ): Promise<void> => {
       let peerConnection = peerConnections.current.get(from);
-      if (!peerConnection) peerConnection = createPeerConnection(from, socket);
+      if (!peerConnection) {
+        peerConnection = createPeerConnection(from, socket);
+      }
 
       await peerConnection.connection.setRemoteDescription(
         new RTCSessionDescription(offer)
@@ -230,7 +234,7 @@ const useMeetingSocket = (
 
     const newSocket = io(`${API_URL}/meetings`, {
       query: { meetingId, userId },
-    });
+    }) as typeof Socket;
 
     setSocket(newSocket);
 
@@ -395,13 +399,6 @@ const useMeetingSocket = (
       }
     );
 
-    newSocket.on("message", (message: MeetingMessage) => {
-      setMessages((prev) => [...prev, message]);
-    });
-
-    newSocket.on("private-message", (message: MeetingMessage) => {
-      setMessages((prev) => [...prev, message]);
-    });
 
     const currentPeerConnections = peerConnections.current;
 
@@ -579,9 +576,11 @@ const useMeetingSocket = (
     localStream,
     remoteStreams,
     participants,
-    messages,
     isConnecting,
     error,
+    hasCamera,
+    hasMicrophone,
+    isScreenSharing,
     toggleCamera,
     toggleMicrophone,
     startScreenShare,
