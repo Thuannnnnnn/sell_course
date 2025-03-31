@@ -6,7 +6,6 @@ import {
   FaVideoSlash,
   FaDesktop,
   FaPhoneSlash,
-  FaCommentAlt,
   FaHandPaper,
 } from "react-icons/fa";
 

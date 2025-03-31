@@ -18,11 +18,7 @@ export class MeetingGateway {
     });
   }
 
-  // Xóa các handlers liên quan đến chat
-  // @SubscribeMessage('send-message')
-  // handleMessage(client: Socket, payload: any) { ... }
 
-  // Giữ lại các handlers khác
   @SubscribeMessage('offer')
   handleOffer(client: Socket, payload: { to: string; offer: RTCSessionDescriptionInit }) {
     client.to(payload.to).emit('offer', {

@@ -16,7 +16,4 @@ export class MeetingController {
     return this.meetingService.getMeeting(id);
   }
 
-  // Removed sendMessage and getMeetingMessages endpoints
-
-  // Removed getAllMeetings endpoint as it's not necessary
 }
