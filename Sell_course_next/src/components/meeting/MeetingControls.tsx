@@ -22,7 +22,6 @@ interface MeetingControlsProps {
   stopScreenShare: () => Promise<void>;
   leaveMeeting: () => void;
   endMeeting?: () => void;
-  toggleChat: () => void;
   raiseHand: () => void;
   lowerHand: () => void;
   isHandRaised: boolean;
@@ -39,7 +38,6 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
   stopScreenShare,
   leaveMeeting,
   endMeeting,
-  toggleChat,
   raiseHand,
   lowerHand,
   isHandRaised,
@@ -102,10 +100,6 @@ const MeetingControls: React.FC<MeetingControlsProps> = ({
         title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
       >
         <FaDesktop />
-      </button>
-
-      <button className="control-btn" onClick={toggleChat} title="Toggle chat">
-        <FaCommentAlt />
       </button>
 
       <button
