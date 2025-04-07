@@ -41,7 +41,7 @@ export default function JoinMeetingPage() {
 
     try {
       const response = await joinMeeting({
-        meetingId: meetingCode,
+        meetingCode: meetingCode,
         userId: session.user.user_id,
         hasCamera,
         hasMicrophone,

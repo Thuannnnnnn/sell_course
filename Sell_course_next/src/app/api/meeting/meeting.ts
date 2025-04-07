@@ -118,7 +118,7 @@ export const getUserMeetings = async (
 
 // Join a meeting
 export const joinMeeting = async (joinData: {
-  meetingId: string;
+  meetingCode: string;
   userId: string;
   hasCamera?: boolean;
   hasMicrophone?: boolean;
