@@ -92,7 +92,6 @@ import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.modu
 import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
 import { Meeting } from './modules/meeting/entities/meeting.entity';
 import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
-import { MeetingMessage } from './modules/meeting/entities/meeting-message.entity';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -123,7 +122,6 @@ import { MeetingMessage } from './modules/meeting/entities/meeting-message.entit
         VersionSetting,
         Interaction,
         MeetingParticipant,
-        MeetingMessage,
         CarouselSetting,
         Meeting,
         QuestionHabit,

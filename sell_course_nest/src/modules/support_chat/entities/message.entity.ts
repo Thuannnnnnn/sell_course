@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { ChatSession } from './chat-session.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 
 @Entity('messages')
 export class Message {
@@ -6,14 +8,14 @@ export class Message {
   id: string;
 
   @Column()
-  sessionId: string;
-
-  @Column()
-  sender: string;
-
-  @Column()
   messageText: string;
 
   @Column()
   timestamp: Date;
+
+  @ManyToOne(() => ChatSession, (chatSession) => chatSession.messages)
+  chatSession: ChatSession;
+
+  @ManyToOne(() => User, (user) => user.messages)
+  sender: User;
 }
