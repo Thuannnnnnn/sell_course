@@ -1,6 +1,17 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { User } from "../../type/user/User";
 import { HostedMeeting, JoinedMeeting } from "../../type/meeting/Meeting";
+
+interface ApiError {
+  status: number;
+  error: string;
+  message: string;
+}
+
+interface ApiResponse<T> {
+  data: T;
+  error?: ApiError;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -43,33 +54,44 @@ export interface MeetingParticipant {
   hasCamera: boolean;
   hasMicrophone: boolean;
   isScreenSharing: boolean;
-  role: "host" | "participant"; // Thêm role
+  role: "host" | "participant";
 }
 
-// Các hàm API không thay đổi, chỉ cần đảm bảo BE trả về role trong response
 export const createMeeting = async (meetingData: {
   title: string;
   description?: string;
   isScheduled?: boolean;
   scheduledTime?: string;
   isRecorded?: boolean;
-}) => {
+}): Promise<ApiResponse<{ id: string; meetingCode: string }>> => {
   try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+    console.log('Creating meeting with data:', meetingData); // Log để kiểm tra
+    console.log('Token:', token); // Log token
+
     const response = await axios.post(
       `${API_URL}/meetings/create`,
       meetingData,
       {
-        headers: getAuthHeader(),
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       }
     );
-    return response.data;
+    console.log('Response from BE:', response.data); // Log phản hồi
+    return { data: response.data.data };
   } catch (error) {
-    console.error("Error creating meeting:", error);
+    if (error instanceof AxiosError) {
+      const apiError = error.response?.data as ApiError;
+      throw new Error(apiError?.message || 'Failed to create meeting');
+    }
     throw error;
   }
 };
-
-// Các hàm khác giữ nguyên...
 
 // Join a meeting
 export const joinMeeting = async (joinData: {

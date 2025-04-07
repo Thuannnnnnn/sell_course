@@ -23,7 +23,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 @Controller('meetings')
-@UseGuards(JwtAuthGuard) // Áp dụng JwtAuthGuard cho tất cả các endpoint trong controller
+@UseGuards(JwtAuthGuard)
 export class MeetingsController {
   constructor(private readonly meetingsService: MeetingsService) {}
 
@@ -32,12 +32,45 @@ export class MeetingsController {
     @Body() createMeetingDto: CreateMeetingDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    // Đảm bảo hostId là userId của người dùng đã đăng nhập
-    const meeting = await this.meetingsService.createRoomMeeting({
-      ...createMeetingDto,
-      hostId: req.user.user_id,
-    });
-    return { meetingId: meeting.id, meetingCode: meeting.meetingCode };
+    try {
+      console.log('req.user:', req.user); // Log để kiểm tra
+      const hostId = req.user?.user_id;
+      if (!hostId) {
+        throw new HttpException(
+          'Unauthorized: Missing user ID',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      console.log('Creating meeting with hostId:', hostId); // Log để kiểm tra
+
+      const meetingData = {
+        ...createMeetingDto,
+        hostId,
+      };
+      console.log('Meeting data sent to service:', meetingData); // Log thêm để kiểm tra
+
+      const meeting = await this.meetingsService.createRoomMeeting(meetingData);
+      return {
+        success: true,
+        data: {
+          id: meeting.id,
+          meetingCode: meeting.meetingCode,
+        },
+      };
+    } catch (error) {
+      console.error('Error in createRoom:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Failed to create meeting',
+          message: errorMessage,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('join')

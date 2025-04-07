@@ -19,27 +19,56 @@ export class MeetingsService {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
-  async createRoomMeeting(createMeetingDto: CreateMeetingDto): Promise<Meeting> {
-    const meetingCode = this.generateMeetingCode();
-    const meeting = this.meetingRepository.create({
-      ...createMeetingDto,
-      meetingCode,
-      startTime: new Date(),
-      isActive: true,
-    });
-    const savedMeeting = await this.meetingRepository.save(meeting);
+  async createRoomMeeting(
+    createMeetingDto: CreateMeetingDto & { hostId: string },
+  ): Promise<Meeting> {
+    try {
+      const meetingCode = this.generateMeetingCode();
+      const meeting = this.meetingRepository.create({
+        title: createMeetingDto.title,
+        description: createMeetingDto.description,
+        hostId: createMeetingDto.hostId, // Gán trực tiếp
+        meetingCode,
+        startTime: new Date(),
+        isActive: true,
+        isScheduled: createMeetingDto.isScheduled || false,
+        scheduledTime: createMeetingDto.scheduledTime,
+        isRecorded: createMeetingDto.isRecorded || false,
+      });
 
-    // Tạo participant cho host
-    const hostParticipant = this.participantRepository.create({
-      meetingId: savedMeeting.id,
-      userId: savedMeeting.hostId,
-      joinTime: new Date(),
-      role: 'host', // Gán vai trò host
-      isActive: true,
-    });
-    await this.participantRepository.save(hostParticipant);
+      console.log('Creating meeting with data:', meeting); // Debug log
 
-    return savedMeeting;
+      if (!meeting.hostId) {
+        throw new Error('hostId is missing in meeting entity');
+      }
+
+      const savedMeeting = await this.meetingRepository.save(meeting);
+
+      console.log('Saved meeting:', savedMeeting); // Debug log
+
+      const hostParticipant = this.participantRepository.create({
+        meetingId: savedMeeting.id,
+        userId: createMeetingDto.hostId,
+        joinTime: new Date(),
+        role: 'host',
+        isActive: true,
+        hasCamera: false,
+        hasMicrophone: false,
+        isScreenSharing: false,
+      });
+
+      console.log('Creating host participant:', hostParticipant); // Debug log
+
+      await this.participantRepository.save(hostParticipant);
+
+      return savedMeeting;
+    } catch (error) {
+      console.error('Error creating meeting:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to create meeting: ${error.message}`);
+      }
+      throw new Error('Failed to create meeting: Unknown error');
+    }
   }
 
   async joinRoomMeeting(meetingCode: string, userId: string): Promise<Meeting> {
@@ -114,7 +143,7 @@ export class MeetingsService {
       throw new Error('Meeting not found');
     }
 
-    if(meeting.hostId === userId) {
+    if (meeting.hostId === userId) {
       await this.meetingRepository.remove(meeting);
     } else {
       await this.participantRepository.update(
@@ -142,7 +171,9 @@ export class MeetingsService {
     });
   }
 
-  async getParticipantsInMeeting(meetingId: string): Promise<MeetingParticipant[]> {
+  async getParticipantsInMeeting(
+    meetingId: string,
+  ): Promise<MeetingParticipant[]> {
     const participants = await this.participantRepository.find({
       where: { meetingId, isActive: true },
       relations: ['user'],
@@ -156,9 +187,10 @@ export class MeetingsService {
   }
 
   async updateParticipantStatus(
-    updateData: UpdateParticipantStatusDto & { userId: string }
+    updateData: UpdateParticipantStatusDto & { userId: string },
   ): Promise<MeetingParticipant> {
-    const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } = updateData;
+    const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } =
+      updateData;
 
     const participant = await this.participantRepository.findOne({
       where: { meetingId, userId, isActive: true },

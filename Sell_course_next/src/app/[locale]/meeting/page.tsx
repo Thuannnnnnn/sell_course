@@ -10,6 +10,7 @@ import {
   getJoinedMeetings,
 } from "@/app/api/meeting/meeting";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 
 import { HostedMeeting, JoinedMeeting } from "@/app/type/meeting/Meeting";
 
@@ -34,16 +35,15 @@ export default function MeetingsPage() {
       setError("");
 
       try {
-        // Fetch hosted meetings
         const hostedData = await getHostedMeetings();
         setHostedMeetings(hostedData || []);
 
-        // Fetch joined meetings
         const joinedData = await getJoinedMeetings();
         setJoinedMeetings(joinedData || []);
       } catch (err) {
         console.error("Error fetching meetings:", err);
-        setError("Error fetching meetings");
+        setError(t("error.fetch_meetings"));
+        toast.error(t("error.fetch_meetings"));
       } finally {
         setIsLoading(false);
       }
@@ -52,18 +52,15 @@ export default function MeetingsPage() {
     fetchMeetings();
   }, [status, t]);
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString();
   };
 
-  // Handle join meeting
   const handleJoinMeeting = (meetingId: string) => {
     router.push(`/${locale}/meeting/${meetingId}`);
   };
 
-  // Check if user is authenticated
   if (status === "loading") {
     return <div className="text-center py-5">Loading...</div>;
   }
@@ -153,7 +150,7 @@ export default function MeetingsPage() {
                         className="btn-primary"
                         onClick={() => handleJoinMeeting(meeting.id)}
                       >
-                        {meeting.isActive ? t("joinNow") : "View"}
+                        {meeting.isActive ? t("joinNow") : t("view")}
                       </button>
                     </div>
                   </div>
@@ -179,30 +176,18 @@ export default function MeetingsPage() {
                           {formatDate(meeting.startTime)}
                         </span>
                         <span>
-                          {t("host")}:{" "}
-                          {meeting.isHost
-                            ? t("you")
-                            : meeting.hostName || "Unknown"}
-                        </span>
-                        <span>
                           {t("code")}: {meeting.meetingCode}
                         </span>
                       </div>
                     </div>
 
                     <div className="meeting-card-actions">
-                      {meeting.isActive ? (
-                        <button
-                          className="btn-primary"
-                          onClick={() => handleJoinMeeting(meeting.id)}
-                        >
-                          {t("joinNow")}
-                        </button>
-                      ) : (
-                        <button className="btn-secondary" disabled>
-                          {t("meetingEnded")}
-                        </button>
-                      )}
+                      <button
+                        className="btn-primary"
+                        onClick={() => handleJoinMeeting(meeting.id)}
+                      >
+                        {meeting.isActive ? t("joinNow") : t("view")}
+                      </button>
                     </div>
                   </div>
                 ))

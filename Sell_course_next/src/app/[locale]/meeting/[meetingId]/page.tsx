@@ -102,7 +102,7 @@ const MeetingRoom = () => {
         await getMeetingParticipants(meetingId);
       } catch (error) {
         console.error("Error fetching meeting info:", error);
-        toast.error("Error fetching meeting information");
+        toast.error(t("meetingNotFound"));
       }
     };
 
@@ -158,7 +158,7 @@ const MeetingRoom = () => {
       });
     } catch (error) {
       console.error("Failed to update microphone status:", error);
-      toast.error(t("error.update_status"));
+      toast.error(t("meetingNotFound"));
     }
   };
 
@@ -170,21 +170,21 @@ const MeetingRoom = () => {
       router.push(`/${locale}/meeting`);
     } catch (error) {
       console.error("Error leaving meeting:", error);
-      toast.error(t("error.leave_meeting"));
+      toast.error(t("leaveMeeting"));
     }
   };
 
   const copyMeetingCode = () => {
     if (meetingInfo?.meetingCode) {
       navigator.clipboard.writeText(meetingInfo.meetingCode);
-      toast.success(t("meeting_room.code_copied"));
+      toast.success(t("code"));
     }
   };
 
   if (status === "loading" || isMediaLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-900">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">{t("loading")}</div>
       </div>
     );
   }
@@ -204,7 +204,7 @@ const MeetingRoom = () => {
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           onClick={() => router.push(`/${locale}/meeting`)}
         >
-          {t("meeting_room.back_to_meetings")}
+          {t("cancel")}
         </button>
       </div>
     );
@@ -221,11 +221,11 @@ const MeetingRoom = () => {
     <div className="meeting-container">
       <div className="meeting-header">
         <h1 className="meeting-title">
-          {meetingInfo?.title || t("meeting_room.untitled")}
+          {meetingInfo?.title || t("meetingNotFound")}
         </h1>
         <div className="meeting-info">
           <div className="meeting-code">
-            {t("meeting_room.code")}: {meetingInfo?.meetingCode}{" "}
+            {t("meetingCode")}: {meetingInfo?.meetingCode}{" "}
             <button className="copy-btn" onClick={copyMeetingCode}>
               <FaCopy />
             </button>
@@ -237,227 +237,111 @@ const MeetingRoom = () => {
         </div>
       </div>
 
-      <div className="meeting-main">
-        <div className="video-container">
-          <div className={`videos-grid ${getGridClass()}`}>
-            <div className="video-item">
-              <div className="video-wrapper">
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className={`video-element ${!hasCamera ? "hidden" : ""}`}
-                />
-                {!hasCamera && (
-                  <div className="video-placeholder">
-                    <div className="user-initial">
-                      {session?.user?.name?.[0] || "U"}
-                    </div>
-                    <div className="user-name">
-                      {session?.user?.name || t("meeting_room.you")} (
-                      {t("meeting_room.you")})
-                    </div>
-                  </div>
-                )}
-                <div className="video-overlay">
-                  <div className="participant-name">
-                    {session?.user?.name || t("meeting_room.you")} (
-                    {t("meeting_room.you")})
-                  </div>
-                  <div className="participant-controls">
-                    {!hasMicrophone && (
-                      <FaMicrophoneSlash className="control-icon muted" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {participantStreams.map((participant) => (
-              <div key={participant.userId} className="video-item">
-                <div className="video-wrapper">
-                  <RemoteVideo
-                    stream={participant.stream}
-                    hasCamera={participant.hasCamera}
-                    userId={participant.userId}
-                    participants={participants}
-                  />
-                </div>
-              </div>
-            ))}
+      <div className={`meeting-content ${getGridClass()}`}>
+        <div className="local-video-container">
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="local-video"
+          />
+          <div className="local-video-controls">
+            <button
+              className={`control-btn ${hasCamera ? "active" : ""}`}
+              onClick={handleToggleCamera}
+              title={hasCamera ? t("cameraOn") : t("cameraOff")}
+            >
+              {hasCamera ? <FaVideo /> : <FaVideoSlash />}
+            </button>
+            <button
+              className={`control-btn ${hasMicrophone ? "active" : ""}`}
+              onClick={handleToggleMicrophone}
+              title={hasMicrophone ? t("microphoneOn") : t("microphoneOff")}
+            >
+              {hasMicrophone ? <FaMicrophone /> : <FaMicrophoneSlash />}
+            </button>
+            <button
+              className={`control-btn ${isScreenSharing ? "active" : ""}`}
+              onClick={handleToggleScreenShare}
+              title={t("recordMeeting")}
+            >
+              <FaDesktop />
+            </button>
+            <button
+              className="control-btn participants-btn"
+              onClick={() => setIsParticipantsOpen(!isParticipantsOpen)}
+              title={t("participants")}
+            >
+              <FaUsers />
+            </button>
+            <button 
+              className="control-btn leave-btn" 
+              onClick={handleLeaveMeeting}
+              title={t("leaveMeeting")}
+            >
+              <FaSignOutAlt />
+            </button>
           </div>
         </div>
 
-        {isParticipantsOpen && (
-          <div className="sidebar">
-            <ParticipantsPanel participants={participants} />
+        {participantStreams.map((stream) => (
+          <div key={stream.userId} className="participant-video-container">
+            <video
+              autoPlay
+              playsInline
+              ref={(video) => {
+                if (video) video.srcObject = stream.stream;
+              }}
+              className="participant-video"
+            />
           </div>
-        )}
+        ))}
       </div>
 
-      <div className="meeting-controls-container">
-        <div className="meeting-controls">
-          <button
-            className={`control-btn ${hasCamera ? "" : "disabled"}`}
-            onClick={handleToggleCamera}
-          >
-            {hasCamera ? <FaVideo /> : <FaVideoSlash />}
-            <span>
-              {hasCamera
-                ? t("meeting_room.camera_on")
-                : t("meeting_room.camera_off")}
-            </span>
-          </button>
-          <button
-            className={`control-btn ${hasMicrophone ? "" : "disabled"}`}
-            onClick={handleToggleMicrophone}
-          >
-            {hasMicrophone ? <FaMicrophone /> : <FaMicrophoneSlash />}
-            <span>
-              {hasMicrophone
-                ? t("meeting_room.mic_on")
-                : t("meeting_room.mic_off")}
-            </span>
-          </button>
-          <button
-            className={`control-btn ${isScreenSharing ? "active" : ""}`}
-            onClick={handleToggleScreenShare}
-          >
-            <FaDesktop />
-            <span>{t("meeting_room.share_screen")}</span>
-          </button>
-          <button
-            className={`control-btn ${isParticipantsOpen ? "active" : ""}`}
-            onClick={() => setIsParticipantsOpen(!isParticipantsOpen)}
-          >
-            <FaUsers />
-            <span>{t("meeting_room.participants")}</span>
-          </button>
-          <button
-            className="control-btn leave-btn"
-            onClick={handleLeaveMeeting}
-          >
-            <FaSignOutAlt />
-            <span>{t("meeting_room.leave")}</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface RemoteVideoProps {
-  stream: MediaStream;
-  hasCamera: boolean;
-  userId: string;
-  participants: MeetingParticipant[];
-}
-
-const RemoteVideo: React.FC<RemoteVideoProps> = ({
-  stream,
-  hasCamera,
-  userId,
-  participants,
-}) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const participant = participants.find((p) => p.userId === userId);
-  const isHost = participant?.role === "host";
-
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-    }
-  }, [stream]);
-
-  return (
-    <>
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        className={`video-element ${!hasCamera ? "hidden" : ""}`}
-      />
-      {!hasCamera && (
-        <div className="video-placeholder">
-          <div className="user-initial">
-            {participant?.user?.username?.[0] || "U"}
-          </div>
-          <div className="user-name">
-            {participant?.user?.username || "User"}
+      {isParticipantsOpen && (
+        <div className="participants-panel">
+          <h3>{t("participants")}</h3>
+          <div className="participants-list">
+            {participants.length === 0 ? (
+              <div className="no-participants">{t("noParticipants")}</div>
+            ) : (
+              participants.map((participant) => (
+                <div key={participant.userId} className="participant-item">
+                  <div className="participant-avatar">
+                    {participant.user?.username?.[0] || "?"}
+                  </div>
+                  <div className="participant-info">
+                    <div className="participant-name">
+                      {participant.user?.username || t("noParticipants")}
+                      {participant.role === "host" && (
+                        <span className="host-badge">{t("host")}</span>
+                      )}
+                    </div>
+                    <div className="participant-status">
+                      {participant.hasCamera && (
+                        <span className="status-icon active" title={t("cameraOn")}>
+                          <FaVideo />
+                        </span>
+                      )}
+                      {participant.hasMicrophone && (
+                        <span className="status-icon active" title={t("microphoneOn")}>
+                          <FaMicrophone />
+                        </span>
+                      )}
+                      {participant.isScreenSharing && (
+                        <span className="status-icon active" title={t("recordMeeting")}>
+                          <FaDesktop />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
-      <div className="video-overlay">
-        <div className="participant-name">
-          {participant?.user?.username || "User"}
-          {isHost && <span className="host-badge"> (Host)</span>}
-        </div>
-        <div className="participant-controls">
-          {!participant?.hasMicrophone && (
-            <FaMicrophoneSlash className="control-icon muted" />
-          )}
-        </div>
-      </div>
-    </>
-  );
-};
-
-interface ParticipantsPanelProps {
-  participants: MeetingParticipant[];
-}
-
-const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
-  participants,
-}) => {
-  const t = useTranslations("Meeting");
-
-  return (
-    <div className="participants-panel">
-      <div className="participants-header">
-        <h3>
-          {t("meeting_room.participants")} ({participants.length})
-        </h3>
-      </div>
-      <div className="participants-list">
-        {participants.length === 0 ? (
-          <div className="no-participants">
-            {t("meeting_room.no_participants")}
-          </div>
-        ) : (
-          participants.map((participant) => {
-            const isHost = participant.role === "host";
-            return (
-              <div key={participant.userId} className="participant-item">
-                <div className="participant-avatar">
-                  {participant?.user?.username?.[0] || "U"}
-                </div>
-                <div className="participant-info">
-                  <div className="participant-name">
-                    {participant?.user?.username || "Unknown User"}
-                    {isHost && (
-                      <span className="host-badge">
-                        {t("meeting_room.host")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="participant-status">
-                    {!participant?.hasMicrophone && (
-                      <FaMicrophoneSlash className="status-icon" />
-                    )}
-                    {!participant?.hasCamera && (
-                      <FaVideoSlash className="status-icon" />
-                    )}
-                    {participant?.isScreenSharing && (
-                      <FaDesktop className="status-icon active" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
     </div>
   );
 };
