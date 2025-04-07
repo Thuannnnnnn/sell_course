@@ -40,23 +40,22 @@ export default function JoinMeetingPage() {
     setError("");
 
     try {
-      // Không cần gửi userId vì backend lấy từ token
       const response = await joinMeeting({
         meetingCode: meetingCode,
         hasCamera,
         hasMicrophone,
       });
 
-      if (response.success) {
-        router.push(`/${locale}/meeting/${response.data.meetingId}`);
+      if (response && response.meetingId) {
+        router.push(`/${locale}/meeting/${response.meetingId}`);
       } else {
-        setError(response.message || "Failed to join meeting");
+        setError(t("error.join_meeting"));
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(
         error.response?.data?.message ||
-          "An error occurred while joining the meeting"
+          t("error.join_meeting")
       );
     } finally {
       setLoading(false);
