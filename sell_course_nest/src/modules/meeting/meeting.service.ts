@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Meeting } from './entities/meeting.entity';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { MeetingParticipant } from './entities/meeting-participant.entity';
+import { UpdateParticipantStatusDto } from './dto/update-participant-status.dto';
 
 @Injectable()
 export class MeetingsService {
@@ -18,9 +19,7 @@ export class MeetingsService {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
-  async createRoomMeeting(
-    createMeetingDto: CreateMeetingDto,
-  ): Promise<Meeting> {
+  async createRoomMeeting(createMeetingDto: CreateMeetingDto): Promise<Meeting> {
     const meetingCode = this.generateMeetingCode();
     const meeting = this.meetingRepository.create({
       ...createMeetingDto,
@@ -28,7 +27,19 @@ export class MeetingsService {
       startTime: new Date(),
       isActive: true,
     });
-    return this.meetingRepository.save(meeting);
+    const savedMeeting = await this.meetingRepository.save(meeting);
+
+    // Tạo participant cho host
+    const hostParticipant = this.participantRepository.create({
+      meetingId: savedMeeting.id,
+      userId: savedMeeting.hostId,
+      joinTime: new Date(),
+      role: 'host', // Gán vai trò host
+      isActive: true,
+    });
+    await this.participantRepository.save(hostParticipant);
+
+    return savedMeeting;
   }
 
   async joinRoomMeeting(meetingCode: string, userId: string): Promise<Meeting> {
@@ -36,23 +47,26 @@ export class MeetingsService {
       where: { meetingCode, isActive: true },
       relations: ['participants'],
     });
-  
+
     if (!meeting) {
       throw new Error('Invalid meeting code or meeting is not active');
     }
-  
+
     const existingParticipant = await this.participantRepository.findOne({
       where: { meetingId: meeting.id, userId },
     });
-  
+
     if (!existingParticipant) {
-      const participant = new MeetingParticipant();
-      participant.meetingId = meeting.id;
-      participant.userId = userId;
-      participant.joinTime = new Date();
+      const participant = this.participantRepository.create({
+        meetingId: meeting.id,
+        userId,
+        joinTime: new Date(),
+        role: 'participant', // Gán vai trò participant
+        isActive: true,
+      });
       await this.participantRepository.save(participant);
     }
-  
+
     return meeting;
   }
 
@@ -100,7 +114,7 @@ export class MeetingsService {
       throw new Error('Meeting not found');
     }
 
-    if (meeting.hostId === userId) {
+    if(meeting.hostId === userId) {
       await this.meetingRepository.remove(meeting);
     } else {
       await this.participantRepository.update(
@@ -116,22 +130,19 @@ export class MeetingsService {
       relations: ['meeting'],
     });
 
-    const meetings = participants
+    return participants
       .map((participant) => participant.meeting)
-      .filter((meeting) => meeting !== null && meeting.isActive); // Chỉ lấy meeting còn hoạt động
-    return meetings;
+      .filter((meeting) => meeting && meeting.isActive);
   }
 
   async getHostedMeetings(userId: string): Promise<Meeting[]> {
     return this.meetingRepository.find({
-      where: { hostId: userId, isActive: true }, // Chỉ lấy meeting còn hoạt động
+      where: { hostId: userId, isActive: true },
       relations: ['participants'],
     });
   }
 
-  async getParticipantsInMeeting(
-    meetingId: string,
-  ): Promise<MeetingParticipant[]> {
+  async getParticipantsInMeeting(meetingId: string): Promise<MeetingParticipant[]> {
     const participants = await this.participantRepository.find({
       where: { meetingId, isActive: true },
       relations: ['user'],
@@ -142,5 +153,25 @@ export class MeetingsService {
     }
 
     return participants;
+  }
+
+  async updateParticipantStatus(
+    updateData: UpdateParticipantStatusDto & { userId: string }
+  ): Promise<MeetingParticipant> {
+    const { meetingId, userId, hasCamera, hasMicrophone, isScreenSharing } = updateData;
+
+    const participant = await this.participantRepository.findOne({
+      where: { meetingId, userId, isActive: true },
+    });
+
+    if (!participant) {
+      throw new Error('Participant not found or not active in this meeting');
+    }
+
+    participant.hasCamera = hasCamera;
+    participant.hasMicrophone = hasMicrophone;
+    participant.isScreenSharing = isScreenSharing;
+
+    return this.participantRepository.save(participant);
   }
 }

@@ -40,9 +40,9 @@ export default function JoinMeetingPage() {
     setError("");
 
     try {
+      // Không cần gửi userId vì backend lấy từ token
       const response = await joinMeeting({
         meetingCode: meetingCode,
-        userId: session.user.user_id,
         hasCamera,
         hasMicrophone,
       });

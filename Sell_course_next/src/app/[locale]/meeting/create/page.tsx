@@ -18,6 +18,7 @@ export default function CreateMeetingPage() {
     isRecorded: false,
   });
   const [loading, setLoading] = useState(false);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -46,9 +47,20 @@ export default function CreateMeetingPage() {
     setLoading(true);
 
     try {
+      // Store the session token in localStorage if it's not already there
+      if (session?.user?.token && typeof window !== "undefined") {
+        localStorage.setItem("token", session.user.token);
+      }
+
+      // Không cần thêm hostId vì backend tự lấy từ token
       const response = await createMeeting({
-        ...formData,
-        hostId: session?.user?.user_id,
+        title: formData.title,
+        description: formData.description,
+        isScheduled: formData.isScheduled,
+        scheduledTime: formData.isScheduled
+          ? formData.scheduledTime
+          : undefined,
+        isRecorded: formData.isRecorded,
       });
 
       if (!response || !response.data) {

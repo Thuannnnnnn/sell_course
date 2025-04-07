@@ -7,36 +7,46 @@ import {
   Query,
   UseGuards,
   Req,
+  Put,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { MeetingsService } from './meeting.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { JoinMeetingDto } from './dto/join-meeting.dto';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { UpdateParticipantStatusDto } from './dto/update-participant-status.dto';
 
 interface AuthenticatedRequest extends Request {
   user: {
-    userId: string;
+    user_id: string;
   };
 }
 @Controller('meetings')
+@UseGuards(JwtAuthGuard) // Áp dụng JwtAuthGuard cho tất cả các endpoint trong controller
 export class MeetingsController {
   constructor(private readonly meetingsService: MeetingsService) {}
 
   @Post('create')
-  async createRoom(@Body() createMeetingDto: CreateMeetingDto) {
-    const meeting =
-      await this.meetingsService.createRoomMeeting(createMeetingDto);
+  async createRoom(
+    @Body() createMeetingDto: CreateMeetingDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    // Đảm bảo hostId là userId của người dùng đã đăng nhập
+    const meeting = await this.meetingsService.createRoomMeeting({
+      ...createMeetingDto,
+      hostId: req.user.user_id,
+    });
     return { meetingId: meeting.id, meetingCode: meeting.meetingCode };
   }
 
   @Post('join')
-  @UseGuards(JwtAuthGuard)
   async joinRoom(
     @Body() joinMeetingDto: JoinMeetingDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    // Sử dụng userId từ token JWT thay vì từ DTO
-    const userId = req.user.userId;
+    // Sử dụng userId từ token JWT
+    const userId = req.user.user_id;
     const meeting = await this.meetingsService.joinRoomMeeting(
       joinMeetingDto.meetingCode,
       userId,
@@ -45,7 +55,9 @@ export class MeetingsController {
   }
 
   @Get('joined')
-  async getJoinedMeetings(@Query('userId') userId: string) {
+  async getJoinedMeetings(@Req() req: AuthenticatedRequest) {
+    // Sử dụng userId từ token JWT
+    const userId = req.user.user_id;
     const meetings = await this.meetingsService.getJoinedMeetings(userId);
     return {
       success: true,
@@ -62,7 +74,9 @@ export class MeetingsController {
   }
 
   @Get('hosted')
-  async getHostedMeetings(@Query('userId') userId: string) {
+  async getHostedMeetings(@Req() req: AuthenticatedRequest) {
+    // Sử dụng userId từ token JWT
+    const userId = req.user.user_id;
     const meetings = await this.meetingsService.getHostedMeetings(userId);
     return {
       success: true,
@@ -81,14 +95,20 @@ export class MeetingsController {
   @Delete('delete')
   async deleteRoom(
     @Body('meetingId') meetingId: string,
-    @Body('userId') userId: string,
+    @Req() req: AuthenticatedRequest,
   ) {
+    // Sử dụng userId từ token JWT
+    const userId = req.user.user_id;
     await this.meetingsService.deleteRoomMeeting(meetingId, userId);
     return { message: 'Room deleted successfully' };
   }
 
   @Get('participants')
-  async getParticipants(@Query('meetingId') meetingId: string) {
+  async getParticipants(
+    @Query('meetingId') meetingId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    // Xác thực người dùng đã đăng nhập trước khi lấy danh sách người tham gia
     const participants =
       await this.meetingsService.getParticipantsInMeeting(meetingId);
     return {
@@ -103,5 +123,43 @@ export class MeetingsController {
         isScreenSharing: participant.isScreenSharing,
       })),
     };
+  }
+
+  @Put('participant/status')
+  async updateParticipantStatus(
+    @Body() updateData: UpdateParticipantStatusDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    try {
+      const userId = req.user?.user_id;
+      if (!userId) {
+        throw new HttpException(
+          'Unauthorized: Missing user ID',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const updatedParticipant =
+        await this.meetingsService.updateParticipantStatus({
+          ...updateData,
+          userId,
+        });
+
+      return {
+        success: true,
+        data: {
+          userId: updatedParticipant.userId,
+          hasCamera: updatedParticipant.hasCamera,
+          hasMicrophone: updatedParticipant.hasMicrophone,
+          isScreenSharing: updatedParticipant.isScreenSharing,
+        },
+      };
+    } catch (error) {
+      console.error('Error in updateParticipantStatus:', error);
+      throw new HttpException(
+        'Failed to update participant status',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

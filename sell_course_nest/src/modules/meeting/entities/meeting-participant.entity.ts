@@ -44,4 +44,11 @@ export class MeetingParticipant {
 
   @Column({ default: false })
   isScreenSharing: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: ['host', 'participant'],
+    default: 'participant',
+  })
+  role: 'host' | 'participant'; // Thêm trường role
 }

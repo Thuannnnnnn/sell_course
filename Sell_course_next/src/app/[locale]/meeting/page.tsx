@@ -1,85 +1,93 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { FaVideo, FaPlus, FaCalendarAlt, FaHistory } from "react-icons/fa";
 import {
-  FaPlus,
-  FaVideo,
-  FaCalendarAlt,
-  FaClock,
-  FaUser,
-} from "react-icons/fa";
-import { getUserMeetings, Meeting } from "@/app/api/meeting/meeting";
-import { format } from "date-fns";
+  getHostedMeetings,
+  getJoinedMeetings,
+} from "@/app/api/meeting/meeting";
+import Link from "next/link";
+
+import { HostedMeeting, JoinedMeeting } from "@/app/type/meeting/Meeting";
 
 export default function MeetingsPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
-  const [activeTab, setActiveTab] = useState<"hosted" | "participated">(
-    "hosted"
-  );
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [loading, setLoading] = useState(true);
+  const t = useTranslations("Meeting");
 
-  const fetchMeetings = useCallback(
-    async (type: "hosted" | "participated") => {
-      if (!session?.user?.user_id) return;
-
-      setLoading(true);
-      try {
-        const response = await getUserMeetings(session.user.user_id, type);
-        setMeetings(response.data || []);
-      } catch (error) {
-        console.error("Error fetching meetings:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [session]
-  );
+  const [activeTab, setActiveTab] = useState<"hosted" | "joined">("hosted");
+  const [hostedMeetings, setHostedMeetings] = useState<HostedMeeting[]>([]);
+  const [joinedMeetings, setJoinedMeetings] = useState<JoinedMeeting[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.user_id) {
-      fetchMeetings(activeTab);
-    } else if (status === "unauthenticated") {
-      router.push("/auth/login");
-    }
-  }, [status, session, activeTab, router, fetchMeetings]);
+    const fetchMeetings = async () => {
+      if (status !== "authenticated") return;
 
-  const handleCreateMeeting = () => {
-    router.push(`/${locale}/meeting/create`);
+      setIsLoading(true);
+      setError("");
+
+      try {
+        // Fetch hosted meetings
+        const hostedData = await getHostedMeetings();
+        setHostedMeetings(hostedData || []);
+
+        // Fetch joined meetings
+        const joinedData = await getJoinedMeetings();
+        setJoinedMeetings(joinedData || []);
+      } catch (err) {
+        console.error("Error fetching meetings:", err);
+        setError("Error fetching meetings");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMeetings();
+  }, [status, t]);
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
   };
 
-  const handleJoinMeeting = () => {
-    router.push(`/${locale}/meeting/join`);
-  };
-
-  const handleJoinExistingMeeting = (meetingId: string) => {
+  // Handle join meeting
+  const handleJoinMeeting = (meetingId: string) => {
     router.push(`/${locale}/meeting/${meetingId}`);
   };
 
-  const formatMeetingDate = (dateString: string) => {
-    return format(new Date(dateString), "MMM dd, yyyy • HH:mm");
-  };
-
+  // Check if user is authenticated
   if (status === "loading") {
     return <div className="text-center py-5">Loading...</div>;
+  }
+
+  if (status === "unauthenticated") {
+    router.push(`/${locale}/auth/login`);
+    return null;
   }
 
   return (
     <div className="meetings-list-container">
       <div className="meetings-list-header">
-        <h1 className="meetings-list-title">Your Meetings</h1>
-        <div>
-          <button className="btn-primary" onClick={handleCreateMeeting}>
-            <FaPlus className="me-2" /> Create Meeting
-          </button>
-          <button className="btn-secondary ms-2" onClick={handleJoinMeeting}>
-            Join Meeting
-          </button>
+        <h1 className="meetings-list-title">{t("title")}</h1>
+
+        <div className="meetings-actions">
+          <Link href={`/${locale}/meeting/join`} className="btn-secondary">
+            <FaVideo className="me-2" />
+            {t("joinMeeting")}
+          </Link>
+
+          <Link href={`/${locale}/meeting/create`} className="btn-primary ms-3">
+            <FaPlus className="me-2" />
+            {t("createMeeting")}
+          </Link>
         </div>
       </div>
 
@@ -88,71 +96,119 @@ export default function MeetingsPage() {
           className={`meetings-tab ${activeTab === "hosted" ? "active" : ""}`}
           onClick={() => setActiveTab("hosted")}
         >
-          Meetings You Host
+          <FaCalendarAlt className="me-2" />
+          {t("hostedMeetings")}
         </div>
+
         <div
-          className={`meetings-tab ${
-            activeTab === "participated" ? "active" : ""
-          }`}
-          onClick={() => setActiveTab("participated")}
+          className={`meetings-tab ${activeTab === "joined" ? "active" : ""}`}
+          onClick={() => setActiveTab("joined")}
         >
-          Meetings You Joined
+          <FaHistory className="me-2" />
+          {t("joinedMeetings")}
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center py-4">Loading meetings...</div>
-      ) : meetings.length === 0 ? (
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
         <div className="text-center py-4">
-          {activeTab === "hosted"
-            ? "You haven't created any meetings yet."
-            : "You haven't joined any meetings yet."}
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </div>
       ) : (
         <div className="meetings-list">
-          {meetings.map((meeting) => (
-            <div key={meeting.id} className="meeting-card">
-              <div className="meeting-card-info">
-                <h3 className="meeting-card-title">{meeting.title}</h3>
-                <div className="meeting-card-details">
-                  {meeting.isScheduled ? (
-                    <span>
-                      <FaCalendarAlt className="me-1" />{" "}
-                      {formatMeetingDate(
-                        meeting.scheduledTime || meeting.startTime
-                      )}
-                    </span>
-                  ) : (
-                    <span>
-                      <FaClock className="me-1" />{" "}
-                      {formatMeetingDate(meeting.startTime)}
-                    </span>
-                  )}
-                  <span>
-                    <FaUser className="me-1" /> Host:{" "}
-                    {meeting.host?.username || "Unknown"}
-                  </span>
-                  {meeting.isActive && (
-                    <span className="badge bg-success">Active</span>
-                  )}
+          {activeTab === "hosted" && (
+            <>
+              {hostedMeetings.length === 0 ? (
+                <div className="text-center py-4 text-muted">
+                  {t("noHostedMeetings")}
                 </div>
-              </div>
-              <div className="meeting-card-actions">
-                {meeting.isActive ? (
-                  <button
-                    className="btn-primary"
-                    onClick={() => handleJoinExistingMeeting(meeting.id)}
-                  >
-                    <FaVideo className="me-1" /> Join Now
-                  </button>
-                ) : (
-                  <button className="btn-secondary" disabled>
-                    Meeting Ended
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+              ) : (
+                hostedMeetings.map((meeting) => (
+                  <div key={meeting.id} className="meeting-card">
+                    <div className="meeting-card-info">
+                      <div className="meeting-card-title">{meeting.title}</div>
+                      <div className="meeting-card-details">
+                        <span>
+                          <FaCalendarAlt className="me-1" />
+                          {formatDate(meeting.startTime)}
+                        </span>
+                        <span>
+                          {t("participants")}: {meeting.participantCount || 0}
+                        </span>
+                        <span>
+                          {t("code")}: {meeting.meetingCode}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="meeting-card-actions">
+                      <button
+                        className="btn-primary"
+                        onClick={() => handleJoinMeeting(meeting.id)}
+                      >
+                        {meeting.isActive ? t("joinNow") : "View"}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
+
+          {activeTab === "joined" && (
+            <>
+              {joinedMeetings.length === 0 ? (
+                <div className="text-center py-4 text-muted">
+                  {t("noJoinedMeetings")}
+                </div>
+              ) : (
+                joinedMeetings.map((meeting) => (
+                  <div key={meeting.id} className="meeting-card">
+                    <div className="meeting-card-info">
+                      <div className="meeting-card-title">{meeting.title}</div>
+                      <div className="meeting-card-details">
+                        <span>
+                          <FaCalendarAlt className="me-1" />
+                          {formatDate(meeting.startTime)}
+                        </span>
+                        <span>
+                          {t("host")}:{" "}
+                          {meeting.isHost
+                            ? t("you")
+                            : meeting.hostName || "Unknown"}
+                        </span>
+                        <span>
+                          {t("code")}: {meeting.meetingCode}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="meeting-card-actions">
+                      {meeting.isActive ? (
+                        <button
+                          className="btn-primary"
+                          onClick={() => handleJoinMeeting(meeting.id)}
+                        >
+                          {t("joinNow")}
+                        </button>
+                      ) : (
+                        <button className="btn-secondary" disabled>
+                          {t("meetingEnded")}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
         </div>
       )}
     </div>
