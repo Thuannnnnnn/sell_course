@@ -32,7 +32,7 @@ export interface MeetingParticipant {
 // Các type khác giữ nguyên...
 
 // Type cho participant stream từ useMeetingSocket
-interface ParticipantStream {
+export interface ParticipantStream {
   userId: string;
   stream: MediaStream;
   hasCamera: boolean;
@@ -41,7 +41,7 @@ interface ParticipantStream {
 }
 
 // Type cho tin nhắn trong chat
-interface ChatMessage {
+export interface ChatMessage {
   id: string;
   userId: string;
   text: string;

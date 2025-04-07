@@ -51,6 +51,91 @@ export const useMeetingSocket = ({
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const removePeerConnection = useCallback((peerId: string) => {
+    const peerConnection = peerConnectionsRef.current.get(peerId);
+    if (peerConnection) {
+      peerConnection.connection.close();
+      peerConnectionsRef.current.delete(peerId);
+      setParticipantStreams((prev) => prev.filter((p) => p.userId !== peerId));
+    }
+  }, []);
+
+  const createPeerConnection = useCallback(
+    async (peerId: string, isInitiator: boolean): Promise<PeerConnection> => {
+      try {
+        if (peerConnectionsRef.current.has(peerId)) {
+          return peerConnectionsRef.current.get(peerId)!;
+        }
+
+        const peerConnection = new RTCPeerConnection(ICE_SERVERS);
+
+        if (localStream) {
+          localStream.getTracks().forEach((track) => {
+            peerConnection.addTrack(track, localStream);
+          });
+        }
+
+        const peer: PeerConnection = {
+          userId: peerId,
+          connection: peerConnection,
+        };
+        peerConnectionsRef.current.set(peerId, peer);
+
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            socketRef.current?.emit("iceCandidate", {
+              to: peerId,
+              candidate: event.candidate,
+            });
+          }
+        };
+
+        peerConnection.onconnectionstatechange = () => {
+          if (
+            peerConnection.connectionState === "disconnected" ||
+            peerConnection.connectionState === "failed"
+          ) {
+            removePeerConnection(peerId);
+          }
+        };
+
+        peerConnection.ontrack = (event) => {
+          const stream = event.streams[0];
+          const participant = participants.find((p) => p.userId === peerId);
+
+          if (stream && participant) {
+            setParticipantStreams((prev) => {
+              const filtered = prev.filter((p) => p.userId !== peerId);
+              return [
+                ...filtered,
+                {
+                  userId: peerId,
+                  stream,
+                  hasCamera: participant.hasCamera,
+                  hasMicrophone: participant.hasMicrophone,
+                  isScreenSharing: participant.isScreenSharing,
+                },
+              ];
+            });
+          }
+        };
+
+        if (isInitiator) {
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          socketRef.current?.emit("offer", { to: peerId, offer });
+        }
+
+        return peer;
+      } catch (err) {
+        console.error("Error creating peer connection:", err);
+        setError("Failed to connect to participant");
+        throw err;
+      }
+    },
+    [localStream, participants, removePeerConnection]
+  );
+
   useEffect(() => {
     const SOCKET_URL =
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
@@ -174,7 +259,13 @@ export const useMeetingSocket = ({
       setError("Failed to initialize meeting connection");
       return () => {};
     }
-  }, [meetingId, userId, localStream]);
+  }, [
+    meetingId,
+    userId,
+    localStream,
+    removePeerConnection,
+    createPeerConnection,
+  ]);
 
   useEffect(() => {
     if (localStream && isConnected) {
@@ -183,82 +274,6 @@ export const useMeetingSocket = ({
       });
     }
   }, [localStream, isConnected]);
-
-  const createPeerConnection = async (
-    peerId: string,
-    isInitiator: boolean
-  ): Promise<PeerConnection> => {
-    try {
-      if (peerConnectionsRef.current.has(peerId)) {
-        return peerConnectionsRef.current.get(peerId)!;
-      }
-
-      const peerConnection = new RTCPeerConnection(ICE_SERVERS);
-
-      if (localStream) {
-        localStream.getTracks().forEach((track) => {
-          peerConnection.addTrack(track, localStream);
-        });
-      }
-
-      const peer: PeerConnection = {
-        userId: peerId,
-        connection: peerConnection,
-      };
-      peerConnectionsRef.current.set(peerId, peer);
-
-      peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-          socketRef.current?.emit("iceCandidate", {
-            to: peerId,
-            candidate: event.candidate,
-          });
-        }
-      };
-
-      peerConnection.onconnectionstatechange = () => {
-        if (
-          peerConnection.connectionState === "disconnected" ||
-          peerConnection.connectionState === "failed"
-        ) {
-          removePeerConnection(peerId);
-        }
-      };
-
-      peerConnection.ontrack = (event) => {
-        const stream = event.streams[0];
-        const participant = participants.find((p) => p.userId === peerId);
-
-        if (stream && participant) {
-          setParticipantStreams((prev) => {
-            const filtered = prev.filter((p) => p.userId !== peerId);
-            return [
-              ...filtered,
-              {
-                userId: peerId,
-                stream,
-                hasCamera: participant.hasCamera,
-                hasMicrophone: participant.hasMicrophone,
-                isScreenSharing: participant.isScreenSharing,
-              },
-            ];
-          });
-        }
-      };
-
-      if (isInitiator) {
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        socketRef.current?.emit("offer", { to: peerId, offer });
-      }
-
-      return peer;
-    } catch (err) {
-      console.error("Error creating peer connection:", err);
-      setError("Failed to connect to participant");
-      throw err;
-    }
-  };
 
   const updatePeerStream = (peer: PeerConnection, stream: MediaStream) => {
     const senders = peer.connection.getSenders();
@@ -270,15 +285,6 @@ export const useMeetingSocket = ({
         peer.connection.addTrack(track, stream);
       }
     });
-  };
-
-  const removePeerConnection = (peerId: string) => {
-    const peer = peerConnectionsRef.current.get(peerId);
-    if (peer) {
-      peer.connection.close();
-      peerConnectionsRef.current.delete(peerId); // Sửa thành peerConnectionsRef
-      setParticipantStreams((prev) => prev.filter((p) => p.userId !== peerId));
-    }
   };
 
   const cleanup = () => {
@@ -388,12 +394,9 @@ export const useMeetingSocket = ({
   }, [localStream, meetingId]);
 
   const leaveMeeting = useCallback(() => {
-    const isHost = participants.some(
-      (p) => p.userId === userId && p.role === "host"
-    );
     socketRef.current?.emit("leaveRoom", { meetingId, userId });
     cleanup();
-  }, [meetingId, userId, participants]);
+  }, [meetingId, userId]);
 
   return {
     isConnected,

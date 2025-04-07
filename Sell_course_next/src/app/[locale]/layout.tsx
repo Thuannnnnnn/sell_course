@@ -57,7 +57,11 @@ export default async function RootLayout({
       >
         <ThemeProvider>
           <SessionProvider refetchOnWindowFocus={false}>
-            <NextIntlClientProvider messages={messages}>
+            <NextIntlClientProvider 
+              messages={messages}
+              locale={params.locale}
+              timeZone="Asia/Ho_Chi_Minh"
+            >
               <Header />
               <div className="main-container">
                 <div className="">

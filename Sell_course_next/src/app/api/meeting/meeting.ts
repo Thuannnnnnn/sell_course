@@ -69,8 +69,8 @@ export const createMeeting = async (meetingData: {
     if (!token) {
       throw new Error("No authentication token found");
     }
-    console.log('Creating meeting with data:', meetingData); // Log để kiểm tra
-    console.log('Token:', token); // Log token
+    console.log("Creating meeting with data:", meetingData);
+    console.log("Token:", token);
 
     const response = await axios.post(
       `${API_URL}/meetings/create`,
@@ -82,18 +82,17 @@ export const createMeeting = async (meetingData: {
         },
       }
     );
-    console.log('Response from BE:', response.data); // Log phản hồi
+    console.log("Response from BE:", response.data);
     return { data: response.data.data };
   } catch (error) {
     if (error instanceof AxiosError) {
       const apiError = error.response?.data as ApiError;
-      throw new Error(apiError?.message || 'Failed to create meeting');
+      throw new Error(apiError?.message || "Failed to create meeting");
     }
     throw error;
   }
 };
 
-// Join a meeting
 export const joinMeeting = async (joinData: {
   meetingCode: string;
   hasCamera?: boolean;
@@ -103,81 +102,71 @@ export const joinMeeting = async (joinData: {
     const response = await axios.post(`${API_URL}/meetings/join`, joinData, {
       headers: getAuthHeader(),
     });
-    return response.data; // { meetingId, meetingCode }
+    return response.data;
   } catch (error) {
     console.error("Error joining meeting:", error);
     throw error;
   }
 };
 
-// Leave a meeting (or delete for participant/host)
 export const leaveMeeting = async (meetingId: string) => {
   try {
     const response = await axios.delete(`${API_URL}/meetings/delete`, {
       headers: getAuthHeader(),
-      data: { meetingId }, // Gửi meetingId trong body
+      data: { meetingId },
     });
-    return response.data; // { message }
+    return response.data;
   } catch (error) {
     console.error("Error leaving meeting:", error);
     throw error;
   }
 };
 
-// Get hosted meetings for the authenticated user
 export const getHostedMeetings = async () => {
   try {
     const response = await axios.get(`${API_URL}/meetings/hosted`, {
       headers: getAuthHeader(),
     });
-    return response.data.data; // Array of Meeting
+    return response.data.data;
   } catch (error) {
     console.error("Error getting hosted meetings:", error);
     throw error;
   }
 };
 
-// Get joined meetings for the authenticated user
 export const getJoinedMeetings = async () => {
   try {
     const response = await axios.get(`${API_URL}/meetings/joined`, {
       headers: getAuthHeader(),
     });
-    return response.data.data; // Array of Meeting
+    return response.data.data;
   } catch (error) {
     console.error("Error getting joined meetings:", error);
     throw error;
   }
 };
 
-// Get participants in a meeting
 export const getMeetingParticipants = async (meetingId: string) => {
   try {
     const response = await axios.get(`${API_URL}/meetings/participants`, {
       headers: getAuthHeader(),
       params: { meetingId },
     });
-    return response.data.data; // Array of MeetingParticipant
+    return response.data.data;
   } catch (error) {
     console.error("Error getting meeting participants:", error);
     throw error;
   }
 };
 
-// Get meeting details by ID
-// Since there's no direct endpoint, we'll use the participants endpoint to get the meeting ID
-// and then determine if the current user is the host
 export const getMeetingById = async (meetingId: string) => {
   try {
     try {
-      // First, try to get the participants to verify the meeting exists
       const participants = await getMeetingParticipants(meetingId);
 
-      // Get both hosted and joined meetings
       const hostedMeetings = await getHostedMeetings();
       const joinedMeetings = await getJoinedMeetings();
 
-      // Find the meeting in either hosted or joined meetings
       const hostedMeeting = hostedMeetings.find(
         (m: HostedMeeting) => m.id === meetingId
       );
@@ -185,7 +174,6 @@ export const getMeetingById = async (meetingId: string) => {
         (m: JoinedMeeting) => m.id === meetingId
       );
 
-      // Combine the data
       if (hostedMeeting) {
         return {
           ...hostedMeeting,
@@ -199,35 +187,31 @@ export const getMeetingById = async (meetingId: string) => {
           participants: participants,
         };
       } else {
-        // If we have participants but no meeting in hosted or joined lists,
-        // create a basic meeting object with the available data
         if (participants && participants.length > 0) {
           const participant = participants[0];
           return {
             id: meetingId,
-            title: "Meeting", // Default title
-            meetingCode: "", // We don't have this information
+            title: "Meeting",
+            meetingCode: "",
             startTime: participant.joinTime || new Date().toISOString(),
             isActive: true,
-            hostId: "", // We don't know who the host is
-            isHost: false, // Assume not host if we can't find in hosted meetings
+            hostId: "",
+            isHost: false,
             participants: participants,
           };
         }
       }
 
       throw new Error("Meeting not found");
-    } catch (error) {
-      // If we can't get participants, the meeting might not exist or the user doesn't have access
+    } catch {
       throw new Error("Meeting not found or you don't have access");
     }
-  } catch (error) {
-    console.error("Error getting meeting details:", error);
-    throw error;
+  } catch {
+    console.error("Error getting meeting details");
+    throw new Error("Failed to get meeting details");
   }
 };
 
-// Update participant status (camera, microphone, screen sharing)
 export const updateParticipantStatus = async (updateData: {
   meetingId: string;
   hasCamera: boolean;

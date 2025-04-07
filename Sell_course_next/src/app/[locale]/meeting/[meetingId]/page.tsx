@@ -23,7 +23,6 @@ import {
   getMeetingById,
 } from "@/app/api/meeting/meeting";
 import { toast } from "react-hot-toast";
-import { MeetingParticipant } from "@/app/api/meeting/meeting";
 
 const MeetingRoom = () => {
   const { data: session, status } = useSession();
@@ -73,15 +72,6 @@ const MeetingRoom = () => {
     }
   }, [localStream]);
 
-  const [meetingDetails, setMeetingDetails] = useState<{
-    id: string;
-    hostId: string;
-    title: string;
-    meetingCode: string;
-    startTime: string;
-    isHost?: boolean;
-  } | null>(null);
-
   useEffect(() => {
     const fetchMeetingInfo = async () => {
       try {
@@ -90,14 +80,6 @@ const MeetingRoom = () => {
           title: meetingData.title,
           meetingCode: meetingData.meetingCode,
           startTime: meetingData.startTime,
-        });
-        setMeetingDetails({
-          id: meetingData.id,
-          hostId: meetingData.hostId,
-          title: meetingData.title,
-          meetingCode: meetingData.meetingCode,
-          startTime: meetingData.startTime,
-          isHost: meetingData.isHost,
         });
         await getMeetingParticipants(meetingId);
       } catch (error) {

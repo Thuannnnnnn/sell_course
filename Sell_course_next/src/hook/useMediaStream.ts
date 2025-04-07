@@ -28,6 +28,14 @@ export const useMediaStream = (
   const [hasCamera, setHasCamera] = useState<boolean>(!!options.video);
   const [hasMicrophone, setHasMicrophone] = useState<boolean>(!!options.audio);
 
+  // Stop screen sharing
+  const stopScreenShare = useCallback(() => {
+    if (screenStream) {
+      screenStream.getTracks().forEach((track) => track.stop());
+      setScreenStream(null);
+    }
+  }, [screenStream]);
+
   // Initialize media stream
   useEffect(() => {
     const initStream = async () => {
@@ -69,16 +77,6 @@ export const useMediaStream = (
     };
 
     initStream();
-
-    // Cleanup function
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-      if (screenStream) {
-        screenStream.getTracks().forEach((track) => track.stop());
-      }
-    };
   }, [options.audio, options.video]);
 
   // Toggle camera
@@ -133,15 +131,7 @@ export const useMediaStream = (
         setError("Failed to start screen sharing");
         return null;
       }
-    }, [screenStream]);
-
-  // Stop screen sharing
-  const stopScreenShare = useCallback(() => {
-    if (screenStream) {
-      screenStream.getTracks().forEach((track) => track.stop());
-      setScreenStream(null);
-    }
-  }, [screenStream]);
+    }, [screenStream, stopScreenShare]);
 
   // Stop all streams
   const stopStream = useCallback(() => {
