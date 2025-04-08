@@ -220,7 +220,10 @@ const MeetingRoom = () => {
       </div>
 
       <div className={`meeting-content ${getGridClass()}`}>
-        <div className="local-video-container">
+        <div
+          className="local-video-container"
+          data-username={session?.user?.name || t("you")}
+        >
           <video
             ref={localVideoRef}
             autoPlay
@@ -257,8 +260,8 @@ const MeetingRoom = () => {
             >
               <FaUsers />
             </button>
-            <button 
-              className="control-btn leave-btn" 
+            <button
+              className="control-btn leave-btn"
               onClick={handleLeaveMeeting}
               title={t("leaveMeeting")}
             >
@@ -267,18 +270,27 @@ const MeetingRoom = () => {
           </div>
         </div>
 
-        {participantStreams.map((stream) => (
-          <div key={stream.userId} className="participant-video-container">
-            <video
-              autoPlay
-              playsInline
-              ref={(video) => {
-                if (video) video.srcObject = stream.stream;
-              }}
-              className="participant-video"
-            />
-          </div>
-        ))}
+        {participantStreams.map((stream) => {
+          const participant = participants.find(
+            (p) => p.userId === stream.userId
+          );
+          return (
+            <div
+              key={stream.userId}
+              className="participant-video-container"
+              data-username={participant?.user?.username || t("participant")}
+            >
+              <video
+                autoPlay
+                playsInline
+                ref={(video) => {
+                  if (video) video.srcObject = stream.stream;
+                }}
+                className="participant-video"
+              />
+            </div>
+          );
+        })}
       </div>
 
       {isParticipantsOpen && (
@@ -302,17 +314,26 @@ const MeetingRoom = () => {
                     </div>
                     <div className="participant-status">
                       {participant.hasCamera && (
-                        <span className="status-icon active" title={t("cameraOn")}>
+                        <span
+                          className="status-icon active"
+                          title={t("cameraOn")}
+                        >
                           <FaVideo />
                         </span>
                       )}
                       {participant.hasMicrophone && (
-                        <span className="status-icon active" title={t("microphoneOn")}>
+                        <span
+                          className="status-icon active"
+                          title={t("microphoneOn")}
+                        >
                           <FaMicrophone />
                         </span>
                       )}
                       {participant.isScreenSharing && (
-                        <span className="status-icon active" title={t("recordMeeting")}>
+                        <span
+                          className="status-icon active"
+                          title={t("recordMeeting")}
+                        >
                           <FaDesktop />
                         </span>
                       )}
