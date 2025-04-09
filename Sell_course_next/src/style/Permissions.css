@@ -53,3 +53,18 @@
   font-size: 24px;
   margin-bottom: 20px;
 }
+.table-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+th {
+  user-select: none;
+}
+
+.pagination {
+  justify-content: center;
+  margin-top: 1rem;
+}

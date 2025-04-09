@@ -28,6 +28,7 @@ import { fetchLesson } from "@/app/api/course/LessonAPI";
 import { Lesson } from "@/app/type/course/Lesson";
 import { interactionApi } from "@/app/api/interaction/interactionApi";
 import { InteractionType } from "@/app/type/Interaction/Interaction";
+import { Button } from "react-bootstrap";
 interface CourseCardProps {
   courseId: string;
 }
@@ -628,7 +629,7 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                                   }}
                                 />
                               </p>
-                              <button
+                              <Button
                                 onClick={() =>
                                   handleDeleteQa(
                                     question.qaId,
@@ -636,9 +637,10 @@ export default function CourseDetail({ courseId }: CourseCardProps) {
                                   )
                                 }
                                 className="mt-2 text-red-500 hover:text-red-700"
+                                variant="danger"
                               >
                                 {t("delete")}
-                              </button>
+                              </Button>
                             </div>
                           </div>
                           <button className="mt-2 text-blue-600 hover:text-blue-800 font-medium buttonReply">

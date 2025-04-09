@@ -234,7 +234,8 @@
     "permissionDeletedError": "Error occurred while deleting permission.",
     "assignPermissions": "Assign Permissions",
     "assignPermissionsSuccess": "Permissions assigned successfully!",
-    "assignPermissionsFail": "Failed to assign permissions"
+    "assignPermissionsFail": "Failed to assign permissions",
+    "filterPlaceholder": "Filter permissions..."
   },
   "user": {
     "title": "User List",

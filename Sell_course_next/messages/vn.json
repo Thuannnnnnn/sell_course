@@ -235,7 +235,8 @@
     "permissionDeletedError": "Đã xảy ra lỗi khi xóa quyền.",
     "assignPermissions": "Gán Quyền",
     "assignPermissionsSuccess": "Gán quyền thành công!",
-    "assignPermissionsFail": "Gán quyền thất bại"
+    "assignPermissionsFail": "Gán quyền thất bại",
+    "filterPlaceholder": "Lọc quyền..."
   },
   "user": {
     "title": "Danh Sách Người Dùng",
