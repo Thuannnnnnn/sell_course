@@ -218,6 +218,6 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/xyz/*');
+    consumer.apply(PermissionMiddleware).forRoutes('/api/admin/*');
   }
 }

@@ -44,15 +44,21 @@ const Footer: React.FC = () => {
             <ul className="list-unstyled">
               <li>{t("productList.0")}</li>
               <li>{t("productList.1")}</li>
-              <li>{t("productList.2")}</li>
               <li>{t("productList.3")}</li>
-              <li>{t("productList.4")}</li>
               <li>
                 <Link
                   href={`/${locale}/chats/history`}
                   className="text-black text-decoration-none"
                 >
                   {t("chatHistory")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={`/${locale}/verifyCertificate`}
+                  className="text-black text-decoration-none"
+                >
+                  {t("verifyCertificate")}
                 </Link>
               </li>
               <StartChatButton />

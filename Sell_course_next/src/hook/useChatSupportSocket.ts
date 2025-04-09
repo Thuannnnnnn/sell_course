@@ -5,7 +5,20 @@ import io, { Socket } from "socket.io-client";
 // Định nghĩa interface cho message
 interface ChatMessage {
   sessionId: string;
-  sender: string;
+  sender: {
+    user_id: string;
+    username: string;
+    avatarImg: string;
+    email: string;
+    role: string;
+    isBan: boolean;
+    isOAuth: boolean;
+    phoneNumber: string | null;
+    birthDay: string | null;
+    gender: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
   messageText: string;
   timestamp: string;
 }

@@ -113,7 +113,8 @@
     "foundingDate": "Established: 05/01/2025",
     "activityField": "Field of activity: Education, technology - programming. We focus on building and developing products that bring value to the Vietnamese programming community.",
     "copyright": ". Leading programming learning platform in Vietnam.",
-    "chatHistory": "Chat History"
+    "chatHistory": "Chat History",
+    "verifyCertificate": "Verify Certificate"
   },
   "detail": {
     "title": "detail"
@@ -127,7 +128,7 @@
     "homePageTitle": "Course Learning",
     "homePageContent": "Welcome to the course network! Check all the learning paths, learn at your pace, and grow your skills. We are thrilled to accompany you on your path to meaningful knowledge.",
     "title": "Home Page",
-    "recommended":"recommend courses"
+    "recommended": "recommend courses"
   },
   "cardCourse": {
     "0": " Basic  (theory and syntax)",
@@ -284,7 +285,8 @@
     "wishList": "Wishlist",
     "orderHistory": "Order History",
     "setting": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "certificate": "Certificate"
   },
   "changePassword": {
     "title": "Settings",
@@ -758,5 +760,25 @@
     "loading": "Loading questions...",
     "error": "Failed to load questions.",
     "placeholder": "Enter question"
+  },
+  "certificateList": {
+    "title": "My Certificates",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "deleteConfirmation": "Are you sure you want to delete this certificate?",
+    "deleteError": "An error occurred while deleting",
+    "issueDate": "Issued Date",
+    "deleteButton": "Delete"
+  },
+  "verifyCertificate": {
+    "title": "Verify Certificate",
+    "description": "Enter the certificate ID to check its validity.",
+    "pleaseEnterCertificateId": "Please enter the certificate ID.",
+    "verifying": "Verifying...",
+    "verifyButton": "Verify",
+    "validCertificate": "Valid Certificate",
+    "validCertificateDescription": "This certificate has been verified and is valid.",
+    "invalidCertificate": "Invalid Certificate",
+    "invalidCertificateDescription": "This certificate does not exist or is invalid."
   }
 }

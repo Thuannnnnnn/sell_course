@@ -45,7 +45,8 @@ const DashBoardTotal = () => {
     const fetchData = async () => {
       if (session?.user?.token) {
         const fetchedForums = await getAllForum();
-        const fetchedUsers = await fetchUsers(session.user.user_id);
+        const fetchedUsers = await fetchUsers(session.user.token);
+        console.log(fetchedUsers);
         setUserData(fetchedUsers);
         const fetchedCoursesPurchased =
           await CoursePurchaseAPI.getAllPurchasesForAllUsers(
@@ -140,26 +141,24 @@ const DashBoardTotal = () => {
     <div className="container-fluid px-3 px-md-4 mt-4">
       {/* Chart Section for Mobile - Displayed at the top on mobile */}
       <Card className="p-3 mb-4 shadow-sm d-md-none">
-        <h4 className="text-center mb-3 fs-5">
-          {t("statisticsOverview")}
-        </h4>
+        <h4 className="text-center mb-3 fs-5">{t("statisticsOverview")}</h4>
         <div style={{ width: "100%", height: "280px" }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
               margin={{ top: 5, right: 10, left: 0, bottom: 40 }}
             >
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 10 }} 
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10 }}
                 height={40}
                 angle={-45}
                 textAnchor="end"
               />
               <YAxis tick={{ fontSize: 10 }} width={40} />
               <Tooltip />
-              <Legend 
-                wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} 
+              <Legend
+                wrapperStyle={{ fontSize: "10px", paddingTop: "10px" }}
                 verticalAlign="top"
                 height={30}
               />
@@ -206,11 +205,7 @@ const DashBoardTotal = () => {
       {/* Export Buttons */}
       <Row className="mb-3">
         <Col xs={12} sm={6} className="mb-2 mb-sm-0">
-          <Button
-            variant="success"
-            onClick={exportToExcel}
-            className="w-100"
-          >
+          <Button variant="success" onClick={exportToExcel} className="w-100">
             <FaFileExport className="me-2" />
             {t("exportToExcel")}
           </Button>

@@ -3,10 +3,25 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import useSocket from "../../../../hook/useChatSupportSocket";
 import { Container, Row, Col, Form, Button, ListGroup } from "react-bootstrap";
+import { useSession } from "next-auth/react";
 
+// Updated ChatMessage interface to match the structure from useChatSupportSocket.ts
 interface ChatMessage {
   sessionId: string;
-  sender: string;
+  sender: {
+    user_id: string;
+    username: string;
+    avatarImg: string;
+    email: string;
+    role: string;
+    isBan: boolean;
+    isOAuth: boolean;
+    phoneNumber: string | null;
+    birthDay: string | null;
+    gender: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
   messageText: string;
   timestamp: string;
 }
@@ -14,12 +29,10 @@ interface ChatMessage {
 export default function Chat() {
   const router = useRouter();
   const { sessionId } = useParams();
-
-  // Gọi tất cả hooks trước bất kỳ return nào
+  const { data: session } = useSession();
   const { messages, sendMessage, socket } = useSocket(sessionId || "");
   const [inputValue, setInputValue] = useState<string>("");
 
-  // Xử lý ngắt kết nối khi tắt tab
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (socket) {
@@ -33,14 +46,12 @@ export default function Chat() {
     };
   }, [socket]);
 
-  // Sử dụng useEffect để xử lý chuyển hướng
   useEffect(() => {
     if (!sessionId || typeof sessionId !== "string") {
       router.push("/");
     }
   }, [sessionId, router]);
 
-  // Nếu sessionId không hợp lệ, trả về một UI tạm thời
   if (!sessionId || typeof sessionId !== "string") {
     return <div>Redirecting...</div>;
   }
@@ -48,8 +59,7 @@ export default function Chat() {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      const result = sendMessage(inputValue);
-      console.log(result);
+      sendMessage(inputValue);
       setInputValue("");
     }
   };
@@ -58,7 +68,7 @@ export default function Chat() {
     <Container className="py-4" style={{ maxWidth: "800px" }}>
       <h3 className="mb-4 text-center">Chat Support</h3>
 
-      {/* Khu vực hiển thị tin nhắn */}
+      {/* Message display area */}
       <div
         style={{
           height: "400px",
@@ -74,18 +84,21 @@ export default function Chat() {
             <ListGroup.Item
               key={index}
               className={`border-0 p-2 ${
-                msg.sender === "CUSTOMER" ? "text-end" : "text-start"
+                msg.sender.user_id === session?.user.user_id
+                  ? "text-end"
+                  : "text-start"
               }`}
             >
               <div
                 className={`d-inline-block p-2 rounded ${
-                  msg.sender === "CUSTOMER"
+                  msg.sender.user_id === session?.user.user_id
                     ? "bg-primary text-white"
                     : "bg-light text-dark"
                 }`}
                 style={{ maxWidth: "70%" }}
               >
-                {msg.messageText}
+                <strong>{msg.sender.username}</strong>
+                <p className="mb-1">{msg.messageText}</p>
                 <small className="d-block text-muted mt-1">
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </small>
@@ -95,7 +108,7 @@ export default function Chat() {
         </ListGroup>
       </div>
 
-      {/* Form nhập tin nhắn */}
+      {/* Message input form */}
       <Form onSubmit={handleSendMessage} className="mt-3">
         <Row className="align-items-center">
           <Col xs={9} md={10}>

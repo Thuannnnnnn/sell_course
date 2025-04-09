@@ -44,7 +44,6 @@ const VerifyCertificate = () => {
             <Form.Group className="mb-3">
               <Form.Control
                 type="text"
-                placeholder={t("inputPlaceholder")}
                 value={certificateId}
                 onChange={(e) => setCertificateId(e.target.value)}
                 disabled={loading}

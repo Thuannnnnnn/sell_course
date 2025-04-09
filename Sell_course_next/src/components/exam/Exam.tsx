@@ -85,7 +85,7 @@ const ExamPage = () => {
         const certificateData = {
           courseId: id as string,
           userId: session?.user.user_id ?? "",
-          title: `Certificate for Exam ${id}`,
+          title: `Certificate`,
         };
         await createCertificate(certificateData);
         console.log("Certificate created successfully!");

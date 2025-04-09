@@ -112,3 +112,19 @@ export const verifyCertificate = async (
     throw error;
   }
 };
+export const deleteCertificate = async (
+  certificateId: string
+): Promise<void> => {
+  try {
+    await axios.delete(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/certificates/${certificateId}`
+    );
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Có lỗi xảy ra khi xóa chứng chỉ"
+      );
+    }
+    throw error;
+  }
+};

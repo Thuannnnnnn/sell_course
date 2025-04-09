@@ -114,7 +114,8 @@
     "foundingDate": "Ngày thành lập: 05/01/2025",
     "activityField": "Lĩnh vực hoạt động: Giáo dục, công nghệ - lập trình. Chúng tôi tập trung xây dựng và phát triển các sản phẩm mang giá trị cho cộng đồng lập trình viên Việt Nam.",
     "copyright": ". Nền tảng học lập trình hàng đầu tại Việt Nam.",
-    "chatHistory": "Lịch sử trò truyện"
+    "chatHistory": "Lịch sử trò truyện",
+    "verifyCertificate": "Xác thực chứng chỉ"
   },
   "detail": {
     "title": "Chi tiết"
@@ -289,7 +290,8 @@
     "wishList": "Danh sách mong muốn",
     "orderHistory": "Lịch sử mua hàng",
     "setting": "Cài đặt",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "certificate": "Chứng chỉ"
   },
   "changePassword": {
     "title": "Cài Đặt",
@@ -766,5 +768,26 @@
     "loading": "Đang tải câu hỏi...",
     "error": "Không thể tải câu hỏi.",
     "placeholder": "Nhập câu hỏi"
+  },
+
+  "certificateList": {
+    "title": "Chứng chỉ của tôi",
+    "loading": "Đang tải...",
+    "error": "Có lỗi xảy ra",
+    "deleteConfirmation": "Bạn có chắc chắn muốn xóa chứng chỉ này?",
+    "deleteError": "Có lỗi xảy ra khi xóa",
+    "issueDate": "Ngày cấp",
+    "deleteButton": "Xóa"
+  },
+  "verifyCertificate": {
+    "title": "Xác minh chứng chỉ",
+    "description": "Nhập mã chứng chỉ để kiểm tra tính hợp lệ.",
+    "pleaseEnterCertificateId": "Vui lòng nhập mã chứng chỉ.",
+    "verifying": "Đang xác minh...",
+    "verifyButton": "Xác minh",
+    "validCertificate": "Chứng chỉ hợp lệ",
+    "validCertificateDescription": "Chứng chỉ này đã được xác minh và hợp lệ.",
+    "invalidCertificate": "Chứng chỉ không hợp lệ",
+    "invalidCertificateDescription": "Chứng chỉ này không tồn tại hoặc không hợp lệ."
   }
 }
