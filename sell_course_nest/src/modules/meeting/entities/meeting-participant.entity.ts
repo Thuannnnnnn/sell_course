@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Meeting } from './meeting.entity';
@@ -16,7 +17,7 @@ export class MeetingParticipant {
   @Column()
   meetingId: string;
 
-  @ManyToOne(() => Meeting, (meeting) => meeting.participants)
+  @ManyToOne(() => Meeting, (meeting) => meeting.participants, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'meetingId' })
   meeting: Meeting;
 
@@ -27,7 +28,7 @@ export class MeetingParticipant {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column()
+  @CreateDateColumn()
   joinTime: Date;
 
   @Column({ nullable: true })
@@ -44,4 +45,11 @@ export class MeetingParticipant {
 
   @Column({ default: false })
   isScreenSharing: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: ['host', 'participant'],
+    default: 'participant',
+  })
+  role: 'host' | 'participant';
 }

@@ -56,7 +56,24 @@
     "you": "Bạn",
     "privateTo": "Riêng tư đến",
     "typeMessage": "Nhập tin nhắn...",
-    "noParticipants": "Không có người tham gia"
+    "noParticipants": "Không có người tham gia",
+    "join_meeting": {
+      "title": "Tham gia cuộc họp",
+      "code_label": "Mã cuộc họp",
+      "camera_on": "Bật camera",
+      "camera_off": "Tắt camera",
+      "mic_on": "Bật mic",
+      "mic_off": "Tắt mic",
+      "cancel": "Hủy",
+      "join": "Tham gia",
+      "joining": "Đang tham gia..."
+    },
+    "error": {
+      "join_meeting": "Có lỗi xảy ra khi tham gia cuộc họp",
+      "login_required": "Vui lòng đăng nhập để tham gia cuộc họp",
+      "meeting_code_required": "Vui lòng nhập mã cuộc họp",
+      "failed_to_join_meeting": "Không thể tham gia cuộc họp"
+    }
   },
   "sidebar": {
     "home": "Trang Chủ"

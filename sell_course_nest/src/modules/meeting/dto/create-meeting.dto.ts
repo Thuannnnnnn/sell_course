@@ -18,11 +18,6 @@ export class CreateMeetingDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({ description: 'User ID of the meeting host' })
-  @IsNotEmpty()
-  @IsString()
-  hostId: string;
-
   @ApiProperty({
     description: 'Whether the meeting is scheduled for a future time',
     default: false,
@@ -37,7 +32,7 @@ export class CreateMeetingDto {
   })
   @IsOptional()
   @IsDateString()
-  scheduledTime?: Date;
+  scheduledTime?: string;
 
   @ApiProperty({
     description: 'Whether the meeting should be recorded',

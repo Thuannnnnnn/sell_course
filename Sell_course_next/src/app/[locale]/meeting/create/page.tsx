@@ -4,12 +4,16 @@ import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { createMeeting } from "@/app/api/meeting/meeting";
+import { toast } from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 export default function CreateMeetingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const t = useTranslations("Meeting");
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -18,6 +22,7 @@ export default function CreateMeetingPage() {
     isRecorded: false,
   });
   const [loading, setLoading] = useState(false);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -36,27 +41,41 @@ export default function CreateMeetingPage() {
     }
 
     if (!formData.title.trim()) {
+      toast.error(t("create_meeting.meeting_title"));
       return;
     }
 
     if (formData.isScheduled && !formData.scheduledTime) {
+      toast.error(t("create_meeting.scheduled_time"));
       return;
     }
 
     setLoading(true);
 
     try {
+      // Ensure token is stored in localStorage
+      if (session?.user?.token) {
+        localStorage.setItem("token", session.user.token);
+      } else {
+        throw new Error("No authentication token available");
+      }
+
       const response = await createMeeting({
-        ...formData,
-        hostId: session?.user?.user_id,
+        title: formData.title,
+        description: formData.description,
+        isScheduled: formData.isScheduled,
+        scheduledTime: formData.isScheduled
+          ? formData.scheduledTime
+          : undefined,
+        isRecorded: formData.isRecorded,
       });
 
-      if (!response || !response.data) {
-        throw new Error("Invalid response from server");
+      if (!response.data) {
+        throw new Error(t("error.create_meeting"));
       }
 
       if (!response.data.id) {
-        throw new Error("Meeting ID not received from server");
+        throw new Error(t("error.create_meeting"));
       }
 
       if (!formData.isScheduled) {
@@ -64,8 +83,10 @@ export default function CreateMeetingPage() {
       } else {
         router.push(`/${locale}/meeting`);
       }
-    } catch (err) {
-      console.error("Error creating meeting:", err);
+    } catch (error) {
+      console.error("Error creating meeting:", error);
+      const errorMessage = error instanceof Error ? error.message : t("error.create_meeting");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -82,13 +103,11 @@ export default function CreateMeetingPage() {
 
   return (
     <div className="create-meeting-container">
-      <h1 className="create-meeting-title">Create a New Meeting</h1>
+      <h1 className="create-meeting-title">{t("createTitle")}</h1>
 
       <form onSubmit={handleSubmit} className="create-meeting-form">
         <div className="form-group">
-          <label htmlFor="title" className="form-label">
-            Meeting Title*
-          </label>
+          <label htmlFor="title">{t("meetingTitle")}</label>
           <input
             type="text"
             id="title"
@@ -96,45 +115,41 @@ export default function CreateMeetingPage() {
             className="form-control"
             value={formData.title}
             onChange={handleChange}
-            placeholder="Enter meeting title"
+            placeholder={t("meetingTitle")}
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="description" className="form-label">
-            Description
-          </label>
+          <label htmlFor="description">{t("description")}</label>
           <textarea
             id="description"
             name="description"
             className="form-control"
             value={formData.description}
             onChange={handleChange}
-            placeholder="Enter meeting description"
+            placeholder={t("description")}
             rows={3}
           />
         </div>
 
-        <div className="form-check mb-3">
-          <input
-            type="checkbox"
-            id="isScheduled"
-            name="isScheduled"
-            className="form-check-input"
-            checked={formData.isScheduled}
-            onChange={handleChange}
-          />
-          <label className="form-check-label" htmlFor="isScheduled">
-            Schedule for later
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              id="isScheduled"
+              name="isScheduled"
+              className="checkbox-input"
+              checked={formData.isScheduled}
+              onChange={handleChange}
+            />
+            {t("scheduleForLater")}
           </label>
         </div>
 
         {formData.isScheduled && (
           <div className="form-group">
-            <label htmlFor="scheduledTime" className="form-label">
-              Scheduled Time*
-            </label>
+            <label htmlFor="scheduledTime">{t("scheduledTime")}</label>
             <input
               type="datetime-local"
               id="scheduledTime"
@@ -147,23 +162,36 @@ export default function CreateMeetingPage() {
           </div>
         )}
 
-        <div className="form-check mb-3">
-          <input
-            type="checkbox"
-            id="isRecorded"
-            name="isRecorded"
-            className="form-check-input"
-            checked={formData.isRecorded}
-            onChange={handleChange}
-          />
-          <label className="form-check-label" htmlFor="isRecorded">
-            Record meeting
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              id="isRecorded"
+              name="isRecorded"
+              className="checkbox-input"
+              checked={formData.isRecorded}
+              onChange={handleChange}
+            />
+            {t("recordMeeting")}
           </label>
         </div>
 
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Creating..." : "Create Meeting"}
-        </button>
+        <div className="form-actions">
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/meeting`)}
+            className="cancel-button"
+          >
+            {t("cancel")}
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="submit-button"
+          >
+            {loading ? t("creating") : t("startMeetingNow")}
+          </button>
+        </div>
       </form>
     </div>
   );

@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
 
 export class JoinMeetingDto {
-  @ApiProperty({ description: 'Meeting ID or code to join' })
+  @ApiProperty({ description: 'Meeting code to join' })
   @IsNotEmpty()
   @IsString()
-  meetingId: string;
+  meetingCode: string;
 
   @ApiProperty({
     description: 'User ID of the participant joining the meeting',

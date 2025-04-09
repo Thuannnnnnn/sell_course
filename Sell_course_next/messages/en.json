@@ -56,7 +56,23 @@
     "you": "You",
     "privateTo": "Private to",
     "typeMessage": "Type a message...",
-    "noParticipants": "No participants"
+    "noParticipants": "No participants",
+    "join_meeting": {
+      "title": "Join Meeting",
+      "code_label": "Meeting Code",
+      "camera_on": "Camera On",
+      "camera_off": "Camera Off",
+      "mic_on": "Microphone On",
+      "mic_off": "Microphone Off",
+      "cancel": "Cancel",
+      "join": "Join Meeting",
+      "joining": "Joining..."
+    },
+    "error": {
+      "join_meeting": "An error occurred while joining the meeting",
+      "login_required": "Please login to join the meeting",
+      "meeting_code_required": "Meeting code is required"
+    }
   },
   "sidebar": {
     "home": "Home"

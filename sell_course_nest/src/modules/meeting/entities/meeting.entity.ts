@@ -5,6 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  CreateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { MeetingParticipant } from './meeting-participant.entity';
@@ -17,7 +18,7 @@ export class Meeting {
   @Column()
   title: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   description: string;
 
   @Column()
@@ -27,7 +28,7 @@ export class Meeting {
   @JoinColumn({ name: 'hostId' })
   host: User;
 
-  @Column()
+  @CreateDateColumn()
   startTime: Date;
 
   @Column({ nullable: true })
@@ -48,7 +49,7 @@ export class Meeting {
   @Column({ nullable: true })
   scheduledTime: Date;
 
-  @Column({ default: '' })
+  @Column({ unique: true })
   meetingCode: string;
 
   @OneToMany(() => MeetingParticipant, (participant) => participant.meeting)

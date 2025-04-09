@@ -20,6 +20,8 @@ import { ReactionQa } from 'src/modules/qa_study/entities/reaction_qa.entity';
 import { Certificate } from 'src/modules/certificate/entities/certificate.entity';
 import { Interaction } from 'src/modules/Interaction/entities/Interaction.entity';
 import { UserAnswer } from 'src/modules/userAnswer/entities/userAnswer.entity';
+import { ChatSession } from 'src/modules/support_chat/entities/chat-session.entity';
+import { Message } from 'src/modules/support_chat/entities/message.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -92,4 +94,9 @@ export class User {
   reactionQa: ReactionTopic[];
   @OneToMany(() => Certificate, (certificate) => certificate.user)
   certificates: Certificate[];
+  @OneToMany(() => ChatSession, (chatSession) => chatSession.user)
+  chatSessions: ChatSession[];
+
+  @OneToMany(() => Message, (message) => message.sender)
+  messages: Message[];
 }

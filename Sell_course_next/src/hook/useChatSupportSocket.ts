@@ -74,16 +74,16 @@ const useSocket = (sessionId: string | string[]): UseSocketResult => {
   // Hàm gửi tin nhắn
   const sendMessage = useCallback(
     (message: string) => {
-      if (socket && message.trim() && session?.user.role) {
+      if (socket && message.trim() && session?.user.user_id) {
         const messageData: SendMessageData = {
           sessionId: sessionId as string,
           message,
-          sender: session?.user.role,
+          sender: session?.user.user_id,
         };
         socket.emit("sendMessage", messageData);
       }
     },
-    [socket, session?.user.role, sessionId]
+    [socket, session?.user.user_id, sessionId]
   );
 
   return { socket, messages, sendMessage };
