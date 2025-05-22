@@ -24,10 +24,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket) {
     const sessionId = client.handshake.query.sessionId as string;
+
     if (sessionId) {
       const session = await this.chatSessionRepository.findOne({
         where: { id: sessionId },
       });
+
       if (session) {
         session.isActive = true;
         await this.chatSessionRepository.save(session);
@@ -36,55 +38,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(client: Socket) {
-    console.log('Client disconnected');
     const sessionId = client.handshake.query.sessionId as string;
-    console.log('Session ID:', sessionId);
 
     if (sessionId) {
-      try {
-        const session = await this.chatSessionRepository.findOne({
-          where: { id: sessionId },
-        });
-        console.log('Found session:', session);
+      const session = await this.chatSessionRepository.findOne({
+        where: { id: sessionId },
+      });
 
-        if (session) {
-          session.isActive = false;
-          session.endTime = new Date();
-          try {
-            const updatedSession =
-              await this.chatSessionRepository.save(session);
-            console.log('Updated session:', updatedSession);
-
-            // Verify the update
-            const verifySession = await this.chatSessionRepository.findOne({
-              where: { id: sessionId },
-            });
-            console.log('Verified session after update:', verifySession);
-          } catch (error) {
-            console.error('Error saving session:', error);
-            // Thử lưu lại một lần nữa
-            try {
-              const retrySession = await this.chatSessionRepository.findOne({
-                where: { id: sessionId },
-              });
-              if (retrySession) {
-                retrySession.isActive = false;
-                retrySession.endTime = new Date();
-                await this.chatSessionRepository.save(retrySession);
-                console.log('Successfully updated session on retry');
-              }
-            } catch (retryError) {
-              console.error('Error on retry:', retryError);
-            }
-          }
-        } else {
-          console.log('No session found with ID:', sessionId);
-        }
-      } catch (error) {
-        console.error('Error in handleDisconnect:', error);
+      if (session) {
+        session.isActive = false;
+        session.endTime = new Date();
+        await this.chatSessionRepository.save(session);
       }
-    } else {
-      console.log('No session ID provided');
     }
   }
 
@@ -98,13 +63,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client: Socket,
     data: { sessionId: string; message: string; sender: string },
   ) {
+    const chatSession = await this.chatSessionRepository.findOne({
+      where: { id: data.sessionId },
+    });
+
+    if (!chatSession) {
+      client.emit('error', { message: 'Chat session not found' });
+      return;
+    }
+
+    // Load the sender (User) entity from the database
+    const sender = await this.messageRepository.manager.findOne('User', {
+      where: { user_id: data.sender },
+    });
+
+    if (!sender) {
+      client.emit('error', { message: 'Sender not found' });
+      return;
+    }
+
+    // Create and save the message
     const message = this.messageRepository.create({
-      sessionId: data.sessionId,
-      sender: data.sender,
+      chatSession: chatSession,
+      sender: sender, // Use the loaded User entity
       messageText: data.message,
       timestamp: new Date(),
     });
+
     await this.messageRepository.save(message);
+
+    // Emit the message to the chat session
     this.server.to(data.sessionId).emit('message', message);
   }
 }

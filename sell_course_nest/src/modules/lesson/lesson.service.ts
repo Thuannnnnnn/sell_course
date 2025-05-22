@@ -50,10 +50,17 @@ export class LessonService {
     }
   }
   async getLessons(): Promise<Lesson[]> {
-    return await this.lessonRepository.find({
+    const lessons = await this.lessonRepository.find({
       relations: ['course', 'contents'],
-      order: { order: 'ASC' },
+      order: { order: 'ASC' }, // Order lessons by their 'order' field
     });
+
+    // Ensure contents are ordered by their 'order' field
+    lessons.forEach((lesson) => {
+      lesson.contents = lesson.contents.sort((a, b) => a.order - b.order);
+    });
+
+    return lessons;
   }
   async getLessonById(lessonId: string): Promise<Lesson> {
     const lesson = await this.lessonRepository.findOne({
@@ -99,7 +106,7 @@ export class LessonService {
     const lessons = await this.lessonRepository.find({
       where: { course: { courseId } },
       relations: ['course', 'contents'],
-      order: { order: 'ASC' },
+      order: { order: 'ASC' }, // Order lessons by their 'order' field
     });
 
     if (!lessons.length) {
@@ -115,12 +122,14 @@ export class LessonService {
         lessonId: lesson.lessonId,
         lessonName: lesson.lessonName,
         order: lesson.order,
-        contents: lesson.contents.map((content) => ({
-          contentId: content.contentId,
-          contentName: content.contentName,
-          contentType: content.contentType,
-          order: content.order,
-        })),
+        contents: lesson.contents
+          .sort((a, b) => a.order - b.order) // Ensure contents are ordered by 'order' field
+          .map((content) => ({
+            contentId: content.contentId,
+            contentName: content.contentName,
+            contentType: content.contentType,
+            order: content.order,
+          })),
       })),
     };
 

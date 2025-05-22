@@ -60,6 +60,7 @@ export class ContentService {
     return await this.contentRepository.find({
       where: { lesson: { lessonId } },
       relations: ['lesson'],
+      order: { order: 'DESC' },
     });
   }
 

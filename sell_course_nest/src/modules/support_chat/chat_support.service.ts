@@ -15,7 +15,7 @@ export class ChatService {
 
   async createChatSession(userId: string): Promise<ChatSession> {
     const session = this.chatSessionRepository.create({
-      userId,
+      user: { user_id: userId },
       startTime: new Date(),
     });
     return await this.chatSessionRepository.save(session);
@@ -30,14 +30,15 @@ export class ChatService {
     userId: string,
   ): Promise<{ session: ChatSession; messages: Message[] }[]> {
     const sessions = await this.chatSessionRepository.find({
-      where: { userId },
+      where: { user: { user_id: userId } },
+      relations: ['messages'],
       order: { startTime: 'DESC' },
     });
 
     const history = [];
     for (const session of sessions) {
       const messages = await this.messageRepository.find({
-        where: { sessionId: session.id },
+        where: { chatSession: { id: session.id } },
         order: { timestamp: 'ASC' },
       });
       history.push({ session, messages });

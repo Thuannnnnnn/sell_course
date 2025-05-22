@@ -54,7 +54,11 @@ export class PermissionMiddleware implements NestMiddleware {
       where: { user_id: userId },
       relations: ['permissions'],
     });
-
+    console.log(user);
+    if (user.role === 'ADMIN') {
+      req['user'] = user;
+      return next();
+    }
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
