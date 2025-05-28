@@ -71,29 +71,11 @@
 }
 
 @layer base {
-  html,
-  body {
-    margin: 0; /* Loại bỏ margin mặc định */
-    padding: 0; /* Loại bỏ padding mặc định */
-    box-sizing: border-box; /* Đảm bảo kích thước phần tử được tính đúng */
-    overflow-x: hidden; /* Ngăn cuộn ngang nếu có */
-  }
-
   * {
-    box-sizing: inherit;
+    @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    display: flex; /* Đảm bảo layout sử dụng flexbox */
-    flex-direction: column;
-    align-items: center; /* Căn giữa nội dung theo chiều ngang */
-  }
-
-  main {
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%; /* Đảm bảo chiếm toàn bộ chiều rộng */
   }
 }
