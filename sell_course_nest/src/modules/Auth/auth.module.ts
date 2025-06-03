@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
-import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
+
 import { OTP } from '../otp/entities/otp.entity';
 import { authService } from './auth.service';
 import { authController } from './auth.controller';
@@ -29,7 +29,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         from: '"No Reply" <sdnmmagr5@gmail.com>', // Email mặc định khi gửi
       },
     }),
-    TypeOrmModule.forFeature([User, EmailVerification, OTP]),
+    TypeOrmModule.forFeature([User, OTP]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,

@@ -43,26 +43,30 @@ export class OtpService {
   }
 
   //verify OTP
-  async verifyOtp(email:string , otpCode: string, purpose: string): Promise<boolean>{
+  async verifyOtp(
+    email: string,
+    otpCode: string,
+    purpose: string,
+  ): Promise<boolean> {
     const otp = await this.otpRepository.findOne({
-        where: {
-            email,
-            otp_code: otpCode,
-            purpose,
-            isUsed: false,
-        },
+      where: {
+        email,
+        otp_code: otpCode,
+        purpose,
+        isUsed: false,
+      },
     });
-    if(!otp){
-        throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
+    if (!otp) {
+      throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
     }
-    if(new Date() > otp.expiredAt){
-        throw new HttpException('OTP has expired', HttpStatus.BAD_REQUEST);
+    if (new Date() > otp.expiredAt) {
+      throw new HttpException('OTP has expired', HttpStatus.BAD_REQUEST);
     }
-    await this.otpRepository.update(otp.id,{isUsed: true});
+    await this.otpRepository.update(otp.id, { isUsed: true });
     return true;
   }
 
- // Resend OTP
+  // Resend OTP
   async resendOtp(email: string, purpose: string): Promise<string> {
     // Tìm OTP gần nhất
     const latestOtp = await this.otpRepository.findOne({
@@ -104,8 +108,11 @@ export class OtpService {
 
   // Xóa các OTP đã hết hạn (có thể chạy định kỳ)
   async cleanupExpiredOtps(): Promise<void> {
-    await this.otpRepository.delete({
-      expiredAt: new Date(),
-    });
+    const now = new Date();
+    await this.otpRepository
+      .createQueryBuilder()
+      .delete()
+      .where('expired_at < :now', { now })
+      .execute();
   }
 }

@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 // import { JwtStrategy } from './strategies/jwt.strategy';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { MailService } from '../../utilities/mail.service';
-import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
+
 import { OTP } from '../otp/entities/otp.entity';
 import { OtpService } from '../otp/otp.service';
 import { OAuthRequestDto } from './dto/authRequest.dto';
@@ -26,8 +26,7 @@ export class authService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(EmailVerification)
-    private emailVerifycationRepository: Repository<EmailVerification>,
+
     @InjectRepository(OTP)
     private otpRepository: Repository<OTP>,
     private readonly mailService: MailService,
@@ -161,7 +160,7 @@ export class authService {
       gender: gender,
       birthDay: birthDay,
       phoneNumber: phoneNumber,
-      role: 'CUSTOMER',
+      role: 'USER',
       isOAuth: false,
     });
 
@@ -207,7 +206,7 @@ export class authService {
       gender: createUserDto.gender,
       birthDay: createUserDto.birthDay,
       phoneNumber: createUserDto.phoneNumber,
-      role: 'CUSTOMER',
+      role: 'USER',
       isOAuth: false,
     });
 
@@ -315,7 +314,7 @@ export class authService {
       avatarImg: picture,
       password: null,
       isOAuth: true,
-      role: 'CUSTOMER',
+      role: 'USER',
     });
 
     const savedUser = await this.userRepository.save(newUser);
@@ -451,6 +450,62 @@ export class authService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async verifyEmail(email: string, lang: string) {
+    return await this.sendEmailVerificationOtp(email, lang);
+  }
+
+  async validateEmailForgot(email: string, lang: string) {
+    return await this.sendPasswordResetOtp(email, lang);
+  }
+
+  async verifyResetOtp(email: string, otp_code: string, purpose: string) {
+    try {
+      const isValid = await this.otpService.verifyOtp(email, otp_code, purpose);
+      if (isValid) {
+        return {
+          message:
+            'OTP verified successfully. You can now reset your password.',
+          statusCode: HttpStatus.OK,
+          verified: true,
+        };
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async forgotPw(email: string, password: string, token: string) {
+    // Decode token để lấy thông tin
+    const decoded = this.jwtService.decode(token);
+    if (!decoded || decoded.email !== email) {
+      throw new HttpException(
+        'Invalid token or email mismatch',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Hash password mới
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Cập nhật password
+    const result = await this.userRepository.update(
+      { email: email },
+      { password: hashedPassword },
+    );
+
+    if (result.affected === 0) {
+      throw new HttpException(
+        'Failed to update password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return {
+      message: 'Password updated successfully',
+      statusCode: HttpStatus.OK,
+    };
   }
 
   async resendOtp(resendOtpDto: ResendOtpDto) {

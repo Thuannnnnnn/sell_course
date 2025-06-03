@@ -1,1 +1,0 @@
-// Category related types
