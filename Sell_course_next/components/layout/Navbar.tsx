@@ -11,6 +11,7 @@ import {
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Image from "next/image";
+import Link from "next/link";
 import logo from "../../public/logo.png";
 export function Navbar() {
   // For demo purposes, let's assume the user is not logged in
@@ -128,7 +129,9 @@ export function Navbar() {
             </Avatar>
           ) : (
             <>
-              <Button variant="outline">Sign In</Button>
+              <Link href="/login">
+                <Button variant="outline">Sign In</Button>
+              </Link>
               <Button>Sign Up</Button>
             </>
           )}
