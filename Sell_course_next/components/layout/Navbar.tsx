@@ -109,7 +109,7 @@ export function Navbar() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 className={navigationMenuTriggerStyle()}
-                href="#"
+                href="/about"
               >
                 About Us
               </NavigationMenuLink>
