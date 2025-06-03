@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   NavigationMenu,
@@ -12,9 +14,15 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Image from "next/image";
 import logo from "../../public/logo.png";
+import { useRouter } from "next/navigation";
 export function Navbar() {
   // For demo purposes, let's assume the user is not logged in
   const isLoggedIn = false;
+  const router = useRouter();
+
+  const handleSignUp = () => {
+    router.push("/auth/register");
+  };
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center ">
       <div className="container flex h-16 items-center justify-between">
@@ -129,7 +137,7 @@ export function Navbar() {
           ) : (
             <>
               <Button variant="outline">Sign In</Button>
-              <Button>Sign Up</Button>
+              <Button onClick={handleSignUp}>Sign Up</Button>
             </>
           )}
         </div>

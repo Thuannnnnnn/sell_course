@@ -113,9 +113,12 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
 
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? {
+              rejectUnauthorized: false,
+            }
+          : false,
 
       entities: [
         LogoSetting,

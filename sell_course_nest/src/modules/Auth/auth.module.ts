@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
+import { OTP } from '../otp/entities/otp.entity';
 import { authService } from './auth.service';
 import { authController } from './auth.controller';
+import { OtpService } from '../otp/otp.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailService } from 'src/utilities/mail.service';
 import { PassportModule } from '@nestjs/passport';
@@ -27,14 +29,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         from: '"No Reply" <sdnmmagr5@gmail.com>', // Email mặc định khi gửi
       },
     }),
-    TypeOrmModule.forFeature([User, EmailVerification]),
+    TypeOrmModule.forFeature([User, EmailVerification, OTP]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '2h' },
     }),
   ],
-  providers: [authService, MailService, LocalStrategy, JwtStrategy],
+  providers: [authService, OtpService, MailService, LocalStrategy, JwtStrategy],
   controllers: [authController],
   exports: [JwtModule, authService],
 })
