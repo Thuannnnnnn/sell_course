@@ -49,15 +49,12 @@ export default function RegisterPage() {
       otp_code: numericValue,
     }));
   };
-
-  // Step 1: Send OTP
   const handleSendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setIsLoading(true);
-
-    // Basic validation
+    // check form validation
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -98,7 +95,6 @@ export default function RegisterPage() {
     }
   };
 
-  // Step 2: Verify OTP and Register
   const handleVerifyAndRegister = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -114,7 +110,6 @@ export default function RegisterPage() {
     }
 
     try {
-      // Register with OTP
       const userData = {
         email: otpData.email,
         otp_code: otpData.otp_code,
@@ -136,7 +131,6 @@ export default function RegisterPage() {
     }
   };
 
-  // Resend OTP
   const handleResendOtp = async () => {
     if (resendCooldown > 0) return;
 
@@ -147,7 +141,6 @@ export default function RegisterPage() {
       await authApi.resendOtp(otpData.email);
       setSuccess("New OTP sent to your email.");
 
-      // Start cooldown
       setResendCooldown(60);
       const interval = setInterval(() => {
         setResendCooldown((prev) => {
@@ -177,11 +170,9 @@ export default function RegisterPage() {
   };
 
   const handleGoogleRegister = () => {
-    // Handle Google OAuth registration here
     console.log("Google registration attempted");
   };
 
-  // Render different steps
   const renderFormStep = () => (
     <form onSubmit={handleSendOtp} className="space-y-4">
       {error && (
