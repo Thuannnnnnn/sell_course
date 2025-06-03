@@ -10,6 +10,8 @@ import {
 } from "../ui/navigation-menu";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import Image from "next/image";
+import logo from "../../public/logo.png";
 export function Navbar() {
   // For demo purposes, let's assume the user is not logged in
   const isLoggedIn = false;
@@ -17,21 +19,7 @@ export function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center ">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-book-open text-primary"
-          >
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          </svg>
+          <Image src={logo} alt={"logo"} width={80} height={80} />
           <span className="font-bold text-xl">Course Master</span>
         </div>
         <NavigationMenu className="hidden md:flex">
