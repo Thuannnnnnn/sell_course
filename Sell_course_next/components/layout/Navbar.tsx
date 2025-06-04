@@ -22,6 +22,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 export function Navbar() {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
@@ -42,7 +43,7 @@ export function Navbar() {
   }, [session]);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center ">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Image src={logo} alt={"logo"} width={80} height={80} />
@@ -148,24 +149,43 @@ export function Navbar() {
         </NavigationMenu>
         <div className="flex items-center gap-2">
           {isLoggedIn ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar>
-                  <AvatarImage src={session?.user?.avatarImg} alt="@user" />
-                  <AvatarFallback>US</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-56"
-                align="start"
-                sideOffset={5}
-              >
-                <DropdownMenuLabel>{session?.user.name}</DropdownMenuLabel>
-                <DropdownMenuItem>
-                  <LogoutButton />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="relative">
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={session?.user?.avatarImg} alt="@user" />
+                      <AvatarFallback>
+                        {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-56 mr-4"
+                  align="end"
+                  side="bottom"
+                  sideOffset={8}
+                  alignOffset={-4}
+                  avoidCollisions={true}
+                  collisionBoundary={[]}
+                >
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {session?.user?.name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {session?.user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <LogoutButton />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : (
             <>
               <Link href="/auth/login">
