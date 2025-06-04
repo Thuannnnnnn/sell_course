@@ -1,30 +1,24 @@
+"use client";
 import React from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
+import logo from "../../public/logo.png";
+import Image from "next/image";
 export function Footer() {
   return (
     <footer className="w-full py-12 md:py-16 lg:py-20 border-t bg-background flex items-center justify-center">
       <div className="container px-4 md:px-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          {/* Brand column */}
           <div className="flex flex-col space-y-4">
             <div className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-book-open text-primary"
-              >
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg>
+              <Image
+                src={logo}
+                alt="Course Master Logo"
+                width={100}
+                height={100}
+                className="h-10 w-10 rounded-full"
+              />
               <span className="font-bold text-xl">Course Master</span>
             </div>
             <p className="text-muted-foreground">

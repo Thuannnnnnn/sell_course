@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,16 +12,42 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Image from "next/image";
 import logo from "../../public/logo.png";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+import LogoutButton from "../ui/LogoutButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 export function Navbar() {
-  // For demo purposes, let's assume the user is not logged in
-  const isLoggedIn = false;
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated";
+
+  useEffect(() => {
+    if (session?.expires) {
+      const expireTime = new Date(session.expires).getTime();
+      const currentTime = Date.now();
+      if (currentTime >= expireTime) {
+        signOut().then(() => {});
+      } else {
+        const timeout = setTimeout(() => {
+          signOut().then(() => {});
+        }, expireTime - currentTime);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [session]);
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center ">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image src={logo} alt={"logo"} width={80} height={80} />
           <span className="font-bold text-xl">Course Master</span>
-        </div>
+        </Link>
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
             <NavigationMenuItem>
@@ -120,15 +146,31 @@ export function Navbar() {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {isLoggedIn ? (
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="@user" />
-              <AvatarFallback>US</AvatarFallback>
-            </Avatar>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar>
+                  <AvatarImage src={session?.user?.avatarImg} alt="@user" />
+                  <AvatarFallback>US</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56"
+                align="start"
+                sideOffset={5}
+              >
+                <DropdownMenuLabel>{session?.user.name}</DropdownMenuLabel>
+                <DropdownMenuItem>
+                  <LogoutButton />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
-              <Button variant="outline">Sign In</Button>
+              <Link href="/auth/login">
+                <Button variant="outline">Sign In</Button>
+              </Link>
               <Button>Sign Up</Button>
             </>
           )}
