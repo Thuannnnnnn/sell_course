@@ -24,7 +24,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
     },
     {
       name: "My Courses",
-      href: "#",
+      href: "/",
       icon: BookOpen,
       current: false,
     },
