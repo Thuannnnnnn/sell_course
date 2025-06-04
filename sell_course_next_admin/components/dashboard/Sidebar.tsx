@@ -9,6 +9,7 @@ import {
   Users,
   Settings,
   X,
+  NotebookText,
 } from "lucide-react";
 interface SidebarProps {
   open: boolean;
@@ -26,6 +27,12 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
       name: "My Courses",
       href: "#",
       icon: BookOpen,
+      current: false,
+    },
+    {
+      name: "Categories",
+      href: "/categories",
+      icon: NotebookText,
       current: false,
     },
     {
