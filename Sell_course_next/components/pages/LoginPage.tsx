@@ -1,45 +1,62 @@
 "use client";
 
-import React, { useState } from 'react'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-} from '../ui/card'
-import { Checkbox } from '../ui/checkbox'
-import { Eye, EyeOff } from 'lucide-react'
-
+import React, { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Card, CardContent, CardHeader, CardFooter } from "../ui/card";
+import { Checkbox } from "../ui/checkbox";
+import { Eye, EyeOff } from "lucide-react";
+import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import logo from "../../public/logo.png";
 export function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const { status } = useSession();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Basic email validation
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address')
-      return
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address");
+      return;
     }
     // Basic password validation (minimum 6 characters)
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
-      return
+      setError("Password must be at least 6 characters long");
+      return;
     }
     // Clear error if validation passes
-    setError('')
+    setError("");
     // Handle login logic here
-    console.log('Login attempted', {
+    console.log("Login attempted", {
       email,
       password,
-    })
+    });
+  };
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      await signIn("google", { callbackUrl: "/" });
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("Failed to sign in with Google. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
+  if (status === "loading") {
+    return <div className="p-6 max-w-md mx-auto">Loading...</div>;
   }
-  const handleGoogleLogin = () => {
-    // Handle Google OAuth login here
-    console.log('Google login attempted')
+
+  if (status === "authenticated") {
+    router.push("/");
+    return null;
   }
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted/50">
@@ -47,22 +64,8 @@ export function LoginPage() {
         <CardHeader>
           <div className="flex flex-col items-center space-y-2 text-center">
             <div className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-primary"
-              >
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg>
-              <span className="text-2xl font-bold">EduLearn</span>
+              <Image src={logo} alt="Logo" width={80} height={80} />
+              <span className="text-2xl font-bold">Course Master</span>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">
               Welcome back
@@ -150,7 +153,8 @@ export function LoginPage() {
             variant="outline"
             type="button"
             className="w-full"
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path
@@ -175,7 +179,7 @@ export function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-2">
           <div className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
+            Don&apos;t have an account?{" "}
             <a
               href="#"
               className="text-primary underline-offset-4 hover:underline"
@@ -192,5 +196,5 @@ export function LoginPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

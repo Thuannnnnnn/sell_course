@@ -146,35 +146,29 @@ export function Navbar() {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-        <div className="flex items-center gap-1">
-          {isLoggedIn ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar>
-                  <AvatarImage src={session?.user?.avatarImg} alt="@user" />
-                  <AvatarFallback>US</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-56"
-                align="start"
-                sideOffset={5}
-              >
-                <DropdownMenuLabel>{session?.user.name}</DropdownMenuLabel>
-                <DropdownMenuItem>
-                  <LogoutButton />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <>
-              <Link href="/auth/login">
-                <Button variant="outline">Sign In</Button>
-              </Link>
-              <Button>Sign Up</Button>
-            </>
-          )}
-        </div>
+        {isLoggedIn ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar>
+                <AvatarImage src={session?.user?.avatarImg} alt="@user" />
+                <AvatarFallback>US</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-20" align="start" sideOffset={5}>
+              <DropdownMenuLabel>{session?.user.name}</DropdownMenuLabel>
+              <DropdownMenuItem>
+                <LogoutButton />
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <>
+            <Link href="/auth/login">
+              <Button variant="outline">Sign In</Button>
+            </Link>
+            <Button>Sign Up</Button>
+          </>
+        )}
       </div>
     </header>
   );
