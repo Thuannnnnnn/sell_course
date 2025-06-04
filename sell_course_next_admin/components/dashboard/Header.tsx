@@ -2,6 +2,7 @@
 import React from "react";
 import { Menu, Search, Bell, ChevronDown } from "lucide-react";
 import { useSession } from "next-auth/react";
+import LogoutButton from "../ui/LogoutButton";
 interface HeaderProps {
   onMenuClick: () => void;
 }
@@ -44,6 +45,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                   </span>
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </button>
+                <LogoutButton />
               </div>
             </div>
           </div>
