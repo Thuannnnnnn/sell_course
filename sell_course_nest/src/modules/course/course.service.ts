@@ -9,7 +9,6 @@ import { Category } from '../category/entities/category.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { azureUpload } from 'src/utilities/azure.service';
-import axios from 'axios';
 
 @Injectable()
 export class CourseService {
@@ -21,54 +20,6 @@ export class CourseService {
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
   ) {}
-
-  private async generateEmbeddingCreate(
-    title: string,
-    description: string,
-    category_name: string,
-  ): Promise<number[]> {
-    try {
-      const response = await axios.post(
-        `${process.env.FASTAPI_URL}/create_course_embedding`,
-        {
-          title: title,
-          description: description,
-          category_name: category_name,
-        },
-      );
-      return response.data.embedding;
-    } catch (error) {
-      throw new HttpException(
-        `Không thể tạo embedding: ${error}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  private async generateEmbeddingUpdate(
-    course_id: string,
-    title: string,
-    description: string,
-    category_name: string,
-  ): Promise<number[]> {
-    try {
-      const response = await axios.post(
-        `${process.env.FASTAPI_URL}/update_course_embedding`,
-        {
-          course_id: course_id,
-          title: title,
-          description: description,
-          category_name: category_name,
-        },
-      );
-      return response.data.embedding;
-    } catch (error) {
-      throw new HttpException(
-        `Không thể tạo embedding: ${error}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
 
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     const courses = await this.CourseRepository.find({
@@ -82,18 +33,23 @@ export class CourseService {
       return new CourseResponseDTO(
         course.courseId,
         course.title,
-        course.price,
+        course.shortDescription,
         course.description,
-        course.videoInfo,
-        course.imageInfo,
+        course.duration,
+        course.price,
+        course.videoIntro,
+        course.thumbnail,
+        course.rating,
+        course.skill,
+        course.level,
+        course.status, // Added isPublic
         course.createdAt,
         course.updatedAt,
-        course.user.user_id,
-        course.user.username,
-        course.user.avatarImg,
-        course.category.name,
+        course.instructor.user_id,
+        course.instructor.username,
+        course.instructor.avatarImg,
         course.category.categoryId,
-        course.isPublic, // Added isPublic
+        course.category.name,
       );
     });
 
@@ -115,18 +71,23 @@ export class CourseService {
     const courseResponseDTO = new CourseResponseDTO(
       course.courseId,
       course.title,
-      course.price,
+      course.shortDescription,
       course.description,
-      course.videoInfo,
-      course.imageInfo,
+      course.duration,
+      course.price,
+      course.videoIntro,
+      course.thumbnail,
+      course.rating,
+      course.skill,
+      course.level,
+      course.status,
       course.createdAt,
       course.updatedAt,
-      course.user.user_id,
-      course.user.username,
-      course.user.avatarImg,
-      course.category.name,
+      course.instructor.user_id,
+      course.instructor.username,
+      course.instructor.avatarImg,
       course.category.categoryId,
-      course.isPublic, // Added isPublic
+      course.category.name,
     );
     return courseResponseDTO;
   }
@@ -138,15 +99,15 @@ export class CourseService {
       imageInfo?: Express.Multer.File[];
     },
   ): Promise<CourseResponseDTO> {
-    const { userId, categoryId, title, isPublic } = course;
+    const { instructorId, categoryId, title } = course;
 
     // Kiểm tra user
     const userData = await this.userRepository.findOne({
-      where: { user_id: userId },
+      where: { user_id: instructorId },
     });
     if (!userData) {
       throw new HttpException(
-        `User with ID ${userId} not found.`,
+        `User with ID ${instructorId} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
@@ -183,12 +144,6 @@ export class CourseService {
       imageUrl = await azureUpload(files.imageInfo[0]);
     }
 
-    const embedding = await this.generateEmbeddingCreate(
-      title,
-      course.description,
-      categoryData.name,
-    );
-
     const newCourse = await this.CourseRepository.save({
       courseId: uuidv4(),
       title: course.title,
@@ -200,19 +155,36 @@ export class CourseService {
       user: userData,
       createdAt: new Date(),
       updatedAt: new Date(),
-      isPublic: isPublic ?? true,
-      embedding: embedding,
+      short_description: course.short_description,
+      duration: course.duration,
+      rating: course.rating,
+      skill: course.skill,
+      level: course.level,
+      status: course.status ?? false, // Mặc định là true nếu không có giá trị
     });
 
     return {
       ...newCourse,
-      userId: userData.user_id,
-      userName: userData.email,
-      userAvata: userData.avatarImg,
+      instructorId: userData.user_id,
+      instructorName: userData.email,
+      instructorAvatar: userData.avatarImg,
       categoryId: categoryData.categoryId,
       categoryName: categoryData.name,
-      isPublic: newCourse.isPublic,
-    } as CourseResponseDTO;
+      status: newCourse.status,
+      courseId: newCourse.courseId,
+      title: newCourse.title,
+      price: newCourse.price,
+      description: newCourse.description,
+      videoIntro: newCourse.videoInfo,
+      thumbnail: newCourse.imageInfo,
+      short_description: newCourse.short_description,
+      duration: newCourse.duration,
+      rating: newCourse.rating,
+      skill: newCourse.skill,
+      level: newCourse.level,
+      createdAt: newCourse.createdAt,
+      updatedAt: newCourse.updatedAt,
+    };
   }
 
   async updateCourse(
@@ -235,23 +207,18 @@ export class CourseService {
       );
     }
 
-    // Lưu trữ giá trị ban đầu của các trường liên quan đến embedding
-    const originalTitle = course.title;
-    const originalDescription = course.description;
-    const originalCategoryId = course.category.categoryId;
-
     // Cập nhật user nếu có
-    if (updateData.userId) {
+    if (updateData.instructorId) {
       const userData = await this.userRepository.findOne({
-        where: { user_id: updateData.userId },
+        where: { user_id: updateData.instructorId },
       });
       if (!userData) {
         throw new HttpException(
-          `User with ID ${updateData.userId} not found.`,
+          `User with ID ${updateData.instructorId} not found.`,
           HttpStatus.NOT_FOUND,
         );
       }
-      course.user = userData;
+      course.instructor = userData;
     }
 
     // Cập nhật category nếu có
@@ -270,27 +237,12 @@ export class CourseService {
 
     // Xử lý tải file nếu có
     if (files?.videoInfo?.[0])
-      course.videoInfo = await azureUpload(files.videoInfo[0]);
+      course.videoIntro = await azureUpload(files.videoInfo[0]);
     if (files?.imageInfo?.[0])
-      course.imageInfo = await azureUpload(files.imageInfo[0]);
+      course.thumbnail = await azureUpload(files.imageInfo[0]);
 
     // Cập nhật các trường khác từ updateData
     Object.assign(course, updateData);
-
-    // Kiểm tra xem embedding có cần tạo lại không
-    const needsEmbeddingUpdate =
-      course.title !== originalTitle ||
-      course.description !== originalDescription ||
-      course.category.categoryId !== originalCategoryId;
-
-    if (needsEmbeddingUpdate) {
-      course.embedding = await this.generateEmbeddingUpdate(
-        course.courseId,
-        course.title,
-        course.description,
-        course.category.name,
-      );
-    }
 
     // Cập nhật thời gian và lưu khóa học
     course.updatedAt = new Date();
@@ -300,18 +252,23 @@ export class CourseService {
     return new CourseResponseDTO(
       updatedCourse.courseId,
       updatedCourse.title,
-      updatedCourse.price,
+      updatedCourse.shortDescription,
       updatedCourse.description,
-      updatedCourse.videoInfo,
-      updatedCourse.imageInfo,
+      updatedCourse.duration,
+      updatedCourse.price,
+      updatedCourse.videoIntro,
+      updatedCourse.thumbnail,
+      updatedCourse.rating,
+      updatedCourse.skill,
+      updatedCourse.level,
+      updatedCourse.status,
       updatedCourse.createdAt,
       updatedCourse.updatedAt,
-      updatedCourse.user.user_id,
-      updatedCourse.user.username,
-      updatedCourse.user.avatarImg,
-      updatedCourse.category.name,
+      updatedCourse.instructor.user_id,
+      updatedCourse.instructor.username,
+      updatedCourse.instructor.avatarImg,
       updatedCourse.category.categoryId,
-      updatedCourse.isPublic,
+      updatedCourse.category.name,
     );
   }
 

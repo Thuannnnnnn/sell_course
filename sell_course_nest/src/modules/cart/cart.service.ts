@@ -59,7 +59,7 @@ export class CartService {
       course_id: cart.course.courseId,
       course_title: cart.course.title,
       course_price: cart.course.price,
-      course_img: cart.course.imageInfo,
+      course_img: cart.course.thumbnail,
     }));
   }
 

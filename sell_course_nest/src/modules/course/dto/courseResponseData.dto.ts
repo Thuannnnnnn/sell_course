@@ -5,134 +5,143 @@ import {
   IsDateString,
   IsUUID,
   IsBoolean,
+  IsInt,
 } from 'class-validator';
 
 export class CourseResponseDTO {
   constructor(
     courseId: string,
     title: string,
-    price: number,
+    short_description: string,
     description: string,
-    videoInfo: string,
-    imageInfo: string,
+    duration: number,
+    price: number,
+    videoIntro: string,
+    thumbnail: string,
+    rating: number,
+    skill: string,
+    level: string,
+    status: boolean,
     createdAt: Date,
     updatedAt: Date,
-    userId: string,
-    userName: string,
-    userAvata: string,
-    categoryName: string,
+    instructorId: string,
+    instructorName: string,
+    instructorAvatar: string,
     categoryId: string,
-    isPublic: boolean, // Added isPublic parameter
+    categoryName: string,
   ) {
     this.courseId = courseId;
     this.title = title;
-    this.price = price;
+    this.short_description = short_description;
     this.description = description;
-    this.videoInfo = videoInfo;
-    this.imageInfo = imageInfo;
+    this.duration = duration;
+    this.price = price;
+    this.videoIntro = videoIntro;
+    this.thumbnail = thumbnail;
+    this.rating = rating;
+    this.skill = skill;
+    this.level = level;
+    this.status = status;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.userId = userId;
-    this.userName = userName;
-    this.userAvata = userAvata;
-    this.categoryName = categoryName;
+    this.instructorId = instructorId;
+    this.instructorName = instructorName;
+    this.instructorAvatar = instructorAvatar;
     this.categoryId = categoryId;
-    this.isPublic = isPublic; // Assign isPublic
+    this.categoryName = categoryName;
   }
 
-  @ApiProperty({
-    description: 'Unique identifier for the course',
-    example: '1234-5678-91011',
-  })
+  @ApiProperty({ description: 'Course ID', example: 'uuid-1234' })
   @IsUUID()
   courseId: string;
 
-  @ApiProperty({
-    description: 'Title of the course',
-    example: 'Introduction to NestJS',
-  })
+  @ApiProperty({ description: 'Course title', example: 'NestJS Mastery' })
   @IsString()
   title: string;
 
-  @ApiProperty({ description: 'Price of the course in USD', example: 29.99 })
-  @IsNumber()
-  price: number;
+  @ApiProperty({
+    description: 'Short description',
+    example: 'Learn NestJS basics',
+  })
+  @IsString()
+  short_description: string;
 
   @ApiProperty({
-    description: 'A brief description of the course',
-    example:
-      'This course introduces you to NestJS, a powerful Node.js framework.',
+    description: 'Full description',
+    example: 'This course covers NestJS in depth.',
   })
   @IsString()
   description: string;
 
-  @ApiProperty({
-    description: 'Information related to the course video',
-    example: 'This course has 10 hours of content.',
-  })
-  @IsString()
-  videoInfo: string;
+  @ApiProperty({ description: 'Duration in minutes', example: 120 })
+  @IsInt()
+  duration: number;
+
+  @ApiProperty({ description: 'Course price', example: 49.99 })
+  @IsNumber()
+  price: number;
 
   @ApiProperty({
-    description: 'Information related to the course image',
-    example: 'https://example.com/course-image.jpg',
+    description: 'Video intro URL',
+    example: 'https://cdn.com/intro.mp4',
   })
   @IsString()
-  imageInfo: string;
+  videoIntro: string;
 
   @ApiProperty({
-    description: 'The date when the course was created',
-    example: '2025-01-14T12:00:00.000Z',
+    description: 'Course thumbnail URL',
+    example: 'https://cdn.com/thumb.jpg',
+  })
+  @IsString()
+  thumbnail: string;
+
+  @ApiProperty({ description: 'Course rating (0–5)', example: 4 })
+  @IsInt()
+  rating: number;
+
+  @ApiProperty({ description: 'Skill taught', example: 'JavaScript' })
+  @IsString()
+  skill: string;
+
+  @ApiProperty({ description: 'Course level', example: 'Beginner' })
+  @IsString()
+  level: string;
+
+  @ApiProperty({ description: 'Course public status', example: true })
+  @IsBoolean()
+  status: boolean;
+
+  @ApiProperty({
+    description: 'Creation date',
+    example: '2025-06-01T00:00:00Z',
   })
   @IsDateString()
   createdAt: Date;
 
-  @ApiProperty({
-    description: 'The date when the course was last updated',
-    example: '2025-01-14T12:00:00.000Z',
-  })
+  @ApiProperty({ description: 'Last update', example: '2025-06-02T00:00:00Z' })
   @IsDateString()
   updatedAt: Date;
 
-  @ApiProperty({
-    description: 'The ID of the user who created the course',
-    example: 'abcd-1234-efgh-5678',
-  })
+  @ApiProperty({ description: 'Instructor ID', example: 'uuid-5678' })
   @IsUUID()
-  userId: string;
+  instructorId: string;
+
+  @ApiProperty({ description: 'Instructor name', example: 'Jane Doe' })
+  @IsString()
+  instructorName: string;
 
   @ApiProperty({
-    description: 'Name of the user who created the course',
-    example: 'John Doe',
+    description: 'Instructor avatar URL',
+    example: 'https://cdn.com/avatar.jpg',
   })
   @IsString()
-  userName: string;
+  instructorAvatar: string;
 
-  @ApiProperty({
-    description: 'The category name of the course',
-    example: 'Web Development',
-  })
-  @IsString()
-  categoryName: string;
-
-  @ApiProperty({
-    description: 'The avatar of user',
-    example: 'https://example.com/avatar.jpg', // Fixed example to be more appropriate
-  })
-  @IsString()
-  userAvata: string;
-
-  @ApiProperty({
-    description: 'The ID of the category to which the course belongs',
-    example: 'xyz-9876-mnop-5432',
-  })
+  @ApiProperty({ description: 'Category ID', example: 'uuid-9999' })
   @IsUUID()
   categoryId: string;
 
-  @ApiProperty({
-    description: 'Indicates if the course is publicly accessible',
-    example: true,
-  })
-  @IsBoolean()
-  isPublic: boolean;
+  @ApiProperty({ description: 'Category name', example: 'Backend Development' })
+  @IsString()
+  categoryName: string;
 }
