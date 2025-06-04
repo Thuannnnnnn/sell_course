@@ -11,8 +11,8 @@ export default function NotFound() {
           Page Not Found
         </h2>
         <p className="text-gray-600 mb-8 max-w-md">
-          Sorry, we couldn't find the page you're looking for. The page might
-          have been moved, deleted, or you entered the wrong URL.
+          Sorry, we couldn&#39;t find the page you&#39;re looking for. The page
+          might have been moved, deleted, or you entered the wrong URL.
         </p>
         <div className="space-x-4">
           <Link
