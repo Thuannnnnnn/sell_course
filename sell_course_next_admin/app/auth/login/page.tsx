@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginApi } from "@/app/api/auth/login";
+import { signIn } from "next-auth/react";
 import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
@@ -16,12 +16,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
-    const result = await loginApi({ email, password });
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
 
-    if (result) {
-      router.push("/dashboard");
-    } else {
+    if (result?.error) {
       setError("Đăng nhập thất bại");
+    } else {
+      router.push("/");
     }
   };
 
@@ -29,7 +33,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md p-6 shadow-md">
         <CardContent className="space-y-4">
-          <h1 className="text-xl font-semibold text-center">Đăng nhập</h1>
+          <h1 className="text-xl font-semibold text-center">Login</h1>
 
           <div className="space-y-2">
             <Label>Email</Label>
@@ -41,7 +45,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Mật khẩu</Label>
+            <Label>Password</Label>
             <Input
               type="password"
               value={password}
@@ -52,7 +56,7 @@ export default function LoginPage() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <Button className="w-full" onClick={handleLogin}>
-            Đăng nhập
+            Login
           </Button>
         </CardContent>
       </Card>

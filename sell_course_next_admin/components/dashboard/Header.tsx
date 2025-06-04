@@ -1,10 +1,12 @@
 "use client";
 import React from "react";
 import { Menu, Search, Bell, ChevronDown } from "lucide-react";
+import { useSession } from "next-auth/react";
 interface HeaderProps {
   onMenuClick: () => void;
 }
 export function Header({ onMenuClick }: HeaderProps) {
+  const { data: session } = useSession();
   return (
     <header className="sticky top-0 z-10 bg-background border-b border-border">
       <div className="flex items-center justify-between h-16 px-4">
@@ -37,11 +39,8 @@ export function Header({ onMenuClick }: HeaderProps) {
             <div className="ml-3 relative">
               <div className="flex items-center">
                 <button className="flex items-center max-w-xs rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                    JD
-                  </div>
                   <span className="hidden md:flex ml-2 text-sm font-medium">
-                    John Doe
+                    {session?.user?.name || "User"}
                   </span>
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </button>
