@@ -29,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>
+        <SessionProvider refetchOnWindowFocus={false}>
           <div className="flex h-screen bg-background">
             {/* Sidebar */}
             <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
