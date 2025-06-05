@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -10,6 +9,8 @@ import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import logo from "../../public/logo.png";
+import Link from "next/link";
+import PageHead from "../layout/Head";
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,6 +61,10 @@ export function LoginPage() {
   }
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted/50">
+      <PageHead
+        title="Login"
+        description="Login to your CourseMaseter account"
+      />
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <div className="flex flex-col items-center space-y-2 text-center">
@@ -180,19 +185,19 @@ export function LoginPage() {
         <CardFooter className="flex flex-col items-center gap-2">
           <div className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <a
-              href="#"
+            <Link
+              href="/auth/register"
               className="text-primary underline-offset-4 hover:underline"
             >
               Sign Up
-            </a>
+            </Link>
           </div>
-          <a
-            href="#"
+          <Link
+            href="/auth/forgot-password"
             className="text-sm text-primary underline-offset-4 hover:underline"
           >
-            Forgot your password?
-          </a>
+            Forgot your password ?
+          </Link>
         </CardFooter>
       </Card>
     </div>

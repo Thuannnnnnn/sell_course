@@ -173,7 +173,9 @@ export function Navbar() {
               <Link href="/auth/login">
                 <Button variant="outline">Sign In</Button>
               </Link>
-              <Button>Sign Up</Button>
+              <Link href="/auth/register">
+                <Button>Sign Up</Button>
+              </Link>
             </>
           )}
         </div>

@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +12,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ChangePasswordRequest } from "@/app/types/auth/change-password/api";
 import { changePasswordAPI } from "@/app/api/auth/change-password/changePassword";
+import PageHead from "@/components/layout/Head";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -29,8 +29,6 @@ export default function ChangePasswordPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
-
-    // Validation
     if (
       currentPassword === "" ||
       newPassword === "" ||
@@ -73,19 +71,21 @@ export default function ChangePasswordPage() {
       setNewPassword("");
       setConfirmPassword("");
 
-      // Optionally redirect after success
       setTimeout(() => {
         router.push("/dashboard");
       }, 2000);
-    } catch (error: any) {
-      setError(error.message || "An error occurred while changing password");
+    } catch {
+      setError("An error occurred while changing password");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted/50">
+      <PageHead
+        title="Change Password"
+        description="Change your account password securely."
+      />
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <div className="flex flex-col items-center space-y-2 text-center">

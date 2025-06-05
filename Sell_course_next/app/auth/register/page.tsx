@@ -12,8 +12,7 @@ import {
 import { authApi, ApiError } from "@/app/api/auth/register/register";
 import { OtpData } from "@/app/types/auth/Register/otp";
 import { FormData } from "@/app/types/auth/Register/register";
-
-
+import PageHead from "@/components/layout/Head";
 
 export default function RegisterPage() {
   const [error, setError] = useState<string>("");
@@ -343,7 +342,10 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <Button onClick={() => (window.location.href = "/")} className="w-full">
+      <Button
+        onClick={() => (window.location.href = "/auth/login")}
+        className="w-full"
+      >
         Go to Login
       </Button>
     </div>
@@ -351,6 +353,10 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted/50">
+      <PageHead
+        title="Register"
+        description="Create your account to start learning with EduLearn"
+      />
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <div className="flex flex-col items-center space-y-2 text-center">
