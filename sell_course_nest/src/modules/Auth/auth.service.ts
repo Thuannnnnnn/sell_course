@@ -3,15 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserOtpDto } from './dto/create-user-otp.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResendOtpDto } from './dto/resend-otp.dto';
+import { ResetPasswordOtpDto } from './dto/reset-password-otp.dto';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 // import { JwtStrategy } from './strategies/jwt.strategy';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { MailService } from '../../utilities/mail.service';
-import { EmailVerification } from '../email_verifications/entities/email_verifications.entity';
+
+import { OTP } from '../otp/entities/otp.entity';
+import { OtpService } from '../otp/otp.service';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { JwtService } from '@nestjs/jwt';
 import { azureUpload } from 'src/utilities/azure.service';
@@ -20,13 +26,15 @@ export class authService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(EmailVerification)
-    private emailVerifycationRepository: Repository<EmailVerification>,
+
+    @InjectRepository(OTP)
+    private otpRepository: Repository<OTP>,
     private readonly mailService: MailService,
+    private readonly otpService: OtpService,
     private jwtService: JwtService,
   ) {}
 
-  async verifyEmail(email: string, lang: string) {
+  async sendEmailVerificationOtp(email: string, lang: string) {
     if (!email) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
@@ -41,29 +49,135 @@ export class authService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const token = this.jwtService.sign({ email }, { expiresIn: '2d' });
-    const emailVerify = this.emailVerifycationRepository.create({
-      id: uuidv4(),
-      email: email,
-      token: token,
-      expiredAt: new Date(Date.now() + 1000 * 60 * 60),
-      createdAt: new Date(),
-    });
 
-    await this.emailVerifycationRepository.save(emailVerify);
+    // Tạo OTP 6 số
+    const otpCode = await this.otpService.createOtp(
+      email,
+      'email_verification',
+    );
 
-    const subject = 'Verify your email';
+    const subject = 'Verify your email - OTP Code';
     const content = `
       <p>Dear User,</p>
-      <p>Thank you for registering with us. Please click the link below to verify your email address:</p>
-      <p><a href="http://localhost:3000/${lang}/auth/signUp/info?token=${token}" target="_blank">Verify Email</a></p>
-      <p>This link will expire in 1 hour.</p>
+      <p>Thank you for registering with us. Please use the following OTP code to verify your email address:</p>
+      <div style="background-color: #f0f0f0; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+        ${otpCode}
+      </div>
+      <p>This OTP code will expire in 10 minutes.</p>
       <p>If you did not request this, please ignore this email.</p>
       <p>Best regards,</p>
       <p>Redflag GoldenStart</p>
     `;
-    this.mailService.sendSimpleEmail(email, subject, content);
-    throw new HttpException('Send mail successfully', HttpStatus.OK);
+
+    await this.mailService.sendSimpleEmail(email, subject, content);
+
+    return {
+      message: 'OTP sent successfully to your email',
+      statusCode: HttpStatus.OK,
+    };
+  }
+
+  async verifyEmailOtp(verifyOtpDto: VerifyOtpDto) {
+    const { email, otp_code, purpose } = verifyOtpDto;
+
+    if (purpose !== 'email_verification') {
+      throw new HttpException('Invalid purpose', HttpStatus.BAD_REQUEST);
+    }
+
+    // Kiểm tra email đã tồn tại chưa
+    const user = await this.userRepository.findOne({
+      where: { email: email },
+    });
+
+    if (user) {
+      throw new HttpException(
+        'Email already exists in the system',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Verify OTP
+    const isValidOtp = await this.otpService.verifyOtp(
+      email,
+      otp_code,
+      purpose,
+    );
+
+    if (isValidOtp) {
+      return {
+        message:
+          'Email verified successfully. You can now complete registration.',
+        statusCode: HttpStatus.OK,
+        verified: true,
+      };
+    }
+  }
+
+  async registerWithOtp(
+    createUserOtpDto: CreateUserOtpDto,
+  ): Promise<UserResponseDto> {
+    const {
+      email,
+      otp_code,
+      username,
+      password,
+      avatarImg,
+      gender,
+      birthDay,
+      phoneNumber,
+    } = createUserOtpDto;
+
+    // Verify OTP trước khi tạo user
+    const isValidOtp = await this.otpService.verifyOtp(
+      email,
+      otp_code,
+      'email_verification',
+    );
+
+    if (!isValidOtp) {
+      throw new HttpException('Invalid or expired OTP', HttpStatus.BAD_REQUEST);
+    }
+
+    // Kiểm tra email đã tồn tại chưa (double check)
+    const existingUser = await this.userRepository.findOne({
+      where: { email: email },
+    });
+
+    if (existingUser) {
+      throw new HttpException(
+        'Email already exists in the system',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = this.userRepository.create({
+      user_id: uuidv4(),
+      email: email,
+      username: username,
+      avatarImg: avatarImg,
+      password: hashedPassword,
+      gender: gender,
+      birthDay: birthDay,
+      phoneNumber: phoneNumber,
+      role: 'USER',
+      isOAuth: false,
+    });
+
+    const savedUser = await this.userRepository.save(newUser);
+    const userResponse: UserResponseDto = {
+      user_id: savedUser.user_id,
+      email: savedUser.email,
+      username: savedUser.username,
+      phoneNumber: savedUser.phoneNumber,
+      avatarImg: savedUser.avatarImg,
+      gender: savedUser.gender,
+      birthDay: savedUser.birthDay,
+      role: savedUser.role,
+      createdAt: savedUser.createdAt.toISOString(),
+    };
+
+    return userResponse;
   }
 
   async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -92,7 +206,7 @@ export class authService {
       gender: createUserDto.gender,
       birthDay: createUserDto.birthDay,
       phoneNumber: createUserDto.phoneNumber,
-      role: 'CUSTOMER',
+      role: 'USER',
       isOAuth: false,
     });
 
@@ -200,7 +314,7 @@ export class authService {
       avatarImg: picture,
       password: null,
       isOAuth: true,
-      role: 'CUSTOMER',
+      role: 'USER',
     });
 
     const savedUser = await this.userRepository.save(newUser);
@@ -252,76 +366,206 @@ export class authService {
     return await azureUpload(file);
   }
 
-  async validateEmailForgot(email: string, lang: string) {
-    const user = await this.userRepository.findOne({ where: { email } }); // Ensure await is used
+  async sendPasswordResetOtp(email: string, lang: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
-    console.log(email);
-    const token = this.jwtService.sign({ email }, { expiresIn: '1h' });
-    const subject = 'Password Reset Request';
+
+    // Tạo OTP 6 số cho reset password
+    const otpCode = await this.otpService.createOtp(email, 'password_reset');
+
+    const subject = 'Password Reset Request - OTP Code';
     const content = `
       <p>Dear ${email},</p>
-      <p>We received a request to reset your password. Please click the link below to proceed:</p>
-      <p><a href="http://localhost:3000/${lang}/auth/reset-password?token=${token}&email=${email}" target="_blank">Reset Password</a></p>
-      <p>This link will expire in 1 hour.</p>
+      <p>We received a request to reset your password. Please use the following OTP code to proceed:</p>
+      <div style="background-color: #f0f0f0; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+        ${otpCode}
+      </div>
+      <p>This OTP code will expire in 10 minutes.</p>
       <p>If you did not request this, please ignore this email.</p>
       <p>Best regards,</p>
       <p>Redflag GoldenStart Team</p>
     `;
-    await this.mailService.sendSimpleEmail(email, subject, content); // Ensure email is only sent if user exists
+
+    await this.mailService.sendSimpleEmail(email, subject, content);
+
     return {
-      message: 'Password reset email sent successfully',
+      message: 'Password reset OTP sent successfully to your email',
       statusCode: HttpStatus.OK,
     };
   }
 
-  async forgotPw(email: string, password: string, token: string) {
+  async resetPasswordWithOtp(resetPasswordOtpDto: ResetPasswordOtpDto) {
+    const { email, otp_code, new_password } = resetPasswordOtpDto;
+
     try {
-      if (!token) {
-        throw new HttpException('No token provided', HttpStatus.BAD_REQUEST);
-      }
-      console.log('Received Token:', token);
-      let decoded;
-      try {
-        decoded = this.jwtService.verify(token);
-      } catch {
+      // Verify OTP
+      const isValidOtp = await this.otpService.verifyOtp(
+        email,
+        otp_code,
+        'password_reset',
+      );
+
+      if (!isValidOtp) {
         throw new HttpException(
-          'Token invalid or expired',
+          'Invalid or expired OTP',
           HttpStatus.BAD_REQUEST,
         );
       }
-      console.log('Decoded Token:', decoded);
-      console.log('Received email:', email);
-      console.log('Token email:', decoded.email);
-      // Normalize email comparison (trim + lowercase)
-      if (decoded.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
-        throw new HttpException(
-          'Token email does not match',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+
       // Check if user exists
       const user = await this.userRepository.findOne({ where: { email } });
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
+
       // Hash new password
-      const newPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(new_password, 10);
+
       // Update user's password
       const result = await this.userRepository.update(
         { email },
-        { password: newPassword },
+        { password: hashedPassword },
       );
+
       if (result.affected === 0) {
         throw new HttpException(
           'Failed to update password',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-      return { message: 'Password reset successfully' };
+
+      return {
+        message: 'Password reset successfully',
+        statusCode: HttpStatus.OK,
+      };
     } catch (error) {
-      console.error('Error in forgotPw:', error);
+      console.error('Error in resetPasswordWithOtp:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async verifyEmail(email: string, lang: string) {
+    return await this.sendEmailVerificationOtp(email, lang);
+  }
+
+  async validateEmailForgot(email: string, lang: string) {
+    return await this.sendPasswordResetOtp(email, lang);
+  }
+
+  async verifyResetOtp(email: string, otp_code: string, purpose: string) {
+    try {
+      const isValid = await this.otpService.verifyOtp(email, otp_code, purpose);
+      if (isValid) {
+        return {
+          message:
+            'OTP verified successfully. You can now reset your password.',
+          statusCode: HttpStatus.OK,
+          verified: true,
+        };
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async forgotPw(email: string, password: string, token: string) {
+    // Decode token để lấy thông tin
+    const decoded = this.jwtService.decode(token);
+    if (!decoded || decoded.email !== email) {
+      throw new HttpException(
+        'Invalid token or email mismatch',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Hash password mới
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Cập nhật password
+    const result = await this.userRepository.update(
+      { email: email },
+      { password: hashedPassword },
+    );
+
+    if (result.affected === 0) {
+      throw new HttpException(
+        'Failed to update password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return {
+      message: 'Password updated successfully',
+      statusCode: HttpStatus.OK,
+    };
+  }
+
+  async resendOtp(resendOtpDto: ResendOtpDto) {
+    const { email, purpose, lang } = resendOtpDto;
+
+    try {
+      if (purpose === 'email_verification') {
+        // Kiểm tra email chưa tồn tại
+        const user = await this.userRepository.findOne({
+          where: { email: email },
+        });
+
+        if (user) {
+          throw new HttpException(
+            'Email already exists in the system',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      } else if (purpose === 'password_reset') {
+        // Kiểm tra email tồn tại
+        const user = await this.userRepository.findOne({
+          where: { email: email },
+        });
+
+        if (!user) {
+          throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
+        }
+      } else {
+        throw new HttpException('Invalid purpose', HttpStatus.BAD_REQUEST);
+      }
+
+      // Resend OTP
+      const newOtpCode = await this.otpService.resendOtp(email, purpose);
+
+      // Gửi email với OTP mới
+      const subject =
+        purpose === 'email_verification'
+          ? 'Verify your email - New OTP Code'
+          : 'Password Reset Request - New OTP Code';
+
+      const content = `
+        <p>Dear User,</p>
+        <p>Here is your new OTP code:</p>
+        <div style="background-color: #f0f0f0; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+          ${newOtpCode}
+        </div>
+        <p>This OTP code will expire in 10 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        <p>Best regards,</p>
+        <p>Redflag GoldenStart Team</p>
+      `;
+
+      await this.mailService.sendSimpleEmail(email, subject, content);
+
+      return {
+        message: 'New OTP sent successfully to your email',
+        statusCode: HttpStatus.OK,
+      };
+    } catch (error) {
+      console.error('Error in resendOtp:', error);
       if (error instanceof HttpException) {
         throw error;
       }

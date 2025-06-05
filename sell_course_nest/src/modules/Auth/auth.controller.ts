@@ -10,10 +10,14 @@ import {
 } from '@nestjs/common';
 import { authService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserOtpDto } from './dto/create-user-otp.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
 import { OAuthRequestDto } from './dto/authRequest.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResendOtpDto } from './dto/resend-otp.dto';
+import { ResetPasswordOtpDto } from './dto/reset-password-otp.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('api/auth')
@@ -32,6 +36,23 @@ export class authController {
   async verifyEmail(@Body() body: { email: string; lang: string }) {
     const { email, lang } = body;
     return await this.authService.verifyEmail(email, lang);
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return await this.authService.verifyEmailOtp(verifyOtpDto);
+  }
+
+  @Post('register-with-otp')
+  async registerWithOtp(
+    @Body() createUserOtpDto: CreateUserOtpDto,
+  ): Promise<UserResponseDto> {
+    return await this.authService.registerWithOtp(createUserOtpDto);
+  }
+
+  @Post('resend-otp')
+  async resendOtp(@Body() resendOtpDto: ResendOtpDto) {
+    return await this.authService.resendOtp(resendOtpDto);
   }
   @UseGuards(AuthGuard('local'))
   @Post('login')
@@ -83,5 +104,24 @@ export class authController {
     }
     this.authService.forgotPw(body.email, body.password, body.token);
     return { message: 'OK', statusCode: HttpStatus.OK };
+  }
+
+  @Post('reset-password-with-otp')
+  async resetPasswordWithOtp(@Body() resetPasswordOtpDto: ResetPasswordOtpDto) {
+    return await this.authService.resetPasswordWithOtp(resetPasswordOtpDto);
+  }
+
+  @Post('verify-reset-otp')
+  async verifyResetOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    const { email, otp_code, purpose } = verifyOtpDto;
+
+    if (purpose !== 'password_reset') {
+      throw new HttpException(
+        'Invalid purpose for password reset',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return await this.authService.verifyResetOtp(email, otp_code, purpose);
   }
 }
