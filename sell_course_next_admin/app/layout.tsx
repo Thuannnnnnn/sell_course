@@ -2,6 +2,9 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Header } from "@/components/dashboard/Header";
+import React, { useState } from "react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -19,12 +22,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider refetchOnWindowFocus={false}>
+          <div className="flex h-screen bg-background">
+            {/* Sidebar */}
+            <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col md:ml-64">
+              {/* Header */}
+              <Header onMenuClick={() => setSidebarOpen(true)} />
+
+              {/* Page Content */}
+              <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                {children}
+              </main>
+            </div>
+          </div>
+        </SessionProvider>
       </body>
     </html>
   );
