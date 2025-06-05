@@ -14,7 +14,7 @@ import { Contents } from './modules/contents/entities/contents.entity';
 import { Course } from './modules/course/entities/course.entity';
 import { CoursePurchase } from './modules/course_purchase/entities/course_purchase.entity';
 import { Docs } from './modules/docs/entities/docs.entity';
-import { EmailVerification } from './modules/email_verifications/entities/email_verifications.entity';
+
 import { Exam } from './modules/exam/entities/exam.entity';
 import { FeedbackRatting } from './modules/feedback_ratting/entities/feedback_ratting.entity';
 import { Forum } from './modules/forum/entities/forum.entity';
@@ -35,7 +35,7 @@ import { ContentModule } from './modules/contents/contents.module';
 import { CourseModule } from './modules/course/course.module';
 import { CoursePurchaseModule } from './modules/course_purchase/course_purchase.module';
 import { DocsModule } from './modules/docs/docs.module';
-import { EmailVerificationsModule } from './modules/email_verifications/email_verifications.module';
+
 import { ExamModule } from './modules/exam/exam.module';
 import { FeedbackRattingModule } from './modules/feedback_ratting/feedback_ratting.module';
 import { ForumModule } from './modules/forum/forum.module';
@@ -92,16 +92,26 @@ import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.modu
 import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
 import { Meeting } from './modules/meeting/entities/meeting.entity';
 import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
+import { OTP } from './modules/otp/entities/otp.entity';
+import { OtpModule } from './modules/otp/otp.module';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
  */
-
+import * as redisStore from 'cache-manager-ioredis';
+import { CacheModule } from '@nestjs/cache-manager';
 @Module({
   imports: [
     VideoModule,
     ContentModule,
     PaymentModule,
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: 'localhost',
+      port: 6379,
+      ttl: 300,
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -112,11 +122,9 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-
       ssl: {
         rejectUnauthorized: false,
       },
-
       entities: [
         LogoSetting,
         VersionSetting,
@@ -135,7 +143,6 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
         Course,
         CoursePurchase,
         Docs,
-        EmailVerification,
         Exam,
         ExamQuestion,
         Answer,
@@ -166,6 +173,7 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
         ChatSession,
         Message,
         Promotion,
+        OTP,
       ],
       synchronize: true,
     }),
@@ -186,7 +194,6 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
     CourseModule,
     CoursePurchaseModule,
     DocsModule,
-    EmailVerificationsModule,
     ExamModule,
     ExamQuestion,
     Answer,
@@ -212,6 +219,7 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
     PromotionModule,
     CarouselSettingModule,
     MeetingModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],

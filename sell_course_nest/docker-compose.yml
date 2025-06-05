@@ -8,47 +8,28 @@ services:
     ports:
       - '8080:8080'
     depends_on:
-      - db
+      - redis
     environment:
-      DATABASE_HOST: db
-      DATABASE_PORT: 5432
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: postgres
-      DATABASE_NAME: sell_course
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     volumes:
       - .:/usr/src/app
     networks:
       - app-network
 
-  db:
-    image: postgres:15
-    container_name: postgres-db
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sell_course
+  redis:
+    image: redis:latest
+    container_name: redis
     ports:
-      - '5432:5432'
+      - '6379:6379'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
+      - redis_data:/data
     restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - '5050:80'
     networks:
       - app-network
 
 volumes:
-  postgres_data:
+  redis_data:
 
 networks:
   app-network:

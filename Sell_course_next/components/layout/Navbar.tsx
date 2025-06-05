@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,16 +14,43 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Image from "next/image";
 import logo from "../../public/logo.png";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+import LogoutButton from "../ui/LogoutButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 export function Navbar() {
-  // For demo purposes, let's assume the user is not logged in
-  const isLoggedIn = false;
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated";
+
+  useEffect(() => {
+    if (session?.expires) {
+      const expireTime = new Date(session.expires).getTime();
+      const currentTime = Date.now();
+      if (currentTime >= expireTime) {
+        signOut().then(() => {});
+      } else {
+        const timeout = setTimeout(() => {
+          signOut().then(() => {});
+        }, expireTime - currentTime);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [session]);
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center ">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image src={logo} alt={"logo"} width={80} height={80} />
           <span className="font-bold text-xl">Course Master</span>
-        </div>
+        </Link>
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
             <NavigationMenuItem>
@@ -122,14 +151,51 @@ export function Navbar() {
         </NavigationMenu>
         <div className="flex items-center gap-2">
           {isLoggedIn ? (
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="@user" />
-              <AvatarFallback>US</AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={session?.user?.avatarImg} alt="@user" />
+                      <AvatarFallback>
+                        {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-56 mr-4"
+                  align="end"
+                  side="bottom"
+                  sideOffset={8}
+                  alignOffset={-4}
+                  avoidCollisions={true}
+                  collisionBoundary={[]}
+                >
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {session?.user?.name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {session?.user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <LogoutButton />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : (
             <>
-              <Button variant="outline">Sign In</Button>
-              <Button>Sign Up</Button>
+              <Link href="/auth/login">
+                <Button variant="outline">Sign In</Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button>Sign Up</Button>
+              </Link>
             </>
           )}
         </div>
