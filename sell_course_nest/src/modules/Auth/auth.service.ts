@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
@@ -21,6 +21,7 @@ import { OtpService } from '../otp/otp.service';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { JwtService } from '@nestjs/jwt';
 import { azureUpload } from 'src/utilities/azure.service';
+import { BlacklistService } from './blacklist.service';
 @Injectable()
 export class authService {
   constructor(
@@ -30,8 +31,10 @@ export class authService {
     @InjectRepository(OTP)
     private otpRepository: Repository<OTP>,
     private readonly mailService: MailService,
+    @Inject('OTP_SERVICE')
     private readonly otpService: OtpService,
     private jwtService: JwtService,
+    private readonly blacklistService: BlacklistService,
   ) {}
 
   async sendEmailVerificationOtp(email: string, lang: string) {
@@ -181,53 +184,72 @@ export class authService {
   }
 
   async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    const decoded = this.jwtService.decode(createUserDto.token);
-    if (decoded.email !== createUserDto.email) {
+    try {
+      const decoded = this.jwtService.decode(createUserDto.token);
+      if (!decoded || typeof decoded !== 'object' || decoded.email !== createUserDto.email) {
+        throw new HttpException(
+          'Token email does not match or invalid token',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      if (!createUserDto) {
+        throw new HttpException(
+          'create User data not found',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Check if email already exists
+      const existingUser = await this.userRepository.findOne({
+        where: { email: createUserDto.email },
+      });
+
+      if (existingUser) {
+        throw new HttpException(
+          'Email already exists in the system',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      const newUser = this.userRepository.create({
+        user_id: uuidv4(),
+        email: createUserDto.email,
+        username: createUserDto.username,
+        avatarImg: createUserDto.avatarImg,
+        password: hashedPassword,
+        gender: createUserDto.gender,
+        birthDay: createUserDto.birthDay,
+        phoneNumber: createUserDto.phoneNumber,
+        role: 'USER',
+        isOAuth: false,
+      });
+
+      const savedUser = await this.userRepository.save(newUser);
+      const userResponse: UserResponseDto = {
+        user_id: savedUser.user_id,
+        email: savedUser.email,
+        username: savedUser.username,
+        phoneNumber: savedUser.phoneNumber,
+        avatarImg: savedUser.avatarImg,
+        gender: savedUser.gender,
+        birthDay: savedUser.birthDay,
+        role: savedUser.role,
+        createdAt: savedUser.createdAt.toISOString(),
+      };
+
+      return userResponse;
+    } catch (error) {
+      console.error('Error in register:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException(
-        'Token email does not match',
-        HttpStatus.FORBIDDEN,
+        error instanceof Error ? error.message : 'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
-    if (!createUserDto) {
-      throw new HttpException(
-        'create User data not found',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const newUser = this.userRepository.create({
-      user_id: uuidv4(),
-      email: createUserDto.email,
-      username: createUserDto.username,
-      avatarImg: createUserDto.avatarImg,
-      password: hashedPassword,
-      gender: createUserDto.gender,
-      birthDay: createUserDto.birthDay,
-      phoneNumber: createUserDto.phoneNumber,
-      role: 'USER',
-      isOAuth: false,
-    });
-
-    if (!newUser) {
-      throw new HttpException('Error', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    const savedUser = await this.userRepository.save(newUser);
-    const userResponse: UserResponseDto = {
-      user_id: savedUser.user_id,
-      email: savedUser.email,
-      username: savedUser.username,
-      phoneNumber: savedUser.phoneNumber,
-      avatarImg: savedUser.avatarImg,
-      gender: savedUser.gender,
-      birthDay: savedUser.birthDay,
-      role: savedUser.role,
-      createdAt: savedUser.createdAt.toISOString(),
-    };
-
-    throw new HttpException(userResponse, HttpStatus.CREATED);
   }
   async login(loginRequest: LoginRequestDto): Promise<LoginResponseDto> {
     const user = await this.userRepository.findOne({
@@ -477,35 +499,56 @@ export class authService {
   }
 
   async forgotPw(email: string, password: string, token: string) {
-    // Decode token để lấy thông tin
-    const decoded = this.jwtService.decode(token);
-    if (!decoded || decoded.email !== email) {
-      throw new HttpException(
-        'Invalid token or email mismatch',
-        HttpStatus.FORBIDDEN,
+    try {
+      // Decode token để lấy thông tin
+      const decoded = this.jwtService.decode(token);
+      if (!decoded || typeof decoded !== 'object' || decoded.email !== email) {
+        throw new HttpException(
+          'Invalid token or email mismatch',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      // Check if user exists
+      const user = await this.userRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Hash password mới
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Cập nhật password
+      const result = await this.userRepository.update(
+        { email: email },
+        { password: hashedPassword },
       );
-    }
 
-    // Hash password mới
-    const hashedPassword = await bcrypt.hash(password, 10);
+      if (result.affected === 0) {
+        throw new HttpException(
+          'Failed to update password',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
 
-    // Cập nhật password
-    const result = await this.userRepository.update(
-      { email: email },
-      { password: hashedPassword },
-    );
+      // Invalidate all existing tokens for this user by adding them to blacklist
+      // This is a security measure to ensure that after password change, all existing sessions are invalidated
+      // In a real implementation, you would need to track all active tokens for a user
 
-    if (result.affected === 0) {
+      return {
+        message: 'Password updated successfully',
+        statusCode: HttpStatus.OK,
+      };
+    } catch (error) {
+      console.error('Error in forgotPw:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException(
-        'Failed to update password',
+        error instanceof Error ? error.message : 'Internal Server Error',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
-    return {
-      message: 'Password updated successfully',
-      statusCode: HttpStatus.OK,
-    };
   }
 
   async resendOtp(resendOtpDto: ResendOtpDto) {
@@ -566,6 +609,45 @@ export class authService {
       };
     } catch (error) {
       console.error('Error in resendOtp:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async logout(token: string): Promise<{ message: string; statusCode: number }> {
+    try {
+      // Decode token to get expiration time
+      const decodedToken = this.jwtService.decode(token);
+      if (!decodedToken || typeof decodedToken !== 'object') {
+        throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+      }
+
+      // Calculate remaining time in seconds
+      const expiryTime = decodedToken.exp;
+      const currentTime = Math.floor(Date.now() / 1000);
+      const remainingTime = expiryTime - currentTime;
+
+      if (remainingTime <= 0) {
+        return {
+          message: 'Token already expired',
+          statusCode: HttpStatus.OK,
+        };
+      }
+
+      // Add token to blacklist
+      await this.blacklistService.addToBlacklist(token, remainingTime);
+
+      return {
+        message: 'Logged out successfully',
+        statusCode: HttpStatus.OK,
+      };
+    } catch (error) {
+      console.error('Error in logout:', error);
       if (error instanceof HttpException) {
         throw error;
       }

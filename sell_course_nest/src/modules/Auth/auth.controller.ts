@@ -7,6 +7,7 @@ import {
   UploadedFile,
   HttpException,
   HttpStatus,
+  Headers,
 } from '@nestjs/common';
 import { authService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -102,8 +103,7 @@ export class authController {
     if (!body.token || !body.email || !body.password) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
-    this.authService.forgotPw(body.email, body.password, body.token);
-    return { message: 'OK', statusCode: HttpStatus.OK };
+    return await this.authService.forgotPw(body.email, body.password, body.token);
   }
 
   @Post('reset-password-with-otp')
@@ -123,5 +123,15 @@ export class authController {
     }
 
     return await this.authService.verifyResetOtp(email, otp_code, purpose);
+  }
+
+  @Post('logout')
+  async logout(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new HttpException('Invalid token format', HttpStatus.BAD_REQUEST);
+    }
+    
+    const token = authHeader.split(' ')[1];
+    return await this.authService.logout(token);
   }
 }

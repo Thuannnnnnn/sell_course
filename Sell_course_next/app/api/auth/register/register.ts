@@ -1,7 +1,7 @@
 import { ApiResponse, RegisterData } from "@/app/types/auth/Register/api";
 import { UserResponse } from "@/app/types/user";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export class ApiError extends Error {
   constructor(message: string, public statusCode: number) {
