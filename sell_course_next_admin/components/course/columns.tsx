@@ -23,17 +23,10 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Edit2, Trash2 } from "lucide-react";
 import { Input } from "../ui/input";
-
+import { format } from 'date-fns';
 import Image from "next/image";
-interface Course {
-  id: number;
-  title: string;
-  category: string;
-  thumbnail: string;
-  price: number;
-  status: string;
-  updatedAt: string;
-}
+import { Course } from "./CoursesTable";
+
 interface CourseTableProps {
   courses: Course[];
   onDelete: (id: number) => void;
@@ -169,7 +162,7 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         );
       },
       cell: ({ row }) => {
-        return new Date(row.getValue("updatedAt")).toLocaleDateString();
+        return format(new Date(row.getValue("updatedAt")), 'MM/dd/yyyy');
       },
     },
     {
@@ -181,7 +174,7 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onUpdate(course.id)}
+              onClick={() => onUpdate(course.courseId)}
             >
               <Edit2 className="h-4 w-4" />
               <span className="sr-only">Edit</span>
@@ -189,7 +182,7 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onDelete(course.id)}
+              onClick={() => onDelete(course.courseId)}
               className="text-destructive hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />

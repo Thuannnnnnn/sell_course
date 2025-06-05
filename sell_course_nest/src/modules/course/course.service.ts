@@ -23,7 +23,7 @@ export class CourseService {
 
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     const courses = await this.CourseRepository.find({
-      relations: ['user', 'category'],
+      relations: ['instructor', 'category'],
     });
 
     if (courses.length === 0) {
@@ -58,7 +58,7 @@ export class CourseService {
 
   async getCourseById(courseId: string): Promise<CourseResponseDTO> {
     const course = await this.CourseRepository.findOne({
-      relations: ['user', 'category'],
+      relations: ['instructor', 'category'],
       where: { courseId },
     });
 
@@ -198,7 +198,7 @@ export class CourseService {
     // Lấy thông tin khóa học hiện tại
     const course = await this.CourseRepository.findOne({
       where: { courseId },
-      relations: ['user', 'category'],
+      relations: ['instructor', 'category'],
     });
     if (!course) {
       throw new HttpException(
