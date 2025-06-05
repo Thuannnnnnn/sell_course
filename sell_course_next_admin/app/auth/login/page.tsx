@@ -22,7 +22,7 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Đăng nhập thất bại");
+      setError("Login failed. Please check your credentials.");
     } else {
       router.push("/");
     }
