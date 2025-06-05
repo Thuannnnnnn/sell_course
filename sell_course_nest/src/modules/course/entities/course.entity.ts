@@ -36,7 +36,7 @@ export class Course {
   description: string;
 
   @Column({ type: 'varchar', name: 'short_description' })
-  shortDescription: string;
+  short_description: string;
 
   @Column({ type: 'int' })
   duration: number;
@@ -44,7 +44,7 @@ export class Course {
   @Column({ type: 'int' })
   price: number;
 
-  @Column({ type: 'varchar', name: 'video_intro' })
+  @Column({ type: 'varchar', name: 'video_intro', nullable: true })
   videoIntro: string;
 
   @Column({ type: 'varchar' })

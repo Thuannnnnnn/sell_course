@@ -33,7 +33,7 @@ export class CourseService {
       return new CourseResponseDTO(
         course.courseId,
         course.title,
-        course.shortDescription,
+        course.short_description,
         course.description,
         course.duration,
         course.price,
@@ -71,7 +71,7 @@ export class CourseService {
     const courseResponseDTO = new CourseResponseDTO(
       course.courseId,
       course.title,
-      course.shortDescription,
+      course.short_description,
       course.description,
       course.duration,
       course.price,
@@ -95,8 +95,8 @@ export class CourseService {
   async createCourse(
     course: CourseRequestDTO,
     files?: {
-      videoInfo?: Express.Multer.File[];
-      imageInfo?: Express.Multer.File[];
+      videoIntro?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File[];
     },
   ): Promise<CourseResponseDTO> {
     const { instructorId, categoryId, title } = course;
@@ -137,11 +137,11 @@ export class CourseService {
     // Xử lý file upload (nếu có)
     let videoUrl = '';
     let imageUrl = '';
-    if (files?.videoInfo?.[0]) {
-      videoUrl = await azureUpload(files.videoInfo[0]);
+    if (files?.videoIntro?.[0]) {
+      videoUrl = await azureUpload(files.videoIntro[0]);
     }
-    if (files?.imageInfo?.[0]) {
-      imageUrl = await azureUpload(files.imageInfo[0]);
+    if (files?.thumbnail?.[0]) {
+      imageUrl = await azureUpload(files.thumbnail[0]);
     }
 
     const newCourse = await this.CourseRepository.save({
@@ -149,15 +149,15 @@ export class CourseService {
       title: course.title,
       description: course.description,
       category: categoryData,
-      imageInfo: imageUrl,
+      thumbnail: imageUrl,
       price: course.price,
-      videoInfo: videoUrl,
+      videoIntro: videoUrl || null,
       user: userData,
       createdAt: new Date(),
       updatedAt: new Date(),
       short_description: course.short_description,
       duration: course.duration,
-      rating: course.rating,
+      rating: 0,
       skill: course.skill,
       level: course.level,
       status: course.status ?? false, // Mặc định là true nếu không có giá trị
@@ -175,8 +175,8 @@ export class CourseService {
       title: newCourse.title,
       price: newCourse.price,
       description: newCourse.description,
-      videoIntro: newCourse.videoInfo,
-      thumbnail: newCourse.imageInfo,
+      videoIntro: newCourse.videoIntro,
+      thumbnail: newCourse.thumbnail,
       short_description: newCourse.short_description,
       duration: newCourse.duration,
       rating: newCourse.rating,
@@ -252,7 +252,7 @@ export class CourseService {
     return new CourseResponseDTO(
       updatedCourse.courseId,
       updatedCourse.title,
-      updatedCourse.shortDescription,
+      updatedCourse.short_description,
       updatedCourse.description,
       updatedCourse.duration,
       updatedCourse.price,

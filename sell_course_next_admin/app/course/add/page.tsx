@@ -1,13 +1,14 @@
+"use client";
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2, Upload, X } from "lucide-react";
-import { cn } from "../../lib/utils";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+import axios from "axios";
+import { Loader2, Upload, X } from "lucide-react";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
+import { Textarea } from "../../../components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -16,169 +17,120 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form";
+} from "../../../components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
-import { Card, CardContent } from "../ui/card";
+} from "../../../components/ui/select";
+import { Card, CardContent } from "../../../components/ui/card";
 import Image from "next/image";
 
-const INSTRUCTORS = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-  },
-  {
-    id: 3,
-    name: "Jessica Williams",
-  },
-  {
-    id: 4,
-    name: "David Miller",
-  },
-];
 const CATEGORIES = [
-  {
-    id: 1,
-    name: "Web Development",
-  },
-  {
-    id: 2,
-    name: "Mobile Development",
-  },
-  {
-    id: 3,
-    name: "Data Science",
-  },
-  {
-    id: 4,
-    name: "UI/UX Design",
-  },
-  {
-    id: 5,
-    name: "Machine Learning",
-  },
+  { id: 1, name: "Web Development" },
+  { id: 2, name: "Mobile Development" },
+  { id: 3, name: "Data Science" },
+  { id: 4, name: "UI/UX Design" },
+  { id: 5, name: "Machine Learning" },
 ];
 const LEVELS = [
-  {
-    id: 1,
-    name: "Beginner",
-  },
-  {
-    id: 2,
-    name: "Intermediate",
-  },
-  {
-    id: 3,
-    name: "Advanced",
-  },
+  { id: 1, name: "Beginner" },
+  { id: 2, name: "Intermediate" },
+  { id: 3, name: "Advanced" },
 ];
-// Form schema
+
 const formSchema = z.object({
-  title: z.string().min(3, {
-    message: "Course title must be at least 3 characters",
-  }),
-  shortDescription: z.string().min(10, {
-    message: "Short description must be at least 10 characters",
-  }),
-  fullDescription: z.string().min(50, {
-    message: "Full description must be at least 50 characters",
-  }),
-  duration: z.coerce.number().min(1, {
-    message: "Duration must be at least 1 minute",
-  }),
-  price: z.coerce.number().min(0, {
-    message: "Price must be a positive number",
-  }),
-  introVideo: z.instanceof(FileList).optional(),
+  title: z.string().min(3),
+  short_description: z.string().min(10),
+  description: z.string().min(50),
+  duration: z.coerce.number().min(1),
+  price: z.coerce.number().min(0),
+  videoIntro: z.instanceof(FileList).optional(),
   thumbnail: z.instanceof(FileList).optional(),
-  skill: z.string({
-    required_error: "Please select a skill level",
-  }),
-  level: z.string({
-    required_error: "Please select a difficulty level",
-  }),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  instructorId: z.string({
-    required_error: "Please select an instructor",
-  }),
-  categoryId: z.string({
-    required_error: "Please select a category",
-  }),
+  skill: z.string(),
+  level: z.string(),
+  instructorId: z.string(),
+  categoryId: z.string(),
 });
+
 type FormValues = z.infer<typeof formSchema>;
-export function AddCourseForm() {
+
+export default function AddCourseForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      shortDescription: "",
-      fullDescription: "",
+      short_description: "",
+      description: "",
       duration: 60,
       price: 0,
       skill: "",
       level: "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
       instructorId: "",
       categoryId: "",
     },
   });
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    // Convert FileList to File for handling
-    const thumbnailFile = data.thumbnail?.[0];
-    const videoFile = data.introVideo?.[0];
-    // Simulate API request
-    console.log("Form data:", {
-      ...data,
-      thumbnail: thumbnailFile,
-      introVideo: videoFile,
-    });
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    // Reset form (optional)
-    // form.reset()
-    // setThumbnailPreview(null)
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("short_description", data.short_description);
+    formData.append("description", data.description);
+    formData.append("duration", data.duration.toString());
+    formData.append("price", data.price.toString());
+    formData.append("skill", data.skill);
+    formData.append("level", data.level);
+    formData.append("status", "true");
+    formData.append("instructorId", data.instructorId);
+    formData.append("categoryId", data.categoryId);
+    if (data.thumbnail?.[0]) formData.append("thumbnail", data.thumbnail[0]);
+    if (data.videoIntro?.[0]) formData.append("videoIntro", data.videoIntro[0]);
+
+    try {
+      const res = await axios.post(
+        "http://localhost:8080/api/instructor/courses/create_course",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Success", res.data);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnailPreview(reader.result as string);
-      };
+      reader.onloadend = () => setThumbnailPreview(reader.result as string);
       reader.readAsDataURL(file);
     } else {
       setThumbnailPreview(null);
     }
   };
+
   const clearThumbnail = () => {
     form.setValue("thumbnail", undefined);
     setThumbnailPreview(null);
   };
+
   const formatPrice = (value: string) => {
-    // Remove non-numeric characters
     const numericValue = value.replace(/[^0-9]/g, "");
-    // Format with thousand separators
-    if (numericValue) {
-      const number = parseInt(numericValue, 10);
-      return new Intl.NumberFormat("vi-VN").format(number);
-    }
-    return "";
+    return numericValue
+      ? new Intl.NumberFormat("vi-VN").format(parseInt(numericValue, 10))
+      : "";
   };
   return (
     <div className="max-w-6xl mx-auto py-8">
@@ -203,7 +155,7 @@ export function AddCourseForm() {
               />
               <FormField
                 control={form.control}
-                name="shortDescription"
+                name="short_description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Short Description</FormLabel>
@@ -220,7 +172,7 @@ export function AddCourseForm() {
               />
               <FormField
                 control={form.control}
-                name="fullDescription"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Full Description</FormLabel>
@@ -355,7 +307,7 @@ export function AddCourseForm() {
                           id="thumbnail"
                           type="file"
                           accept="image/*"
-                          className={cn(thumbnailPreview ? "hidden" : "block")}
+                          className={thumbnailPreview ? "hidden" : "block"}
                           onChange={(e) => {
                             onChange(e.target.files);
                             handleThumbnailChange(e);
@@ -406,7 +358,7 @@ export function AddCourseForm() {
               />
               <FormField
                 control={form.control}
-                name="introVideo"
+                name="videoIntro"
                 render={({ field: { value, onChange, ...fieldProps } }) => (
                   <FormItem>
                     <FormLabel>Intro Video</FormLabel>
@@ -428,68 +380,6 @@ export function AddCourseForm() {
                         )}
                       </div>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="createdAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created At</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="instructorId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Instructor</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select instructor" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {INSTRUCTORS.map((instructor) => (
-                          <SelectItem
-                            key={instructor.id}
-                            value={instructor.id.toString()}
-                          >
-                            {instructor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

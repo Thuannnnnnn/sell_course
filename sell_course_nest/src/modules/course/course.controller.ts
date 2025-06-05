@@ -89,12 +89,11 @@ export class CourseController {
     return await this.courseService.getCourseById(courseId);
   }
 
-  @ApiBearerAuth('Authorization')
-  @Post('admin/courses/create_course')
+  @Post('instructor/courses/create_course')
   @UseInterceptors(
     FileFieldsInterceptor([
-      { name: 'videoInfo', maxCount: 1 },
-      { name: 'imageInfo', maxCount: 1 },
+      { name: 'videoIntro', maxCount: 1 },
+      { name: 'thumbnail', maxCount: 1 },
     ]),
   )
   @ApiConsumes('multipart/form-data')
@@ -109,8 +108,8 @@ export class CourseController {
     @Body() course: CourseRequestDTO,
     @UploadedFiles()
     files?: {
-      videoInfo?: Express.Multer.File[];
-      imageInfo?: Express.Multer.File[];
+      videoIntro?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File[];
     },
   ): Promise<CourseResponseDTO> {
     return await this.courseService.createCourse(course, files ?? {});

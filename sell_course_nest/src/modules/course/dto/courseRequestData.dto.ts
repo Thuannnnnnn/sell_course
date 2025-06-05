@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNumber,
-  IsDateString,
   IsUUID,
   IsOptional,
   IsBoolean,
@@ -56,10 +55,6 @@ export class CourseRequestDTO {
   @IsOptional()
   thumbnail?: Express.Multer.File;
 
-  @ApiProperty({ description: 'Rating of the course (0-5)', example: 4 })
-  @IsInt()
-  rating: number;
-
   @ApiProperty({ description: 'Skill required or taught', example: 'Beginner' })
   @IsString()
   skill: string;
@@ -71,20 +66,6 @@ export class CourseRequestDTO {
   @ApiProperty({ description: 'Course visibility status', example: true })
   @IsBoolean()
   status: boolean;
-
-  @ApiProperty({
-    description: 'Creation date',
-    example: '2025-06-01T00:00:00Z',
-  })
-  @IsDateString()
-  createdAt: Date;
-
-  @ApiProperty({
-    description: 'Last updated date',
-    example: '2025-06-02T00:00:00Z',
-  })
-  @IsDateString()
-  updatedAt: Date;
 
   @ApiProperty({ description: 'Instructor ID', example: 'uuid-1234-5678' })
   @IsUUID()
