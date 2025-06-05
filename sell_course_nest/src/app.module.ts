@@ -96,12 +96,20 @@ import { MeetingParticipant } from './modules/meeting/entities/meeting-participa
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
  */
-
+import * as redisStore from 'cache-manager-ioredis';
+import { CacheModule } from '@nestjs/cache-manager';
 @Module({
   imports: [
     VideoModule,
     ContentModule,
     PaymentModule,
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: 'localhost',
+      port: 6379,
+      ttl: 300,
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

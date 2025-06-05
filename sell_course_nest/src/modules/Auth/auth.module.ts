@@ -11,20 +11,21 @@ import { LocalStrategy } from './passport/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { OtpService } from './otp.service';
 @Module({
   imports: [
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.gmail.com', // SMTP server
-        port: 587, // Cổng SMTP
-        secure: false, // false cho STARTTLS
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: {
-          user: 'sdnmmagr5@gmail.com', // Email của bạn
-          pass: 'gogm mzdj yssh roiv', // Mật khẩu ứng dụng
+          user: 'sdnmmagr5@gmail.com',
+          pass: 'gogm mzdj yssh roiv',
         },
       },
       defaults: {
-        from: '"No Reply" <sdnmmagr5@gmail.com>', // Email mặc định khi gửi
+        from: '"No Reply" <sdnmmagr5@gmail.com>',
       },
     }),
     TypeOrmModule.forFeature([User, EmailVerification]),
@@ -34,7 +35,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       signOptions: { expiresIn: '2h' },
     }),
   ],
-  providers: [authService, MailService, LocalStrategy, JwtStrategy],
+  providers: [authService, MailService, LocalStrategy, JwtStrategy, OtpService],
   controllers: [authController],
   exports: [JwtModule, authService],
 })
