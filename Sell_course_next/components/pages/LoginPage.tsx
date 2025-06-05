@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardContent, CardHeader, CardFooter } from "../ui/card";
-import { Checkbox } from "../ui/checkbox";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -30,8 +29,6 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    // Validate email
     if (!email.trim()) {
       setError("Email is required");
       return;
@@ -41,41 +38,30 @@ export function LoginPage() {
       setError("Please enter a valid email address (e.g., user@example.com)");
       return;
     }
-
-    // Validate password
     if (!password.trim()) {
       setError("Password is required");
       return;
     }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters long");
       return;
     }
-
     setIsLoading(true);
-
     const result = await signIn("credentials", {
       redirect: false,
       email,
       password,
     });
-
     setIsLoading(false);
-
     if (result?.error) {
       setError("Login failed. Please check your credentials.");
     } else {
-      // Hiển thị animation thành công
       setShowSuccess(true);
-      
-      // Chờ 1.5 giây rồi chuyển trang
       setTimeout(() => {
         router.push("/");
       }, 1500);
     }
   };
-
   if (status === "loading") return <div className="p-6">Loading...</div>;
   if (status === "authenticated") {
     router.push("/");
@@ -84,7 +70,6 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted/50">
-      {/* Success Animation Overlay */}
       {showSuccess && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
@@ -92,7 +77,6 @@ export function LoginPage() {
           </div>
         </div>
       )}
-
       <Card className="w-full max-w-md mx-4">
         <CardHeader>
           <div className="flex flex-col items-center space-y-2 text-center">
@@ -128,9 +112,9 @@ export function LoginPage() {
                 required
                 disabled={showSuccess}
                 className={`transition-colors ${
-                  error && error.toLowerCase().includes('email') 
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
-                    : ''
+                  error && error.toLowerCase().includes("email")
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : ""
                 }`}
               />
             </div>
@@ -147,9 +131,9 @@ export function LoginPage() {
                   required
                   disabled={showSuccess}
                   className={`transition-colors ${
-                    error && error.toLowerCase().includes('password') 
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
-                      : ''
+                    error && error.toLowerCase().includes("password")
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : ""
                   }`}
                 />
                 <Button
@@ -168,9 +152,9 @@ export function LoginPage() {
                 </Button>
               </div>
             </div>
-            <Button 
-              type="submit" 
-              className="w-full transition-all duration-300" 
+            <Button
+              type="submit"
+              className="w-full transition-all duration-300"
               disabled={isLoading || showSuccess}
             >
               {showSuccess ? (
@@ -208,7 +192,6 @@ export function LoginPage() {
             disabled={showSuccess}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-              {/* Google logo path */}
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
