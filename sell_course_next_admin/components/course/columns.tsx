@@ -23,10 +23,9 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Edit2, Trash2 } from "lucide-react";
 import { Input } from "../ui/input";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import Image from "next/image";
 import { Course } from "app/course/page";
-
 
 interface CourseTableProps {
   courses: Course[];
@@ -49,6 +48,9 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
           <Image
             src={row.getValue("thumbnail")}
             alt={row.getValue("title")}
+            fill
+            sizes="(max-width: 640px) 100vw, 640px"
+            priority={true}
             className="object-cover rounded-md w-full h-full"
           />
         </div>
@@ -76,7 +78,7 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
       ),
     },
     {
-      accessorKey: "category",
+      accessorKey: "categoryName",
       header: ({ column }) => {
         return (
           <Button
@@ -137,10 +139,10 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         );
       },
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
+        const status = row.getValue("status") as boolean | string;
         return (
-          <Badge variant={status === "Published" ? "default" : "secondary"}>
-            {status}
+          <Badge variant={status === true ? "default" : "secondary"}>
+            {status === true ? "Active" : "Inactive"}
           </Badge>
         );
       },
@@ -163,7 +165,7 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         );
       },
       cell: ({ row }) => {
-        return format(new Date(row.getValue("updatedAt")), 'MM/dd/yyyy');
+        return format(new Date(row.getValue("updatedAt")), "MM/dd/yyyy");
       },
     },
     {

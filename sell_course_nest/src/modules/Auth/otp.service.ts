@@ -22,51 +22,58 @@ export class OtpService {
 
     // Generate new OTP
     const otpCode = this.generateOtpCode();
-    
+
     // Store OTP with metadata
     const otpData = {
       code: otpCode,
       createdAt: Date.now(),
       isUsed: false,
       resendCount: 0,
-      lastResendAt: null
+      lastResendAt: null,
     };
 
     // Set TTL to 10 minutes (600 seconds)
     await this.redisClient.set(key, JSON.stringify(otpData), 'EX', 600);
-    
+
     return otpCode;
   }
 
   // Verify OTP
-  async verifyOtp(email: string, otpCode: string, purpose: string): Promise<boolean> {
+  async verifyOtp(
+    email: string,
+    otpCode: string,
+    purpose: string,
+  ): Promise<boolean> {
     const key = `otp:${email}:${purpose}`;
     const otpDataStr = await this.redisClient.get(key);
-    
+
     if (!otpDataStr) {
       throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
     }
-    
+
     const otpData = JSON.parse(otpDataStr);
-    
+
     if (otpData.isUsed) {
-      throw new HttpException('OTP has already been used', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'OTP has already been used',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    
+
     if (otpData.code !== otpCode) {
       throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
     }
-    
+
     // Check if OTP is expired (10 minutes)
     const now = Date.now();
     if (now - otpData.createdAt > 10 * 60 * 1000) {
       throw new HttpException('OTP has expired', HttpStatus.BAD_REQUEST);
     }
-    
+
     // Mark OTP as used
     otpData.isUsed = true;
     await this.redisClient.set(key, JSON.stringify(otpData), 'EX', 600);
-    
+
     return true;
   }
 
@@ -74,19 +81,22 @@ export class OtpService {
   async resendOtp(email: string, purpose: string): Promise<string> {
     const key = `otp:${email}:${purpose}`;
     const otpDataStr = await this.redisClient.get(key);
-    
+
     if (otpDataStr) {
       const otpData = JSON.parse(otpDataStr);
       const now = Date.now();
-      
+
       // Check if too many resend attempts (max 3 per hour)
-      if (otpData.resendCount >= 3 && now - otpData.createdAt < 60 * 60 * 1000) {
+      if (
+        otpData.resendCount >= 3 &&
+        now - otpData.createdAt < 60 * 60 * 1000
+      ) {
         throw new HttpException(
           'Too many resend attempts. Please try again later.',
           HttpStatus.TOO_MANY_REQUESTS,
         );
       }
-      
+
       // Check if last resend was less than 1 minute ago
       if (otpData.lastResendAt && now - otpData.lastResendAt < 60 * 1000) {
         throw new HttpException(
@@ -95,30 +105,30 @@ export class OtpService {
         );
       }
     }
-    
+
     // Generate new OTP
     const newOtpCode = this.generateOtpCode();
-    
+
     // Create new OTP data or update existing
-    const otpData = otpDataStr 
+    const otpData = otpDataStr
       ? {
           ...JSON.parse(otpDataStr),
           code: newOtpCode,
           isUsed: false,
           resendCount: (JSON.parse(otpDataStr).resendCount || 0) + 1,
-          lastResendAt: Date.now()
+          lastResendAt: Date.now(),
         }
       : {
           code: newOtpCode,
           createdAt: Date.now(),
           isUsed: false,
           resendCount: 0,
-          lastResendAt: Date.now()
+          lastResendAt: Date.now(),
         };
-    
+
     // Store with TTL of 10 minutes
     await this.redisClient.set(key, JSON.stringify(otpData), 'EX', 600);
-    
+
     return newOtpCode;
   }
 

@@ -22,7 +22,7 @@ export class Course {
   courseId: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'instructor_id' })
+  @JoinColumn({ name: 'user_id' })
   instructor: User;
 
   @ManyToOne(() => Category)

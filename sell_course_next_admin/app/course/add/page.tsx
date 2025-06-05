@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import axios from "axios";
 import { Loader2, Upload, X } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
@@ -27,14 +26,11 @@ import {
 } from "../../../components/ui/select";
 import { Card, CardContent } from "../../../components/ui/card";
 import Image from "next/image";
+import { Category } from "app/types/category";
+import { fetchCategories } from "app/api/categories/category";
+import { useRouter } from "next/navigation";
+import { createCourse } from "app/api/courses/course";
 
-const CATEGORIES = [
-  { id: 1, name: "Web Development" },
-  { id: 2, name: "Mobile Development" },
-  { id: 3, name: "Data Science" },
-  { id: 4, name: "UI/UX Design" },
-  { id: 5, name: "Machine Learning" },
-];
 const LEVELS = [
   { id: 1, name: "Beginner" },
   { id: 2, name: "Intermediate" },
@@ -60,7 +56,8 @@ type FormValues = z.infer<typeof formSchema>;
 export default function AddCourseForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-
+  const [categories, setCategories] = useState<Category[]>([]);
+  const router = useRouter();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -71,11 +68,23 @@ export default function AddCourseForm() {
       price: 0,
       skill: "",
       level: "",
-      instructorId: "",
+      instructorId: "efa6d90f-09fd-4ce4-9f3e-840fad350992",
       categoryId: "",
     },
   });
+  useEffect(() => {
+    const fetchCategor = async () => {
+      try {
+        const getToken = "getToken.bind(this);";
+        const res = await fetchCategories(getToken);
+        setCategories(res);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
 
+    fetchCategor();
+  }, []);
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     const formData = new FormData();
@@ -93,16 +102,12 @@ export default function AddCourseForm() {
     if (data.videoIntro?.[0]) formData.append("videoIntro", data.videoIntro[0]);
 
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/instructor/courses/create_course",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      console.log("Success", res.data);
+      const token ="z"
+      await createCourse(formData, token);
+
+      form.reset();
+      setThumbnailPreview(null);
+      router.push("/course");
     } catch (error) {
       console.error("Error submitting form:", error);
     } finally {
@@ -125,13 +130,13 @@ export default function AddCourseForm() {
     form.setValue("thumbnail", undefined);
     setThumbnailPreview(null);
   };
-
-  const formatPrice = (value: string) => {
-    const numericValue = value.replace(/[^0-9]/g, "");
-    return numericValue
-      ? new Intl.NumberFormat("vi-VN").format(parseInt(numericValue, 10))
-      : "";
-  };
+  form.watch((value) => {
+    if (value.thumbnail?.[0]) {
+      handleThumbnailChange({
+        target: { files: value.thumbnail },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+  });
   return (
     <div className="max-w-6xl mx-auto py-8">
       <h1 className="text-3xl font-bold tracking-tight mb-6">Add New Course</h1>
@@ -217,8 +222,6 @@ export default function AddCourseForm() {
                           <Input
                             placeholder="e.g., 1.000.000"
                             onChange={(e) => {
-                              const formatted = formatPrice(e.target.value);
-                              e.target.value = formatted;
                               onChange(e);
                             }}
                             {...rest}
@@ -320,6 +323,7 @@ export default function AddCourseForm() {
                               <Image
                                 src={thumbnailPreview}
                                 alt="Thumbnail preview"
+                                fill
                                 className="object-cover w-full h-full"
                               />
                               <Button
@@ -400,10 +404,10 @@ export default function AddCourseForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {CATEGORIES.map((category) => (
+                        {categories.map((category) => (
                           <SelectItem
-                            key={category.id}
-                            value={category.id.toString()}
+                            key={category.categoryId}
+                            value={category.categoryId.toString()}
                           >
                             {category.name}
                           </SelectItem>

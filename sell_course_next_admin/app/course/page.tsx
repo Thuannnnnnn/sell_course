@@ -2,11 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { PlusCircle } from "lucide-react";
-import { Sidebar } from "components/dashboard/Sidebar";
 import { Button } from "components/ui/button";
-import axios from "axios";
 import { CourseTable } from "components/course/columns";
 import { useRouter } from "next/navigation";
+import { deleteCourse, fetchCourses } from "app/api/courses/course";
 
 export interface Course {
   courseId: number;
@@ -19,42 +18,32 @@ export interface Course {
 }
 
 export default function AdminCoursesPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   useEffect(() => {
-    const fetchCourses = async () => {
+    const loadCourses = async () => {
       try {
         setIsLoading(true);
-
-        const response = await axios.get(
-          "http://localhost:8080/api/courses/getAll"
-        );
-        if (response.status === 404) {
-          console.error("no courses found:", response.statusText);
-        }
-        setCourses(response.data);
+        const data = await fetchCourses();
+        setCourses(data);
       } catch (err) {
-        console.error("Error fetching courses:", err);
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCourses();
+    loadCourses();
   }, []);
 
-  const handleDelete = (id: number) => {
-    axios
-      .delete(`http://localhost:8080/api/courses/${id}`)
-      .then(() => {
-        setCourses(courses.filter((course) => course.courseId !== id));
-      })
-      .catch((err) => {
-        console.error("Error deleting course:", err);
-      });
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteCourse(id);
+      setCourses((prev) => prev.filter((c) => c.courseId !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleUpdate = (id: number) => {
@@ -70,34 +59,28 @@ export default function AdminCoursesPage() {
   }
 
   return (
-    <div>
-      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
-
-      <div className="flex flex-col md:ml-64 p-4 md:p-6 bg-background h-screen">
-        <div className="container mx-auto px-4 py-8">
-          <div className="space-y-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Courses</h2>
-                <p className="text-muted-foreground">
-                  Manage your course catalog here.
-                </p>
-              </div>
-              <Button
-                className="flex items-center gap-2"
-                onClick={() => router.push("/course/add")}
-              >
-                <PlusCircle className="h-5 w-5" />
-                Create Course
-              </Button>
-            </div>
-            <CourseTable
-              courses={courses}
-              onDelete={handleDelete}
-              onUpdate={handleUpdate}
-            />
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Courses</h2>
+            <p className="text-muted-foreground">
+              Manage your course catalog here.
+            </p>
           </div>
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => router.push("/course/add")}
+          >
+            <PlusCircle className="h-5 w-5" />
+            Create Course
+          </Button>
         </div>
+        <CourseTable
+          courses={courses}
+          onDelete={handleDelete}
+          onUpdate={handleUpdate}
+        />
       </div>
     </div>
   );

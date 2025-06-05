@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { fetchCategories, deleteCategory } from "@/app/api/categories/category";
-import { Category } from "@/app/types/category";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { fetchCategories, deleteCategory } from "../../app/api/categories/category";
+import { Category } from "../..//app/types/category";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
 
