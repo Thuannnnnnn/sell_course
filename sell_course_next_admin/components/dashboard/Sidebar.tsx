@@ -30,7 +30,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
     },
     {
       name: "Courses",
-      href: "/courses",
+      href: "/course",
       icon: BookOpen,
     },
     {
