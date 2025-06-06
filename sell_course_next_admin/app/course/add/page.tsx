@@ -30,6 +30,7 @@ import { Category } from "app/types/category";
 import { fetchCategories } from "app/api/categories/category";
 import { useRouter } from "next/navigation";
 import { createCourse } from "app/api/courses/course";
+import { useSession } from "next-auth/react";
 
 const LEVELS = [
   { id: 1, name: "Beginner" },
@@ -58,6 +59,7 @@ export default function AddCourseForm() {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
+  const { data: session } = useSession();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,15 +70,15 @@ export default function AddCourseForm() {
       price: 0,
       skill: "",
       level: "",
-      instructorId: "efa6d90f-09fd-4ce4-9f3e-840fad350992",
+      instructorId: session?.user?.id || "",
       categoryId: "",
     },
   });
   useEffect(() => {
     const fetchCategor = async () => {
       try {
-        const getToken = "getToken.bind(this);";
-        const res = await fetchCategories(getToken);
+        if (!session?.accessToken) return;
+        const res = await fetchCategories(session?.accessToken);
         setCategories(res);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -84,7 +86,7 @@ export default function AddCourseForm() {
     };
 
     fetchCategor();
-  }, []);
+  }, [session]);
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     const formData = new FormData();
@@ -102,8 +104,8 @@ export default function AddCourseForm() {
     if (data.videoIntro?.[0]) formData.append("videoIntro", data.videoIntro[0]);
 
     try {
-      const token ="z"
-      await createCourse(formData, token);
+      if (!session?.accessToken) return;
+      await createCourse(formData, session?.accessToken);
 
       form.reset();
       setThumbnailPreview(null);

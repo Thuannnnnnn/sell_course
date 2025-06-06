@@ -1,4 +1,4 @@
-// lib/api/course.ts
+
 
 import { Course } from "app/course/page";
 import axios from "axios";
@@ -33,10 +33,16 @@ export const createCourse = async (
   }
 };
 
-export const fetchCourses = async (): Promise<Course[]> => {
+export const fetchCourses = async (token: string): Promise<Course[]> => {
   try {
     const response = await axios.get<Course[]>(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/courses/getAll`
+      `${process.env.NEXT_PUBLIC_API_URL}/api/courses/getAll`,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     return response.data;
   } catch (error) {
@@ -45,9 +51,17 @@ export const fetchCourses = async (): Promise<Course[]> => {
   }
 };
 
-export const deleteCourse = async (id: number): Promise<void> => {
+export const deleteCourse = async (
+  id: string,
+  token: string
+): Promise<void> => {
   try {
-    await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`);
+    await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
   } catch (error) {
     console.error("Error deleting course:", error);
     throw error;

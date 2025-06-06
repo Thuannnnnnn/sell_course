@@ -29,8 +29,8 @@ import { Course } from "app/course/page";
 
 interface CourseTableProps {
   courses: Course[];
-  onDelete: (id: number) => void;
-  onUpdate: (id: number) => void;
+  onDelete: (id: string) => void;
+  onUpdate: (id: string) => void;
 }
 export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);

@@ -6,9 +6,10 @@ import { Button } from "components/ui/button";
 import { CourseTable } from "components/course/columns";
 import { useRouter } from "next/navigation";
 import { deleteCourse, fetchCourses } from "app/api/courses/course";
+import { useSession } from "next-auth/react";
 
 export interface Course {
-  courseId: number;
+  courseId: string;
   title: string;
   category: string;
   thumbnail: string;
@@ -21,11 +22,13 @@ export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { data: session } = useSession();
   useEffect(() => {
     const loadCourses = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchCourses();
+        if (!session?.accessToken) return;
+        const data = await fetchCourses(session.accessToken);
         setCourses(data);
       } catch (err) {
         console.error(err);
@@ -35,18 +38,19 @@ export default function AdminCoursesPage() {
     };
 
     loadCourses();
-  }, []);
+  }, [courses, session]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
-      await deleteCourse(id);
+      if (!session?.accessToken) return;
+      await deleteCourse(id, session.accessToken);
       setCourses((prev) => prev.filter((c) => c.courseId !== id));
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleUpdate = (id: number) => {
+  const handleUpdate = (id: string) => {
     console.log("Update course:", id);
   };
 
