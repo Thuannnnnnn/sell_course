@@ -12,7 +12,7 @@ import {
   NotebookText,
 } from "lucide-react";
 import Image from "next/image";
-import logo from "@/public/logo.png";
+import logo from "../../public/logo.png"; // Adjust the path to your logo image
 import { usePathname } from "next/navigation";
 interface SidebarProps {
   open: boolean;
