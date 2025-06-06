@@ -47,12 +47,15 @@ export default function AddCategoryPage() {
     }
     setLoading(true);
     try {
-      await addCategory({ 
-        categoryId: "", // Add empty categoryId to match Category type
-        name,
-        description,
-        parentId: parentId || undefined
-      }, session.accessToken);
+      await addCategory(
+        {
+          categoryId: "", // Add empty categoryId to match Category type
+          name,
+          description,
+          parentId: parentId || undefined,
+        },
+        session.accessToken
+      );
       setSuccess("Thêm danh mục thành công!");
       setName("");
       setDescription("");
@@ -113,7 +116,13 @@ export default function AddCategoryPage() {
             <Button type="submit" disabled={loading}>
               {loading ? "Đang lưu..." : "Lưu"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.push("/categories")}>Huỷ</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/categories")}
+            >
+              Huỷ
+            </Button>
           </div>
         </form>
       </CardContent>

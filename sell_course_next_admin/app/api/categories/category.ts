@@ -1,4 +1,4 @@
-import { Category } from '@/app/types/category';
+import { Category } from '../../../app/types/category';
 import axios from 'axios';
 export const fetchCategories = async (token: string): Promise<Category[]> => {
   try {

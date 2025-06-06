@@ -66,7 +66,7 @@ export class Course_purchaseService {
             purchase.course.title,
             purchase.course.category?.name || 'Unknown Category',
             purchase.course.category?.categoryId || 'Unknown',
-            purchase.course.imageInfo || '',
+            purchase.course.thumbnail || '',
           ),
       );
     } catch (error) {
@@ -109,7 +109,7 @@ export class Course_purchaseService {
         purchase.course.title,
         purchase.course.category?.name || 'Unknown Category',
         purchase.course.category?.categoryId || 'Unknown',
-        purchase.course.imageInfo || '',
+        purchase.course.thumbnail || '',
       ),
       message: 'Success',
     };
@@ -133,7 +133,7 @@ export class Course_purchaseService {
             purchase.course.title,
             purchase.course.category?.name || 'Unknown Category',
             purchase.course.category?.categoryId || 'Unknown',
-            purchase.course.imageInfo || '',
+            purchase.course.thumbnail || '',
           ),
       );
     } catch (error) {

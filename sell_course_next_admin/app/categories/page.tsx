@@ -1,10 +1,18 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { fetchCategories, deleteCategory } from "@/app/api/categories/category";
-import { Category } from "@/app/types/category";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  fetchCategories,
+  deleteCategory,
+} from "../../app/api/categories/category";
+import { Category } from "../..//app/types/category";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
 
@@ -15,27 +23,25 @@ export default function CategoryManagementPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const loadCategories = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      if (!session?.accessToken) {
-        setError("Bạn chưa đăng nhập hoặc thiếu quyền truy cập.");
-        setLoading(false);
-        return;
-      }
-      const data = await fetchCategories(session.accessToken);
-      setCategories(data);
-    } catch {
-      setError("Không thể tải danh mục. Vui lòng thử lại sau.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const loadCategories = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        if (!session?.accessToken) {
+          setError("Bạn chưa đăng nhập hoặc thiếu quyền truy cập.");
+          setLoading(false);
+          return;
+        }
+        const data = await fetchCategories(session.accessToken);
+        setCategories(data);
+      } catch {
+        setError("Không thể tải danh mục. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
+      }
+    };
     loadCategories();
-    // eslint-disable-next-line
   }, [session]);
 
   const handleAdd = () => {
@@ -80,17 +86,20 @@ export default function CategoryManagementPage() {
                   <tr key={cat.categoryId} className="hover:bg-muted/50">
                     <td className="p-4 font-medium">{cat.name}</td>
                     <td className="p-4">{cat.description}</td>
-                    <td className="p-4">{
-                      cat.parentId
-                        ? (categories.find((c) => c.categoryId === cat.parentId)?.name || "-")
-                        : "-"
-                    }</td>
+                    <td className="p-4">
+                      {cat.parentId
+                        ? categories.find((c) => c.categoryId === cat.parentId)
+                            ?.name || "-"
+                        : "-"}
+                    </td>
                     <td className="p-4">
                       <div className="flex items-center space-x-2">
                         <Button
                           size="icon"
                           variant="outline"
-                          onClick={() => router.push(`/categories/edit/${cat.categoryId}`)}
+                          onClick={() =>
+                            router.push(`/categories/edit/${cat.categoryId}`)
+                          }
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -108,7 +117,9 @@ export default function CategoryManagementPage() {
               </tbody>
             </table>
             {categories.length === 0 && (
-              <div className="text-center text-muted-foreground py-8">Chưa có danh mục nào.</div>
+              <div className="text-center text-muted-foreground py-8">
+                Chưa có danh mục nào.
+              </div>
             )}
           </div>
         )}

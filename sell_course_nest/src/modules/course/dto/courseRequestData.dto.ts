@@ -2,78 +2,76 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNumber,
-  IsDateString,
   IsUUID,
   IsOptional,
   IsBoolean,
+  IsInt,
 } from 'class-validator';
 import { Express } from 'express';
 
 export class CourseRequestDTO {
   @ApiProperty({
     description: 'Title of the course',
-    example: 'Introduction to NestJS',
+    example: 'NestJS Mastery',
   })
   @IsString()
   title: string;
 
   @ApiProperty({
-    description: 'Price of the course in USD',
-    example: 29.99,
+    description: 'Brief course summary',
+    example: 'Learn NestJS basics',
   })
-  @IsNumber()
-  price: number;
+  @IsString()
+  short_description: string;
 
   @ApiProperty({
-    description: 'A brief description of the course',
-    example:
-      'This course introduces you to NestJS, a powerful Node.js framework.',
+    description: 'Full description of the course',
+    example: 'This is a detailed course on NestJS.',
   })
   @IsString()
   description: string;
 
-  @ApiProperty({ type: 'string', format: 'binary', description: 'Video file' })
+  @ApiProperty({ description: 'Course duration in minutes', example: 120 })
+  @IsInt()
+  duration: number;
+
+  @ApiProperty({ description: 'Price of the course in USD', example: 49.99 })
+  @IsNumber()
+  price: number;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Introductory video file',
+  })
   @IsOptional()
-  videoInfo?: Express.Multer.File;
+  videoIntro?: Express.Multer.File;
 
-  @ApiProperty({ type: 'string', format: 'binary', description: 'Image file' })
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Thumbnail image file',
+  })
   @IsOptional()
-  imageInfo?: Express.Multer.File;
+  thumbnail?: Express.Multer.File;
 
-  @ApiProperty({
-    description: 'The date when the course was created',
-    example: '2025-01-14T12:00:00.000Z',
-  })
-  @IsDateString()
-  createdAt: Date;
+  @ApiProperty({ description: 'Skill required or taught', example: 'Beginner' })
+  @IsString()
+  skill: string;
 
-  @ApiProperty({
-    description: 'The date when the course was last updated',
-    example: '2025-01-14T12:00:00.000Z',
-  })
-  @IsDateString()
-  updatedAt: Date;
+  @ApiProperty({ description: 'Course level', example: 'Beginner' })
+  @IsString()
+  level: string;
 
-  @ApiProperty({
-    description: 'The ID of the user who created the course',
-    example: 'abcd-1234-efgh-5678',
-  })
+  @ApiProperty({ description: 'Course visibility status', example: true })
+  @IsBoolean()
+  status: boolean;
+
+  @ApiProperty({ description: 'Instructor ID', example: 'uuid-1234-5678' })
   @IsUUID()
-  userId: string;
+  instructorId: string;
 
-  @ApiProperty({
-    description: 'The ID of the category to which the course belongs',
-    example: 'xyz-9876-mnop-5432',
-  })
+  @ApiProperty({ description: 'Category ID', example: 'uuid-8765-4321' })
   @IsUUID()
   categoryId: string;
-
-  @ApiProperty({
-    description: 'Indicates if the course is publicly accessible',
-    example: true,
-    default: true,
-  })
-  @IsBoolean()
-  @IsOptional()
-  isPublic?: boolean;
 }

@@ -226,6 +226,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(PermissionMiddleware).forRoutes('/api/admin/*');
+    consumer.apply(PermissionMiddleware).forRoutes('/api/xyz/*');
   }
 }
