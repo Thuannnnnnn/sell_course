@@ -25,7 +25,6 @@ export class CourseService {
     const courses = await this.CourseRepository.find({
       relations: ['instructor', 'category'],
     });
-
     if (courses.length === 0) {
       throw new HttpException('No courses found.', HttpStatus.NOT_FOUND);
     }
@@ -42,7 +41,7 @@ export class CourseService {
         course.rating,
         course.skill,
         course.level,
-        course.status, // Added isPublic
+        course.status,
         course.createdAt,
         course.updatedAt,
         course.instructor.user_id,
@@ -52,7 +51,6 @@ export class CourseService {
         course.category.name,
       );
     });
-
     return courseResponseDTOs;
   }
 
@@ -101,7 +99,6 @@ export class CourseService {
   ): Promise<CourseResponseDTO> {
     const { instructorId, categoryId, title } = course;
 
-    // Kiểm tra user
     const userData = await this.userRepository.findOne({
       where: { user_id: instructorId },
     });
@@ -112,7 +109,6 @@ export class CourseService {
       );
     }
 
-    // Kiểm tra category
     const categoryData = await this.categoryRepository.findOne({
       where: { categoryId },
     });
@@ -152,7 +148,7 @@ export class CourseService {
       thumbnail: imageUrl,
       price: course.price,
       videoIntro: videoUrl || null,
-      user: userData,
+      instructor: userData,
       createdAt: new Date(),
       updatedAt: new Date(),
       short_description: course.short_description,
@@ -160,7 +156,7 @@ export class CourseService {
       rating: 0,
       skill: course.skill,
       level: course.level,
-      status: course.status ?? false, // Mặc định là true nếu không có giá trị
+      status: course.status ?? false,
     });
 
     return {
