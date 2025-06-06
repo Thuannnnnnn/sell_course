@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/../../components/ui/button";
+import { Input } from "@/../../components/ui/input";
+import { Card, CardContent } from "@/../../components/ui/card";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/../../components/ui/label";
 
 export default function LoginPage() {
   const router = useRouter();

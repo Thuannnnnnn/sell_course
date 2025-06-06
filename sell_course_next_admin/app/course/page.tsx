@@ -38,7 +38,7 @@ export default function AdminCoursesPage() {
     };
 
     loadCourses();
-  }, [courses, session]);
+  }, [session?.accessToken]);
 
   const handleDelete = async (id: string) => {
     try {
