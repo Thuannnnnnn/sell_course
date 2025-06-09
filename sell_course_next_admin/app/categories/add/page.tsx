@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { addCategory, fetchCategories } from "@/app/api/categories/category";
-import { Category } from "@/app/types/category";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { addCategory, fetchCategories } from "../../api/categories/category";
+import { Category } from "../../types/category";
+import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
 import { useRouter } from "next/navigation";
 
 export default function AddCategoryPage() {

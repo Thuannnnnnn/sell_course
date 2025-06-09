@@ -187,8 +187,8 @@ export class CourseService {
     courseId: string,
     updateData: Partial<CourseRequestDTO>,
     files?: {
-      videoInfo?: Express.Multer.File[];
-      imageInfo?: Express.Multer.File[];
+      videoIntro?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File[];
     },
   ): Promise<CourseResponseDTO> {
     // Lấy thông tin khóa học hiện tại
@@ -232,10 +232,10 @@ export class CourseService {
     }
 
     // Xử lý tải file nếu có
-    if (files?.videoInfo?.[0])
-      course.videoIntro = await azureUpload(files.videoInfo[0]);
-    if (files?.imageInfo?.[0])
-      course.thumbnail = await azureUpload(files.imageInfo[0]);
+    if (files?.videoIntro?.[0])
+      course.videoIntro = await azureUpload(files.videoIntro[0]);
+    if (files?.thumbnail?.[0])
+      course.thumbnail = await azureUpload(files.thumbnail[0]);
 
     // Cập nhật các trường khác từ updateData
     Object.assign(course, updateData);

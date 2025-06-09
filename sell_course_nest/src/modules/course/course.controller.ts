@@ -38,7 +38,7 @@ export class CourseController {
     return await this.courseService.getAllCourses();
   }
 
-  @Get('admin/courses/view_course')
+  @Get('instructor/courses/view_course')
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
@@ -54,7 +54,8 @@ export class CourseController {
     return await this.courseService.getAllCourses();
   }
 
-  @Get('admin/courses/view_course/:id')
+  @ApiBearerAuth('Authorization')
+  @Get('instructor/courses/view_course/:id')
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiResponse({
@@ -89,6 +90,7 @@ export class CourseController {
     return await this.courseService.getCourseById(courseId);
   }
 
+  @ApiBearerAuth('Authorization')
   @Post('instructor/courses/create_course')
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -116,11 +118,11 @@ export class CourseController {
   }
 
   @ApiBearerAuth('Authorization')
-  @Put('/admin/courses/update_course/:id')
+  @Put('/instructor/courses/update_course/:id')
   @UseInterceptors(
     FileFieldsInterceptor([
-      { name: 'videoInfo', maxCount: 1 },
-      { name: 'imageInfo', maxCount: 1 },
+      { name: 'videoIntro', maxCount: 1 },
+      { name: 'thumbnail', maxCount: 1 },
     ]),
   )
   @ApiConsumes('multipart/form-data')
@@ -140,8 +142,8 @@ export class CourseController {
     @Body() updateData: CourseRequestDTO,
     @UploadedFiles()
     files?: {
-      videoInfo?: Express.Multer.File[];
-      imageInfo?: Express.Multer.File[];
+      videoIntro?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File[];
     },
   ): Promise<CourseResponseDTO> {
     return await this.courseService.updateCourse(
@@ -152,7 +154,7 @@ export class CourseController {
   }
 
   @ApiBearerAuth('Authorization')
-  @Delete('admin/courses/delete_course/:id')
+  @Delete('instructor/courses/delete_course/:id')
   @ApiOperation({ summary: 'Delete a course by ID' })
   @ApiResponse({
     status: 200,
