@@ -1,12 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import { useSession } from "next-auth/react";
-import { addCategory, fetchCategories } from "../../api/categories/category";
-import { Category } from "../../types/category";
-import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
+import { updateCategory, fetchCategories } from "../../../api/categories/category";
+import { Category } from "../../../types/category";
+import { Card, CardHeader, CardTitle, CardContent } from "../../../../components/ui/card";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
+import { Label } from "../../../../components/ui/label";
 import { useRouter } from "next/navigation";
 import {
   Select,
@@ -14,15 +14,20 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
+} from "../../../../components/ui/select";
 
-export default function AddCategoryPage() {
+export default function EditCategoryPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const { data: session } = useSession();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [parentId, setParentId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const router = useRouter();
@@ -31,21 +36,33 @@ export default function AddCategoryPage() {
     const loadCategories = async () => {
       if (!session?.accessToken) {
         setError("You are not logged in or lack access rights.");
+        setInitialLoading(false);
         return;
       }
       try {
         const data = await fetchCategories(session.accessToken);
         setCategories(data);
+        // Find the current category
+        const currentCategory = data.find((cat: Category) => cat.categoryId === params.id);
+        if (currentCategory) {
+          setName(currentCategory.name);
+          setDescription(currentCategory.description);
+          setParentId(currentCategory.parentId || null);
+        } else {
+          setError("Category not found.");
+        }
       } catch (error) {
         if (error instanceof Error) {
           setError(error.message);
         } else {
-          setError("Failed to load categories. Please try again later.");
+          setError("Failed to load category information. Please try again later.");
         }
+      } finally {
+        setInitialLoading(false);
       }
     };
     loadCategories();
-  }, [session]);
+  }, [session, params.id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,15 +81,15 @@ export default function AddCategoryPage() {
     setSuccess("");
 
     try {
-      const newCategory: Category = {
-        categoryId: "", // This will be set by the server
+      const updatedCategory: Category = {
+        categoryId: params.id,
         name: name.trim(),
         description: description.trim(),
         parentId,
       };
 
-      await addCategory(newCategory, session.accessToken);
-      setSuccess("Category added successfully!");
+      await updateCategory(updatedCategory, session.accessToken);
+      setSuccess("Category updated successfully!");
       setTimeout(() => {
         router.push("/categories");
       }, 1500);
@@ -80,17 +97,27 @@ export default function AddCategoryPage() {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError("Failed to add category. Please try again later.");
+        setError("Failed to update category. Please try again later.");
       }
     } finally {
       setLoading(false);
     }
   };
 
+  if (initialLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Loading...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add New Category</CardTitle>
+        <CardTitle>Edit Category</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -99,7 +126,7 @@ export default function AddCategoryPage() {
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               required
               disabled={loading}
             />
@@ -110,7 +137,7 @@ export default function AddCategoryPage() {
             <Input
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
               required
               disabled={loading}
             />
@@ -128,11 +155,13 @@ export default function AddCategoryPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.categoryId} value={cat.categoryId}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
+                {categories
+                  .filter((cat: Category) => cat.categoryId !== params.id)
+                  .map((cat: Category) => (
+                    <SelectItem key={cat.categoryId} value={cat.categoryId}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -150,7 +179,7 @@ export default function AddCategoryPage() {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Category"}
+              {loading ? "Updating..." : "Update"}
             </Button>
           </div>
         </form>
