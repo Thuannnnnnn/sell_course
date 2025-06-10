@@ -428,6 +428,13 @@ export default function AddCourseForm() {
           </div>
           <div className="flex justify-end gap-4">
             <Button
+              type="submit"
+              onClick={() => router.back()}
+              variant="outline"
+            >
+              Back
+            </Button>
+            <Button
               type="button"
               variant="outline"
               onClick={() => {

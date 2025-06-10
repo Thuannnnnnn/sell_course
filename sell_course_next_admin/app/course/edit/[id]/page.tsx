@@ -29,8 +29,8 @@ import Image from "next/image";
 import { Category } from "app/types/category";
 import { fetchCategories } from "app/api/categories/category";
 import { useRouter } from "next/navigation";
-import { createCourse } from "app/api/courses/course";
 import { useSession } from "next-auth/react";
+import { fetchCourseById, updateCourse } from "app/api/courses/course";
 
 const LEVELS = [
   { id: 1, name: "Beginner" },
@@ -58,7 +58,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function AddCourseForm() {
+export default function EditCoursePage({ params }: { params: { id: string } }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -79,18 +79,34 @@ export default function AddCourseForm() {
     },
   });
   useEffect(() => {
-    const fetchCategor = async () => {
+    const fetchInitialData = async () => {
+      if (!session?.accessToken) return;
       try {
-        if (!session?.accessToken) return;
-        const res = await fetchCategories(session?.accessToken);
-        setCategories(res);
+        const [course, fetchedCategories] = await Promise.all([
+          fetchCourseById(session.accessToken, params.id),
+          fetchCategories(session.accessToken),
+        ]);
+        setCategories(fetchedCategories);
+        form.reset({
+          title: course.title || "",
+          short_description: course.short_description || "",
+          description: course.description || "",
+          duration: course.duration || 60,
+          price: course.price || 0,
+          skill: course.skill || "Beginner",
+          level: course.level?.toString() || "",
+          instructorId: course.instructorId || session?.user?.id || "",
+          categoryId: course.categoryId?.toString() || "",
+        });
+        if (course.thumbnail && typeof course.thumbnail === "string") {
+          setThumbnailPreview(course.thumbnail);
+        }
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("Failed to load course data:", error);
       }
     };
-
-    fetchCategor();
-  }, [session]);
+    fetchInitialData();
+  }, [session, params.id, form]);
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     const formData = new FormData();
@@ -109,13 +125,10 @@ export default function AddCourseForm() {
 
     try {
       if (!session?.accessToken) return;
-      await createCourse(formData, session?.accessToken);
-
-      form.reset();
-      setThumbnailPreview(null);
+      await updateCourse(params.id, formData, session.accessToken);
       router.push("/course");
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Error updating course:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -136,6 +149,7 @@ export default function AddCourseForm() {
     form.setValue("thumbnail", undefined);
     setThumbnailPreview(null);
   };
+
   form.watch((value) => {
     if (value.thumbnail?.[0]) {
       handleThumbnailChange({
@@ -143,9 +157,10 @@ export default function AddCourseForm() {
       } as React.ChangeEvent<HTMLInputElement>);
     }
   });
+
   return (
     <div className="max-w-6xl mx-auto py-8">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Add New Course</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-6">Edit Course</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -250,8 +265,8 @@ export default function AddCourseForm() {
                     <FormItem>
                       <FormLabel>Skill Level</FormLabel>
                       <Select
+                        value={field.value} // ✅ cần có value để hiện trạng thái
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -277,8 +292,8 @@ export default function AddCourseForm() {
                     <FormItem>
                       <FormLabel>Difficulty Level</FormLabel>
                       <Select
+                        value={field.value}
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -330,6 +345,7 @@ export default function AddCourseForm() {
                                 src={thumbnailPreview}
                                 alt="Thumbnail preview"
                                 fill
+                                unoptimized
                                 className="object-cover w-full h-full"
                               />
                               <Button
@@ -344,7 +360,7 @@ export default function AddCourseForm() {
                             </div>
                             <CardContent className="p-2">
                               <p className="text-xs text-muted-foreground">
-                                {value?.[0]?.name}
+                                {value?.[0]?.name || "Uploaded preview"}
                               </p>
                             </CardContent>
                           </Card>
@@ -394,54 +410,49 @@ export default function AddCourseForm() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem
-                            key={category.categoryId}
-                            value={category.categoryId.toString()}
-                          >
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {categories.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem
+                              key={category.categoryId}
+                              value={category.categoryId.toString()}
+                            >
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                form.reset();
-                setThumbnailPreview(null);
-              }}
-            >
-              Reset Form
+            <Button type="submit" onClick={() => router.back()} variant="outline">
+              Back
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isSubmitting ? "Submitting..." : "Add Course"}
+              {isSubmitting ? "Submitting..." : "Edit Course"}
             </Button>
           </div>
         </form>

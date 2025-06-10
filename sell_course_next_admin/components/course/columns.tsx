@@ -25,7 +25,8 @@ import { Edit2, Trash2 } from "lucide-react";
 import { Input } from "../ui/input";
 import { format } from "date-fns";
 import Image from "next/image";
-import { Course } from "app/course/page";
+import { Course } from "app/types/course";
+
 
 interface CourseTableProps {
   courses: Course[];
