@@ -40,10 +40,10 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('/users/user')
   async findUserById(@Req() req): Promise<any> {
-    const email = req.user.email;
-    console.log('Fetching user with email:', email);
+    const user_id = req.user.user_id;
+    console.log('Fetching user with ID:', user_id);
 
-    const user = await this.userService.getUserEmail(email);
+    const user = await this.userService.getUserById(user_id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -59,15 +59,19 @@ export class UserController {
     @UploadedFile() avatarFile?: Express.Multer.File,
   ): Promise<UserDto | null> {
     console.log('Authenticated User:', req.user);
-    const { email, username } = req.user;
+    const { user_id, username } = req.user;
 
-    if (!req.user || !req.user.email || !username) {
+    if (!req.user || !req.user.user_id || !username) {
       throw new UnauthorizedException(
         'User not authenticated or missing required information.',
       );
     }
 
-    console.log('Received update request:', { email, updateData, avatarFile });
+    console.log('Received update request:', {
+      user_id,
+      updateData,
+      avatarFile,
+    });
 
     if (!Object.keys(updateData).length && !avatarFile) {
       throw new BadRequestException('No data provided for update.');
@@ -75,7 +79,7 @@ export class UserController {
 
     try {
       const updatedUser = await this.userService.updateUserById(
-        email,
+        user_id,
         updateData,
         avatarFile,
       );
@@ -103,17 +107,17 @@ export class UserController {
   ) {
     console.log('Received changePassword request:', {
       username: req.user.username,
-      email: req.user.email,
+      user_id: req.user.user_id,
     });
-    if (!req.user || !req.user.username || !req.user.email) {
+    if (!req.user || !req.user.username || !req.user.user_id) {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    const email = req.user.email;
-    console.log('Found email:', email);
+    const user_id = req.user.user_id;
+    console.log('Found user ID:', user_id);
 
     return this.userService.changePassword(
-      email,
+      user_id,
       changePasswordDto.currentPassword,
       changePasswordDto.newPassword,
       changePasswordDto.confirmPassword,
@@ -137,8 +141,8 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   async get(@Req() req) {
-    const email = req.user.email;
-    return this.userService.getUser(email);
+    const user_id = req.user.user_id;
+    return this.userService.getUserById(user_id);
   }
 
   // // Change Password
@@ -187,11 +191,11 @@ export class UserController {
   async getMe(@Req() req: any) {
     try {
       console.log('Getting user profile for:', req.user);
-      if (!req.user || !req.user.email) {
+      if (!req.user || !req.user.user_id) {
         throw new UnauthorizedException('User not authenticated');
       }
 
-      const user = await this.userService.getUserEmail(req.user.email);
+      const user = await this.userService.getUserById(req.user.user_id);
       if (!user) {
         throw new NotFoundException('User not found');
       }
