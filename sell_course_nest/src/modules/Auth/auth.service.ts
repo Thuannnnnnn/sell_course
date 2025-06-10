@@ -16,8 +16,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { MailService } from '../../utilities/mail.service';
 
-import { OTP } from '../otp/entities/otp.entity';
-import { OtpService } from '../otp/otp.service';
+// Import from 'otp.service' in Auth module - use Redis OTP service only
+import { OtpService } from './otp.service';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { JwtService } from '@nestjs/jwt';
 import { azureUpload } from 'src/utilities/azure.service';
@@ -27,9 +27,6 @@ export class authService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-
-    @InjectRepository(OTP)
-    private otpRepository: Repository<OTP>,
     private readonly mailService: MailService,
     @Inject('OTP_SERVICE')
     private readonly otpService: OtpService,
@@ -186,7 +183,11 @@ export class authService {
   async register(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     try {
       const decoded = this.jwtService.decode(createUserDto.token);
-      if (!decoded || typeof decoded !== 'object' || decoded.email !== createUserDto.email) {
+      if (
+        !decoded ||
+        typeof decoded !== 'object' ||
+        decoded.email !== createUserDto.email
+      ) {
         throw new HttpException(
           'Token email does not match or invalid token',
           HttpStatus.FORBIDDEN,
@@ -619,7 +620,9 @@ export class authService {
     }
   }
 
-  async logout(token: string): Promise<{ message: string; statusCode: number }> {
+  async logout(
+    token: string,
+  ): Promise<{ message: string; statusCode: number }> {
     try {
       // Decode token to get expiration time
       const decodedToken = this.jwtService.decode(token);
