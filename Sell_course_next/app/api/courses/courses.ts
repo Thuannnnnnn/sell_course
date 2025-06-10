@@ -1,4 +1,4 @@
-import { CourseResponseDTO, CoursesApiResponse, CourseRequestDTO } from "@/app/types/Course/Course";
+import { CourseResponseDTO, CourseRequestDTO } from "@/app/types/Course/Course";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -37,9 +37,10 @@ async function apiCall<T>(
     }
 
     if (!response.ok) {
-      const errorMessage = typeof data === 'object' && data.message
-        ? data.message
-        : "An error occurred";
+      const errorMessage =
+        typeof data === "object" && data.message
+          ? data.message
+          : "An error occurred";
       throw new ApiError(errorMessage, response.status);
     }
 
@@ -77,12 +78,18 @@ export const courseApi = {
     },
 
     // Get course by ID (admin)
-    getCourseById: async (courseId: string, token: string): Promise<CourseResponseDTO> => {
-      return apiCall<CourseResponseDTO>(`/api/admin/courses/view_course/${courseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    getCourseById: async (
+      courseId: string,
+      token: string
+    ): Promise<CourseResponseDTO> => {
+      return apiCall<CourseResponseDTO>(
+        `/api/admin/courses/view_course/${courseId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
     },
 
     // Update course
@@ -96,7 +103,7 @@ export const courseApi = {
       }
     ): Promise<CourseResponseDTO> => {
       const formData = new FormData();
-            // Add course data to FormData
+      // Add course data to FormData
       Object.entries(updateData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           formData.append(key, value.toString());
@@ -105,20 +112,23 @@ export const courseApi = {
 
       // Add files if provided
       if (files?.videoInfo) {
-        formData.append('videoInfo', files.videoInfo);
+        formData.append("videoInfo", files.videoInfo);
       }
       if (files?.imageInfo) {
-        formData.append('imageInfo', files.imageInfo);
+        formData.append("imageInfo", files.imageInfo);
       }
 
-      return apiCall<CourseResponseDTO>(`/api/admin/courses/update_course/${courseId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Don't set Content-Type for FormData, let browser set it
-        },
-        body: formData,
-      });
+      return apiCall<CourseResponseDTO>(
+        `/api/admin/courses/update_course/${courseId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Don't set Content-Type for FormData, let browser set it
+          },
+          body: formData,
+        }
+      );
     },
 
     // Delete course
@@ -153,17 +163,20 @@ export const courseApi = {
 
       // Add files if provided
       if (files?.videoIntro) {
-        formData.append('videoIntro', files.videoIntro);
+        formData.append("videoIntro", files.videoIntro);
       }
       if (files?.thumbnail) {
-        formData.append('thumbnail', files.thumbnail);
+        formData.append("thumbnail", files.thumbnail);
       }
 
-      return apiCall<CourseResponseDTO>("/api/instructor/courses/create_course", {
-        method: "POST",
-        // Don't set Content-Type for FormData, let browser set it
-        body: formData,
-      });
+      return apiCall<CourseResponseDTO>(
+        "/api/instructor/courses/create_course",
+        {
+          method: "POST",
+          // Don't set Content-Type for FormData, let browser set it
+          body: formData,
+        }
+      );
     },
   },
 };
