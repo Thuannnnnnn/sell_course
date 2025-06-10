@@ -27,8 +27,6 @@ export class authService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-
-    // Removed OTPRepository as we're using Redis only
     private readonly mailService: MailService,
     @Inject('OTP_SERVICE')
     private readonly otpService: OtpService,
