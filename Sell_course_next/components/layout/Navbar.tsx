@@ -154,7 +154,10 @@ export function Navbar() {
             <div className="relative">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full p-0"
+                  >
                     <Avatar className="h-9 w-9">
                       <AvatarImage src={session?.user?.avatarImg} alt="@user" />
                       <AvatarFallback>
@@ -182,6 +185,11 @@ export function Navbar() {
                       </p>
                     </div>
                   </DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="w-full cursor-pointer">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <LogoutButton />
                   </DropdownMenuItem>

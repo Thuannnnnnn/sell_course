@@ -146,6 +146,7 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
   async getMe(user_id: string): Promise<UserDTO> {
@@ -192,6 +193,7 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
 
@@ -239,6 +241,7 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
   async banUser(userId: string, isBan: boolean): Promise<UserDto> {
@@ -266,6 +269,7 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
 }

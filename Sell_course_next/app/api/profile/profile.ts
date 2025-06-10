@@ -1,13 +1,13 @@
 import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-import {
-  UserProfile,
-  UpdateProfileRequest,
-  ChangePasswordRequest,
-} from "../../types/user";
 
-// Get user profile
+import {
+  UpdateProfileRequest,
+  UserProfile,
+} from "@/app/types/profile/editProfile";
+import { ChangePasswordRequest } from "@/app/types/auth/change-password/api";
+
 export const getUserProfile = async (token: string): Promise<UserProfile> => {
   try {
     console.log("API URL:", API_URL);
@@ -81,7 +81,7 @@ export const updateUserProfile = async (
     if (updateData.username) formData.append("username", updateData.username);
     if (updateData.gender) formData.append("gender", updateData.gender);
     if (updateData.birthDay) formData.append("birthDay", updateData.birthDay);
-    if (updateData.phoneNumber)
+    if (updateData.phoneNumber !== undefined)
       formData.append("phoneNumber", updateData.phoneNumber.toString());
 
     // Add avatar file if it exists
@@ -102,6 +102,14 @@ export const updateUserProfile = async (
 
     return response.data;
   } catch (error) {
+    console.error("Update profile error:", error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        `Failed to update user profile: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
     throw new Error("Failed to update user profile");
   }
 };
