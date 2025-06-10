@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { OTP } from './entities/otp.entity';
-import { OtpService } from './otp.service';
+// Removed TypeORM imports as we're using Redis only
 
 @Module({
-  imports: [TypeOrmModule.forFeature([OTP])],
-  providers: [OtpService],
-  exports: [OtpService, TypeOrmModule],
+  imports: [],
+  providers: [],
+  exports: [],
 })
 export class OtpModule {}

@@ -2,10 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 
-import { OTP } from '../otp/entities/otp.entity';
 import { authService } from './auth.service';
 import { authController } from './auth.controller';
-import { OtpService as DatabaseOtpService } from '../otp/otp.service';
 import { OtpService as RedisOtpService } from './otp.service';
 import { BlacklistService } from './blacklist.service';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -33,7 +31,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
         from: '"No Reply" <sdnmmagr5@gmail.com>',
       },
     }),
-    TypeOrmModule.forFeature([User, OTP]),
+    TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
@@ -50,9 +48,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     JwtAuthGuard,
     {
       provide: 'OTP_SERVICE',
-      useClass: process.env.USE_REDIS === 'true' ? RedisOtpService : DatabaseOtpService
+      useClass: RedisOtpService
     },
-    DatabaseOtpService,
     RedisOtpService
   ],
   controllers: [authController],

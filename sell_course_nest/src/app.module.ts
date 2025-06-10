@@ -92,7 +92,7 @@ import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.modu
 import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
 import { Meeting } from './modules/meeting/entities/meeting.entity';
 import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
-import { OTP } from './modules/otp/entities/otp.entity';
+// Removed OTP entity import as we're using Redis only
 import { OtpModule } from './modules/otp/otp.module';
 /*
  * import { APP_GUARD } from '@nestjs/core';
@@ -122,9 +122,9 @@ import { CacheModule } from '@nestjs/cache-manager';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
       entities: [
         LogoSetting,
         VersionSetting,
@@ -173,7 +173,6 @@ import { CacheModule } from '@nestjs/cache-manager';
         ChatSession,
         Message,
         Promotion,
-        OTP,
       ],
       synchronize: true,
     }),
