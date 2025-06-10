@@ -4,15 +4,18 @@ import { CourseCard } from "../ui/CourseCard";
 import { BookmarkIcon, Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { CourseCardData } from "@/app/types/Course/Course";
+
 // Mock data for wishlist
-const WISHLIST_COURSES = [
+const WISHLIST_COURSES: CourseCardData[] = [
   {
     id: "1",
     title: "Advanced JavaScript Patterns",
     instructor: "Sarah Johnson",
     price: "$79.99",
     rating: 4.8,
-    category: "JavaScript",
+    level: "Intermediate",
+    duration: 8,
     image:
       "https://images.unsplash.com/photo-1627398242454-45a1465c2479?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
   },
@@ -22,14 +25,15 @@ const WISHLIST_COURSES = [
     instructor: "Michael Chen",
     price: "$89.99",
     rating: 4.9,
-    category: "React",
+    level: "Advanced",
+    duration: 10,
     image:
       "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
   },
 ];
 export function WishlistSection() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("date"); // date, price, rating
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"date" | "price" | "rating">("date");
   const filteredCourses = WISHLIST_COURSES.filter(
     (course) =>
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

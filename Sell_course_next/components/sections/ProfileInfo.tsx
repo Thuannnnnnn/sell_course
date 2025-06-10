@@ -47,11 +47,6 @@ export function ProfileInfo() {
       if (session?.accessToken) {
         try {
           setLoading(true);
-          console.log("Token exists:", !!session.accessToken);
-          console.log(
-            "Token starts with:",
-            session.accessToken.substring(0, 15) + "..."
-          );
 
           const profile = await getUserProfile(session.accessToken);
           setUserProfile(profile);
@@ -63,10 +58,6 @@ export function ProfileInfo() {
           setLoading(false);
         }
       } else {
-        console.log(
-          "Session authenticated but no access token in session:",
-          session
-        );
         setError("No authentication token found");
         setLoading(false);
       }
