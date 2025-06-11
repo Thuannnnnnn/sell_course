@@ -7,7 +7,7 @@ export class OtpService {
   private readonly redisClient: Redis;
 
   constructor(@Inject('CACHE_MANAGER') private cacheManager: Cache) {
-    this.redisClient = new Redis({ host: 'localhost', port: 6379 }); // kết nối tới Redis
+    this.redisClient = new Redis({ host: 'localhost', port: 6379 });
   }
 
   generateOtpCode(): string {

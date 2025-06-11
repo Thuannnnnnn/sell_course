@@ -92,8 +92,6 @@ import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.modu
 import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
 import { Meeting } from './modules/meeting/entities/meeting.entity';
 import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
-import { OTP } from './modules/otp/entities/otp.entity';
-import { OtpModule } from './modules/otp/otp.module';
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -173,7 +171,6 @@ import { CacheModule } from '@nestjs/cache-manager';
         ChatSession,
         Message,
         Promotion,
-        OTP,
       ],
       synchronize: true,
     }),
@@ -219,7 +216,6 @@ import { CacheModule } from '@nestjs/cache-manager';
     PromotionModule,
     CarouselSettingModule,
     MeetingModule,
-    OtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
