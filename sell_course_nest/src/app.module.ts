@@ -1,4 +1,3 @@
-import { OrderModule } from './modules/order/order.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { MeetingModule } from './modules/meeting/meeting.module';
 // app.module.ts
@@ -12,14 +11,12 @@ import { Cart } from './modules/cart/entities/cart.entity';
 import { Certificate } from './modules/certificate/entities/certificate.entity';
 import { Contents } from './modules/contents/entities/contents.entity';
 import { Course } from './modules/course/entities/course.entity';
-import { CoursePurchase } from './modules/course_purchase/entities/course_purchase.entity';
 import { Docs } from './modules/docs/entities/docs.entity';
 
 import { Exam } from './modules/exam/entities/exam.entity';
 import { FeedbackRatting } from './modules/feedback_ratting/entities/feedback_ratting.entity';
 import { Forum } from './modules/forum/entities/forum.entity';
 import { Lesson } from './modules/lesson/entities/lesson.entity';
-import { OrderHistories } from './modules/order_histories/entities/order_histories.entity';
 import { Qa } from './modules/qa/entities/qa.entity';
 import { QuestionsExam } from './modules/questions_exam/entities/questions_exam.entity';
 import { Quizz } from './modules/quizz/entities/quizz.entity';
@@ -33,14 +30,12 @@ import { CartModule } from './modules/cart/cart.module';
 import { CertificateModule } from './modules/certificate/certificate.module';
 import { ContentModule } from './modules/contents/contents.module';
 import { CourseModule } from './modules/course/course.module';
-import { CoursePurchaseModule } from './modules/course_purchase/course_purchase.module';
 import { DocsModule } from './modules/docs/docs.module';
 
 import { ExamModule } from './modules/exam/exam.module';
 import { FeedbackRattingModule } from './modules/feedback_ratting/feedback_ratting.module';
 import { ForumModule } from './modules/forum/forum.module';
 import { LessonModule } from './modules/lesson/lesson.module';
-import { OrderHistoriesModule } from './modules/order_histories/order_histories.module';
 import { QaModule } from './modules/qa/qa.module';
 import { QuestionsExamModule } from './modules/questions_exam/questions_exam.module';
 import { QuizzModule } from './modules/quizz/quizz.module';
@@ -57,7 +52,6 @@ import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
 import { Permission } from './modules/permission/entities/permission.entity';
 import { PermissionModule } from './modules/permission/permission.module';
 import { PermissionMiddleware } from './modules/permission/permission.middleware';
-import { Order } from './modules/order/entities/order.entity';
 import { ExamQuestion } from './modules/exam/entities/examQuestion.entity';
 import { Answer } from './modules/exam/entities/answerExam.entity';
 import { Questionentity } from './modules/quizz/entities/question.entity';
@@ -94,6 +88,9 @@ import { Meeting } from './modules/meeting/entities/meeting.entity';
 import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
 import { OTP } from './modules/otp/entities/otp.entity';
 import { OtpModule } from './modules/otp/otp.module';
+import { Enrollment } from './modules/enrollment/entities/enrollment.entity';
+import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+
 /*
  * import { APP_GUARD } from '@nestjs/core';
  * import { PermissionsGuard } from './modules/permission/permissions.guard';
@@ -141,7 +138,6 @@ import { CacheModule } from '@nestjs/cache-manager';
         Certificate,
         Contents,
         Course,
-        CoursePurchase,
         Docs,
         Exam,
         ExamQuestion,
@@ -149,7 +145,6 @@ import { CacheModule } from '@nestjs/cache-manager';
         FeedbackRatting,
         Forum,
         Lesson,
-        OrderHistories,
         Qa,
         QuestionsExam,
         Quizz,
@@ -162,7 +157,6 @@ import { CacheModule } from '@nestjs/cache-manager';
         Wishlist,
         Category,
         Permission,
-        Order,
         ResultExam,
         ProgressTracking,
         UserNotify,
@@ -174,6 +168,7 @@ import { CacheModule } from '@nestjs/cache-manager';
         Message,
         Promotion,
         OTP,
+        Enrollment,
       ],
       synchronize: true,
     }),
@@ -192,7 +187,6 @@ import { CacheModule } from '@nestjs/cache-manager';
     CertificateModule,
     ContentModule,
     CourseModule,
-    CoursePurchaseModule,
     DocsModule,
     ExamModule,
     ExamQuestion,
@@ -200,7 +194,6 @@ import { CacheModule } from '@nestjs/cache-manager';
     FeedbackRattingModule,
     ForumModule,
     LessonModule,
-    OrderHistoriesModule,
     QaModule,
     QuestionsExamModule,
     QuizzStoreModule,
@@ -211,7 +204,6 @@ import { CacheModule } from '@nestjs/cache-manager';
     WishlistModule,
     CategoryModule,
     PermissionModule,
-    OrderModule,
     PaymentModule,
     ResultExamModule,
     QaStudyModule,
@@ -220,6 +212,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     CarouselSettingModule,
     MeetingModule,
     OtpModule,
+    EnrollmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -22,6 +22,7 @@ import { Interaction } from 'src/modules/Interaction/entities/Interaction.entity
 import { UserAnswer } from 'src/modules/userAnswer/entities/userAnswer.entity';
 import { ChatSession } from 'src/modules/support_chat/entities/chat-session.entity';
 import { Message } from 'src/modules/support_chat/entities/message.entity';
+import { Enrollment } from 'src/modules/enrollment/entities/enrollment.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -99,4 +100,6 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.sender)
   messages: Message[];
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
+  enrollments: Enrollment[];
 }
