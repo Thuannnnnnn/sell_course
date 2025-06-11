@@ -179,9 +179,9 @@ export default function ChangePasswordPage() {
           <Button
             variant="link"
             className="text-sm text-muted-foreground"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/profile")}
           >
-            Back to Dashboard
+            Back to profile
           </Button>
         </CardFooter>
       </Card>

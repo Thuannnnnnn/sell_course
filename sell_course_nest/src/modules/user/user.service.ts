@@ -21,9 +21,9 @@ export class UserService {
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
   ) {}
-  async getUser(email: string): Promise<UserDTO | null> {
+  async getUser(user_id: string): Promise<UserDTO | null> {
     const user = await this.userRepository.findOne({
-      where: { email },
+      where: { user_id },
       relations: ['permissions'],
     });
 
@@ -91,13 +91,13 @@ export class UserService {
   }
 
   async changePassword(
-    email: string,
+    user_id: string,
     currentPassword: string,
     newPassword: string,
     confirmPassword: string,
   ): Promise<string> {
     try {
-      const user = await this.userRepository.findOne({ where: { email } });
+      const user = await this.userRepository.findOne({ where: { user_id } });
       if (!user) {
         throw new NotFoundException('User not found');
       }
@@ -129,8 +129,8 @@ export class UserService {
     }
   }
 
-  async getUserEmail(email: string): Promise<UserDto | null> {
-    const user = await this.userRepository.findOne({ where: { email } });
+  async getUserById(user_id: string): Promise<UserDto | null> {
+    const user = await this.userRepository.findOne({ where: { user_id } });
     if (!user) {
       return null;
     }
@@ -146,11 +146,12 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
-  async getMe(email: string): Promise<UserDTO> {
+  async getMe(user_id: string): Promise<UserDTO> {
     const user = await this.userRepository.findOne({
-      where: { email },
+      where: { user_id },
       relations: ['permissions'],
     });
 
@@ -162,11 +163,11 @@ export class UserService {
   }
 
   async updateUserById(
-    email: string,
+    user_id: string,
     updateData: Partial<UserDto>,
     file?: Express.Multer.File,
   ): Promise<UserDto | null> {
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({ where: { user_id } });
     if (!user) {
       return null;
     }
@@ -192,6 +193,7 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
 
@@ -239,6 +241,7 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
   async banUser(userId: string, isBan: boolean): Promise<UserDto> {
@@ -266,6 +269,7 @@ export class UserService {
       user.isOAuth,
       user.role,
       user.isBan,
+      user.createdAt,
     );
   }
 }

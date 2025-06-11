@@ -68,12 +68,12 @@ export interface CourseCardData {
   duration?: number;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data?: T;
 }
 
-export interface CoursesApiResponse extends ApiResponse {
+export interface CoursesApiResponse extends ApiResponse<CourseResponseDTO[]> {
   data: CourseResponseDTO[];
 }

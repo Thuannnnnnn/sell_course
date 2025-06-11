@@ -53,10 +53,11 @@ export class UserDto {
   avatarImg: string | null;
   gender: string | null;
   birthDay: string | null;
-  phoneNumber: number;
+  phoneNumber: number | null;
   isOAuth: boolean;
   role: string;
   isBan: boolean;
+  createdAt?: string;
 
   constructor(
     user_id: string,
@@ -65,10 +66,11 @@ export class UserDto {
     avatarImg: string | null,
     gender: string | null,
     birthDay: string | null,
-    phoneNumber: number,
+    phoneNumber: number | null,
     isOAuth: boolean,
     role: string,
     isBan: boolean,
+    createdAt?: Date,
   ) {
     this.user_id = user_id;
     this.email = email;
@@ -80,5 +82,6 @@ export class UserDto {
     this.isOAuth = isOAuth;
     this.role = role;
     this.isBan = isBan;
+    this.createdAt = createdAt ? createdAt.toISOString() : undefined;
   }
 }
