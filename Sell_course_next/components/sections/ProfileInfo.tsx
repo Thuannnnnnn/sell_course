@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   BookmarkIcon,
@@ -17,6 +17,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { EditProfileModal } from "./EditProfileModal";
 import { UserProfile } from "@/app/types/profile/editProfile";
+import Image from "next/image";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -129,7 +130,7 @@ export function ProfileInfo() {
   return (
     <div className="space-y-6">
       <div className="relative h-48 w-full overflow-hidden rounded-xl">
-        <img
+        <Image
           src={coverImage}
           alt="Profile Cover"
           className="w-full h-full object-cover"

@@ -63,7 +63,7 @@ export const getUserById = async (token: string): Promise<UserProfile> => {
     });
 
     return response.data;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to fetch user data");
   }
 };
@@ -131,7 +131,7 @@ export const changePassword = async (
     );
 
     return response.data.message;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to change password");
   }
 };

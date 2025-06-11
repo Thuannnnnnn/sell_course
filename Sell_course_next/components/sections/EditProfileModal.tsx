@@ -19,9 +19,11 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Loader2 } from "lucide-react";
-import { EditProfileModalProps, UpdateProfileRequest } from "@/app/types/profile/editProfile";
-
-
+import {
+  EditProfileModalProps,
+  UpdateProfileRequest,
+} from "@/app/types/profile/editProfile";
+import Image from "next/image";
 
 export function EditProfileModal({
   open,
@@ -65,8 +67,7 @@ export function EditProfileModal({
           ...prev,
           [id]: undefined,
         }));
-      }
-      else if (/^\d*$/.test(value)) {
+      } else if (/^\d*$/.test(value)) {
         setFormData((prev) => ({
           ...prev,
           [id]: value ? parseInt(value, 10) : undefined,
@@ -187,7 +188,8 @@ export function EditProfileModal({
         <CardHeader>
           <CardTitle>Edit profile</CardTitle>
           <CardDescription>
-            Update your profile information here. Click save when you're done.
+            Update your profile information here. Click save when you&apos;re
+            done.
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
@@ -198,7 +200,7 @@ export function EditProfileModal({
                 <div className="col-span-3">
                   {avatarPreview && (
                     <div className="mb-2">
-                      <img
+                      <Image
                         src={avatarPreview}
                         alt="Avatar Preview"
                         className="w-16 h-16 rounded-full object-cover"

@@ -1,1 +1,0 @@
-// Blog post detail page

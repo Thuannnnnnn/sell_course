@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardHeader } from "../ui/card";
 import { CourseCard } from "../ui/CourseCard";
-import { BookmarkIcon, Search, SlidersHorizontal } from "lucide-react";
+import { BookmarkIcon, Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { CourseCardData } from "@/app/types/Course/Course";
