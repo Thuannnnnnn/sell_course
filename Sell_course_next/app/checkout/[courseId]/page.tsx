@@ -16,6 +16,7 @@ import { PaymentSummary } from "@/components/checkout/PaymentSummary";
 import { DiscountCode } from "@/components/checkout/DiscountCode";
 import { CourseList } from "@/components/checkout/CourseList";
 import logo from "@/public/logo.png";
+import PageHead from "@/components/layout/Head";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -129,6 +130,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen w-full bg-background flex items-center justify-center">
+      <PageHead
+        title="Checkout - Course Master"
+        description="Checkout - Course Master"
+      />
       <div className="container max-w-6xl px-4 py-8 md:py-12">
         <div className="space-y-2 text-center mb-8">
           <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
