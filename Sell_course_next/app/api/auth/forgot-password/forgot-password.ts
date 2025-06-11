@@ -26,7 +26,7 @@ export const verifyOtp = async (
 ): Promise<Response & { verified: boolean }> => {
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-otp`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-otp-reset-pw`,
       {
         email,
         otp_code,
@@ -47,12 +47,13 @@ export const verifyOtp = async (
 
 export const resetPasswordAPI = async (
   email: string,
-  newPassword: string
+  new_password: string,
+  otp_code: string
 ): Promise<{ message: string; statusCode: number }> => {
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-pw`,
-      { email, password: newPassword },
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password-with-otp`,
+      { email, new_password, otp_code },
       {
         headers: {
           "Content-Type": "application/json",

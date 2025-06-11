@@ -34,7 +34,7 @@ export class authService {
     private readonly blacklistService: BlacklistService,
   ) {}
 
-  async sendEmailVerificationOtp(email: string, lang: string) {
+  async sendEmailVerificationOtp(email: string) {
     if (!email) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
@@ -112,6 +112,24 @@ export class authService {
       };
     }
   }
+  async verifyEmailOtpResetPw(verifyOtpDto: VerifyOtpDto) {
+    const { email, otp_code, purpose } = verifyOtpDto;
+
+    const isValidOtp = await this.otpService.verifyOtpResetPW(
+      email,
+      otp_code,
+      purpose,
+    );
+
+    if (isValidOtp) {
+      return {
+        message:
+          'Email verified successfully. You can now complete registration.',
+        statusCode: HttpStatus.OK,
+        verified: true,
+      };
+    }
+  }
 
   async registerWithOtp(
     createUserOtpDto: CreateUserOtpDto,
@@ -127,7 +145,6 @@ export class authService {
       phoneNumber,
     } = createUserOtpDto;
 
-    // Verify OTP trước khi tạo user
     const isValidOtp = await this.otpService.verifyOtp(
       email,
       otp_code,
@@ -389,7 +406,7 @@ export class authService {
     return await azureUpload(file);
   }
 
-  async sendPasswordResetOtp(email: string, lang: string) {
+  async sendPasswordResetOtp(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
@@ -475,12 +492,12 @@ export class authService {
     }
   }
 
-  async verifyEmail(email: string, lang: string) {
-    return await this.sendEmailVerificationOtp(email, lang);
+  async verifyEmail(email: string) {
+    return await this.sendEmailVerificationOtp(email);
   }
 
-  async validateEmailForgot(email: string, lang: string) {
-    return await this.sendPasswordResetOtp(email, lang);
+  async validateEmailForgot(email: string) {
+    return await this.sendPasswordResetOtp(email);
   }
 
   async verifyResetOtp(email: string, otp_code: string, purpose: string) {
@@ -553,7 +570,7 @@ export class authService {
   }
 
   async resendOtp(resendOtpDto: ResendOtpDto) {
-    const { email, purpose, lang } = resendOtpDto;
+    const { email, purpose } = resendOtpDto;
 
     try {
       if (purpose === 'email_verification') {

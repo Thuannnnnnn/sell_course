@@ -97,7 +97,7 @@ const ForgotPWPage = () => {
     }
 
     try {
-      const response = await resetPasswordAPI(email, password);
+      const response = await resetPasswordAPI(email, password, otp);
       setSuccess(response.message);
       setStep("success");
     } catch {

@@ -35,13 +35,17 @@ export class authController {
 
   @Post('verify-email')
   async verifyEmail(@Body() body: { email: string; lang: string }) {
-    const { email, lang } = body;
-    return await this.authService.verifyEmail(email, lang);
+    const { email } = body;
+    return await this.authService.verifyEmail(email);
   }
 
   @Post('verify-otp')
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     return await this.authService.verifyEmailOtp(verifyOtpDto);
+  }
+  @Post('verify-otp-reset-pw')
+  async verifyOtpResetPW(@Body() verifyOtpDto: VerifyOtpDto) {
+    return await this.authService.verifyEmailOtpResetPw(verifyOtpDto);
   }
 
   @Post('register-with-otp')
@@ -76,7 +80,7 @@ export class authController {
     return { url };
   }
   @Post('forgot-verify-email')
-  async forgotVerifyEmail(@Body() body: { email: string; lang: string }) {
+  async forgotVerifyEmail(@Body() body: { email: string }) {
     if (!body.email) {
       throw new HttpException(
         'Bad Request: Email is required',
@@ -84,7 +88,7 @@ export class authController {
       );
     }
     try {
-      await this.authService.validateEmailForgot(body.email, body.lang);
+      await this.authService.validateEmailForgot(body.email);
       return { message: 'Email sent successfully', statusCode: HttpStatus.OK };
     } catch (error) {
       if (error instanceof HttpException) {
@@ -103,7 +107,11 @@ export class authController {
     if (!body.token || !body.email || !body.password) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
-    return await this.authService.forgotPw(body.email, body.password, body.token);
+    return await this.authService.forgotPw(
+      body.email,
+      body.password,
+      body.token,
+    );
   }
 
   @Post('reset-password-with-otp')
@@ -130,7 +138,7 @@ export class authController {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new HttpException('Invalid token format', HttpStatus.BAD_REQUEST);
     }
-    
+
     const token = authHeader.split(' ')[1];
     return await this.authService.logout(token);
   }

@@ -76,8 +76,33 @@ export class OtpService {
 
     return true;
   }
+  async verifyOtpResetPW(
+    email: string,
+    otpCode: string,
+    purpose: string,
+  ): Promise<boolean> {
+    const key = `otp:${email}:${purpose}`;
+    const otpDataStr = await this.redisClient.get(key);
 
-  // Resend OTP
+    if (!otpDataStr) {
+      throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
+    }
+    const otpData = JSON.parse(otpDataStr);
+    if (otpData.isUsed) {
+      throw new HttpException(
+        'OTP has already been used',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (otpData.code !== otpCode) {
+      throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
+    }
+    const now = Date.now();
+    if (now - otpData.createdAt > 10 * 60 * 1000) {
+      throw new HttpException('OTP has expired', HttpStatus.BAD_REQUEST);
+    }
+    return true;
+  }
   async resendOtp(email: string, purpose: string): Promise<string> {
     const key = `otp:${email}:${purpose}`;
     const otpDataStr = await this.redisClient.get(key);
