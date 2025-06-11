@@ -7,16 +7,7 @@ import { CourseTable } from "components/course/columns";
 import { useRouter } from "next/navigation";
 import { deleteCourse, fetchCourses } from "app/api/courses/course";
 import { useSession } from "next-auth/react";
-
-export interface Course {
-  courseId: string;
-  title: string;
-  category: string;
-  thumbnail: string;
-  price: number;
-  status: "Published" | "Draft" | "Pending" | "Processing" | "Rejected";
-  updatedAt: string;
-}
+import { Course } from "app/types/course";
 
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -51,7 +42,7 @@ export default function AdminCoursesPage() {
   };
 
   const handleUpdate = (id: string) => {
-    console.log("Update course:", id);
+    router.push(`/course/edit/${id}`);
   };
 
   if (isLoading) {

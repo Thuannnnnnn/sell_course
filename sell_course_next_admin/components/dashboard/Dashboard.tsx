@@ -2,7 +2,6 @@
 import React from "react";
 import { OverviewCards } from "./OverviewCards";
 import { Analytics } from "./Analytics";
-import { CourseList } from "./CourseList";
 import { ActivityFeed } from "./ActivityFeed";
 
 export function Dashboard() {
@@ -17,9 +16,6 @@ export function Dashboard() {
         <div>
           <ActivityFeed />
         </div>
-      </div>
-      <div className="mt-6">
-        <CourseList />
       </div>
     </div>
   );
