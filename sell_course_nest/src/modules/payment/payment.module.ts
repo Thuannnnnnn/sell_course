@@ -1,11 +1,12 @@
 import { PaymentController } from './payment.controller';
 import { Module } from '@nestjs/common';
-import { CoursePurchaseModule } from '../course_purchase/course_purchase.module';
-import { OrderModule } from '../order/order.module';
 import { CartModule } from '../cart/cart.module';
+import { CourseModule } from '../course/course.module';
+import { EnrollmentModule } from '../enrollment/enrollment.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [CoursePurchaseModule, OrderModule, CartModule],
+  imports: [UserModule, EnrollmentModule, CartModule, CourseModule],
   controllers: [PaymentController],
   providers: [],
 })

@@ -15,6 +15,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { Enrollment } from 'src/modules/enrollment/entities/enrollment.entity';
 
 @Entity('course')
 export class Course {
@@ -89,4 +90,6 @@ export class Course {
       this.courseId = uuidv4();
     }
   }
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
+  enrollments: Enrollment[];
 }
