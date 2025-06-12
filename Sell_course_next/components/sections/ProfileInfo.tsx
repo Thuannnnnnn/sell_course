@@ -129,13 +129,15 @@ export function ProfileInfo() {
 
   return (
     <div className="space-y-6">
-      <div className="relative h-48 w-full overflow-hidden rounded-xl">
+      <div className="relative h-48 overflow-hidden rounded-xl">
         <Image
           src={coverImage}
           alt="Profile Cover"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
       </div>
+
       <Card className="relative mt-[-4rem]">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-8">

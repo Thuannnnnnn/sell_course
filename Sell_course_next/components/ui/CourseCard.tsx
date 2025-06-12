@@ -1,15 +1,18 @@
+// Updated CourseCard.tsx
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
+import { WishlistButton } from "./WishlistButton";
 import Image from "next/image";
 import { CourseCardData } from "@/app/types/Course/Course";
 
 interface CourseProps {
   course: CourseCardData;
+  showWishlistButton?: boolean;
 }
 
-export function CourseCard({ course }: CourseProps) {
+export function CourseCard({ course, showWishlistButton = true }: CourseProps) {
   const { id, title, instructor, price, rating, image, description, level, duration } = course;
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(image);
@@ -30,7 +33,14 @@ export function CourseCard({ course }: CourseProps) {
   const isExternalImage = imageSrc && !imageSrc.startsWith('/') && !imageSrc.startsWith('data:');
   
   return (
-    <Card className="overflow-hidden flex flex-col justify-between hover:shadow-lg transition-shadow duration-300">
+    <Card className="overflow-hidden flex flex-col justify-between hover:shadow-lg transition-shadow duration-300 relative">
+      {/* Wishlist Button - positioned absolutely in top right */}
+      {showWishlistButton && (
+        <div className="absolute top-2 right-2 z-10">
+          <WishlistButton courseId={id} size="sm" />
+        </div>
+      )}
+
       <div className="aspect-video w-full overflow-hidden bg-gray-200 flex items-center justify-center">
         {isExternalImage && !imageError ? (
           <Image
