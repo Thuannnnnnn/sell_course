@@ -5,7 +5,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
-
+import { ToastProvider } from "@/components/ui/toast";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -28,11 +28,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased mx-auto`}
       >
         <SessionProvider refetchOnWindowFocus={false}>
+           <ToastProvider>
           <div className="flex flex-col min-h-screen w-full">
             <Navbar />
             {children}
             <Footer />
           </div>
+          </ToastProvider>
         </SessionProvider>
       </body>
     </html>
