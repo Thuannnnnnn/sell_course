@@ -187,7 +187,14 @@ export class UserService {
       }
     }
     console.log('Update data:', file, updateData);
-    Object.assign(user, updateData);
+
+    // Update fields using Object.assign for cleaner code
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined) {
+        user[key] = updateData[key];
+      }
+    });
+
     await this.userRepository.save(user);
     return new UserDto(
       user.user_id,

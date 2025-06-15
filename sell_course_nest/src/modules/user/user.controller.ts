@@ -21,7 +21,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserDto } from './dto/updateProfile.dto';
-import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { AuthenticatedRequest } from './interfaces/jwt-payload.interface';
 @Controller('api')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -29,17 +29,10 @@ export class UserController {
   async getAllUsers() {
     return this.userService.findAll();
   }
-  /*
-   * @UseGuards(JwtAuthGuard)
-   * @Get('/users/:id')
-   * async getUserById(@Param('id') userId: string) {
-   *   return this.userService.findById(userId);
-   * }
-   */
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('/users/user')
-  async findUserById(@Req() req): Promise<any> {
+  async findUserById(@Req() req: AuthenticatedRequest): Promise<UserDto> {
     const user_id = req.user.user_id;
     console.log('Fetching user with ID:', user_id);
 
@@ -54,7 +47,7 @@ export class UserController {
   @Put('/users/user')
   @UseInterceptors(FileInterceptor('avatar'))
   async updateUser(
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Body() updateData: Partial<UserDto>,
     @UploadedFile() avatarFile?: Express.Multer.File,
   ): Promise<UserDto | null> {
@@ -94,16 +87,18 @@ export class UserController {
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw new BadRequestException(
-        (error as any).message || 'An error occurred while updating the user.',
+        error instanceof Error
+          ? error.message
+          : 'An error occurred while updating the user.',
       );
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Put('/users/user/change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
-    @Req() req,
+    @Req() req: AuthenticatedRequest,
   ) {
     console.log('Received changePassword request:', {
       username: req.user?.username,
@@ -152,29 +147,11 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  async get(@Req() req) {
+  @Get('/users/me')
+  async get(@Req() req: AuthenticatedRequest) {
     const user_id = req.user.user_id;
     return this.userService.getUserById(user_id);
   }
-
-  // // Change Password
-  // @UseGuards(AuthGuard('jwt'))
-  // @Put('/users/user/change-password')
-  // async changePassword(
-  //   @Body() changePasswordDto: ChangePasswordDto,
-  //   @Req() req,
-  // ) {
-  //   if (!req.user || !req.user.username) {
-  //     throw new UnauthorizedException('No user found');
-  //   }
-  //   const email = req.user.email;
-  //   return this.userService.changePassword(
-  //     email,
-  //     changePasswordDto.currentPassword,
-  //     changePasswordDto.newPassword,
-  //     changePasswordDto.confirmPassword,
-  //   );
-  // }
 
   @Delete('/admin/users/remove_permission/:userId/:permissionId')
   async removePermission(
@@ -198,9 +175,9 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('/users/profile')
-  async getMe(@Req() req: any) {
+  async getMe(@Req() req: AuthenticatedRequest) {
     try {
       console.log('Getting user profile for:', req.user);
       if (!req.user || !req.user.user_id) {

@@ -41,7 +41,7 @@ export function EditProfileModal({
     username: user.username,
     gender: user.gender || undefined,
     birthDay: user.birthDay || undefined,
-    phoneNumber: user.phoneNumber !== null ? user.phoneNumber : undefined,
+    phoneNumber: user.phoneNumber || undefined,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -61,16 +61,16 @@ export function EditProfileModal({
     const { id, value } = e.target;
 
     if (id === "phoneNumber") {
-      // If empty, allow it
       if (value === "") {
         setFormData((prev) => ({
           ...prev,
           [id]: undefined,
         }));
-      } else if (/^\d*$/.test(value)) {
+      } else if (/^\d{0,9}$/.test(value)) {
+        const numValue = parseInt(value, 10);
         setFormData((prev) => ({
           ...prev,
-          [id]: value ? parseInt(value, 10) : undefined,
+          [id]: numValue,
         }));
       } else {
         return;
@@ -82,7 +82,6 @@ export function EditProfileModal({
       }));
     }
 
-    // Clear error for this field
     if (errors[id]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -115,11 +114,9 @@ export function EditProfileModal({
     if (formData.phoneNumber !== undefined && formData.phoneNumber !== null) {
       const phoneStr = formData.phoneNumber.toString();
       if (phoneStr.trim() !== "") {
-        if (!/^[0-9]+$/.test(phoneStr)) {
-          newErrors.phoneNumber = "Phone number must contain only digits";
-        } else if (phoneStr.length < 9 || phoneStr.length > 15) {
+        if (!/^9\d{8}$/.test(phoneStr)) {
           newErrors.phoneNumber =
-            "Phone number must be between 9 and 15 digits";
+            "Số điện thoại phải bắt đầu bằng số 9 và có đúng 9 chữ số";
         }
       }
     }
@@ -182,139 +179,178 @@ export function EditProfileModal({
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Card className="w-full max-w-[425px] mx-4">
-        <CardHeader>
-          <CardTitle>Edit profile</CardTitle>
-          <CardDescription>
-            Update your profile information here. Click save when you&apos;re
-            done.
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={onSubmit}>
-          <CardContent>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="text-sm font-medium text-right">Avatar</div>
-                <div className="col-span-3">
-                  {avatarPreview && (
-                    <div className="mb-2">
-                      <Image
-                        src={avatarPreview}
-                        alt="Avatar Preview"
-                        className="w-16 h-16 rounded-full object-cover"
+  try {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-hidden">
+        <Card className="w-full max-w-[425px] mx-4 relative max-h-[90vh] overflow-y-auto">
+          <CardHeader>
+            <CardTitle>Edit profile</CardTitle>
+            <CardDescription>
+              Update your profile information here. Click save when you&apos;re
+              done.
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={onSubmit}>
+            <CardContent>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="text-sm font-medium text-right">Avatar</div>
+                  <div className="col-span-3">
+                    {avatarPreview && (
+                      <div className="mb-2">
+                        <Image
+                          src={avatarPreview}
+                          alt="Avatar Preview"
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <Input
+                      id="avatar"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="text-sm font-medium text-right">Username</div>
+                  <div className="col-span-3">
+                    <Input
+                      id="username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                      placeholder="3-50 characters"
+                    />
+                    {errors.username && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.username}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="text-sm font-medium text-right">Gender</div>
+                  <div className="col-span-3 relative">
+                    <Select
+                      defaultValue={formData.gender || ""}
+                      onValueChange={handleGenderChange}
+                    >
+                      <SelectTrigger id="gender">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent
+                        position="popper"
+                        sideOffset={4}
+                        className="z-[60]"
+                      >
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="text-sm font-medium text-right">Birthday</div>
+                  <div className="col-span-3">
+                    <Input
+                      id="birthDay"
+                      type="date"
+                      value={formData.birthDay || ""}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                      max={new Date().toISOString().split("T")[0]}
+                    />
+                    {errors.birthDay && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.birthDay}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="text-sm font-medium text-right">Phone</div>
+                  <div className="col-span-3">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-1 pointer-events-none">
+                        <span className="text-gray-500 text-sm font-medium">
+                          +84
+                        </span>
+                      </div>
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        value={
+                          formData.phoneNumber
+                            ? formData.phoneNumber.toString()
+                            : ""
+                        }
+                        onChange={handleInputChange}
+                        className="pl-8"
+                        placeholder="912345678"
+                        pattern="9[0-9]{8}"
+                        inputMode="numeric"
+                        maxLength={9}
                       />
                     </div>
-                  )}
-                  <Input
-                    id="avatar"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="text-sm font-medium text-right">Username</div>
-                <div className="col-span-3">
-                  <Input
-                    id="username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    placeholder="3-50 characters"
-                  />
-                  {errors.username && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.username}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter 9 digits (e.g: +84 912345678)
                     </p>
+                    {errors.phoneNumber && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.phoneNumber}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              {generalError && (
+                <div className="w-full text-center">
+                  <p className="text-red-500 text-sm">{generalError}</p>
+                </div>
+              )}
+              <div className="flex justify-end gap-2 w-full">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      Saving...
+                    </>
+                  ) : (
+                    "Save changes"
                   )}
-                </div>
+                </Button>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="text-sm font-medium text-right">Gender</div>
-                <div className="col-span-3">
-                  <Select
-                    defaultValue={formData.gender || ""}
-                    onValueChange={handleGenderChange}
-                  >
-                    <SelectTrigger id="gender">
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="text-sm font-medium text-right">Birthday</div>
-                <div className="col-span-3">
-                  <Input
-                    id="birthDay"
-                    type="date"
-                    value={formData.birthDay || ""}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    max={new Date().toISOString().split("T")[0]}
-                  />
-                  {errors.birthDay && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.birthDay}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="text-sm font-medium text-right">Phone</div>
-                <div className="col-span-3">
-                  <Input
-                    id="phoneNumber"
-                    type="tel"
-                    value={formData.phoneNumber || ""}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    placeholder="Enter your phone number"
-                    pattern="[0-9]*"
-                    inputMode="numeric"
-                    maxLength={15}
-                  />
-                  {errors.phoneNumber && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.phoneNumber}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    );
+  } catch (error) {
+    console.error("EditProfileModal render error:", error);
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <Card className="w-full max-w-[425px] mx-4">
+          <CardContent className="p-6">
+            <p className="text-red-500">
+              Error loading edit profile form. Please try again.
+            </p>
+            <Button onClick={onClose} className="mt-4">
+              Close
+            </Button>
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            {generalError && (
-              <div className="w-full text-center">
-                <p className="text-red-500 text-sm">{generalError}</p>
-              </div>
-            )}
-            <div className="flex justify-end gap-2 w-full">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </Button>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
-  );
+        </Card>
+      </div>
+    );
+  }
 }

@@ -3,12 +3,15 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
+import { PasswordValidationSubtitle } from "@/components/ui/password-validation-subtitle";
+import { PasswordMatchSubtitle } from "@/components/ui/password-match-subtitle";
 import { authApi, ApiError } from "@/app/api/auth/register/register";
 import { OtpData } from "@/app/types/auth/Register/otp";
 import { FormData } from "@/app/types/auth/Register/register";
@@ -68,6 +71,16 @@ export default function RegisterPage() {
     }
     if (!/[A-Z]/.test(formData.password)) {
       setError("Password must contain at least one uppercase letter");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      setError("Password must contain at least one number");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
+      setError("Password must contain at least one special character");
       setIsLoading(false);
       return;
     }
@@ -218,15 +231,15 @@ export default function RegisterPage() {
         <label htmlFor="password" className="text-sm font-medium leading-none">
           Password
         </label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           placeholder="Enter your password"
           value={formData.password}
           onChange={handleInputChange}
           required
         />
+        <PasswordValidationSubtitle password={formData.password} />
       </div>
 
       <div className="space-y-2">
@@ -236,14 +249,17 @@ export default function RegisterPage() {
         >
           Confirm Password
         </label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
           placeholder="Confirm your password"
           value={formData.confirmPassword}
           onChange={handleInputChange}
           required
+        />
+        <PasswordMatchSubtitle
+          password={formData.password}
+          confirmPassword={formData.confirmPassword}
         />
       </div>
 

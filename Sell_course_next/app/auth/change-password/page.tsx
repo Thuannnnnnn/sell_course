@@ -7,6 +7,9 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordValidationSubtitle } from "@/components/ui/password-validation-subtitle";
+import { PasswordMatchSubtitle } from "@/components/ui/password-match-subtitle";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -41,8 +44,20 @@ export default function ChangePasswordPage() {
       setError("New password and confirm password do not match.");
       return;
     }
-    if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters long.");
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) {
+      setError("New password must contain at least one special character.");
       return;
     }
     if (currentPassword === newPassword) {
@@ -132,9 +147,8 @@ export default function ChangePasswordPage() {
               >
                 Current Password
               </label>
-              <Input
+              <PasswordInput
                 id="currentPassword"
-                type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
@@ -147,13 +161,13 @@ export default function ChangePasswordPage() {
               >
                 New Password
               </label>
-              <Input
+              <PasswordInput
                 id="newPassword"
-                type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
               />
+              <PasswordValidationSubtitle password={newPassword} />
             </div>
             <div className="space-y-2">
               <label
@@ -162,12 +176,15 @@ export default function ChangePasswordPage() {
               >
                 Confirm Password
               </label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+              />
+              <PasswordMatchSubtitle
+                password={newPassword}
+                confirmPassword={confirmPassword}
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
