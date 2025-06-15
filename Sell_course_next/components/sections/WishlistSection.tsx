@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardHeader } from "../ui/card";
 import { CourseCard } from "../ui/CourseCard";
 import { BookmarkIcon, Search, RefreshCw } from "lucide-react";
@@ -33,7 +33,6 @@ export function WishlistSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "rating">("date");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Auto sign-out on session expiry
   useEffect(() => {
@@ -49,7 +48,7 @@ export function WishlistSection() {
     }
   }, [session]);
 
-  const fetchWishlist = async () => {
+  const fetchWishlist = useCallback(async () => {
     if (!session?.user || !session?.accessToken) {
       setLoading(false);
       return;
@@ -57,7 +56,6 @@ export function WishlistSection() {
 
     try {
       setLoading(true);
-      setError(null);
 
       const wishlistData = await wishlistApi.getWishlist(session.user.id, session.accessToken);
       const transformedCourses = wishlistData
@@ -73,7 +71,6 @@ export function WishlistSection() {
       });
     } catch (err) {
       console.error("Error fetching wishlist:", err);
-      setError("Failed to load wishlist.");
       toast({
         title: "Error",
         description: "Could not fetch wishlist. Please try again.",
@@ -82,11 +79,11 @@ export function WishlistSection() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user, session?.accessToken, toast]);
 
   useEffect(() => {
     fetchWishlist();
-  }, [session?.user?.id, session?.accessToken]);
+  }, [fetchWishlist]);
 
   const filteredCourses = wishlistCourses.filter(course =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
