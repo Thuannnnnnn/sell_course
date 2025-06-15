@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Card, CardHeader } from "../ui/card";
 import { CourseCard } from "../ui/CourseCard";
 import { BookmarkIcon, Search, RefreshCw } from "lucide-react";
@@ -33,57 +33,157 @@ export function WishlistSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "rating">("date");
   const [loading, setLoading] = useState(true);
+  const [hasShownError, setHasShownError] = useState(false);
+  
+  // Use ref to track if we're already fetching to prevent multiple calls
+  const isFetchingRef = useRef(false);
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto sign-out on session expiry
+  // Handle session expiration without causing re-renders
   useEffect(() => {
+    // Clear existing timeout
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+      sessionTimeoutRef.current = null;
+    }
+
     if (session?.expires) {
       const expireTime = new Date(session.expires).getTime();
       const currentTime = Date.now();
+      
       if (currentTime >= expireTime) {
         signOut();
       } else {
-        const timeout = setTimeout(() => signOut(), expireTime - currentTime);
-        return () => clearTimeout(timeout);
+        sessionTimeoutRef.current = setTimeout(() => {
+          signOut();
+        }, expireTime - currentTime);
       }
     }
-  }, [session]);
 
-  const fetchWishlist = useCallback(async () => {
-    if (!session?.user || !session?.accessToken) {
+    return () => {
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+        sessionTimeoutRef.current = null;
+      }
+    };
+  }, [session?.expires]);
+
+  // Initial fetch on mount and when session changes
+  useEffect(() => {
+    const fetchWishlist = async (showToast = false) => {
+      // Prevent multiple simultaneous calls
+      if (isFetchingRef.current) {
+        return;
+      }
+
+      const userId = session?.user?.id;
+      const accessToken = session?.accessToken;
+
+      if (!userId || !accessToken) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        isFetchingRef.current = true;
+        setLoading(true);
+
+        const wishlistData = await wishlistApi.getWishlist(userId, accessToken);
+        
+        // Reset error state on successful fetch
+        setHasShownError(false);
+        
+        const transformedCourses = wishlistData
+          .filter(item => item.save && item.course.status)
+          .map(transformWishlistData);
+
+        setWishlistCourses(transformedCourses);
+
+        if (showToast) {
+          toast({
+            title: "Wishlist updated",
+            description: "Your wishlist has been refreshed successfully.",
+            variant: "default",
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching wishlist:", err);
+        
+        // Only show error toast once per session or on manual refresh
+        if (!hasShownError || showToast) {
+          toast({
+            title: "Error",
+            description: "Could not fetch wishlist. Please try again.",
+            variant: "destructive",
+          });
+          setHasShownError(true);
+        }
+        
+        // Set empty array on error to prevent showing stale data
+        setWishlistCourses([]);
+      } finally {
+        setLoading(false);
+        isFetchingRef.current = false;
+      }
+    };
+
+    fetchWishlist();
+  }, [session?.user?.id, session?.accessToken, toast, hasShownError]);
+
+  // Separate function for manual refresh
+  const fetchWishlist = useCallback(async (showToast = false) => {
+    // Prevent multiple simultaneous calls
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    const userId = session?.user?.id;
+    const accessToken = session?.accessToken;
+
+    if (!userId || !accessToken) {
       setLoading(false);
       return;
     }
 
     try {
+      isFetchingRef.current = true;
       setLoading(true);
 
-      const wishlistData = await wishlistApi.getWishlist(session.user.id, session.accessToken);
+      const wishlistData = await wishlistApi.getWishlist(userId, accessToken);
+      
+      // Reset error state on successful fetch
+      setHasShownError(false);
+      
       const transformedCourses = wishlistData
         .filter(item => item.save && item.course.status)
         .map(transformWishlistData);
 
       setWishlistCourses(transformedCourses);
 
-      toast({
-        title: "Wishlist updated",
-        description: "Your wishlist has been refreshed successfully.",
-        variant: "default",
-      });
+      if (showToast) {
+        toast({
+          title: "Wishlist updated",
+          description: "Your wishlist has been refreshed successfully.",
+          variant: "default",
+        });
+      }
     } catch (err) {
       console.error("Error fetching wishlist:", err);
+      
+      // Always show error on manual refresh
       toast({
         title: "Error",
         description: "Could not fetch wishlist. Please try again.",
         variant: "destructive",
       });
+      
+      // Set empty array on error to prevent showing stale data
+      setWishlistCourses([]);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [session?.user, session?.accessToken, toast]);
-
-  useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+  }, [session?.user?.id, session?.accessToken, toast])
 
   const filteredCourses = wishlistCourses.filter(course =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -102,7 +202,7 @@ export function WishlistSection() {
   });
 
   const handleRefresh = () => {
-    fetchWishlist();
+    fetchWishlist(true); // Show toast on manual refresh
   };
 
   if (loading) {
@@ -121,12 +221,6 @@ export function WishlistSection() {
   }
 
   if (!session?.user) {
-    toast({
-      title: "Not signed in",
-      description: "Please log in to view your wishlist.",
-      variant: "destructive",
-    });
-
     return (
       <Card>
         <CardHeader className="flex items-center gap-2">
@@ -155,8 +249,8 @@ export function WishlistSection() {
               ({wishlistCourses.length} courses)
             </span>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>

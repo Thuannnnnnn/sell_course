@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { wishlistApi } from "@/app/api/wishlist/wishlist-api";
@@ -24,50 +24,87 @@ export function WishlistButton({
   const { toast } = useToast();
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [hasShownError, setHasShownError] = useState(false);
+  
+  // Use refs to prevent multiple simultaneous calls
+  const isCheckingRef = useRef(false);
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const userId = session?.user?.id;
   const token = session?.accessToken;
 
   // Handle session expiration
   useEffect(() => {
+    // Clear existing timeout
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+      sessionTimeoutRef.current = null;
+    }
+
     if (session?.expires) {
       const expireTime = new Date(session.expires).getTime();
       const currentTime = Date.now();
+      
       if (currentTime >= expireTime) {
         signOut();
       } else {
-        const timeout = setTimeout(() => {
+        sessionTimeoutRef.current = setTimeout(() => {
           signOut();
         }, expireTime - currentTime);
-        return () => clearTimeout(timeout);
       }
     }
-  }, [session]);
 
-  // Check if course is already in wishlist
-  const checkWishlistStatus = useCallback(async () => {
-    if (!userId || !token) return;
-    try {
-      const wishlist = await wishlistApi.getWishlist(userId, token);
-      const isInList = wishlist.some((item) => item.courseId === courseId);
-      setIsInWishlist(isInList);
-    } catch (error) {
-      console.error("Error checking wishlist:", error);
-      toast({
-        title: "Error",
-        description: "Unable to fetch wishlist.",
-        variant: "destructive",
-      });
-    }
-  }, [courseId, userId, token, toast]);
+    return () => {
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+        sessionTimeoutRef.current = null;
+      }
+    };
+  }, [session?.expires]);
 
+  // Check wishlist status when component mounts or dependencies change
   useEffect(() => {
-    checkWishlistStatus();
-  }, [checkWishlistStatus]);
+    const checkWishlistStatus = async () => {
+      if (!userId || !token || !courseId || isCheckingRef.current) {
+        return;
+      }
+
+      try {
+        isCheckingRef.current = true;
+        const wishlist = await wishlistApi.getWishlist(userId, token);
+        const isInList = wishlist.some((item) => item.courseId === courseId);
+        setIsInWishlist(isInList);
+        
+        // Reset error state on successful check
+        setHasShownError(false);
+      } catch (error) {
+        console.error("Error checking wishlist:", error);
+        
+        // Only show error toast once per session for background checks
+        if (!hasShownError) {
+          toast({
+            title: "Error",
+            description: "Unable to check wishlist status.",
+            variant: "destructive",
+          });
+          setHasShownError(true);
+        }
+        
+        // Set to false on error to prevent showing incorrect state
+        setIsInWishlist(false);
+      } finally {
+        isCheckingRef.current = false;
+      }
+    };
+
+    if (userId && token && courseId) {
+      checkWishlistStatus();
+    } else {
+      setIsInWishlist(false);
+    }
+  }, [userId, token, courseId, toast, hasShownError]); // Only depend on the actual values
 
   const handleWishlistToggle = async () => {
-    setError(null);
     if (!userId || !token) {
       toast({
         title: "Unauthorized",
@@ -75,6 +112,10 @@ export function WishlistButton({
         variant: "destructive",
       });
       return;
+    }
+
+    if (isLoading) {
+      return; // Prevent multiple clicks
     }
 
     setIsLoading(true);
@@ -99,11 +140,16 @@ export function WishlistButton({
       }
     } catch (error: unknown) {
       console.error("Wishlist error:", error);
+      
+      // Always show error for user actions (button clicks)
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
+      
+      // Reset error state since this is a user action
+      setHasShownError(false);
     } finally {
       setIsLoading(false);
     }
@@ -122,30 +168,27 @@ export function WishlistButton({
   }[size];
 
   return (
-    <div>
-      <Button
-        variant={isInWishlist ? "default" : "outline"}
-        size={showText ? "sm" : "icon"}
-        className={`${buttonSize} ${className} transition-all duration-200 hover:scale-105`}
-        onClick={handleWishlistToggle}
-        disabled={isLoading}
-        title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
-      >
-        <Bookmark
-          size={iconSize}
-          className={`transition-all duration-200 ${
-            isInWishlist
-              ? "fill-yellow-500 text-yellow-500"
-              : "text-gray-500 hover:text-yellow-500"
-          }`}
-        />
-        {showText && (
-          <span className="ml-2 text-sm">
-            {isInWishlist ? "Saved" : "Save"}
-          </span>
-        )}
-      </Button>
-      {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
-    </div>
+    <Button
+      variant={isInWishlist ? "default" : "outline"}
+      size={showText ? "sm" : "icon"}
+      className={`${buttonSize} ${className} transition-all duration-200 hover:scale-105`}
+      onClick={handleWishlistToggle}
+      disabled={isLoading || !userId || !token}
+      title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+    >
+      <Bookmark
+        size={iconSize}
+        className={`transition-all duration-200 ${
+          isInWishlist
+            ? "fill-yellow-500 text-yellow-500"
+            : "text-gray-500 hover:text-yellow-500"
+        }`}
+      />
+      {showText && (
+        <span className="ml-2 text-sm">
+          {isLoading ? "..." : isInWishlist ? "Saved" : "Save"}
+        </span>
+      )}
+    </Button>
   );
 }
