@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Heart } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { wishlistApi } from "@/app/api/wishlist/wishlist-api";
 import { useSession, signOut } from "next-auth/react";
@@ -46,24 +46,25 @@ export function WishlistButton({
   }, [session]);
 
   // Check if course is already in wishlist
+  const checkWishlistStatus = useCallback(async () => {
+    if (!userId || !token) return;
+    try {
+      const wishlist = await wishlistApi.getWishlist(userId, token);
+      const isInList = wishlist.some((item) => item.courseId === courseId);
+      setIsInWishlist(isInList);
+    } catch (error) {
+      console.error("Error checking wishlist:", error);
+      toast({
+        title: "Error",
+        description: "Unable to fetch wishlist.",
+        variant: "destructive",
+      });
+    }
+  }, [courseId, userId, token, toast]);
+
   useEffect(() => {
-    const checkWishlistStatus = async () => {
-      if (!userId || !token) return;
-      try {
-        const wishlist = await wishlistApi.getWishlist(userId, token);
-        const isInList = wishlist.some((item) => item.courseId === courseId);
-        setIsInWishlist(isInList);
-      } catch (error) {
-        console.error("Error checking wishlist:", error);
-        toast({
-          title: "Error",
-          description: "Unable to fetch wishlist.",
-          variant: "destructive",
-        });
-      }
-    };
     checkWishlistStatus();
-  }, [courseId, userId, token]);
+  }, [checkWishlistStatus]);
 
   const handleWishlistToggle = async () => {
     setError(null);
@@ -96,7 +97,7 @@ export function WishlistButton({
           description: "This course was added to your wishlist.",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Wishlist error:", error);
       toast({
         title: "Error",
@@ -130,12 +131,12 @@ export function WishlistButton({
         disabled={isLoading}
         title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
       >
-        <Heart
+        <Bookmark
           size={iconSize}
           className={`transition-all duration-200 ${
             isInWishlist
-              ? "fill-red-500 text-red-500"
-              : "text-gray-500 hover:text-red-500"
+              ? "fill-yellow-500 text-yellow-500"
+              : "text-gray-500 hover:text-yellow-500"
           }`}
         />
         {showText && (

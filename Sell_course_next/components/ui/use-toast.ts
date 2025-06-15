@@ -1,10 +1,12 @@
-// components/ui/use-toast.ts
+"use client";
 
-import * as React from "react";
-import { toast as defaultToast } from "@/components/ui/toast";
+import { useContext } from "react";
+import { ToastContext } from "@/components/ui/toast";
 
 export function useToast() {
-  return {
-    toast: defaultToast,
-  };
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error("useToast must be used within a ToastProvider");
+  }
+  return context;
 }
