@@ -119,9 +119,9 @@ import { CacheModule } from '@nestjs/cache-manager';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
       entities: [
         LogoSetting,
         VersionSetting,

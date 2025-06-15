@@ -120,11 +120,18 @@ export class UserService {
       await this.userRepository.save(user);
       return 'Password changed successfully';
     } catch (error) {
-      if (error instanceof Error) {
-        throw new BadRequestException(
-          error.message || 'Failed to change password',
-        );
+      console.error('Change password error:', error);
+
+      // Ném lại các lỗi đã được định nghĩa sẵn
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
       }
+
+      // Lỗi không xác định
       throw new BadRequestException('Failed to change password');
     }
   }

@@ -99,16 +99,18 @@ export class UserController {
     }
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @Put('/users/user/change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @Req() req,
   ) {
     console.log('Received changePassword request:', {
-      username: req.user.username,
-      user_id: req.user.user_id,
+      username: req.user?.username,
+      user_id: req.user?.user_id,
+      body: changePasswordDto,
     });
+
     if (!req.user || !req.user.username || !req.user.user_id) {
       throw new UnauthorizedException('User not authenticated');
     }
@@ -116,12 +118,22 @@ export class UserController {
     const user_id = req.user.user_id;
     console.log('Found user ID:', user_id);
 
-    return this.userService.changePassword(
-      user_id,
-      changePasswordDto.currentPassword,
-      changePasswordDto.newPassword,
-      changePasswordDto.confirmPassword,
-    );
+    try {
+      const result = await this.userService.changePassword(
+        user_id,
+        changePasswordDto.currentPassword,
+        changePasswordDto.newPassword,
+        changePasswordDto.confirmPassword,
+      );
+
+      return {
+        message: result,
+        success: true,
+      };
+    } catch (error) {
+      console.error('Controller error:', error);
+      throw error;
+    }
   }
 
   @Post('/admin/users/assign_permissions/:id')
