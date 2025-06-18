@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { VersionSetting } from 'src/modules/vesionSetting/entities/vesionSetting.entity';
+import { VersionSetting } from '../../vesionSetting/entities/vesionSetting.entity';
 
 @Entity('carousel_settings')
 export class CarouselSetting {

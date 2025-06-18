@@ -6,7 +6,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Message } from './message.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('chat_sessions')
 export class ChatSession {
