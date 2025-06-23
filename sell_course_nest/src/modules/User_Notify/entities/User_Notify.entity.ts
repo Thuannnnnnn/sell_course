@@ -1,5 +1,5 @@
-import { Notify } from 'src/modules/notify/entities/notify.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { Notify } from '../../notify/entities/notify.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   Entity,
