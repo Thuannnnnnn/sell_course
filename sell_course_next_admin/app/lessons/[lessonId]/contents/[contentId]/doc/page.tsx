@@ -44,12 +44,10 @@ import {
   Edit3,
   Save,
   X,
-  Download,
   AlertCircle,
   CheckCircle2,
   Loader2,
   Calendar,
-  ExternalLink,
 } from "lucide-react";
 
 const DocumentPage = ({
@@ -87,7 +85,7 @@ const DocumentPage = ({
             await renderAsync(arrayBuffer, docPreviewRef.current);
           }
         }
-      } catch (error) {
+      } catch {
         setDoc(null);
       } finally {
         setInitialLoading(false);
@@ -180,16 +178,17 @@ const DocumentPage = ({
         setDoc(newDoc);
       }
       setFile(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       showMessage(
-        error.message || "An error occurred while saving the document",
+        error instanceof Error
+          ? error.message
+          : "An error occurred while saving the document",
         "error"
       );
     } finally {
       setLoading(false);
     }
   };
-
   const handleDelete = async () => {
     try {
       setLoading(true);
@@ -204,16 +203,17 @@ const DocumentPage = ({
       showMessage("Document deleted successfully!", "success");
       setDoc(null);
       setDeleteDialogOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       showMessage(
-        error.message || "An error occurred while deleting the document",
+        error instanceof Error
+          ? error.message
+          : "An error occurred while deleting the document",
         "error"
       );
     } finally {
       setLoading(false);
     }
   };
-
   const getFileIcon = (fileName: string | undefined) => {
     if (!fileName) {
       return <FileText className="w-8 h-8 text-gray-500" />;
@@ -241,7 +241,7 @@ const DocumentPage = ({
 
   const getFileExtension = (fileName: string | undefined) => {
     if (!fileName) {
-      return "FILE"; // Default value if fileName does not exist
+      return "FILE";
     }
     return fileName.split(".").pop()?.toUpperCase() || "FILE";
   };
@@ -262,7 +262,6 @@ const DocumentPage = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
             {doc ? "Document Management" : "Create New Document"}
@@ -274,7 +273,6 @@ const DocumentPage = ({
           </p>
         </div>
 
-        {/* Alert Messages */}
         {message && (
           <Alert
             className={
@@ -306,9 +304,7 @@ const DocumentPage = ({
         )}
 
         {doc ? (
-          /* Document Management Mode */
           <Card className="overflow-hidden shadow-lg">
-            {/* Document Header */}
             <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -331,10 +327,7 @@ const DocumentPage = ({
                           Created: {new Date().toLocaleDateString("en-US")}
                         </span>
                       </div>
-                      <Badge
-                        variant="secondary"
-                        className="bg-white/20 text-white hover:bg-white/30"
-                      >
+                      <Badge className="bg-white/20 text-white hover:bg-white/30">
                         {getFileExtension(doc.title)}
                       </Badge>
                     </div>
