@@ -26,7 +26,7 @@ import {
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
-  @Post('admin/lesson/create_lesson')
+  @Post('instructor/lesson/create_lesson')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a new lesson',
@@ -82,7 +82,32 @@ export class LessonController {
     return this.lessonService.getLessons();
   }
 
-  @Get('admin/lesson/view_lesson/:courseId')
+  @Get('instructor/lesson/view_lesson')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get all lessons for instructor',
+    description: 'Retrieves all lessons with their contents for instructor',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of lessons retrieved successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          lessonId: { type: 'string', example: 'lesson123' },
+          lessonName: { type: 'string', example: 'Introduction to TypeScript' },
+          courseId: { type: 'string', example: 'course123' },
+        },
+      },
+    },
+  })
+  async getLessonsForInstructor() {
+    return this.lessonService.getLessons();
+  }
+
+  @Get('instructor/lesson/view_lesson/:courseId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get lessons by course ID (Admin)',
@@ -118,7 +143,7 @@ export class LessonController {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
 
-  @Put('admin/lesson/update_lesson/:lessonId')
+  @Put('instructor/lesson/update_lesson/:lessonId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Update lesson details',
@@ -144,7 +169,7 @@ export class LessonController {
     return this.lessonService.updateLesson(lessonId, updateLessonDto);
   }
 
-  @Put('admin/lesson/update_order')
+  @Put('instructor/lesson/update_order')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Update lesson order',
@@ -175,7 +200,7 @@ export class LessonController {
     return this.lessonService.updateLessonOrder(body.lessons);
   }
 
-  @Delete('admin/lesson/delete_lesson/:lessonId')
+  @Delete('instructor/lesson/delete_lesson/:lessonId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete a lesson',
