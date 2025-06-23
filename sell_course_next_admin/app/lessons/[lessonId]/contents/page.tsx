@@ -2,21 +2,33 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchContentsByLesson, deleteContent } from "../../../api/lessons/content";
+import {
+  fetchContentsByLesson,
+  deleteContent,
+} from "../../../api/lessons/content";
 import { fetchLessons } from "../../../api/lessons/lesson";
 import { Content } from "../../../types/lesson";
 import { Lesson } from "../../../types/lesson";
 import { Card, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { Badge } from "../../../../components/ui/badge";
-import { Edit, Trash2, Plus, ArrowLeft, FileText, Video, Image } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Plus,
+  ArrowLeft,
+  FileText,
+  Video,
+  Image,
+} from "lucide-react";
+import Link from "next/link";
 
 export default function LessonContentsPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
   const lessonId = params.lessonId as string;
-  
+
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [contents, setContents] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,19 +44,21 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-        
+
         const [lessonsData, contentsData] = await Promise.all([
           fetchLessons(session.accessToken),
-          fetchContentsByLesson(lessonId, session.accessToken)
+          fetchContentsByLesson(lessonId, session.accessToken),
         ]);
-        
-        const foundLesson = lessonsData.find((l: Lesson) => l.lessonId === lessonId);
+
+        const foundLesson = lessonsData.find(
+          (l: Lesson) => l.lessonId === lessonId
+        );
         if (!foundLesson) {
           setError("Lesson not found.");
           setLoading(false);
           return;
         }
-        
+
         setLesson(foundLesson);
         setContents(contentsData);
       } catch {
@@ -65,8 +79,9 @@ export default function LessonContentsPage() {
 
   const handleDelete = async (contentId: string) => {
     if (!session?.accessToken) return;
-    if (!window.confirm("Are you sure you want to delete this content?")) return;
-    
+    if (!window.confirm("Are you sure you want to delete this content?"))
+      return;
+
     try {
       await deleteContent(contentId, session.accessToken);
       setContents((prev) => prev.filter((c) => c.contentId !== contentId));
@@ -81,9 +96,9 @@ export default function LessonContentsPage() {
 
   const getContentTypeIcon = (contentType: string) => {
     switch (contentType.toLowerCase()) {
-      case 'video':
+      case "video":
         return <Video className="h-4 w-4" />;
-      case 'image':
+      case "image":
         return <Image className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
@@ -92,21 +107,19 @@ export default function LessonContentsPage() {
 
   const getContentTypeColor = (contentType: string) => {
     switch (contentType.toLowerCase()) {
-      case 'video':
-        return 'bg-blue-100 text-blue-800';
-      case 'image':
-        return 'bg-green-100 text-green-800';
+      case "video":
+        return "bg-blue-100 text-blue-800";
+      case "image":
+        return "bg-green-100 text-green-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   if (!lesson) {
     return (
       <div className="space-y-6">
-        <div className="text-center py-8">
-          {error || "Loading..."}
-        </div>
+        <div className="text-center py-8">{error || "Loading..."}</div>
       </div>
     );
   }
@@ -130,7 +143,7 @@ export default function LessonContentsPage() {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Badge variant="secondary">
-            {contents.length} content item{contents.length !== 1 ? 's' : ''}
+            {contents.length} content item{contents.length !== 1 ? "s" : ""}
           </Badge>
         </div>
         <Button onClick={handleAdd}>
@@ -155,27 +168,40 @@ export default function LessonContentsPage() {
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
-                        {content.order}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getContentTypeIcon(content.contentType)}
-                        <div>
-                          <h3 className="font-medium">{content.contentName}</h3>
-                          <Badge 
-                            variant="outline" 
-                            className={getContentTypeColor(content.contentType)}
-                          >
-                            {content.contentType}
-                          </Badge>
+                      <Link
+                        href={`/lessons/${lessonId}/contents/${content.contentId}/${content.contentType}`}
+                        className="flex items-center gap-2"
+                      >
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
+                          {content.order}
                         </div>
-                      </div>
+                        <div className="flex items-center gap-2">
+                          {getContentTypeIcon(content.contentType)}
+                          <div>
+                            <h3 className="font-medium">
+                              {content.contentName}
+                            </h3>
+                            <Badge
+                              variant="outline"
+                              className={getContentTypeColor(
+                                content.contentType
+                              )}
+                            >
+                              {content.contentType}
+                            </Badge>
+                          </div>
+                        </div>
+                      </Link>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
                         size="icon"
                         variant="outline"
-                        onClick={() => router.push(`/lessons/${lessonId}/contents/edit/${content.contentId}`)}
+                        onClick={() =>
+                          router.push(
+                            `/lessons/${lessonId}/contents/edit/${content.contentId}`
+                          )
+                        }
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -189,10 +215,11 @@ export default function LessonContentsPage() {
                     </div>
                   </div>
                 ))}
-              
+
               {contents.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
-                  No content found for this lesson. Add your first content item to get started.
+                  No content found for this lesson. Add your first content item
+                  to get started.
                 </div>
               )}
             </div>
@@ -201,4 +228,4 @@ export default function LessonContentsPage() {
       )}
     </div>
   );
-} 
+}

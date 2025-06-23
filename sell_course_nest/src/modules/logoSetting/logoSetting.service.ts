@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { VersionSetting } from '../../vesionSetting/entities/vesionSetting.entity';
+import { VersionSetting } from '../vesionSetting/entities/vesionSetting.entity';
 import { CreateLogoSettingDto } from './dto/CreateLogoSettingDto.dto';
 import { LogoSetting } from './entities/LogoSetting.entity';
 import { azureUpload } from 'src/utilities/azure.service';

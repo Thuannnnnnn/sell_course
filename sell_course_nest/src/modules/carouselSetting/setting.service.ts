@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { VersionSetting } from '../../vesionSetting/entities/vesionSetting.entity';
+import { VersionSetting } from '../vesionSetting/entities/vesionSetting.entity';
 import { CarouselSetting } from './entities/setting.entity';
 import { CreateCarouselSettingDto } from './dto/create-setting.dto';
 import { UpdateCarouselSettingDto } from './dto/update-setting.dto';
