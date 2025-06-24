@@ -26,6 +26,7 @@ import { Input } from "../ui/input";
 import { format } from "date-fns";
 import Image from "next/image";
 import { Course } from "app/types/course";
+import { useRouter } from "next/navigation";
 
 interface CourseTableProps {
   courses: Course[];
@@ -33,6 +34,7 @@ interface CourseTableProps {
   onUpdate: (id: string) => void;
 }
 export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
+  const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -44,7 +46,10 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
       header: "Thumbnail",
       enableSorting: false,
       cell: ({ row }) => (
-        <div className="w-20 h-12 relative">
+        <div
+          onClick={() => router.push(`/course/${row.original.courseId}`)}
+          className="w-20 h-12 relative cursor-pointer"
+        >
           <Image
             src={row.getValue("thumbnail")}
             alt={row.getValue("title")}
