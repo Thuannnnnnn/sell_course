@@ -1,5 +1,5 @@
 import { Course } from '../../course/entities/course.entity';
-import { UserNotify } from '../../User_Notify/entities/user_Notify.entity';
+import { UserNotify } from '../../User_Notify/entities/User_Notify.entity';
 
 import {
   Column,

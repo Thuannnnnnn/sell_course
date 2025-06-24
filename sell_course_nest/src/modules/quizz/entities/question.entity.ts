@@ -21,6 +21,22 @@ export class Questionentity {
   @Column({ type: 'text' })
   question: string;
 
+  @Column({ 
+    type: 'enum', 
+    enum: ['easy', 'medium', 'hard'], 
+    default: 'medium' 
+  })
+  difficulty: 'easy' | 'medium' | 'hard';
+
+  @Column({ type: 'integer', default: 1 })
+  weight: number;
+
+  @Column({ type: 'text', nullable: true })
+  explanation: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  tags: string[];
+
   @OneToMany(() => AnswerEntity, (answer) => answer.question)
   answers: AnswerEntity[];
 

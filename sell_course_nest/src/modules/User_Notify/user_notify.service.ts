@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserNotify } from './entities/user_Notify.entity';
+import { UserNotify } from './entities/User_Notify.entity';
 import { UpdateUserNotifyDto } from './dto/user-notify.dto';
 import { NotifyGateway } from '../notify/notify.gateway';
 @Injectable()

@@ -17,6 +17,12 @@ export class Quizz {
   @Column({ name: 'content_id', type: 'uuid' })
   contentId: string;
 
+  @Column({ name: 'lesson_id', type: 'uuid' })
+  lessonId: string;
+
+  @Column({ name: 'course_id', type: 'uuid' })
+  courseId: string;
+
   @OneToOne(() => Contents)
   @JoinColumn({ name: 'content_id' })
   contents: Contents;

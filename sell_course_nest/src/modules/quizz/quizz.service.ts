@@ -12,6 +12,9 @@ import { AnswerEntity } from './entities/answer.entity';
 import { CreateQuizzDto } from './dto/createQuizz.dto';
 import { UpdateQuizzDto } from './dto/updateQuizz.dto';
 import { Contents } from '../contents/entities/contents.entity';
+import { Lesson } from '../lesson/entities/lesson.entity';
+import { Course } from '../course/entities/course.entity';
+import { QuizUtils } from './utils/quiz.utils';
 
 @Injectable()
 export class QuizzService {
@@ -25,18 +28,51 @@ export class QuizzService {
     private readonly answerRepository: Repository<AnswerEntity>,
     @InjectRepository(Contents)
     private readonly contentsRepository: Repository<Contents>,
+    @InjectRepository(Lesson)
+    private readonly lessonRepository: Repository<Lesson>,
+    @InjectRepository(Course)
+    private readonly courseRepository: Repository<Course>,
   ) {}
 
-  async createQuizz(createQuizzDto: CreateQuizzDto) {
+  /**
+   * Kiểm tra mối quan hệ phân cấp course -> lesson -> content
+   */
+  private async validateHierarchy(
+    contentId: string,
+    courseId: string,
+    lessonId: string,
+  ) {
     const content = await this.contentsRepository.findOne({
-      where: { contentId: createQuizzDto.contentId },
+      where: { 
+        contentId,
+        lesson: { 
+          lessonId,
+          course: { courseId }
+        }
+      },
+      relations: ['lesson', 'lesson.course'],
     });
 
     if (!content) {
       throw new NotFoundException(
-        `Content with ID ${createQuizzDto.contentId} not found`,
+        `Content with ID ${contentId} not found or does not belong to lesson ${lessonId} in course ${courseId}`,
       );
     }
+
+    return content;
+  }
+
+  async createQuizz(
+    createQuizzDto: CreateQuizzDto,
+    courseId: string,
+    lessonId: string,
+  ) {
+    // Kiểm tra mối quan hệ phân cấp
+    const content = await this.validateHierarchy(
+      createQuizzDto.contentId,
+      courseId,
+      lessonId
+    );
 
     let quiz = await this.quizzRepository.findOne({
       where: { contentId: createQuizzDto.contentId },
@@ -61,12 +97,24 @@ export class QuizzService {
       const question = new Questionentity();
       question.questionId = uuidv4();
       question.question = questionDto.question.trim();
+      question.difficulty = questionDto.difficulty || 'medium';
+      question.weight = questionDto.weight || 1;
+      question.explanation = questionDto.explanation || null;
+      question.tags = questionDto.tags || [];
       question.quizz = quiz;
       const savedQuestion = await this.questionRepository.save(question);
 
       if (!questionDto.answers || questionDto.answers.length === 0) {
         throw new BadRequestException(
           `No answers provided for question: "${questionDto.question}"`,
+        );
+      }
+
+      // Kiểm tra có ít nhất một câu trả lời đúng
+      const hasCorrectAnswer = questionDto.answers.some((a) => a.isCorrect);
+      if (!hasCorrectAnswer) {
+        throw new BadRequestException(
+          `Question "${questionDto.question}" must have at least one correct answer`,
         );
       }
 
@@ -84,14 +132,42 @@ export class QuizzService {
       }
     }
 
-    return this.getQuizById(quiz.quizzId);
+    return this.getQuizById(
+      quiz.quizzId,
+      courseId,
+      lessonId,
+      createQuizzDto.contentId,
+    );
   }
 
-  async getQuizById(quizzId: string) {
-    const quiz = await this.quizzRepository.findOne({
+  async getQuizById(
+    quizzId: string,
+    courseId?: string,
+    lessonId?: string,
+    contentId?: string,
+  ) {
+    const queryOptions: any = {
       where: { quizzId },
       relations: ['contents', 'questions', 'questions.answers'],
-    });
+    };
+
+    // Nếu có contentId, courseId, lessonId thì thêm điều kiện để kiểm tra mối quan hệ
+    if (contentId && courseId && lessonId) {
+      queryOptions.where = {
+        quizzId,
+        contentId,
+        contents: {
+          contentId,
+          lesson: {
+            lessonId,
+            course: { courseId }
+          }
+        }
+      };
+      queryOptions.relations.push('contents.lesson', 'contents.lesson.course');
+    }
+
+    const quiz = await this.quizzRepository.findOne(queryOptions);
 
     if (!quiz) {
       throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
@@ -100,24 +176,72 @@ export class QuizzService {
     return quiz;
   }
 
-  async getQuizzesByContentId(contentId: string) {
-    const quizzes = await this.quizzRepository.find({
-      where: { contents: { contentId: contentId } },
+  async getQuizzesByContentId(
+    contentId: string,
+    courseId?: string,
+    lessonId?: string,
+  ) {
+    const queryOptions: any = {
+      where: { contents: { contentId } },
       relations: ['contents', 'questions', 'questions.answers'],
-    });
+    };
+
+    // Nếu có courseId và lessonId thì thêm điều kiện để kiểm tra mối quan hệ
+    if (courseId && lessonId) {
+      queryOptions.where = {
+        contents: {
+          contentId,
+          lesson: {
+            lessonId,
+            course: { courseId }
+          }
+        }
+      };
+      queryOptions.relations.push('contents.lesson', 'contents.lesson.course');
+    }
+
+    const quizzes = await this.quizzRepository.find(queryOptions);
 
     return quizzes;
   }
 
-  async updateQuizz(quizzId: string, updateQuizzDto: UpdateQuizzDto) {
+  async updateQuizz(
+    quizzId: string,
+    updateQuizzDto: UpdateQuizzDto,
+    courseId?: string,
+    lessonId?: string,
+    contentId?: string,
+  ) {
     if (!quizzId || typeof quizzId !== 'string') {
       throw new BadRequestException('Quiz ID must be a valid string');
     }
 
-    const quiz = await this.quizzRepository.findOne({
+    const queryOptions: any = {
       where: { quizzId },
       relations: ['questions', 'questions.answers'],
-    });
+    };
+
+    // Nếu có contentId, courseId, lessonId thì thêm điều kiện để kiểm tra mối quan hệ
+    if (contentId && courseId && lessonId) {
+      queryOptions.where = {
+        quizzId,
+        contentId,
+        contents: {
+          contentId,
+          lesson: {
+            lessonId,
+            course: { courseId }
+          }
+        }
+      };
+      queryOptions.relations.push(
+        'contents',
+        'contents.lesson',
+        'contents.lesson.course',
+      );
+    }
+
+    const quiz = await this.quizzRepository.findOne(queryOptions);
 
     if (!quiz) {
       throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
@@ -132,24 +256,43 @@ export class QuizzService {
         }
 
         question = await this.questionRepository.findOne({
-          where: { questionId: questionDto.questionId },
+          where: { 
+            questionId: questionDto.questionId,
+            quizz: { quizzId }
+          },
           relations: ['answers'],
         });
 
         if (!question) {
           throw new NotFoundException(
-            `Question with ID ${questionDto.questionId} not found`,
+            `Question with ID ${questionDto.questionId} not found in quiz ${quizzId}`,
           );
         }
 
         question.question = questionDto.question;
+        question.difficulty = questionDto.difficulty || question.difficulty;
+        question.weight = questionDto.weight || question.weight;
+        question.explanation = questionDto.explanation || question.explanation;
+        question.tags = questionDto.tags || question.tags;
         await this.questionRepository.save(question);
       } else {
         question = new Questionentity();
         question.questionId = uuidv4();
         question.question = questionDto.question;
+        question.difficulty = questionDto.difficulty || 'medium';
+        question.weight = questionDto.weight || 1;
+        question.explanation = questionDto.explanation || null;
+        question.tags = questionDto.tags || [];
         question.quizz = quiz;
         await this.questionRepository.save(question);
+      }
+
+      // Kiểm tra có ít nhất một câu trả lời đúng
+      const hasCorrectAnswer = questionDto.answers.some((a) => a.isCorrect);
+      if (!hasCorrectAnswer) {
+        throw new BadRequestException(
+          `Question "${questionDto.question}" must have at least one correct answer`,
+        );
       }
 
       for (const answerDto of questionDto.answers) {
@@ -161,12 +304,15 @@ export class QuizzService {
           }
 
           answer = await this.answerRepository.findOne({
-            where: { answerId: answerDto.answerId },
+            where: { 
+              answerId: answerDto.answerId,
+              question: { questionId: question.questionId }
+            },
           });
 
           if (!answer) {
             throw new NotFoundException(
-              `Answer with ID ${answerDto.answerId} not found`,
+              `Answer with ID ${answerDto.answerId} not found for question ${question.questionId}`,
             );
           }
 
@@ -184,15 +330,26 @@ export class QuizzService {
       }
     }
 
-    return this.getQuizById(quizzId);
+    return this.getQuizById(quizzId, courseId, lessonId, contentId);
   }
 
   async getRandomQuiz(
     contentId: string,
     quizzId?: string,
     numberOfQuestions = 10,
+    courseId?: string,
+    lessonId?: string,
   ) {
-    const quizzes = await this.getQuizzesByContentId(contentId);
+    // Nếu có courseId và lessonId thì kiểm tra mối quan hệ
+    if (courseId && lessonId) {
+      await this.validateHierarchy(contentId, courseId, lessonId);
+    }
+
+    const quizzes = await this.getQuizzesByContentId(
+      contentId,
+      courseId,
+      lessonId,
+    );
 
     if (!quizzes.length) {
       throw new NotFoundException(
@@ -210,23 +367,47 @@ export class QuizzService {
       );
     }
 
-    const shuffledQuestions = quiz.questions.sort(() => Math.random() - 0.5);
-    const actualNumberOfQuestions = Math.min(
-      quiz.questions.length,
-      numberOfQuestions,
+    // Use balanced question selection with proper shuffle
+    const selectedQuestions = QuizUtils.getBalancedQuestions(
+      quiz.questions,
+      Math.min(quiz.questions.length, numberOfQuestions)
     );
 
     return {
       ...quiz,
-      questions: shuffledQuestions.slice(0, actualNumberOfQuestions),
+      questions: selectedQuestions,
     };
   }
 
-  async deleteQuestion(quizzId: string, questionId: string) {
-    const quiz = await this.quizzRepository.findOne({
+  async deleteQuestion(
+    quizzId: string,
+    questionId: string,
+    courseId?: string,
+    lessonId?: string,
+    contentId?: string,
+  ) {
+    const queryOptions: any = {
       where: { quizzId },
       relations: ['questions', 'questions.answers', 'contents'],
-    });
+    };
+
+    // Nếu có contentId, courseId, lessonId thì thêm điều kiện để kiểm tra mối quan hệ
+    if (contentId && courseId && lessonId) {
+      queryOptions.where = {
+        quizzId,
+        contentId,
+        contents: {
+          contentId,
+          lesson: {
+            lessonId,
+            course: { courseId }
+          }
+        }
+      };
+      queryOptions.relations.push('contents.lesson', 'contents.lesson.course');
+    }
+
+    const quiz = await this.quizzRepository.findOne(queryOptions);
 
     if (!quiz) {
       throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
@@ -255,31 +436,41 @@ export class QuizzService {
     };
   }
 
-  async deleteQuiz(contentId: string, quizzId?: string) {
+  async deleteQuiz(
+    contentId: string,
+    quizzId?: string,
+    courseId?: string,
+    lessonId?: string,
+  ) {
     const queryRunner =
       this.quizzRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
+      // Nếu có courseId và lessonId thì kiểm tra mối quan hệ
+      if (courseId && lessonId) {
+        await this.validateHierarchy(contentId, courseId, lessonId);
+      }
+
       // Tìm quiz dựa trên contentId
-      const quiz = await this.quizzRepository.findOne({
+      const queryOptions: any = {
         where: {
-          contents: { contentId }, // Tìm quiz dựa trên contentId trong bảng quan hệ
+          contents: { contentId },
         },
         relations: ['questions', 'questions.answers', 'contents'],
-      });
+      };
+
+      // Nếu có quizzId thì thêm điều kiện
+      if (quizzId) {
+        queryOptions.where.quizzId = quizzId;
+      }
+
+      const quiz = await this.quizzRepository.findOne(queryOptions);
 
       if (!quiz) {
         throw new NotFoundException(
-          `No quiz found for content ID ${contentId}`,
-        );
-      }
-
-      // Nếu có quizzId được truyền vào, kiểm tra xem nó có khớp không
-      if (quizzId && quiz.quizzId !== quizzId) {
-        throw new BadRequestException(
-          `Quiz ID ${quizzId} does not match the quiz associated with content ID ${contentId}`,
+          `No quiz found for content ID ${contentId}${quizzId ? ` and quiz ID ${quizzId}` : ''}`,
         );
       }
 

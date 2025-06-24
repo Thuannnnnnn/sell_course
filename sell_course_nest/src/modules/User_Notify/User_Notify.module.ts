@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserNotify } from './entities/user_Notify.entity';
+import { UserNotify } from './entities/User_Notify.entity';
 import { UserNotifyController } from './user_notify.controller';
 import { UserNotifyService } from './user_notify.service';
 import { User } from '../user/entities/user.entity';

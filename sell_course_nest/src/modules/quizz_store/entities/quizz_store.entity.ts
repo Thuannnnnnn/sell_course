@@ -1,6 +1,7 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { Quizz } from '../../quizz/entities/quizz.entity';
 import { User } from '../../user/entities/user.entity';
+import { ScoreResult, DetailedAnalysis, QuizFeedback } from '../interfaces/score-analysis.interface';
 
 @Entity('quizz_store')
 export class QuizzStore {
@@ -21,9 +22,18 @@ export class QuizzStore {
   @Column({ type: 'jsonb' })
   answers: {
     questionId: string;
-    selectedAnswerId: string;
+    answerId: string | null;
     isCorrect: boolean;
   }[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  scoreAnalysis: ScoreResult;
+
+  @Column({ type: 'jsonb', nullable: true })
+  detailedAnalysis: DetailedAnalysis;
+
+  @Column({ type: 'jsonb', nullable: true })
+  feedback: QuizFeedback[];
 
   @Column({
     type: 'timestamp',

@@ -46,7 +46,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { Category } from './modules/category/entities/category.entity';
 import { CategoryModule } from './modules/category/category.module';
 import { Notify } from './modules/notify/entities/notify.entity';
-import { UserNotify } from './modules/User_Notify/entities/user_Notify.entity';
+import { UserNotify } from './modules/User_Notify/entities/User_Notify.entity';
 import { NotifyModule } from './modules/notify/notify.module';
 import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
 import { Permission } from './modules/permission/entities/permission.entity';
