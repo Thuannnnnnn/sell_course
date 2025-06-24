@@ -10,7 +10,12 @@ import {
 import { fetchLessons } from "../../../../api/lessons/lesson";
 import { Content } from "../../../../types/lesson";
 import { Lesson } from "../../../../types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../../../components/ui/card";
 import { Button } from "../../../../../components/ui/button";
 import { Badge } from "../../../../../components/ui/badge";
 import {
@@ -23,9 +28,7 @@ import {
   Image,
   CircleFadingPlus,
 } from "lucide-react";
-import {
-  Input
-} from "../../../../../components/ui/input";
+import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
 import {
   Select,
@@ -42,7 +45,12 @@ interface AddContentModalProps {
   lessonId: string;
 }
 
-function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModalProps) {
+function AddContentModal({
+  open,
+  onClose,
+  onSuccess,
+  lessonId,
+}: AddContentModalProps) {
   const { data: session } = useSession();
   const [contentName, setContentName] = useState("");
   const [contentType, setContentType] = useState("");
@@ -65,16 +73,21 @@ function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModal
     setLoading(true);
     setError("");
     try {
-      await createContent({
-        lessonId,
-        contentName,
-        contentType,
-      }, session.accessToken);
+      await createContent(
+        {
+          lessonId,
+          contentName,
+          contentType,
+        },
+        session.accessToken
+      );
       onSuccess();
       onClose();
     } catch (err: unknown) {
       if (err && typeof err === "object" && "message" in err) {
-        setError((err as { message?: string }).message || "Failed to add content.");
+        setError(
+          (err as { message?: string }).message || "Failed to add content."
+        );
       } else {
         setError("Failed to add content.");
       }
@@ -133,7 +146,12 @@ function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModal
               </div> */}
               {error && <div className="text-red-500 text-sm">{error}</div>}
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={loading}>
@@ -147,6 +165,7 @@ function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModal
     </div>
   );
 }
+import DocumentModal from "../../../../components/course/content/DocumentModalContent";
 
 export default function LessonContentsPage() {
   const { data: session } = useSession();
@@ -160,7 +179,8 @@ export default function LessonContentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
-
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [selectedContentId, setSelectedContentId] = useState<string>("");
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -171,12 +191,10 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-
         const [lessonsData, contentsData] = await Promise.all([
           fetchLessons(session.accessToken),
           fetchContentsByLesson(lessonId, session.accessToken),
         ]);
-
         const foundLesson = lessonsData.find(
           (l: Lesson) => l.lessonId === lessonId
         );
@@ -185,7 +203,6 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-
         setLesson(foundLesson);
         setContents(contentsData);
       } catch {
@@ -194,16 +211,13 @@ export default function LessonContentsPage() {
         setLoading(false);
       }
     };
-
     if (lessonId) {
       loadData();
     }
   }, [session, lessonId]);
-
   const handleAdd = () => {
     setShowAddModal(true);
   };
-
   const handleDelete = async (contentId: string) => {
     if (!session?.accessToken) return;
     if (!window.confirm("Are you sure you want to delete this content?"))
@@ -224,10 +238,20 @@ export default function LessonContentsPage() {
   const refreshContents = async () => {
     if (!session?.accessToken) return;
     try {
-      const contentsData = await fetchContentsByLesson(lessonId, session.accessToken);
+      const contentsData = await fetchContentsByLesson(
+        lessonId,
+        session.accessToken
+      );
       setContents(contentsData);
     } catch {
       setError("Failed to reload contents.");
+    }
+  };
+
+  const handleOpenDocumentModal = (contentId: string, type: string) => {
+    setSelectedContentId(contentId);
+    if (type === "doc") {
+      setIsDocumentModalOpen(true);
     }
   };
 
@@ -329,12 +353,14 @@ export default function LessonContentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      {/* Modified button to open DocumentModal */}
                       <Button
                         size="icon"
                         variant="outline"
                         onClick={() =>
-                          router.push(
-                            `/course/${courseId}/${lessonId}/contents/${content.contentId}/${content.contentType.toLowerCase()}`
+                          handleOpenDocumentModal(
+                            content.contentId,
+                            content.contentType
                           )
                         }
                       >
@@ -372,6 +398,16 @@ export default function LessonContentsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Add DocumentModal component */}
+      <DocumentModal
+        isOpen={isDocumentModalOpen}
+        onClose={() => setIsDocumentModalOpen(false)}
+        params={{
+          lessonId: lessonId,
+          contentId: selectedContentId,
+        }}
+      />
     </div>
   );
 }
