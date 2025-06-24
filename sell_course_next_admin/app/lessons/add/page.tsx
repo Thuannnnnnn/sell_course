@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createLesson } from "../../api/lessons/lesson";
@@ -12,7 +12,7 @@ import { Label } from "../../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
-export default function AddLessonPage() {
+function AddLessonForm() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,12 +26,22 @@ export default function AddLessonPage() {
     courseId: "",
   });
 
+  const resetForm = useCallback(() => {
+    console.log("Resetting form..."); // Debug log
+    setFormData({
+      lessonName: "",
+      courseId: "",
+    });
+    setFormKey(prev => prev + 1); // Force re-render
+    setError("");
+  }, []);
+
   // Reset form when component mounts
   useEffect(() => {
     console.log("Component mounted, resetting form...");
     resetForm();
     setIsFormInitialized(true);
-  }, []);
+  }, [resetForm]);
 
   // Reset form when refresh param changes
   useEffect(() => {
@@ -40,7 +50,7 @@ export default function AddLessonPage() {
       console.log("Refresh param detected, resetting form...");
       resetForm();
     }
-  }, [searchParams, isFormInitialized]);
+  }, [searchParams, isFormInitialized, resetForm]);
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -53,24 +63,14 @@ export default function AddLessonPage() {
         console.log("Fetched courses:", coursesData); // Debug log
         console.log("Number of courses:", coursesData.length); // Debug log
         setCourses(coursesData);
-      } catch (error) {
-        console.error("Error loading courses:", error); // Debug log
+      } catch (err) {
+        console.error("Error loading courses:", err); // Debug log
         setError("Failed to load courses. Please try again later.");
       }
     };
 
     loadCourses();
   }, [session]);
-
-  const resetForm = useCallback(() => {
-    console.log("Resetting form..."); // Debug log
-    setFormData({
-      lessonName: "",
-      courseId: "",
-    });
-    setFormKey(prev => prev + 1); // Force re-render
-    setError("");
-  }, []);
 
   const handleInputChange = useCallback((field: string, value: string) => {
     console.log(`Setting ${field} to:`, value); // Debug log
@@ -91,7 +91,7 @@ export default function AddLessonPage() {
     if (!session?.accessToken) return;
 
     console.log("=== SUBMIT FORM ===");
-    console.log("Current formData state:", formData); // Debug log
+    console.log("Current formData state:", formData);
     console.log("Form element values:");
     console.log("- courseId:", formData.courseId);
     console.log("- lessonName:", formData.lessonName);
@@ -105,14 +105,14 @@ export default function AddLessonPage() {
     setError("");
 
     try {
-      console.log("Sending to API:", formData); // Debug log
+      console.log("Sending to API:", formData);
       const result = await createLesson(formData, session.accessToken);
-      console.log("Lesson created successfully:", result); // Debug log
+      console.log("Lesson created successfully:", result);
       
       // Navigate back to lessons page with refresh param
       router.push("/lessons?refresh=true");
     } catch (error) {
-      console.error("Error creating lesson:", error); // Debug log
+      console.error("Error creating lesson:", error);
       if (error instanceof Error) {
         setError(error.message);
       } else {
@@ -238,4 +238,12 @@ export default function AddLessonPage() {
       </Card>
     </div>
   );
-} 
+}
+
+export default function AddLessonPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AddLessonForm />
+    </Suspense>
+  );
+}
