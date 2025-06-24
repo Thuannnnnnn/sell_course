@@ -6,7 +6,7 @@ import { fetchLessons, deleteLesson, createLesson, updateLesson } from "../../ap
 import { Lesson } from "../../types/lesson";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { Edit, Trash2, Plus, BookOpen, FileText } from "lucide-react";
+import { Edit, Trash2, Plus, BookOpen, FileText, ArrowLeft } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/card";
 
 function AddLessonModal({
@@ -223,7 +223,16 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => router.push('/course')}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
+        </div>
         <Button className="flex items-center gap-2" onClick={() => setShowAddModal(true)}>
           <Plus className="h-5 w-5" />
           Add Lesson
