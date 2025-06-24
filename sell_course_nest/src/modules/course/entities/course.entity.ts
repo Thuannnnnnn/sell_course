@@ -1,10 +1,10 @@
-import { Category } from 'src/modules/category/entities/category.entity';
-import { Interaction } from 'src/modules/Interaction/entities/Interaction.entity';
-import { Notify } from 'src/modules/notify/entities/notify.entity';
-import { User } from 'src/modules/user/entities/user.entity';
-import { Waitlist } from 'src/modules/waitlist/entities/waitlist.entity';
-import { Promotion } from 'src/modules/promotion/entities/promotion.entity';
-import { Certificate } from 'src/modules/certificate/entities/certificate.entity';
+import { Category } from '../../category/entities/category.entity';
+import { Interaction } from '../../Interaction/entities/Interaction.entity';
+import { Notify } from '../../notify/entities/notify.entity';
+import { User } from '../../user/entities/user.entity';
+import { Waitlist } from '../../waitlist/entities/waitlist.entity';
+import { Promotion } from '../../promotion/entities/promotion.entity';
+import { Certificate } from '../../certificate/entities/certificate.entity';
 import {
   Entity,
   PrimaryColumn,
@@ -15,7 +15,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Enrollment } from 'src/modules/enrollment/entities/enrollment.entity';
+import { Enrollment } from '../../enrollment/entities/enrollment.entity';
 
 @Entity('course')
 export class Course {

@@ -10,7 +10,6 @@ import {
   Settings,
   X,
   NotebookText,
-  GraduationCap,
 } from "lucide-react";
 import Image from "next/image";
 import logo from "../../public/logo.png"; // Adjust the path to your logo image
@@ -33,11 +32,6 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
       name: "Courses",
       href: "/course",
       icon: BookOpen,
-    },
-    {
-      name: "Lessons",
-      href: "/lessons",
-      icon: GraduationCap,
     },
     {
       name: "Categories",

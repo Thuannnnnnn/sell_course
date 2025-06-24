@@ -63,7 +63,7 @@ export class DocsService {
   async createDocs(
     doc: DocsRequestDTO,
     file?: { file?: Express.Multer.File[] },
-  ): Promise<void> {
+  ): Promise<{ url: string }> {
     const { contentsId } = doc;
     const contentData = await this.contentsRepository.findOne({
       where: { contentId: contentsId },
@@ -75,6 +75,7 @@ export class DocsService {
         HttpStatus.NOT_FOUND,
       );
     }
+
     const existingDoc = await this.docsRepository.findOne({
       where: { contents: { contentId: doc.contentsId } },
     });
@@ -105,7 +106,7 @@ export class DocsService {
       }
     }
 
-    await this.docsRepository.save({
+    const newDoc = await this.docsRepository.save({
       docsId: uuidv4(),
       title: doc.title,
       url: docUrl,
@@ -113,32 +114,49 @@ export class DocsService {
       createdAt: new Date(),
     });
 
-    throw new HttpException(`Create docs oke`, HttpStatus.OK);
+    return { url: newDoc.url };
   }
 
   async updatedDocs(
     docsId: string,
     updateData: DocsRequestDTO,
     file?: { file?: Express.Multer.File[] },
-  ): Promise<void> {
+  ): Promise<{ url: string }> {
     const doc = await this.docsRepository.findOne({
       where: { docsId },
       relations: ['contents'],
     });
 
+    if (!doc) {
+      throw new HttpException(
+        `Document with ID ${docsId} not found.`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     const { contentsId } = updateData;
     const contentData = await this.contentsRepository.findOne({
       where: { contentId: contentsId },
     });
+
     if (!contentData) {
       throw new HttpException(
-        `User with ID content not found.`,
+        `Content with ID ${contentsId} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
-    console.log('check data o day: ' + JSON.stringify(updateData.title));
-    console.log('check data o day: ' + JSON.stringify(updateData.file));
-    console.log('check data o day: ' + JSON.stringify(updateData.contentsId));
+
+    const existingDoc = await this.docsRepository.findOne({
+      where: { contents: { contentId: contentsId } },
+    });
+
+    if (existingDoc && existingDoc.docsId !== docsId) {
+      throw new HttpException(
+        `This content is already associated with another document.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     let docUrl = doc.url;
 
     if (file?.file?.[0]) {
@@ -166,9 +184,9 @@ export class DocsService {
       createdAt: doc.createdAt,
     });
 
-    await this.docsRepository.save(doc);
+    const updatedDoc = await this.docsRepository.save(doc);
 
-    throw new HttpException(`update docs oke`, HttpStatus.OK);
+    return { url: updatedDoc.url };
   }
 
   async deleteDoc(docsId: string): Promise<void> {

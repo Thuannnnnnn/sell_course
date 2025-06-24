@@ -1,5 +1,5 @@
-import { QuestionHabit } from 'src/modules/questionHabit/entities/questionHabit.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { QuestionHabit } from '../../questionHabit/entities/questionHabit.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   Entity,

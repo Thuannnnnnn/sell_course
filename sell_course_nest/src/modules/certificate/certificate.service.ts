@@ -30,8 +30,7 @@ export class CertificateService {
     const certificateData = await this.findOne(certificate.certificateId);
 
     // Đọc template HTML
-    const templatePath =
-      './src/modules/certificate/templates/certificate-email.html';
+    const templatePath = './../../certificate/templates/certificate-email.html';
     console.log(templatePath);
     let htmlContent = fs.readFileSync(templatePath, 'utf8');
 

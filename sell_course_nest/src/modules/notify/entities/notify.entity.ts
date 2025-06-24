@@ -1,4 +1,4 @@
-import { Course } from 'src/modules/course/entities/course.entity';
+import { Course } from '../../course/entities/course.entity';
 import { UserNotify } from '../../User_Notify/entities/user_Notify.entity';
 
 import {

@@ -1,5 +1,5 @@
-import { Course } from 'src/modules/course/entities/course.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { Course } from '../../course/entities/course.entity';
+import { User } from '../../user/entities/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 export enum InteractionType {
   VIEW = 'VIEW',

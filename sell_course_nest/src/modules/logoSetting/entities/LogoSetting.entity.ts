@@ -1,4 +1,4 @@
-import { VersionSetting } from 'src/modules/vesionSetting/entities/vesionSetting.entity';
+import { VersionSetting } from '../../vesionSetting/entities/vesionSetting.entity';
 import {
   Column,
   CreateDateColumn,
