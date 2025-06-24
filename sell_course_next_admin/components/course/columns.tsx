@@ -27,7 +27,6 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { Course } from "app/types/course";
 
-
 interface CourseTableProps {
   courses: Course[];
   onDelete: (id: string) => void;
