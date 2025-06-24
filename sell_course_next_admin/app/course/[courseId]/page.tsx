@@ -41,8 +41,11 @@ function AddLessonModal({
     setLoading(true);
     setError("");
     try {
+      const lessonsCount = (await fetchLessons(session.accessToken)).filter(
+        (lesson) => lesson.course != null && String(lesson.course.courseId) === String(courseId)
+      ).length;
       const response = await createLesson(
-        { lessonName, courseId },
+        { lessonName, courseId, order: lessonsCount + 1 },
         session.accessToken
       );
       console.log("Lesson created:", response);
@@ -207,7 +210,14 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     try {
       await deleteLesson(lessonId, session.accessToken);
       console.log("Lesson deleted:", lessonId);
-      setLessons((prev) => prev.filter((l) => l.lessonId !== lessonId));
+      setLessons((prev) => {
+        const filtered = prev.filter((l) => l.lessonId !== lessonId);
+        const reordered = filtered.map((l, idx) => ({ ...l, order: idx + 1 }));
+        reordered.forEach((l) => {
+          updateLesson(l.lessonId, { order: l.order }, session.accessToken!);
+        });
+        return reordered;
+      });
     } catch (error) {
       console.error("Delete error:", error);
       alert("Failed to delete lesson. Please try again.");

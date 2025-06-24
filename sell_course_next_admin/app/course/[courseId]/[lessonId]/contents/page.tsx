@@ -217,7 +217,11 @@ export default function LessonContentsPage() {
 
     try {
       await deleteContent(contentId, session.accessToken);
-      setContents((prev) => prev.filter((c) => c.contentId !== contentId));
+      setContents((prev) => {
+        const filtered = prev.filter((c) => c.contentId !== contentId);
+        const reordered = filtered.map((c, idx) => ({ ...c, order: idx + 1 }));
+        return reordered;
+      });
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);
