@@ -15,6 +15,7 @@ import { Contents } from '../contents/entities/contents.entity';
 
 @Injectable()
 export class QuizzService {
+
   constructor(
     @InjectRepository(Quizz)
     private readonly quizzRepository: Repository<Quizz>,

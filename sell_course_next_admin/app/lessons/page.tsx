@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchLessons, deleteLesson } from "../api/lessons/lesson";
@@ -15,7 +15,7 @@ interface LessonWithCourse extends Lesson {
   course?: Course | null;
 }
 
-export default function LessonManagementPage() {
+function LessonManagementForm() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ export default function LessonManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -69,11 +69,11 @@ export default function LessonManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     loadData();
-  }, [session]);
+  }, [loadData]);
 
   // Reload data when refresh param is present
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function LessonManagementPage() {
       // Clear the refresh param from URL
       router.replace('/lessons');
     }
-  }, [searchParams]);
+  }, [searchParams, loadData, router]);
 
   const handleAdd = () => {
     router.push("/lessons/add");
@@ -303,5 +303,13 @@ export default function LessonManagementPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LessonManagementPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LessonManagementForm />
+    </Suspense>
   );
 } 
