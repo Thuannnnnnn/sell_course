@@ -1,12 +1,12 @@
 # Quiz Generator API
 
-A FastAPI-based service that generates quizzes from DOCX and JSON files using OpenAI GPT.
+A FastAPI-based service that generates quizzes from DOCX and JSON files using Google Gemini.
 
 ## Features
 
 - Accept multiple URLs containing DOCX or JSON files
 - Extract text content from uploaded files
-- Generate customizable quizzes using OpenAI GPT
+- Generate customizable quizzes using Google Gemini
 - Support for different difficulty levels (easy, medium, hard)
 - RESTful API with comprehensive error handling
 
@@ -21,7 +21,7 @@ A FastAPI-based service that generates quizzes from DOCX and JSON files using Op
 3. Set up environment variables:
    ```bash
    cp .env.example .env
-   # Edit .env and add your OpenAI API key
+   # Edit .env and add your Google Gemini API key
    ```
 
 ## Configuration
@@ -29,10 +29,10 @@ A FastAPI-based service that generates quizzes from DOCX and JSON files using Op
 Create a `.env` file with the following variables:
 
 ```env
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-3.5-turbo
-OPENAI_MAX_TOKENS=2000
-OPENAI_TEMPERATURE=0.7
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-pro
+GEMINI_MAX_TOKENS=2000
+GEMINI_TEMPERATURE=0.7
 ```
 
 ## Usage
@@ -175,7 +175,7 @@ The API provides comprehensive error handling:
 
 - Invalid URLs or unreachable files
 - Unsupported file formats
-- OpenAI API errors
+- Gemini API errors
 - Network connectivity issues
 - Invalid request parameters
 
@@ -195,7 +195,7 @@ quiz-generator-api/
 │   └── services/
 │       ├── __init__.py
 │       ├── file_processor.py    # File processing service
-│       └── quiz_generator.py    # OpenAI quiz generation service
+│       └── quiz_generator.py    # Gemini quiz generation service
 ├── tests/                 # Test files
 └── docs/                  # Documentation
 ```

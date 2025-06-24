@@ -1,23 +1,28 @@
 import os
 import json
 from typing import List, Dict, Any
-from openai import AsyncOpenAI
+import google.generativeai as genai
 import asyncio
 
 class QuizGenerator:
-    """Service to generate quizzes using OpenAI API"""
+    """Service to generate quizzes using Google Gemini API"""
     
     def __init__(self):
-        self.client = AsyncOpenAI(
-            api_key=os.getenv('OPENAI_API_KEY')
-        )
-        self.model = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
-        self.max_tokens = int(os.getenv('OPENAI_MAX_TOKENS', '2000'))
-        self.temperature = float(os.getenv('OPENAI_TEMPERATURE', '0.7'))
+        # Configure Gemini API
+        api_key = os.getenv('GEMINI_API_KEY')
+        if api_key:
+            genai.configure(api_key=api_key)
+        
+        self.model_name = os.getenv('GEMINI_MODEL', 'gemini-pro')
+        self.max_tokens = int(os.getenv('GEMINI_MAX_TOKENS', '2000'))
+        self.temperature = float(os.getenv('GEMINI_TEMPERATURE', '0.7'))
+        
+        # Initialize the model
+        self.model = genai.GenerativeModel(self.model_name)
     
     async def generate_quiz(self, text_content: str, quiz_count: int = 5, difficulty: str = "medium") -> List[Dict[str, Any]]:
         """
-        Generate quiz questions from text content using OpenAI
+        Generate quiz questions from text content using Google Gemini
         
         Args:
             text_content: The text content to generate quizzes from
@@ -27,32 +32,29 @@ class QuizGenerator:
         Returns:
             List of quiz questions with answers
         """
-        if not self.client.api_key:
-            raise Exception("OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.")
+        api_key = os.getenv('GEMINI_API_KEY')
+        if not api_key:
+            raise Exception("Gemini API key not configured. Please set GEMINI_API_KEY environment variable.")
         
         # Create the prompt for quiz generation
         prompt = self._create_quiz_prompt(text_content, quiz_count, difficulty)
         
         try:
-            # Call OpenAI API
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an expert quiz generator. Create high-quality, educational quiz questions based on the provided content. Always respond with valid JSON format."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                max_tokens=self.max_tokens,
-                temperature=self.temperature
+            # Configure generation parameters
+            generation_config = genai.types.GenerationConfig(
+                max_output_tokens=self.max_tokens,
+                temperature=self.temperature,
+            )
+            
+            # Generate content using Gemini
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                prompt,
+                generation_config=generation_config
             )
             
             # Parse the response
-            quiz_content = response.choices[0].message.content.strip()
+            quiz_content = response.text.strip()
             
             # Try to parse as JSON
             try:
@@ -63,7 +65,7 @@ class QuizGenerator:
                 return self._extract_json_from_response(quiz_content)
                 
         except Exception as e:
-            raise Exception(f"Error generating quiz with OpenAI: {str(e)}")
+            raise Exception(f"Error generating quiz with Gemini: {str(e)}")
     
     def _create_quiz_prompt(self, text_content: str, quiz_count: int, difficulty: str) -> str:
         """Create a prompt for quiz generation"""
@@ -111,6 +113,8 @@ Please respond with a JSON object in the following format:
         }}
     ]
 }}
+
+IMPORTANT: Respond ONLY with valid JSON. Do not include any other text or formatting.
 """
         return prompt
     

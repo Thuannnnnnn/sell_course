@@ -13,7 +13,7 @@ load_dotenv()
 
 app = FastAPI(
     title="Quiz Generator API",
-    description="API to generate quizzes from DOCX and JSON files using OpenAI",
+    description="API to generate quizzes from DOCX and JSON files using Google Gemini",
     version="1.0.0"
 )
 
@@ -76,7 +76,7 @@ async def generate_quiz(request: URLRequest):
                 detail="No text content could be extracted from the provided URLs"
             )
         
-        # Generate quizzes using OpenAI
+        # Generate quizzes using Gemini
         quizzes = await quiz_generator.generate_quiz(
             text_content=all_text,
             quiz_count=request.quiz_count,

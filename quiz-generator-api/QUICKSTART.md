@@ -10,9 +10,9 @@ cd quiz-generator-api
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up your OpenAI API key
+# Set up your Google Gemini API key
 cp .env.example .env
-# Edit .env file and replace 'your_openai_api_key_here' with your actual OpenAI API key
+# Edit .env file and replace 'your_gemini_api_key_here' with your actual Google Gemini API key
 ```
 
 ### Step 2: Start the API server
@@ -54,10 +54,10 @@ Open your browser and go to: `http://localhost:8000/docs`
 - `quiz_count`: Number of questions to generate (default: 5)
 - `difficulty`: "easy", "medium", or "hard" (default: "medium")
 
-## 🔑 OpenAI API Key
+## 🔑 Google Gemini API Key
 
-You need an OpenAI API key to use this service:
-1. Go to https://platform.openai.com/api-keys
+You need a Google Gemini API key to use this service:
+1. Go to https://makersuite.google.com/app/apikey
 2. Create a new API key
 3. Add it to your `.env` file
 
@@ -67,7 +67,7 @@ See `README.md` for complete documentation and advanced usage examples.
 
 ## ❓ Troubleshooting
 
-- **"OpenAI API key not configured"**: Make sure you've set up your `.env` file correctly
+- **"Gemini API key not configured"**: Make sure you've set up your `.env` file correctly
 - **Connection errors**: Ensure the URLs are accessible and point to valid DOCX/JSON files
 - **Import errors**: Make sure all dependencies are installed with `pip install -r requirements.txt`
 
