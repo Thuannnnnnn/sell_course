@@ -5,13 +5,14 @@ import { useRouter, useParams } from "next/navigation";
 import {
   fetchContentsByLesson,
   deleteContent,
-} from "../../../api/lessons/content";
-import { fetchLessons } from "../../../api/lessons/lesson";
-import { Content } from "../../../types/lesson";
-import { Lesson } from "../../../types/lesson";
-import { Card, CardContent } from "../../../../components/ui/card";
-import { Button } from "../../../../components/ui/button";
-import { Badge } from "../../../../components/ui/badge";
+  createContent,
+} from "../../../../api/lessons/content";
+import { fetchLessons } from "../../../../api/lessons/lesson";
+import { Content } from "../../../../types/lesson";
+import { Lesson } from "../../../../types/lesson";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../../../components/ui/card";
+import { Button } from "../../../../../components/ui/button";
+import { Badge } from "../../../../../components/ui/badge";
 import {
   Edit,
   Trash2,
@@ -22,17 +23,143 @@ import {
   Image,
   CircleFadingPlus,
 } from "lucide-react";
+import {
+  Input
+} from "../../../../../components/ui/input";
+import { Label } from "../../../../../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../../components/ui/select";
+
+interface AddContentModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  lessonId: string;
+}
+
+function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModalProps) {
+  const { data: session } = useSession();
+  const [contentName, setContentName] = useState("");
+  const [contentType, setContentType] = useState("");
+  const [order, setOrder] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setContentName("");
+      setContentType("");
+      setOrder(1);
+      setError("");
+    }
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!session?.accessToken) return;
+    setLoading(true);
+    setError("");
+    try {
+      await createContent({
+        lessonId,
+        contentName,
+        contentType,
+      }, session.accessToken);
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "message" in err) {
+        setError((err as { message?: string }).message || "Failed to add content.");
+      } else {
+        setError("Failed to add content.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Content</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <Label htmlFor="contentName">Content Name</Label>
+                <Input
+                  id="contentName"
+                  value={contentName}
+                  onChange={(e) => setContentName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="contentType">Content Type</Label>
+                <Select
+                  value={contentType}
+                  onValueChange={setContentType}
+                  required
+                >
+                  <SelectTrigger id="contentType">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="video">Video</SelectItem>
+                    <SelectItem value="doc">Document</SelectItem>
+                    <SelectItem value="quizz">Quizz</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* <div>
+                <Label htmlFor="order">Order</Label>
+                <Input
+                  id="order"
+                  type="number"
+                  min={1}
+                  value={order}
+                  onChange={(e) => setOrder(Number(e.target.value))}
+                  required
+                />
+              </div> */}
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  Add
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default function LessonContentsPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
   const lessonId = params.lessonId as string;
+  const courseId = params.courseId as string;
 
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [contents, setContents] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -74,7 +201,7 @@ export default function LessonContentsPage() {
   }, [session, lessonId]);
 
   const handleAdd = () => {
-    router.push(`/lessons/${lessonId}/contents/add`);
+    setShowAddModal(true);
   };
 
   const handleDelete = async (contentId: string) => {
@@ -91,6 +218,16 @@ export default function LessonContentsPage() {
       } else {
         alert("Failed to delete content. Please try again.");
       }
+    }
+  };
+
+  const refreshContents = async () => {
+    if (!session?.accessToken) return;
+    try {
+      const contentsData = await fetchContentsByLesson(lessonId, session.accessToken);
+      setContents(contentsData);
+    } catch {
+      setError("Failed to reload contents.");
     }
   };
 
@@ -130,7 +267,7 @@ export default function LessonContentsPage() {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => router.push("/lessons")}
+          onClick={() => router.push(`/course/${courseId}`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -151,6 +288,13 @@ export default function LessonContentsPage() {
           Add Content
         </Button>
       </div>
+
+      <AddContentModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={refreshContents}
+        lessonId={lessonId}
+      />
 
       {loading ? (
         <div className="text-center py-8">Loading...</div>
@@ -190,9 +334,7 @@ export default function LessonContentsPage() {
                         variant="outline"
                         onClick={() =>
                           router.push(
-                            `/lessons/${lessonId}/contents/${
-                              content.contentId
-                            }/${content.contentType.toLowerCase()}`
+                            `/course/${courseId}/${lessonId}/contents/${content.contentId}/${content.contentType.toLowerCase()}`
                           )
                         }
                       >
@@ -203,7 +345,7 @@ export default function LessonContentsPage() {
                         variant="outline"
                         onClick={() =>
                           router.push(
-                            `/lessons/${lessonId}/contents/edit/${content.contentId}`
+                            `/course/${courseId}/${lessonId}/contents/edit/${content.contentId}`
                           )
                         }
                       >
