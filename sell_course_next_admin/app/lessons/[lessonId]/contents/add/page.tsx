@@ -147,7 +147,7 @@ export default function AddContentPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="video">Video</SelectItem>
-                  <SelectItem value="doc">Doc</SelectItem>
+                  <SelectItem value="doc">Document</SelectItem>
                   <SelectItem value="quiz">Quiz</SelectItem>
                 </SelectContent>
               </Select>

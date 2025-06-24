@@ -20,8 +20,8 @@ import {
   FileText,
   Video,
   Image,
+  CircleFadingPlus,
 } from "lucide-react";
-import Link from "next/link";
 
 export default function LessonContentsPage() {
   const { data: session } = useSession();
@@ -168,32 +168,36 @@ export default function LessonContentsPage() {
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
                   >
                     <div className="flex items-center gap-4">
-                      <Link
-                        href={`/lessons/${lessonId}/contents/${content.contentId}/${content.contentType}`}
-                        className="flex items-center gap-2"
-                      >
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
-                          {content.order}
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
+                        {content.order}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getContentTypeIcon(content.contentType)}
+                        <div>
+                          <h3 className="font-medium">{content.contentName}</h3>
+                          <Badge
+                            variant="outline"
+                            className={getContentTypeColor(content.contentType)}
+                          >
+                            {content.contentType}
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {getContentTypeIcon(content.contentType)}
-                          <div>
-                            <h3 className="font-medium">
-                              {content.contentName}
-                            </h3>
-                            <Badge
-                              variant="outline"
-                              className={getContentTypeColor(
-                                content.contentType
-                              )}
-                            >
-                              {content.contentType}
-                            </Badge>
-                          </div>
-                        </div>
-                      </Link>
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() =>
+                          router.push(
+                            `/lessons/${lessonId}/contents/${
+                              content.contentId
+                            }/${content.contentType.toLowerCase()}`
+                          )
+                        }
+                      >
+                        <CircleFadingPlus className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="outline"
