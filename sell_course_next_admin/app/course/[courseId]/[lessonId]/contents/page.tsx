@@ -10,7 +10,12 @@ import {
 import { fetchLessons } from "../../../../api/lessons/lesson";
 import { Content } from "../../../../types/lesson";
 import { Lesson } from "../../../../types/lesson";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../../../components/ui/card";
 import { Button } from "../../../../../components/ui/button";
 import { Badge } from "../../../../../components/ui/badge";
 import {
@@ -23,9 +28,7 @@ import {
   Image,
   CircleFadingPlus,
 } from "lucide-react";
-import {
-  Input
-} from "../../../../../components/ui/input";
+import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
 import {
   Select,
@@ -42,11 +45,15 @@ interface AddContentModalProps {
   lessonId: string;
 }
 
-function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModalProps) {
+function AddContentModal({
+  open,
+  onClose,
+  onSuccess,
+  lessonId,
+}: AddContentModalProps) {
   const { data: session } = useSession();
   const [contentName, setContentName] = useState("");
   const [contentType, setContentType] = useState("");
-  const [order, setOrder] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,7 +61,6 @@ function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModal
     if (!open) {
       setContentName("");
       setContentType("");
-      setOrder(1);
       setError("");
     }
   }, [open]);
@@ -62,19 +68,32 @@ function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModal
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!session?.accessToken) return;
+    if (!contentName.trim()) {
+      setError("Content name is required.");
+      return;
+    }
+    if (!contentType) {
+      setError("Content type is required.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      await createContent({
-        lessonId,
-        contentName,
-        contentType,
-      }, session.accessToken);
+      await createContent(
+        {
+          lessonId,
+          contentName,
+          contentType,
+        },
+        session.accessToken
+      );
       onSuccess();
       onClose();
     } catch (err: unknown) {
       if (err && typeof err === "object" && "message" in err) {
-        setError((err as { message?: string }).message || "Failed to add content.");
+        setError(
+          (err as { message?: string }).message || "Failed to add content."
+        );
       } else {
         setError("Failed to add content.");
       }
@@ -120,20 +139,14 @@ function AddContentModal({ open, onClose, onSuccess, lessonId }: AddContentModal
                   </SelectContent>
                 </Select>
               </div>
-              {/* <div>
-                <Label htmlFor="order">Order</Label>
-                <Input
-                  id="order"
-                  type="number"
-                  min={1}
-                  value={order}
-                  onChange={(e) => setOrder(Number(e.target.value))}
-                  required
-                />
-              </div> */}
               {error && <div className="text-red-500 text-sm">{error}</div>}
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={loading}>
@@ -160,7 +173,6 @@ export default function LessonContentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
-
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -171,12 +183,10 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-
         const [lessonsData, contentsData] = await Promise.all([
           fetchLessons(session.accessToken),
           fetchContentsByLesson(lessonId, session.accessToken),
         ]);
-
         const foundLesson = lessonsData.find(
           (l: Lesson) => l.lessonId === lessonId
         );
@@ -185,7 +195,6 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-
         setLesson(foundLesson);
         setContents(contentsData);
       } catch {
@@ -194,16 +203,13 @@ export default function LessonContentsPage() {
         setLoading(false);
       }
     };
-
     if (lessonId) {
       loadData();
     }
   }, [session, lessonId]);
-
   const handleAdd = () => {
     setShowAddModal(true);
   };
-
   const handleDelete = async (contentId: string) => {
     if (!session?.accessToken) return;
     if (!window.confirm("Are you sure you want to delete this content?"))
@@ -224,7 +230,10 @@ export default function LessonContentsPage() {
   const refreshContents = async () => {
     if (!session?.accessToken) return;
     try {
-      const contentsData = await fetchContentsByLesson(lessonId, session.accessToken);
+      const contentsData = await fetchContentsByLesson(
+        lessonId,
+        session.accessToken
+      );
       setContents(contentsData);
     } catch {
       setError("Failed to reload contents.");
@@ -332,11 +341,6 @@ export default function LessonContentsPage() {
                       <Button
                         size="icon"
                         variant="outline"
-                        onClick={() =>
-                          router.push(
-                            `/course/${courseId}/${lessonId}/contents/${content.contentId}/${content.contentType.toLowerCase()}`
-                          )
-                        }
                       >
                         <CircleFadingPlus className="h-4 w-4" />
                       </Button>

@@ -94,7 +94,7 @@ export class DocsController {
     @Body() docs: DocsRequestDTO,
     @UploadedFiles()
     file?: { file?: Express.Multer.File[] },
-  ): Promise<void> {
+  ): Promise<{ url: string }> {
     return await this.docsService.createDocs(docs, file);
   }
 
@@ -117,7 +117,7 @@ export class DocsController {
     @Body() updateData: DocsRequestDTO,
     @UploadedFiles()
     file?: { file?: Express.Multer.File[] },
-  ): Promise<void> {
+  ): Promise<{ url: string }> {
     return await this.docsService.updatedDocs(docsId, updateData, file);
   }
 

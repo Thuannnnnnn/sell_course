@@ -46,7 +46,10 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
       header: "Thumbnail",
       enableSorting: false,
       cell: ({ row }) => (
-        <div onClick={() => router.push(`/course/${row.original.courseId}`)} className="w-20 h-12 relative cursor-pointer">
+        <div
+          onClick={() => router.push(`/course/${row.original.courseId}`)}
+          className="w-20 h-12 relative cursor-pointer"
+        >
           <Image
             src={row.getValue("thumbnail")}
             alt={row.getValue("title")}
