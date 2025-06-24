@@ -16,7 +16,7 @@ export default function EditLessonPage() {
   const router = useRouter();
   const params = useParams();
   const lessonId = params.lessonId as string;
-  
+
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,32 +31,30 @@ export default function EditLessonPage() {
           setError("You are not logged in or lack access rights.");
           return;
         }
-        
+
         const lessons = await fetchLessons(session.accessToken);
         const foundLesson = lessons.find(l => l.lessonId === lessonId);
-        
+
         if (!foundLesson) {
           setError("Lesson not found.");
           return;
         }
-        
-        // Check if lesson has course data, if not fetch courses separately
+
         if (!foundLesson.course) {
           console.log('No course data in lesson, fetching courses separately...');
           const { fetchCourses } = await import("../../../api/courses/course");
           const coursesData = await fetchCourses(session.accessToken);
-          
+
           const course = coursesData.find(course => course.courseId === foundLesson.courseId);
           const lessonWithCourse = {
             ...foundLesson,
             course: course || null
           };
-          
+
           setLesson(lessonWithCourse);
         } else {
           setLesson(foundLesson);
         }
-        
         setFormData({
           lessonName: foundLesson.lessonName,
         });
@@ -187,4 +185,4 @@ export default function EditLessonPage() {
       </Card>
     </div>
   );
-} 
+}
