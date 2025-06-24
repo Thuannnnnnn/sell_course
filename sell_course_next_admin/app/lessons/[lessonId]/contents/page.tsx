@@ -22,6 +22,7 @@ import {
   Image,
   CircleFadingPlus,
 } from "lucide-react";
+import DocumentModal from "../../../../components/course/content/DocumentModalContent";
 
 export default function LessonContentsPage() {
   const { data: session } = useSession();
@@ -33,7 +34,8 @@ export default function LessonContentsPage() {
   const [contents, setContents] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [selectedContentId, setSelectedContentId] = useState<string>("");
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -44,12 +46,10 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-
         const [lessonsData, contentsData] = await Promise.all([
           fetchLessons(session.accessToken),
           fetchContentsByLesson(lessonId, session.accessToken),
         ]);
-
         const foundLesson = lessonsData.find(
           (l: Lesson) => l.lessonId === lessonId
         );
@@ -58,7 +58,6 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-
         setLesson(foundLesson);
         setContents(contentsData);
       } catch {
@@ -67,16 +66,13 @@ export default function LessonContentsPage() {
         setLoading(false);
       }
     };
-
     if (lessonId) {
       loadData();
     }
   }, [session, lessonId]);
-
   const handleAdd = () => {
     router.push(`/lessons/${lessonId}/contents/add`);
   };
-
   const handleDelete = async (contentId: string) => {
     if (!session?.accessToken) return;
     if (!window.confirm("Are you sure you want to delete this content?"))
@@ -91,6 +87,13 @@ export default function LessonContentsPage() {
       } else {
         alert("Failed to delete content. Please try again.");
       }
+    }
+  };
+
+  const handleOpenDocumentModal = (contentId: string, type: string) => {
+    setSelectedContentId(contentId);
+    if (type === "doc") {
+      setIsDocumentModalOpen(true);
     }
   };
 
@@ -185,14 +188,14 @@ export default function LessonContentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      {/* Modified button to open DocumentModal */}
                       <Button
                         size="icon"
                         variant="outline"
                         onClick={() =>
-                          router.push(
-                            `/lessons/${lessonId}/contents/${
-                              content.contentId
-                            }/${content.contentType.toLowerCase()}`
+                          handleOpenDocumentModal(
+                            content.contentId,
+                            content.contentType
                           )
                         }
                       >
@@ -230,6 +233,16 @@ export default function LessonContentsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Add DocumentModal component */}
+      <DocumentModal
+        isOpen={isDocumentModalOpen}
+        onClose={() => setIsDocumentModalOpen(false)}
+        params={{
+          lessonId: lessonId,
+          contentId: selectedContentId,
+        }}
+      />
     </div>
   );
 }

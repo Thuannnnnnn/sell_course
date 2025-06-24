@@ -8,18 +8,18 @@ import {
   deleteDocument,
 } from "app/api/lessons/Doc/document";
 import { Docs } from "app/types/doc";
-import { Button } from "../../../../../../components/ui/button";
-import { Input } from "../../../../../../components/ui/input";
-import { Label } from "../../../../../../components/ui/label";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../../../../../components/ui/card";
-import { Badge } from "../../../../../../components/ui/badge";
-import { Separator } from "../../../../../../components/ui/separator";
+} from "../../ui/card";
+import { Badge } from "../../ui/badge";
+import { Separator } from "../../ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -28,12 +28,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../../../../components/ui/dialog";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "../../../../../../components/ui/alert";
+} from "../../ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
 import { useSession } from "next-auth/react";
 import { renderAsync } from "docx-preview";
 import {
@@ -50,50 +46,94 @@ import {
   Calendar,
 } from "lucide-react";
 
-const DocumentPage = ({
-  params,
-}: {
+interface DocumentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   params: { lessonId: string; contentId: string };
+  triggerButton?: React.ReactNode;
+}
+
+const DocumentModal: React.FC<DocumentModalProps> = ({
+  isOpen,
+  onClose,
+  params,
+  triggerButton,
 }) => {
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState<string>("Untitled");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
-  const [doc, setDoc] = useState<Docs | null>(null); // Using Docs type
+  const [doc, setDoc] = useState<Docs | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const docPreviewRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
-
   useEffect(() => {
-    const fetchDoc = async () => {
-      try {
-        setInitialLoading(true);
-        const document = await getDocumentById(params.contentId);
-        setDoc(document);
-        setTitle(document.title);
+    if (isOpen) {
+      const fetchDoc = async () => {
+        try {
+          setInitialLoading(true);
+          const document = await getDocumentById(params.contentId);
+          setDoc(document);
+          setTitle(document.title);
+        } catch {
+          setDoc(null);
+        } finally {
+          setInitialLoading(false);
+        }
+      };
 
-        if (document.url.endsWith(".docx")) {
-          const response = await fetch(document.url);
-          const blob = await response.blob();
-          const arrayBuffer = await blob.arrayBuffer();
-          if (docPreviewRef.current) {
+      fetchDoc();
+    }
+  }, [params.contentId, isOpen]);
+  useEffect(() => {
+    const renderDocumentPreview = async () => {
+      if (doc && doc.url && docPreviewRef.current) {
+        try {
+          docPreviewRef.current.innerHTML = "";
+          if (doc.url.endsWith(".docx")) {
+            const response = await fetch(doc.url);
+            const blob = await response.blob();
+            const arrayBuffer = await blob.arrayBuffer();
             await renderAsync(arrayBuffer, docPreviewRef.current);
+          } else if (doc.url.endsWith(".pdf")) {
+            docPreviewRef.current.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-8 space-y-4">
+                <div class="text-6xl">📄</div>
+                <p class="text-lg font-medium">PDF Document</p>
+                <p class="text-sm text-gray-500">Click "View Full Document" to open the PDF</p>
+              </div>
+            `;
+          } else {
+            docPreviewRef.current.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-8 space-y-4">
+                <div class="text-6xl">📄</div>
+                <p class="text-lg font-medium">Document Preview</p>
+                <p class="text-sm text-gray-500">Preview not available for this file type</p>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error("Error rendering document preview:", error);
+          if (docPreviewRef.current) {
+            docPreviewRef.current.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-8 space-y-4">
+                <div class="text-6xl">⚠️</div>
+                <p class="text-lg font-medium">Preview Error</p>
+                <p class="text-sm text-gray-500">Unable to load document preview</p>
+              </div>
+            `;
           }
         }
-      } catch {
-        setDoc(null);
-      } finally {
-        setInitialLoading(false);
       }
     };
 
-    fetchDoc();
-  }, [params.contentId]);
+    renderDocumentPreview();
+  }, [doc]); // This effect runs whenever doc changes
 
   const showMessage = (msg: string, type: "success" | "error") => {
     setMessage(msg);
@@ -158,7 +198,7 @@ const DocumentPage = ({
           session.accessToken
         );
         showMessage("Document updated successfully!", "success");
-        setDoc(updatedDoc);
+        setDoc(updatedDoc); // This will trigger the preview re-render
         setIsEditing(false);
       } else {
         if (!session?.accessToken) {
@@ -175,7 +215,7 @@ const DocumentPage = ({
           session.accessToken
         );
         showMessage("Document created successfully!", "success");
-        setDoc(newDoc);
+        setDoc(newDoc); // This will trigger the preview re-render
       }
       setFile(null);
     } catch (error: unknown) {
@@ -189,6 +229,7 @@ const DocumentPage = ({
       setLoading(false);
     }
   };
+
   const handleDelete = async () => {
     try {
       setLoading(true);
@@ -214,6 +255,7 @@ const DocumentPage = ({
       setLoading(false);
     }
   };
+
   const getFileIcon = (fileName: string | undefined) => {
     if (!fileName) {
       return <FileText className="w-8 h-8 text-gray-500" />;
@@ -225,7 +267,7 @@ const DocumentPage = ({
         return <FileText className="w-8 h-8 text-red-500" />;
       case "doc":
       case "docx":
-        return <FileText className="w-8 h-8 text-blue-500" />;
+        return <FileText className="w-8 h-8 text-[#FF6B00]" />;
       default:
         return <FileText className="w-8 h-8 text-gray-500" />;
     }
@@ -246,56 +288,43 @@ const DocumentPage = ({
     return fileName.split(".").pop()?.toUpperCase() || "FILE";
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+  const renderContent = () => {
+    if (initialLoading) {
+      return (
+        <div className="flex justify-center items-center py-12">
+          <div className="flex flex-col items-center">
+            <Loader2 className="w-8 h-8 animate-spin text-[#FF6B00] mb-4" />
             <p className="text-gray-600">Loading document...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
-            {doc ? "Document Management" : "Create New Document"}
-          </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            {doc
-              ? "View, edit, or delete your documents easily"
-              : "Upload and manage your study documents"}
-          </p>
+          </div>
         </div>
+      );
+    }
 
+    return (
+      <div className="space-y-6 flex-grow flex flex-col">
         {message && (
           <Alert
             className={
               messageType === "success"
-                ? "border-green-200 bg-green-50"
-                : "border-red-200 bg-red-50"
+                ? "border-[#7CFC00] bg-lime-50"
+                : "border-red-500 bg-red-50"
             }
           >
             {messageType === "success" ? (
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-[#7CFC00]" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertCircle className="h-4 w-4 text-red-500" />
             )}
             <AlertTitle
               className={
-                messageType === "success" ? "text-green-800" : "text-red-800"
+                messageType === "success" ? "text-[#7CFC00]" : "text-red-700"
               }
             >
               {messageType === "success" ? "Success!" : "Error Occurred!"}
             </AlertTitle>
             <AlertDescription
               className={
-                messageType === "success" ? "text-green-700" : "text-red-700"
+                messageType === "success" ? "text-lime-700" : "text-red-700"
               }
             >
               {message}
@@ -304,11 +333,13 @@ const DocumentPage = ({
         )}
 
         {doc ? (
-          <Card className="overflow-hidden shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <Card className="overflow-hidden shadow-lg border-[#00BFFF]">
+            <CardHeader className="bg-gradient-to-r from-[#A259FF] to-[#00BFFF] text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  {getFileIcon(doc.title)}
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    {getFileIcon(doc.title)}
+                  </div>
                   <div className="space-y-1">
                     {isEditing ? (
                       <Input
@@ -320,14 +351,14 @@ const DocumentPage = ({
                     ) : (
                       <CardTitle className="text-xl">{doc.title}</CardTitle>
                     )}
-                    <div className="flex items-center space-x-4 text-blue-100 text-sm">
+                    <div className="flex items-center space-x-4 text-white/80 text-sm">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
                         <span>
                           Created: {new Date().toLocaleDateString("en-US")}
                         </span>
                       </div>
-                      <Badge className="bg-white/20 text-white hover:bg-white/30">
+                      <Badge className="bg-[#FF6B00] text-white hover:bg-orange-600">
                         {getFileExtension(doc.title)}
                       </Badge>
                     </div>
@@ -341,7 +372,7 @@ const DocumentPage = ({
                         onClick={handleSubmit}
                         disabled={loading}
                         size="sm"
-                        className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                        className="bg-[#FF6B00] hover:bg-orange-600 text-white"
                       >
                         {loading ? (
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -358,7 +389,7 @@ const DocumentPage = ({
                         }}
                         size="sm"
                         variant="outline"
-                        className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
                       >
                         <X className="w-4 h-4 mr-2" />
                         Cancel
@@ -368,7 +399,7 @@ const DocumentPage = ({
                     <Button
                       onClick={() => setIsEditing(true)}
                       size="sm"
-                      className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                      className="bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
                     >
                       <Edit3 className="w-4 h-4 mr-2" />
                       Edit
@@ -383,7 +414,7 @@ const DocumentPage = ({
               {isEditing && (
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-base font-medium">
+                    <Label className="text-base font-medium text-[#A259FF]">
                       Update File (optional)
                     </Label>
                     <p className="text-sm text-gray-500 mt-1">
@@ -394,49 +425,47 @@ const DocumentPage = ({
                   <div
                     className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
                       dragOver
-                        ? "border-blue-400 bg-blue-50 scale-105"
-                        : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/50"
+                        ? "border-[#A259FF] bg-purple-50 scale-105"
+                        : "border-[#00BFFF] hover:border-[#A259FF] hover:bg-purple-50/50"
                     }`}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-lg font-medium text-gray-700 mb-2">
+                    <Upload className="w-12 h-12 text-[#FF6B00] mx-auto mb-4" />
+                    <p className="text-lg font-medium text-[#A259FF] mb-2">
                       Drag and drop your file here
                     </p>
                     <p className="text-gray-500 mb-4">
                       or{" "}
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-[#FF6B00] font-medium">
                         click to select a file
                       </span>
                     </p>
                     <div className="flex justify-center space-x-4 text-sm text-gray-500">
-                      <span>PDF</span>
-                      <span>•</span>
                       <span>DOC</span>
                       <span>•</span>
                       <span>DOCX</span>
                       <span>•</span>
-                      <span>Max 10MB</span>
+                      <span>PDF</span>
                     </div>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      accept=".doc,.docx,.pdf"
                       onChange={handleFileChange}
                       className="hidden"
                     />
                   </div>
 
                   {file && (
-                    <Card className="border-blue-200 bg-blue-50">
+                    <Card className="border-[#00BFFF] bg-sky-50">
                       <CardContent className="p-4">
                         <div className="flex items-center space-x-3">
                           {getFileIcon(file.name)}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">
+                            <p className="font-medium text-[#A259FF] truncate">
                               {file.name}
                             </p>
                             <p className="text-sm text-gray-500">
@@ -447,6 +476,7 @@ const DocumentPage = ({
                             variant="ghost"
                             size="sm"
                             onClick={() => setFile(null)}
+                            className="hover:bg-red-100 hover:text-red-600"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -459,27 +489,36 @@ const DocumentPage = ({
 
               {!isEditing && (
                 <>
-                  <Separator />
+                  <Separator className="bg-[#00BFFF]/20" />
 
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center space-x-2">
-                      <Eye className="w-5 h-5" />
+                    <h3 className="text-lg font-semibold flex items-center space-x-2 text-[#A259FF]">
+                      <Eye className="w-5 h-5 text-[#FF6B00]" />
                       <span>Document Preview</span>
                     </h3>
 
-                    <div ref={docPreviewRef}></div>
+                    <div
+                      ref={docPreviewRef}
+                      className="border border-[#00BFFF]/20 rounded-lg p-4 bg-white max-h-96 overflow-y-auto min-h-[200px] flex-grow"
+                    >
+                      <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B00]" />
+                        <p className="text-sm text-gray-500">
+                          Loading preview...
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  <Separator />
+                  <Separator className="bg-[#00BFFF]/20" />
 
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       onClick={() => window.open(doc.url, "_blank")}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
-                      size="lg"
+                      className="flex-1 bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
                     >
-                      <Eye className="w-5 h-5 mr-2" />
-                      View Document
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Full Document
                     </Button>
 
                     <Dialog
@@ -488,23 +527,24 @@ const DocumentPage = ({
                     >
                       <DialogTrigger asChild>
                         <Button
-                          variant="destructive"
-                          className="flex-1"
-                          size="lg"
+                          variant="outline"
+                          className="flex-1 border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600 transition-all duration-200"
                         >
-                          <Trash2 className="w-5 h-5 mr-2" />
+                          <Trash2 className="w-4 h-4 mr-2" />
                           Delete Document
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Confirm Deletion</DialogTitle>
+                          <DialogTitle className="text-red-600">
+                            Delete Document
+                          </DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to delete this document? This
-                            action cannot be undone.
+                            Are you sure you want to delete &quot;{doc.title}
+                            &quot;? This action cannot be undone.
                           </DialogDescription>
                         </DialogHeader>
-                        <DialogFooter>
+                        <DialogFooter className="flex gap-2">
                           <Button
                             variant="outline"
                             onClick={() => setDeleteDialogOpen(false)}
@@ -532,117 +572,147 @@ const DocumentPage = ({
             </CardContent>
           </Card>
         ) : (
-          /* Document Creation Mode */
-          <Card className="shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-              <CardTitle className="text-xl">Create New Document</CardTitle>
-              <CardDescription className="text-blue-100">
-                Fill in the details below to upload a new document.
+          <Card className="border-[#00BFFF] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#A259FF] to-[#00BFFF] text-white">
+              <CardTitle className="text-xl flex items-center space-x-2">
+                <Upload className="w-6 h-6" />
+                <span>Create New Document</span>
+              </CardTitle>
+              <CardDescription className="text-white/80">
+                Upload a document to get started
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Document Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter document title"
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-medium">Upload File</Label>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Select the document file (PDF, DOC, DOCX)
-                  </p>
-                </div>
-
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
-                    dragOver
-                      ? "border-blue-400 bg-blue-50 scale-105"
-                      : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/50"
-                  }`}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-gray-700 mb-2">
-                    Drag and drop your file here
-                  </p>
-                  <p className="text-gray-500 mb-4">
-                    or{" "}
-                    <span className="text-blue-600 font-medium">
-                      click to select a file
-                    </span>
-                  </p>
-                  <div className="flex justify-center space-x-4 text-sm text-gray-500">
-                    <span>PDF</span>
-                    <span>•</span>
-                    <span>DOC</span>
-                    <span>•</span>
-                    <span>DOCX</span>
-                    <span>•</span>
-                    <span>Max 10MB</span>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileChange}
-                    className="hidden"
+            <CardContent className="p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="title"
+                    className="text-base font-medium text-[#A259FF]"
+                  >
+                    Document Title
+                  </Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e: {
+                      target: { value: React.SetStateAction<string> };
+                    }) => setTitle(e.target.value)}
+                    placeholder="Enter document title..."
+                    className="border-[#00BFFF] focus:border-[#A259FF] focus:ring-[#A259FF]"
                   />
                 </div>
 
-                {file && (
-                  <Card className="border-blue-200 bg-blue-50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-3">
-                        {getFileIcon(file.name)}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 truncate">
-                            {file.name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {formatFileSize(file.size)}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setFile(null)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-base font-medium text-[#A259FF]">
+                      Upload File
+                    </Label>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Select a document file to upload (Max 10MB)
+                    </p>
+                  </div>
 
-              <Button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                size="lg"
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                ) : (
-                  <Upload className="w-5 h-5 mr-2" />
-                )}
-                Upload Document
-              </Button>
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
+                      dragOver
+                        ? "border-[#A259FF] bg-purple-50 scale-105"
+                        : "border-[#00BFFF] hover:border-[#A259FF] hover:bg-purple-50/50"
+                    }`}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="w-12 h-12 text-[#FF6B00] mx-auto mb-4" />
+                    <p className="text-lg font-medium text-[#A259FF] mb-2">
+                      Drag and drop your file here
+                    </p>
+                    <p className="text-gray-500 mb-4">
+                      or{" "}
+                      <span className="text-[#FF6B00] font-medium">
+                        click to select a file
+                      </span>
+                    </p>
+                    <div className="flex justify-center space-x-4 text-sm text-gray-500">
+                      <span>DOC</span>
+                      <span>•</span>
+                      <span>DOCX</span>
+                      <span>•</span>
+                      <span>PDF</span>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".doc,.docx,.pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+
+                  {file && (
+                    <Card className="border-[#00BFFF] bg-sky-50">
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          {getFileIcon(file.name)}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[#A259FF] truncate">
+                              {file.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {formatFileSize(file.size)}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFile(null)}
+                            className="hover:bg-red-100 hover:text-red-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading || !title.trim() || !file}
+                  className="w-full bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Upload className="w-4 h-4 mr-2" />
+                  )}
+                  Create Document
+                </Button>
+              </form>
             </CardContent>
           </Card>
         )}
       </div>
-    </div>
+    );
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      {triggerButton && <DialogTrigger asChild>{triggerButton}</DialogTrigger>}
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-[#A259FF]">
+            Document Manager
+          </DialogTitle>
+          <DialogDescription>
+            Manage your documents - upload, edit, preview, and organize your
+            files
+          </DialogDescription>
+        </DialogHeader>
+        {renderContent()}
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default DocumentPage;
+export default DocumentModal;
