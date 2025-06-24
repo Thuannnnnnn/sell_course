@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   createDocument,
   getDocumentById,
@@ -31,7 +31,6 @@ import {
 } from "../../ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
 import { useSession } from "next-auth/react";
-import { renderAsync } from "docx-preview";
 import {
   FileText,
   Upload,
@@ -44,6 +43,7 @@ import {
   CheckCircle2,
   Loader2,
   Calendar,
+  ExternalLink,
 } from "lucide-react";
 
 interface DocumentModalProps {
@@ -63,15 +63,18 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
   const [doc, setDoc] = useState<Docs | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const docPreviewRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [previewKey, setPreviewKey] = useState(0);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
+
   useEffect(() => {
     if (isOpen) {
       const fetchDoc = async () => {
@@ -80,6 +83,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           const document = await getDocumentById(params.contentId);
           setDoc(document);
           setTitle(document.title);
+          setPreviewKey((prev) => prev + 1);
         } catch {
           setDoc(null);
         } finally {
@@ -91,49 +95,34 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     }
   }, [params.contentId, isOpen]);
   useEffect(() => {
-    const renderDocumentPreview = async () => {
-      if (doc && doc.url && docPreviewRef.current) {
+    const generatePreviewUrl = () => {
+      if (doc && doc.url) {
         try {
-          docPreviewRef.current.innerHTML = "";
-          if (doc.url.endsWith(".docx")) {
-            const response = await fetch(doc.url);
-            const blob = await response.blob();
-            const arrayBuffer = await blob.arrayBuffer();
-            await renderAsync(arrayBuffer, docPreviewRef.current);
-          } else if (doc.url.endsWith(".pdf")) {
-            docPreviewRef.current.innerHTML = `
-              <div class="flex flex-col items-center justify-center py-8 space-y-4">
-                <div class="text-6xl">📄</div>
-                <p class="text-lg font-medium">PDF Document</p>
-                <p class="text-sm text-gray-500">Click "View Full Document" to open the PDF</p>
-              </div>
-            `;
+          setPreviewLoading(true);
+          const fileExtension = doc.url.split(".").pop()?.toLowerCase();
+
+          if (fileExtension === "docx") {
+            const encodedUrl = encodeURIComponent(doc.url);
+            setPreviewUrl(
+              `https://docs.google.com/gview?url=${encodedUrl}&embedded=true`
+            );
           } else {
-            docPreviewRef.current.innerHTML = `
-              <div class="flex flex-col items-center justify-center py-8 space-y-4">
-                <div class="text-6xl">📄</div>
-                <p class="text-lg font-medium">Document Preview</p>
-                <p class="text-sm text-gray-500">Preview not available for this file type</p>
-              </div>
-            `;
+            setPreviewUrl("");
           }
         } catch (error) {
-          console.error("Error rendering document preview:", error);
-          if (docPreviewRef.current) {
-            docPreviewRef.current.innerHTML = `
-              <div class="flex flex-col items-center justify-center py-8 space-y-4">
-                <div class="text-6xl">⚠️</div>
-                <p class="text-lg font-medium">Preview Error</p>
-                <p class="text-sm text-gray-500">Unable to load document preview</p>
-              </div>
-            `;
-          }
+          console.error("Error generating preview URL:", error);
+          setPreviewUrl("");
+        } finally {
+          setPreviewLoading(false);
         }
+      } else {
+        setPreviewUrl("");
+        setPreviewLoading(false);
       }
     };
 
-    renderDocumentPreview();
-  }, [doc]); // This effect runs whenever doc changes
+    generatePreviewUrl();
+  }, [doc, previewKey]);
 
   const showMessage = (msg: string, type: "success" | "error") => {
     setMessage(msg);
@@ -147,10 +136,19 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const selectedFile = event.target.files[0];
+      const allowedExtensions = ["docx"];
+      const fileExtension = selectedFile.name.split(".").pop()?.toLowerCase();
+
+      if (!allowedExtensions.includes(fileExtension || "")) {
+        showMessage("Only DOCX files are allowed", "error");
+        return;
+      }
+
       if (selectedFile.size > 10 * 1024 * 1024) {
         showMessage("File size cannot exceed 10MB", "error");
         return;
       }
+
       setFile(selectedFile);
     }
   };
@@ -162,10 +160,19 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     const files = event.dataTransfer.files;
     if (files && files[0]) {
       const droppedFile = files[0];
+      const allowedExtensions = ["docx"];
+      const fileExtension = droppedFile.name.split(".").pop()?.toLowerCase();
+
+      if (!allowedExtensions.includes(fileExtension || "")) {
+        showMessage("Only DOCX files are allowed", "error");
+        return;
+      }
+
       if (droppedFile.size > 10 * 1024 * 1024) {
         showMessage("File size cannot exceed 10MB", "error");
         return;
       }
+
       setFile(droppedFile);
     }
   };
@@ -195,10 +202,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           doc.docsId,
           title,
           file || undefined,
-          session.accessToken
+          session.accessToken,
+          params.contentId
         );
         showMessage("Document updated successfully!", "success");
-        setDoc(updatedDoc); // This will trigger the preview re-render
+        setDoc(updatedDoc);
         setIsEditing(false);
       } else {
         if (!session?.accessToken) {
@@ -215,9 +223,13 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           session.accessToken
         );
         showMessage("Document created successfully!", "success");
-        setDoc(newDoc); // This will trigger the preview re-render
+        setDoc(newDoc);
       }
-      setFile(null);
+
+      // Fetch lại tài liệu sau khi tạo hoặc cập nhật
+      const fetchedDoc = await getDocumentById(params.contentId);
+      setDoc(fetchedDoc);
+      setPreviewKey((prev) => prev + 1); // Cập nhật preview
     } catch (error: unknown) {
       showMessage(
         error instanceof Error
@@ -243,6 +255,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       await deleteDocument(doc.docsId, session.accessToken);
       showMessage("Document deleted successfully!", "success");
       setDoc(null);
+
+      // Fetch lại trạng thái sau khi xóa
+      const fetchedDoc = await getDocumentById(params.contentId);
+      setDoc(fetchedDoc);
+      setPreviewUrl(""); // Xóa preview URL
       setDeleteDialogOpen(false);
     } catch (error: unknown) {
       showMessage(
@@ -268,6 +285,12 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       case "doc":
       case "docx":
         return <FileText className="w-8 h-8 text-[#FF6B00]" />;
+      case "ppt":
+      case "pptx":
+        return <FileText className="w-8 h-8 text-orange-500" />;
+      case "xls":
+      case "xlsx":
+        return <FileText className="w-8 h-8 text-green-500" />;
       default:
         return <FileText className="w-8 h-8 text-gray-500" />;
     }
@@ -286,6 +309,58 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       return "FILE";
     }
     return fileName.split(".").pop()?.toUpperCase() || "FILE";
+  };
+
+  const renderPreview = () => {
+    if (previewLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-[#FF6B00]" />
+          <p className="text-sm text-gray-500">Loading preview...</p>
+        </div>
+      );
+    }
+
+    if (!previewUrl) {
+      return (
+        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+          <div className="text-6xl">📄</div>
+          <p className="text-lg font-medium">Document Preview</p>
+          <p className="text-sm text-gray-500">
+            Preview not available for this file type
+          </p>
+          <p className="text-xs text-gray-400">
+            Click &quot;View Full Document&quot; to open the file
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative w-full h-full">
+        <iframe
+          key={previewKey} // Add key to force iframe refresh
+          src={previewUrl}
+          className="w-full h-full border-0 rounded"
+          title="Document Preview"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+          loading="lazy"
+          onLoad={() => setPreviewLoading(false)}
+          onError={() => {
+            setPreviewLoading(false);
+            setPreviewUrl("");
+          }}
+        />
+        {previewLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
+            <div className="flex flex-col items-center space-y-2">
+              <Loader2 className="w-6 h-6 animate-spin text-[#FF6B00]" />
+              <p className="text-sm text-gray-500">Loading preview...</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderContent = () => {
@@ -444,16 +519,12 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                       </span>
                     </p>
                     <div className="flex justify-center space-x-4 text-sm text-gray-500">
-                      <span>DOC</span>
-                      <span>•</span>
                       <span>DOCX</span>
-                      <span>•</span>
-                      <span>PDF</span>
                     </div>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".doc,.docx,.pdf"
+                      accept=".docx"
                       onChange={handleFileChange}
                       className="hidden"
                     />
@@ -497,17 +568,21 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                       <span>Document Preview</span>
                     </h3>
 
-                    <div
-                      ref={docPreviewRef}
-                      className="border border-[#00BFFF]/20 rounded-lg p-4 bg-white max-h-96 overflow-y-auto min-h-[200px] flex-grow"
-                    >
-                      <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B00]" />
-                        <p className="text-sm text-gray-500">
-                          Loading preview...
+                    <div className="border border-[#00BFFF]/20 rounded-lg bg-white h-96 overflow-hidden">
+                      {renderPreview()}
+                    </div>
+
+                    {!previewUrl && !previewLoading && (
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500 mb-2">
+                          Preview requires the document to be publicly
+                          accessible
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Some file types may not support preview
                         </p>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <Separator className="bg-[#00BFFF]/20" />
@@ -517,7 +592,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                       onClick={() => window.open(doc.url, "_blank")}
                       className="flex-1 bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
                     >
-                      <Eye className="w-4 h-4 mr-2" />
+                      <ExternalLink className="w-4 h-4 mr-2" />
                       View Full Document
                     </Button>
 
@@ -594,9 +669,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                   <Input
                     id="title"
                     value={title}
-                    onChange={(e: {
-                      target: { value: React.SetStateAction<string> };
-                    }) => setTitle(e.target.value)}
+                    onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter document title..."
                     className="border-[#00BFFF] focus:border-[#A259FF] focus:ring-[#A259FF]"
                   />
@@ -634,16 +707,12 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                       </span>
                     </p>
                     <div className="flex justify-center space-x-4 text-sm text-gray-500">
-                      <span>DOC</span>
-                      <span>•</span>
                       <span>DOCX</span>
-                      <span>•</span>
-                      <span>PDF</span>
                     </div>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".doc,.docx,.pdf"
+                      accept=".docx"
                       onChange={handleFileChange}
                       className="hidden"
                     />
@@ -678,7 +747,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
                 <Button
                   type="submit"
-                  disabled={loading || !title.trim() || !file}
+                  disabled={loading || !title?.trim() || !file}
                   className="w-full bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
                 >
                   {loading ? (

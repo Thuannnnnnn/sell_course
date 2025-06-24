@@ -46,13 +46,15 @@ export const updateDocument = async (
   docsId: string,
   title: string,
   file?: File,
-  token?: string
+  token?: string,
+  contentsId?: string
 ): Promise<Docs> => {
   const formData = new FormData();
   formData.append("title", title);
   if (file) {
     formData.append("file", file);
   }
+  formData.append("contentsId", contentsId || "");
 
   try {
     const response = await axios.put(
