@@ -1,0 +1,4 @@
+{
+    "zencoder.enableRepoIndexing": true,
+    "eslint.enable": false,
+}
