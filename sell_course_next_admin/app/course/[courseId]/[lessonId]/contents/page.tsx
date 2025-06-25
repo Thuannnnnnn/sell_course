@@ -149,7 +149,22 @@ function AddContentModal({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading}
+                style={{
+                  backgroundColor: '#513deb',
+                  color: 'white',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.backgroundColor = '#4f46e5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.backgroundColor = '#513deb';
+                  }
+                }}
+                >
                   Add
                 </Button>
               </div>
@@ -217,7 +232,11 @@ export default function LessonContentsPage() {
 
     try {
       await deleteContent(contentId, session.accessToken);
-      setContents((prev) => prev.filter((c) => c.contentId !== contentId));
+      setContents((prev) => {
+        const filtered = prev.filter((c) => c.contentId !== contentId);
+        const reordered = filtered.map((c, idx) => ({ ...c, order: idx + 1 }));
+        return reordered;
+      });
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);
@@ -292,7 +311,19 @@ export default function LessonContentsPage() {
             {contents.length} content item{contents.length !== 1 ? "s" : ""}
           </Badge>
         </div>
-        <Button onClick={handleAdd}>
+        <Button
+          onClick={handleAdd}
+          style={{
+            backgroundColor: '#513deb',
+            color: 'white',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#4f46e5';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#513deb';
+          }}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Content
         </Button>

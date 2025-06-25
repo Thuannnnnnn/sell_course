@@ -41,8 +41,11 @@ function AddLessonModal({
     setLoading(true);
     setError("");
     try {
+      const lessonsCount = (await fetchLessons(session.accessToken)).filter(
+        (lesson) => lesson.course != null && String(lesson.course.courseId) === String(courseId)
+      ).length;
       const response = await createLesson(
-        { lessonName, courseId },
+        { lessonName, courseId, order: lessonsCount + 1 },
         session.accessToken
       );
       console.log("Lesson created:", response);
@@ -74,7 +77,22 @@ function AddLessonModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading}
+            style={{
+              backgroundColor: '#513deb',
+              color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#4f46e5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#513deb';
+                }
+              }}
+              >
               {loading ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -135,7 +153,24 @@ function EditLessonModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              style={{
+                backgroundColor: '#513deb',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#4f46e5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#513deb';
+                }
+              }}
+            >
               {loading ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -207,7 +242,14 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     try {
       await deleteLesson(lessonId, session.accessToken);
       console.log("Lesson deleted:", lessonId);
-      setLessons((prev) => prev.filter((l) => l.lessonId !== lessonId));
+      setLessons((prev) => {
+        const filtered = prev.filter((l) => l.lessonId !== lessonId);
+        const reordered = filtered.map((l, idx) => ({ ...l, order: idx + 1 }));
+        reordered.forEach((l) => {
+          updateLesson(l.lessonId, { order: l.order }, session.accessToken!);
+        });
+        return reordered;
+      });
     } catch (error) {
       console.error("Delete error:", error);
       alert("Failed to delete lesson. Please try again.");
@@ -233,7 +275,20 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
           </Button>
           <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
         </div>
-        <Button className="flex items-center gap-2" onClick={() => setShowAddModal(true)}>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setShowAddModal(true)}
+          style={{
+            backgroundColor: '#513deb',
+            color: 'white',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#4f46e5';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#513deb';
+          }}
+        >
           <Plus className="h-5 w-5" />
           Add Lesson
         </Button>
