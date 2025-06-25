@@ -24,10 +24,12 @@ export interface Content {
 export interface CreateLessonRequest {
   lessonName: string;
   courseId: string;
+  order?: number;
 }
 
 export interface UpdateLessonRequest {
   lessonName?: string;
+  order?: number;
 }
 
 export interface UpdateLessonOrderRequest {

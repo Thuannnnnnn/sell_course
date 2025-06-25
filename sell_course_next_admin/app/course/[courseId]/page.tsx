@@ -6,7 +6,7 @@ import { fetchLessons, deleteLesson, createLesson, updateLesson } from "../../ap
 import { Lesson } from "../../types/lesson";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { Edit, Trash2, Plus, BookOpen, FileText } from "lucide-react";
+import { Edit, Trash2, Plus, BookOpen, FileText, ArrowLeft } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/card";
 
 function AddLessonModal({
@@ -41,8 +41,11 @@ function AddLessonModal({
     setLoading(true);
     setError("");
     try {
+      const lessonsCount = (await fetchLessons(session.accessToken)).filter(
+        (lesson) => lesson.course != null && String(lesson.course.courseId) === String(courseId)
+      ).length;
       const response = await createLesson(
-        { lessonName, courseId },
+        { lessonName, courseId, order: lessonsCount + 1 },
         session.accessToken
       );
       console.log("Lesson created:", response);
@@ -74,7 +77,22 @@ function AddLessonModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading}
+            style={{
+              backgroundColor: '#513deb',
+              color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#4f46e5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#513deb';
+                }
+              }}
+              >
               {loading ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -135,7 +153,24 @@ function EditLessonModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              style={{
+                backgroundColor: '#513deb',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#4f46e5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#513deb';
+                }
+              }}
+            >
               {loading ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -207,7 +242,14 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     try {
       await deleteLesson(lessonId, session.accessToken);
       console.log("Lesson deleted:", lessonId);
-      setLessons((prev) => prev.filter((l) => l.lessonId !== lessonId));
+      setLessons((prev) => {
+        const filtered = prev.filter((l) => l.lessonId !== lessonId);
+        const reordered = filtered.map((l, idx) => ({ ...l, order: idx + 1 }));
+        reordered.forEach((l) => {
+          updateLesson(l.lessonId, { order: l.order }, session.accessToken!);
+        });
+        return reordered;
+      });
     } catch (error) {
       console.error("Delete error:", error);
       alert("Failed to delete lesson. Please try again.");
@@ -223,8 +265,30 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
-        <Button className="flex items-center gap-2" onClick={() => setShowAddModal(true)}>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => router.push('/course')}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
+        </div>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setShowAddModal(true)}
+          style={{
+            backgroundColor: '#513deb',
+            color: 'white',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#4f46e5';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#513deb';
+          }}
+        >
           <Plus className="h-5 w-5" />
           Add Lesson
         </Button>

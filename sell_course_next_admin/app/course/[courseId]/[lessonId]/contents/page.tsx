@@ -54,7 +54,6 @@ function AddContentModal({
   const { data: session } = useSession();
   const [contentName, setContentName] = useState("");
   const [contentType, setContentType] = useState("");
-  const [order, setOrder] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -62,7 +61,6 @@ function AddContentModal({
     if (!open) {
       setContentName("");
       setContentType("");
-      setOrder(1);
       setError("");
     }
   }, [open]);
@@ -70,6 +68,14 @@ function AddContentModal({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!session?.accessToken) return;
+    if (!contentName.trim()) {
+      setError("Content name is required.");
+      return;
+    }
+    if (!contentType) {
+      setError("Content type is required.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -133,17 +139,6 @@ function AddContentModal({
                   </SelectContent>
                 </Select>
               </div>
-              {/* <div>
-                <Label htmlFor="order">Order</Label>
-                <Input
-                  id="order"
-                  type="number"
-                  min={1}
-                  value={order}
-                  onChange={(e) => setOrder(Number(e.target.value))}
-                  required
-                />
-              </div> */}
               {error && <div className="text-red-500 text-sm">{error}</div>}
               <div className="flex justify-end gap-2">
                 <Button
@@ -154,7 +149,22 @@ function AddContentModal({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading}
+                style={{
+                  backgroundColor: '#513deb',
+                  color: 'white',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.backgroundColor = '#4f46e5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.backgroundColor = '#513deb';
+                  }
+                }}
+                >
                   Add
                 </Button>
               </div>
@@ -165,7 +175,6 @@ function AddContentModal({
     </div>
   );
 }
-import DocumentModal from "../../../../components/course/content/DocumentModalContent";
 
 export default function LessonContentsPage() {
   const { data: session } = useSession();
@@ -179,8 +188,6 @@ export default function LessonContentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
-  const [selectedContentId, setSelectedContentId] = useState<string>("");
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -225,7 +232,11 @@ export default function LessonContentsPage() {
 
     try {
       await deleteContent(contentId, session.accessToken);
-      setContents((prev) => prev.filter((c) => c.contentId !== contentId));
+      setContents((prev) => {
+        const filtered = prev.filter((c) => c.contentId !== contentId);
+        const reordered = filtered.map((c, idx) => ({ ...c, order: idx + 1 }));
+        return reordered;
+      });
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);
@@ -245,13 +256,6 @@ export default function LessonContentsPage() {
       setContents(contentsData);
     } catch {
       setError("Failed to reload contents.");
-    }
-  };
-
-  const handleOpenDocumentModal = (contentId: string, type: string) => {
-    setSelectedContentId(contentId);
-    if (type === "doc") {
-      setIsDocumentModalOpen(true);
     }
   };
 
@@ -307,7 +311,19 @@ export default function LessonContentsPage() {
             {contents.length} content item{contents.length !== 1 ? "s" : ""}
           </Badge>
         </div>
-        <Button onClick={handleAdd}>
+        <Button
+          onClick={handleAdd}
+          style={{
+            backgroundColor: '#513deb',
+            color: 'white',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#4f46e5';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#513deb';
+          }}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Content
         </Button>
@@ -353,16 +369,9 @@ export default function LessonContentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {/* Modified button to open DocumentModal */}
                       <Button
                         size="icon"
                         variant="outline"
-                        onClick={() =>
-                          handleOpenDocumentModal(
-                            content.contentId,
-                            content.contentType
-                          )
-                        }
                       >
                         <CircleFadingPlus className="h-4 w-4" />
                       </Button>
@@ -398,16 +407,6 @@ export default function LessonContentsPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Add DocumentModal component */}
-      <DocumentModal
-        isOpen={isDocumentModalOpen}
-        onClose={() => setIsDocumentModalOpen(false)}
-        params={{
-          lessonId: lessonId,
-          contentId: selectedContentId,
-        }}
-      />
     </div>
   );
 }
