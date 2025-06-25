@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
@@ -20,7 +20,7 @@ import { quizApi } from '../../api/quiz/quiz';
 import { Quiz } from '../../types/quiz';
 import { formatDifficulty, getDifficultyColor } from '../../../lib/quiz-utils';
 
-export default function QuizManagePage() {
+function QuizManagePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const courseId = searchParams.get('courseId');
@@ -236,5 +236,24 @@ export default function QuizManagePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function QuizManagePageLoading() {
+  return (
+    <div className="min-h-screen w-full bg-background flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Loading quiz management...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function QuizManagePage() {
+  return (
+    <Suspense fallback={<QuizManagePageLoading />}>
+      <QuizManagePageContent />
+    </Suspense>
   );
 }

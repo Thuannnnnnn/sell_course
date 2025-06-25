@@ -1,4 +1,14 @@
-import { IsArray, IsNotEmpty, IsString, ValidateNested, IsOptional, IsEnum, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsString,
+  ValidateNested,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { CreateAnswerDto } from './createAnswer.dto';
 import { Type } from 'class-transformer';
 

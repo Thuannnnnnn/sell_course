@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import QuestionForm from '../../components/quiz/QuestionForm'
 import QuestionList from '../../components/quiz/QuestionList'
@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '../../components/ui/alert'
 import { QuizFormData } from '../types/quiz'
 import { useQuiz } from '../../hooks/useQuiz'
 
-export default function QuizPage() {
+function QuizPageContent() {
   const searchParams = useSearchParams()
   const courseId = searchParams.get('courseId')
   const lessonId = searchParams.get('lessonId')
@@ -147,5 +147,24 @@ export default function QuizPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function QuizPageLoading() {
+  return (
+    <div className="min-h-screen w-full bg-background flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Loading quiz page...</p>
+      </div>
+    </div>
+  )
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={<QuizPageLoading />}>
+      <QuizPageContent />
+    </Suspense>
   )
 }
