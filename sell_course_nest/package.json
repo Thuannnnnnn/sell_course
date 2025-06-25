@@ -34,12 +34,15 @@
     "@nestjs/typeorm": "^10.0.2",
     "@nestjs/websockets": "^10.0.0",
     "@payos/node": "^1.0.10",
+    "@types/tar": "^6.1.13",
+    "@types/yauzl": "^2.10.3",
     "bcryptjs": "^2.4.3",
     "cache-manager": "^6.4.3",
     "cache-manager-ioredis": "^2.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "dotenv": "^16.4.7",
+    "extract-zip": "^2.0.1",
     "ioredis": "^5.6.1",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
@@ -49,8 +52,10 @@
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "tar": "^7.4.3",
     "transformers": "^3.1.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "yauzl": "^3.2.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
