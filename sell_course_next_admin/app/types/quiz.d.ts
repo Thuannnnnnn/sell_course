@@ -10,7 +10,6 @@ export interface Question {
   question: string;
   difficulty: 'easy' | 'medium' | 'hard';
   weight: number;
-  tags?: string[];
   answers: Answer[];
   createdAt: Date;
 }
@@ -34,7 +33,6 @@ export interface CreateQuestionDto {
   question: string;
   difficulty?: 'easy' | 'medium' | 'hard';
   weight?: number;
-  tags?: string[];
   answers: CreateAnswerDto[];
 }
 
@@ -55,5 +53,4 @@ export interface QuizFormData {
   correctAnswer: number;
   difficulty?: 'easy' | 'medium' | 'hard';
   weight?: number;
-  tags?: string[];
 }

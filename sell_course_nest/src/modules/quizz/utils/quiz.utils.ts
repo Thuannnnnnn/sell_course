@@ -133,20 +133,6 @@ export class QuizUtils {
         difficultyStats[difficulty].correct++;
         difficultyStats[difficulty].weightedScore += weight;
       }
-      
-      // Update topic stats
-      if (question.tags && question.tags.length > 0) {
-        for (const tag of question.tags) {
-          if (!topicStats.has(tag)) {
-            topicStats.set(tag, { correct: 0, total: 0, percentage: 0 });
-          }
-          const stats = topicStats.get(tag)!;
-          stats.total++;
-          if (answer.isCorrect) {
-            stats.correct++;
-          }
-        }
-      }
     }
     
     // Calculate percentages
@@ -155,13 +141,9 @@ export class QuizUtils {
       stats.percentage = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
     });
     
-    topicStats.forEach((stats) => {
-      stats.percentage = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
-    });
-    
     return {
       byDifficulty: difficultyStats,
-      byTopic: Object.fromEntries(topicStats)
+      byTopic: {}
     };
   }
 

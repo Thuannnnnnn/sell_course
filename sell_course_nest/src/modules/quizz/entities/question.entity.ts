@@ -31,12 +31,6 @@ export class Questionentity {
   @Column({ type: 'integer', default: 1 })
   weight: number;
 
-  @Column({ type: 'text', nullable: true })
-  explanation: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  tags: string[];
-
   @OneToMany(() => AnswerEntity, (answer) => answer.question)
   answers: AnswerEntity[];
 

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Button } from '../../../components/ui/button';
-import { Badge } from '../../../components/ui/badge';
-import { Alert, AlertDescription } from '../../../components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../../../../components/ui/card';
+import { Button } from '../../../../../../../components/ui/button';
+import { Badge } from '../../../../../../../components/ui/badge';
+import { Alert, AlertDescription } from '../../../../../../../components/ui/alert';
 import { 
   BookOpen, 
   Plus, 
@@ -16,9 +16,9 @@ import {
   Clock,
   HelpCircle
 } from 'lucide-react';
-import { quizApi } from '../../api/quiz/quiz';
-import { Quiz } from '../../types/quiz';
-import { formatDifficulty, getDifficultyColor } from '../../../lib/quiz-utils';
+import { quizApi } from '../../../../../../api/quiz/quiz';
+import { Quiz } from '../../../../../../types/quiz';
+import { formatDifficulty, getDifficultyColor } from '../../../../../../../lib/quiz-utils';
 
 function QuizManagePageContent() {
   const router = useRouter();

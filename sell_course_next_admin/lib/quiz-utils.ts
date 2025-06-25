@@ -6,7 +6,6 @@ export const convertQuizFormToDto = (quizFormData: QuizFormData[]): CreateQuesti
     question: quiz.question,
     difficulty: quiz.difficulty || 'medium',
     weight: quiz.weight || 1,
-    tags: quiz.tags,
     answers: quiz.options.map((option, index): CreateAnswerDto => ({
       answer: option,
       isCorrect: index === quiz.correctAnswer,
@@ -25,7 +24,6 @@ export const convertQuestionToFormData = (question: Question): QuizFormData => {
     correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
     difficulty: question.difficulty,
     weight: question.weight,
-    tags: question.tags,
   };
 };
 

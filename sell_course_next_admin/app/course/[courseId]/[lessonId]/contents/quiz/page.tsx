@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import QuestionForm from '../../components/quiz/QuestionForm'
-import QuestionList from '../../components/quiz/QuestionList'
+import QuestionForm from '../../../../../../components/quiz/QuestionForm'
+import QuestionList from '../../../../../../components/quiz/QuestionList'
 import { BookOpen, Save, AlertCircle } from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Alert, AlertDescription } from '../../components/ui/alert'
-import { QuizFormData } from '../types/quiz'
-import { useQuiz } from '../../hooks/useQuiz'
+import { Button } from '../../../../../../components/ui/button'
+import { Alert, AlertDescription } from '../../../../../../components/ui/alert'
+import { QuizFormData } from '../../../../../types/quiz'
+import { useQuiz } from '../../../../../../hooks/useQuiz'
 
 function QuizPageContent() {
   const searchParams = useSearchParams()

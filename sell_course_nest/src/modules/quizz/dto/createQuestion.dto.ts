@@ -27,15 +27,6 @@ export class CreateQuestionDto {
   @IsOptional()
   weight?: number;
 
-  @IsString()
-  @IsOptional()
-  explanation?: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  tags?: string[];
-
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateAnswerDto)

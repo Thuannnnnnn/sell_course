@@ -99,8 +99,6 @@ export class QuizzService {
       question.question = questionDto.question.trim();
       question.difficulty = questionDto.difficulty || 'medium';
       question.weight = questionDto.weight || 1;
-      question.explanation = questionDto.explanation || null;
-      question.tags = questionDto.tags || [];
       question.quizz = quiz;
       const savedQuestion = await this.questionRepository.save(question);
 
@@ -272,8 +270,6 @@ export class QuizzService {
         question.question = questionDto.question;
         question.difficulty = questionDto.difficulty || question.difficulty;
         question.weight = questionDto.weight || question.weight;
-        question.explanation = questionDto.explanation || question.explanation;
-        question.tags = questionDto.tags || question.tags;
         await this.questionRepository.save(question);
       } else {
         question = new Questionentity();
@@ -281,8 +277,6 @@ export class QuizzService {
         question.question = questionDto.question;
         question.difficulty = questionDto.difficulty || 'medium';
         question.weight = questionDto.weight || 1;
-        question.explanation = questionDto.explanation || null;
-        question.tags = questionDto.tags || [];
         question.quizz = quiz;
         await this.questionRepository.save(question);
       }
