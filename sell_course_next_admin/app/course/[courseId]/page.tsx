@@ -77,7 +77,22 @@ function AddLessonModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading}
+            style={{
+              backgroundColor: '#513deb',
+              color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#4f46e5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#513deb';
+                }
+              }}
+              >
               {loading ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -138,7 +153,24 @@ function EditLessonModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              style={{
+                backgroundColor: '#513deb',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#4f46e5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#513deb';
+                }
+              }}
+            >
               {loading ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -243,7 +275,20 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
           </Button>
           <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
         </div>
-        <Button className="flex items-center gap-2" onClick={() => setShowAddModal(true)}>
+        <Button
+          className="flex items-center gap-2"
+          onClick={() => setShowAddModal(true)}
+          style={{
+            backgroundColor: '#513deb',
+            color: 'white',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#4f46e5';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#513deb';
+          }}
+        >
           <Plus className="h-5 w-5" />
           Add Lesson
         </Button>

@@ -1,11 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { fetchCategories, deleteCategory } from "../api/categories/category";
+import { fetchCategories, deleteCategory, addCategory, updateCategory } from "../api/categories/category";
 import { Category } from "../types/category";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { useRouter } from "next/navigation";
 import { Edit, Trash2, Plus, FolderOpen, Search } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -16,6 +15,322 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Label } from "../../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+
+interface AddCategoryModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  categories: Category[];
+}
+
+interface EditCategoryModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  category: Category | null;
+  categories: Category[];
+}
+
+function EditCategoryModal({
+  open,
+  onClose,
+  onSuccess,
+  category,
+  categories,
+}: EditCategoryModalProps) {
+  const { data: session } = useSession();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [parentId, setParentId] = useState("none");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (category && open) {
+      setName(category.name);
+      setDescription(category.description || "");
+      setParentId(category.parentId || "none");
+      setError("");
+    } else if (!open) {
+      setName("");
+      setDescription("");
+      setParentId("none");
+      setError("");
+    }
+  }, [category, open]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!session?.accessToken || !category) return;
+    if (!name.trim()) {
+      setError("Category name is required.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await updateCategory({
+        categoryId: category.categoryId,
+        name: name.trim(),
+        description: description.trim(),
+        parentId: parentId === "none" ? null : parentId,
+      }, session.accessToken);
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "message" in err) {
+        setError(
+          (err as { message?: string }).message || "Failed to update category."
+        );
+      } else {
+        setError("Failed to update category.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open || !category) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Category</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <Label htmlFor="edit-name">Category Name</Label>
+                <Input
+                  id="edit-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Input
+                  id="edit-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-parentId">Parent Category (Optional)</Label>
+                <Select
+                  key={`edit-${category.categoryId}-${parentId}`}
+                  value={parentId}
+                  onValueChange={setParentId}
+                >
+                  <SelectTrigger id="edit-parentId">
+                    <SelectValue placeholder="Select parent category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {categories
+                      .filter((cat) => {
+                        if (cat.categoryId === category.categoryId) return false;
+                        if (cat.parentId === category.categoryId) return false;
+                        return true;
+                      })
+                      .map((cat) => (
+                        <SelectItem key={cat.categoryId} value={cat.categoryId}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    backgroundColor: '#513deb',
+                    color: 'white',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = '#4f46e5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = '#513deb';
+                    }
+                  }}
+                >
+                  {loading ? "Updating..." : "Update"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function AddCategoryModal({
+  open,
+  onClose,
+  onSuccess,
+  categories,
+}: AddCategoryModalProps) {
+  const { data: session } = useSession();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [parentId, setParentId] = useState("none");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setName("");
+      setDescription("");
+      setParentId("none");
+      setError("");
+    }
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!session?.accessToken) return;
+    if (!name.trim()) {
+      setError("Category name is required.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await addCategory({
+        categoryId: "",
+        name: name.trim(),
+        description: description.trim(),
+        parentId: parentId === "none" ? null : parentId,
+      }, session.accessToken);
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "message" in err) {
+        setError(
+          (err as { message?: string }).message || "Failed to create category."
+        );
+      } else {
+        setError("Failed to create category.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Category</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <Label htmlFor="name">Category Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="parentId">Parent Category (Optional)</Label>
+                <Select
+                  value={parentId}
+                  onValueChange={setParentId}
+                >
+                  <SelectTrigger id="parentId">
+                    <SelectValue placeholder="Select parent category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {categories
+                      .map((cat) => (
+                        <SelectItem key={cat.categoryId} value={cat.categoryId}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    backgroundColor: '#513deb',
+                    color: 'white',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = '#4f46e5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = '#513deb';
+                    }
+                  }}
+                >
+                  {loading ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default function CategoryManagementPage() {
   const { data: session } = useSession();
@@ -23,7 +338,9 @@ export default function CategoryManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const router = useRouter();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -47,7 +364,7 @@ export default function CategoryManagementPage() {
   }, [session]);
 
   const handleAdd = () => {
-    router.push("/categories/add");
+    setShowAddModal(true);
   };
 
   const handleDelete = async (categoryId: string) => {
@@ -65,7 +382,21 @@ export default function CategoryManagementPage() {
     }
   };
 
-  // Filter categories based on search term
+  const refreshCategories = async () => {
+    if (!session?.accessToken) return;
+    try {
+      const data = await fetchCategories(session.accessToken);
+      setCategories(data);
+    } catch {
+      setError("Failed to reload categories.");
+    }
+  };
+
+  const handleEdit = (category: Category) => {
+    setSelectedCategory(category);
+    setShowEditModal(true);
+  };
+
   const filteredCategories = categories.filter((cat) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cat.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,6 +424,16 @@ export default function CategoryManagementPage() {
           <Button
             className="flex items-center gap-2"
             onClick={handleAdd}
+            style={{
+              backgroundColor: '#513deb',
+              color: 'white',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4f46e5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#513deb';
+            }}
           >
             <Plus className="h-5 w-5" />
             Create Category
@@ -114,7 +455,6 @@ export default function CategoryManagementPage() {
                 />
               </div>
             </div>
-            
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -166,7 +506,7 @@ export default function CategoryManagementPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => router.push(`/categories/edit/${cat.categoryId}`)}
+                              onClick={() => handleEdit(cat)}
                             >
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Edit</span>
@@ -188,7 +528,6 @@ export default function CategoryManagementPage() {
                 </TableBody>
               </Table>
             </div>
-            
             {searchTerm && (
               <div className="text-sm text-muted-foreground">
                 Showing {filteredCategories.length} of {categories.length} categories.
@@ -197,6 +536,21 @@ export default function CategoryManagementPage() {
           </div>
         )}
       </div>
+
+      <AddCategoryModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={refreshCategories}
+        categories={categories}
+      />
+
+      <EditCategoryModal
+        open={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={refreshCategories}
+        category={selectedCategory}
+        categories={categories}
+      />
     </div>
   );
 }
