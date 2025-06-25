@@ -6,8 +6,11 @@ import {
   fetchContentsByLesson,
   deleteContent,
   createContent,
+  updateContent,
+  updateContentOrder,
 } from "../../../../api/lessons/content";
 import { fetchLessons } from "../../../../api/lessons/lesson";
+import { getDocumentById } from "../../../../api/lessons/Doc/document";
 import { Content } from "../../../../types/lesson";
 import { Lesson } from "../../../../types/lesson";
 import {
@@ -37,12 +40,217 @@ import {
   SelectValue,
 } from "../../../../../components/ui/select";
 import DocumentModal from "../../../../../components/course/content/DocumentModalContent";
+import { toast } from "sonner";
 
 interface AddContentModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
   lessonId: string;
+}
+
+interface EditContentModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  content: Content | null;
+}
+
+function EditContentModal({
+  open,
+  onClose,
+  onSuccess,
+  content,
+}: EditContentModalProps) {
+  const { data: session } = useSession();
+  const [contentName, setContentName] = useState("");
+  const [contentType, setContentType] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [hasDocument, setHasDocument] = useState(false);
+  const [checkingDocument, setCheckingDocument] = useState(false);
+
+  useEffect(() => {
+    if (content && open) {
+      setContentName(content.contentName);
+      setContentType(content.contentType ? content.contentType.toLowerCase() : "");
+      setError("");
+      setCheckingDocument(true);
+      const checkDocument = async () => {
+        try {
+          const doc = await getDocumentById(content.contentId);
+          setHasDocument(!!doc);
+        } catch {
+          setHasDocument(false);
+        } finally {
+          setCheckingDocument(false);
+        }
+      };
+      checkDocument();
+    } else if (!open) {
+      setContentName("");
+      setContentType("");
+      setError("");
+      setHasDocument(false);
+      setCheckingDocument(false);
+    }
+  }, [content, open]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!session?.accessToken || !content) return;
+    if (!contentName.trim()) {
+      setError("Content name is required.");
+      return;
+    }
+    if (!contentType) {
+      setError("Content type is required.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await updateContent(
+        content.contentId,
+        { contentName, contentType },
+        session.accessToken
+      );
+      toast.success("Content updated successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      const msg = (err && typeof err === "object" && "message" in err)
+        ? (err as { message?: string }).message || "Failed to update content."
+        : "Failed to update content.";
+      setError(msg);
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open || !content) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Content</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <Label htmlFor="edit-contentName">Content Name</Label>
+                <Input
+                  id="edit-contentName"
+                  value={contentName}
+                  onChange={(e) => setContentName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-contentType">Content Type</Label>
+                {contentType && (
+                  <span className="inline-block mb-1 ml-2 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                    Current: {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
+                  </span>
+                )}
+                {checkingDocument ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                    Checking content status...
+                  </div>
+                ) : hasDocument ? (
+                  <div className="space-y-2">
+                    <Select
+                      value={contentType}
+                      onValueChange={setContentType}
+                      required
+                      disabled
+                    >
+                      <SelectTrigger id="edit-contentType" className="bg-gray-100">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="video">Video</SelectItem>
+                        <SelectItem value="doc">Document</SelectItem>
+                        <SelectItem value="quizz">Quizz</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
+                      <strong>Note:</strong> Content type cannot be changed because this content has an attached document. 
+                      You must delete the document first to change the content type.
+                    </div>
+                  </div>
+                ) : (
+                  <Select
+                    value={contentType}
+                    onValueChange={setContentType}
+                    required
+                  >
+                    <SelectTrigger id="edit-contentType">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="video">Video</SelectItem>
+                      <SelectItem value="doc">Document</SelectItem>
+                      <SelectItem value="quizz">Quizz</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading || checkingDocument}
+                  style={{
+                    backgroundColor: "#513deb",
+                    color: "white",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading && !checkingDocument) {
+                      e.currentTarget.style.backgroundColor = "#4f46e5";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading && !checkingDocument) {
+                      e.currentTarget.style.backgroundColor = "#513deb";
+                    }
+                  }}
+                >
+                  {loading ? "Updating..." : "Update"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
 
 function AddContentModal({
@@ -87,16 +295,29 @@ function AddContentModal({
         },
         session.accessToken
       );
+      toast.success("Content created successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "message" in err) {
-        setError(
-          (err as { message?: string }).message || "Failed to add content."
-        );
-      } else {
-        setError("Failed to add content.");
-      }
+      const msg = (err && typeof err === "object" && "message" in err)
+        ? (err as { message?: string }).message || "Failed to add content."
+        : "Failed to add content.";
+      setError(msg);
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     } finally {
       setLoading(false);
     }
@@ -190,6 +411,8 @@ export default function LessonContentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     null
@@ -241,17 +464,45 @@ export default function LessonContentsPage() {
 
     try {
       await deleteContent(contentId, session.accessToken);
+      
+      // Update order for remaining contents
+      const remainingContents = contents.filter((c) => c.contentId !== contentId);
+      const updatedOrderContents = remainingContents.map((c, idx) => ({
+        contentId: c.contentId,
+        order: idx + 1,
+      }));
+      
+      if (updatedOrderContents.length > 0) {
+        await updateContentOrder(
+          { contents: updatedOrderContents },
+          session.accessToken
+        );
+      }
+      
       setContents((prev) => {
         const filtered = prev.filter((c) => c.contentId !== contentId);
         const reordered = filtered.map((c, idx) => ({ ...c, order: idx + 1 }));
         return reordered;
       });
+      
+      toast.success("Content deleted successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Failed to delete content. Please try again.");
-      }
+      const msg = error instanceof Error ? error.message : "Failed to delete content. Please try again.";
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     }
   };
   const refreshContents = async () => {
@@ -305,6 +556,11 @@ export default function LessonContentsPage() {
   const closeDocumentModal = () => {
     setShowDocumentModal(false);
     setSelectedContentId(null);
+  };
+
+  const handleEdit = (content: Content) => {
+    setSelectedContent(content);
+    setShowEditModal(true);
   };
 
   return (
@@ -362,64 +618,58 @@ export default function LessonContentsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="space-y-3">
-              {contents
-                .sort((a, b) => a.order - b.order)
-                .map((content) => (
-                  <div
-                    key={content.contentId}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
-                        {content.order}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getContentTypeIcon(content.contentType)}
-                        <div>
-                          <h3 className="font-medium">{content.contentName}</h3>
-                          <Badge
-                            variant="outline"
-                            className={getContentTypeColor(content.contentType)}
-                          >
-                            {content.contentType}
-                          </Badge>
-                        </div>
-                      </div>
+              {contents.map((content) => (
+                <div
+                  key={content.contentId}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
+                      {content.order}
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() =>
-                          openDocumentModal(
-                            content.contentType,
-                            content.contentId
-                          )
-                        }
-                      >
-                        <CircleFadingPlus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() =>
-                          router.push(
-                            `/course/${courseId}/${lessonId}/contents/edit/${content.contentId}`
-                          )
-                        }
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        onClick={() => handleDelete(content.contentId)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="flex items-center gap-2">
+                      {getContentTypeIcon(content.contentType)}
+                      <div>
+                        <h3 className="font-medium">{content.contentName}</h3>
+                        <Badge
+                          variant="outline"
+                          className={getContentTypeColor(content.contentType)}
+                        >
+                          {content.contentType}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                ))}
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() =>
+                        openDocumentModal(
+                          content.contentType,
+                          content.contentId
+                        )
+                      }
+                    >
+                      <CircleFadingPlus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => handleEdit(content)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      onClick={() => handleDelete(content.contentId)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
 
               {contents.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
@@ -438,6 +688,12 @@ export default function LessonContentsPage() {
           params={{ lessonId, contentId: selectedContentId }}
         />
       )}
+      <EditContentModal
+        open={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={refreshContents}
+        content={selectedContent}
+      />
     </div>
   );
 }

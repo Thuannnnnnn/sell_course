@@ -60,7 +60,7 @@ export class ContentService {
     return await this.contentRepository.find({
       where: { lesson: { lessonId } },
       relations: ['lesson'],
-      order: { order: 'DESC' },
+      order: { order: 'ASC' },
     });
   }
 
@@ -75,6 +75,7 @@ export class ContentService {
   async updateContent(
     contentId: string,
     contentName: string,
+    contentType: string,
   ): Promise<Contents> {
     const content = await this.contentRepository.findOne({
       where: { contentId },
@@ -85,6 +86,7 @@ export class ContentService {
     }
 
     content.contentName = contentName;
+    content.contentType = contentType;
     return await this.contentRepository.save(content);
   }
 
