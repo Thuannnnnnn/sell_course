@@ -25,7 +25,6 @@ import {
   ArrowLeft,
   FileText,
   Video,
-  Image,
   CircleFadingPlus,
 } from "lucide-react";
 import { Input } from "../../../../../components/ui/input";
@@ -37,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../../components/ui/select";
+import DocumentModal from "../../../../../components/course/content/DocumentModalContent";
 
 interface AddContentModalProps {
   open: boolean;
@@ -149,21 +149,23 @@ function AddContentModal({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}
-                style={{
-                  backgroundColor: '#513deb',
-                  color: 'white',
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.currentTarget.style.backgroundColor = '#4f46e5';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading) {
-                    e.currentTarget.style.backgroundColor = '#513deb';
-                  }
-                }}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    backgroundColor: "#513deb",
+                    color: "white",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = "#4f46e5";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = "#513deb";
+                    }
+                  }}
                 >
                   Add
                 </Button>
@@ -188,6 +190,11 @@ export default function LessonContentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [selectedContentId, setSelectedContentId] = useState<string | null>(
+    null
+  );
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -222,9 +229,11 @@ export default function LessonContentsPage() {
       loadData();
     }
   }, [session, lessonId]);
+
   const handleAdd = () => {
     setShowAddModal(true);
   };
+
   const handleDelete = async (contentId: string) => {
     if (!session?.accessToken) return;
     if (!window.confirm("Are you sure you want to delete this content?"))
@@ -245,7 +254,6 @@ export default function LessonContentsPage() {
       }
     }
   };
-
   const refreshContents = async () => {
     if (!session?.accessToken) return;
     try {
@@ -263,8 +271,6 @@ export default function LessonContentsPage() {
     switch (contentType.toLowerCase()) {
       case "video":
         return <Video className="h-4 w-4" />;
-      case "image":
-        return <Image className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }
@@ -288,6 +294,18 @@ export default function LessonContentsPage() {
       </div>
     );
   }
+
+  const openDocumentModal = (contentType: string, contentId: string) => {
+    if (contentType === "doc") {
+      setSelectedContentId(contentId);
+      setShowDocumentModal(true);
+    }
+  };
+
+  const closeDocumentModal = () => {
+    setShowDocumentModal(false);
+    setSelectedContentId(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -314,14 +332,14 @@ export default function LessonContentsPage() {
         <Button
           onClick={handleAdd}
           style={{
-            backgroundColor: '#513deb',
-            color: 'white',
+            backgroundColor: "#513deb",
+            color: "white",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#4f46e5';
+            e.currentTarget.style.backgroundColor = "#4f46e5";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#513deb';
+            e.currentTarget.style.backgroundColor = "#513deb";
           }}
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -372,6 +390,12 @@ export default function LessonContentsPage() {
                       <Button
                         size="icon"
                         variant="outline"
+                        onClick={() =>
+                          openDocumentModal(
+                            content.contentType,
+                            content.contentId
+                          )
+                        }
                       >
                         <CircleFadingPlus className="h-4 w-4" />
                       </Button>
@@ -406,6 +430,13 @@ export default function LessonContentsPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+      {showDocumentModal && selectedContentId && (
+        <DocumentModal
+          isOpen={showDocumentModal}
+          onClose={closeDocumentModal}
+          params={{ lessonId, contentId: selectedContentId }}
+        />
       )}
     </div>
   );

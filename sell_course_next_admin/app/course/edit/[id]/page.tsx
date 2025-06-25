@@ -445,7 +445,11 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
             </div>
           </div>
           <div className="flex justify-end gap-4">
-            <Button type="submit" onClick={() => router.back()} variant="outline">
+            <Button
+              type="submit"
+              onClick={() => router.back()}
+              variant="outline"
+            >
               Back
             </Button>
             <Button type="submit" disabled={isSubmitting}>
