@@ -46,12 +46,13 @@ export class ContentController {
   @Put('admin/content/update_content/:contentId')
   async updateContent(
     @Param('contentId') contentId: string,
-    @Body() body: { contentName: string },
+    @Body() body: { contentName: string; contentType: string },
   ) {
     try {
       return await this.contentService.updateContent(
         contentId,
         body.contentName,
+        body.contentType,
       );
     } catch (error) {
       throw new HttpException(error, 500);

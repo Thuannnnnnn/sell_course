@@ -47,6 +47,7 @@ export interface CreateContentRequest {
 
 export interface UpdateContentRequest {
   contentName: string;
+  contentType: string;
 }
 
 export interface UpdateContentOrderRequest {
@@ -54,4 +55,4 @@ export interface UpdateContentOrderRequest {
     contentId: string;
     order: number;
   }[];
-} 
+}
