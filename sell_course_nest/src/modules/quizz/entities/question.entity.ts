@@ -24,7 +24,7 @@ export class Questionentity {
   @Column({ 
     type: 'enum', 
     enum: ['easy', 'medium', 'hard'], 
-    default: 'medium' 
+    default: 'medium',
   })
   difficulty: 'easy' | 'medium' | 'hard';
 
@@ -40,4 +40,6 @@ export class Questionentity {
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
+
+  
 }
