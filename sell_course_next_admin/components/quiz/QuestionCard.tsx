@@ -6,7 +6,7 @@ import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { QuizFormData } from '../../app/types/quiz'
 import { Check, Pencil, Trash2, Star } from 'lucide-react'
-import { formatDifficulty, getDifficultyColor } from '../../lib/quiz-utils'
+import { formatDifficulty } from '../../lib/quiz-utils'
 interface QuestionCardProps {
   question: QuizFormData
   onEdit: (question: QuizFormData) => void
