@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from typing import List, Dict, Any
 import google.generativeai as genai
 import asyncio
@@ -100,19 +101,17 @@ Please respond with a JSON object in the following format:
     "quizzes": [
         {{
             "question": "Your question here?",
-            "options": {{
-                "A": "Option A",
-                "B": "Option B", 
-                "C": "Option C",
-                "D": "Option D"
-            }},
-            "correct_answer": "A",
-            "explanation": "Explanation of why this answer is correct",
-            "difficulty": "{difficulty}",
-            "topic": "Main topic this question covers"
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "correctAnswer": 0,
+            "difficulty": "{difficulty}"
         }}
     ]
 }}
+
+Note: Weight will be automatically assigned based on difficulty:
+- Easy: 1-4 points (basic recall, simple concepts)
+- Medium: 5-7 points (application, analysis)  
+- Hard: 8-10 points (synthesis, evaluation, complex problem solving)
 
 IMPORTANT: Respond ONLY with valid JSON. Do not include any other text or formatting.
 """
@@ -130,22 +129,30 @@ IMPORTANT: Respond ONLY with valid JSON. Do not include any other text or format
         formatted_quizzes = []
         for i, quiz in enumerate(quizzes):
             try:
+                difficulty = quiz.get("difficulty", "medium")
+                # Auto-assign weight based on difficulty
+                if difficulty == 'easy':
+                    weight = random.randint(1, 4)
+                elif difficulty == 'medium':
+                    weight = random.randint(5, 7)
+                else:  # hard
+                    weight = random.randint(8, 10)
+                
                 formatted_quiz = {
-                    "id": i + 1,
+                    "id": f"ai-generated-{i + 1}",
                     "question": quiz.get("question", "").strip(),
-                    "options": quiz.get("options", {}),
-                    "correct_answer": quiz.get("correct_answer", "").strip().upper(),
-                    "explanation": quiz.get("explanation", "").strip(),
-                    "difficulty": quiz.get("difficulty", "medium"),
-                    "topic": quiz.get("topic", "General").strip()
+                    "options": quiz.get("options", []),
+                    "correctAnswer": quiz.get("correctAnswer", 0),
+                    "difficulty": difficulty,
+                    "weight": weight
                 }
                 
                 # Validate required fields
                 if not formatted_quiz["question"]:
                     continue
-                if not isinstance(formatted_quiz["options"], dict) or len(formatted_quiz["options"]) != 4:
+                if not isinstance(formatted_quiz["options"], list) or len(formatted_quiz["options"]) != 4:
                     continue
-                if formatted_quiz["correct_answer"] not in ["A", "B", "C", "D"]:
+                if not isinstance(formatted_quiz["correctAnswer"], int) or formatted_quiz["correctAnswer"] < 0 or formatted_quiz["correctAnswer"] > 3:
                     continue
                 
                 formatted_quizzes.append(formatted_quiz)
@@ -184,17 +191,16 @@ IMPORTANT: Respond ONLY with valid JSON. Do not include any other text or format
         except Exception as e:
             # If all parsing attempts fail, create a fallback response
             return [{
-                "id": 1,
+                "id": "ai-generated-error",
                 "question": "Based on the provided content, what is the main topic discussed?",
-                "options": {
-                    "A": "Unable to generate specific options",
-                    "B": "Please check the content format",
-                    "C": "API response parsing failed",
-                    "D": "Contact support for assistance"
-                },
-                "correct_answer": "A",
-                "explanation": f"Quiz generation failed due to parsing error: {str(e)}",
+                "options": [
+                    "Unable to generate specific options",
+                    "Please check the content format", 
+                    "API response parsing failed",
+                    "Contact support for assistance"
+                ],
+                "correctAnswer": 0,
                 "difficulty": "medium",
-                "topic": "Error"
+                "weight": random.randint(5, 7)
             }]
 

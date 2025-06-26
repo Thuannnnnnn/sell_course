@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 from typing import List, Dict, Any
 import os
+import random
 from dotenv import load_dotenv
 
 from app.services.file_processor import FileProcessor
@@ -34,6 +35,10 @@ class URLRequest(BaseModel):
     urls: List[HttpUrl]
     quiz_count: int = 5
     difficulty: str = "medium"
+
+class ContentRequest(BaseModel):
+    content_id: str
+    quiz_count: int = 5
 
 class QuizResponse(BaseModel):
     success: bool
@@ -87,6 +92,81 @@ async def generate_quiz(request: URLRequest):
             success=True,
             quizzes=quizzes,
             source_files=processed_files
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        return QuizResponse(
+            success=False,
+            quizzes=[],
+            source_files=[],
+            error=str(e)
+        )
+
+@app.post("/generate-quiz-from-content", response_model=QuizResponse)
+async def generate_quiz_from_content(request: ContentRequest):
+    """
+    Generate quizzes from content ID by fetching docs and video scripts from database
+    """
+    try:
+        # TODO: Fetch content from database using content_id
+        # For now, we'll use mock data
+        
+        # Mock content - in real implementation, fetch from your database
+        mock_content = {
+            "docs": "This is sample document content about programming concepts...",
+            "video_script": "Welcome to this lesson about variables and functions..."
+        }
+        
+        # Combine all content
+        all_text = f"""
+        Document Content:
+        {mock_content.get('docs', '')}
+        
+        Video Script Content:
+        {mock_content.get('video_script', '')}
+        """
+        
+        if not all_text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="No content found for the provided content ID"
+            )
+        
+        # AI will automatically determine difficulty and weight
+        difficulties = ['easy', 'medium', 'hard']
+        generated_quizzes = []
+        
+        # Generate questions with mixed difficulties
+        for i, difficulty in enumerate(difficulties * (request.quiz_count // 3 + 1)):
+            if len(generated_quizzes) >= request.quiz_count:
+                break
+                
+            quiz_batch = await quiz_generator.generate_quiz(
+                text_content=all_text,
+                quiz_count=1,
+                difficulty=difficulty
+            )
+            
+            # Add weight based on difficulty
+            for quiz in quiz_batch:
+                quiz['difficulty'] = difficulty
+                if difficulty == 'easy':
+                    quiz['weight'] = random.randint(1, 4)
+                elif difficulty == 'medium':
+                    quiz['weight'] = random.randint(5, 7)
+                else:  # hard
+                    quiz['weight'] = random.randint(8, 10)
+                generated_quizzes.append(quiz)
+        
+        # Limit to requested count
+        generated_quizzes = generated_quizzes[:request.quiz_count]
+        
+        return QuizResponse(
+            success=True,
+            quizzes=generated_quizzes,
+            source_files=[f"content_{request.content_id}"]
         )
         
     except HTTPException:

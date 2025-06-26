@@ -39,7 +39,6 @@ export class ContentService {
         where: { lesson: { lessonId } },
       });
 
-      console.log(contentCount);
       const content = this.contentRepository.create({
         lesson,
         contentName,
@@ -74,8 +73,6 @@ export class ContentService {
   }
 
   async deleteContent(contentId: string) {
-    console.log('🗑️ Deleting content:', contentId);
-
     // First, check if content exists
     const content = await this.contentRepository.findOne({
       where: { contentId },
@@ -126,7 +123,6 @@ export class ContentService {
       throw new HttpException('Content not found', HttpStatus.NOT_FOUND);
     }
 
-    console.log('✅ Content deleted successfully');
     return { 
       message: 'Content deleted successfully',
       deletedQuizzes: quizzes.length,

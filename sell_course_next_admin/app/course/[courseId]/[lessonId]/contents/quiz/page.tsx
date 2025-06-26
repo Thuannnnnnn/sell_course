@@ -4,15 +4,34 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import QuestionForm from '../../../../../../components/quiz/QuestionForm'
 import QuestionList from '../../../../../../components/quiz/QuestionList'
-import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser, ArrowUp } from 'lucide-react'
+import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser, ArrowUp, Sparkles, Loader2 } from 'lucide-react'
 import { Button } from '../../../../../../components/ui/button'
 import { Alert, AlertDescription } from '../../../../../../components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../../../components/ui/card'
 import { Badge } from '../../../../../../components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../../../../components/ui/dialog'
+import { Input } from '../../../../../../components/ui/input'
+import { Label } from '../../../../../../components/ui/label'
 import { QuizFormData } from '../../../../../types/quiz'
 import { useQuiz } from '../../../../../../hooks/useQuiz'
 import { quizApi } from '../../../../../api/quiz/quiz'
 import Link from 'next/link'
+
+// AI Quiz Response interfaces
+interface AIQuizQuestion {
+  id: string
+  question: string
+  options: string[]
+  correctAnswer: number
+  difficulty: 'easy' | 'medium' | 'hard'
+  weight: number
+}
+
+interface AIQuizResponse {
+  success: boolean
+  quizzes: AIQuizQuestion[]
+  error?: string
+}
 
 interface QuizPageProps {
   params: {
@@ -27,11 +46,17 @@ function QuizPageContent({ params }: QuizPageProps) {
   const searchParams = useSearchParams()
   const contentId = searchParams.get('contentId')
   const quizId = searchParams.get('quizId')
+  const aiQuestions = searchParams.get('aiQuestions')
 
   // All hooks must be called before any early returns
   const [editingQuestion, setEditingQuestion] = useState<QuizFormData | null>(null)
   const [deletingAllQuestions, setDeletingAllQuestions] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  
+  // AI Generation states
+  const [aiDialogOpen, setAiDialogOpen] = useState(false)
+  const [aiGenerating, setAiGenerating] = useState(false)
+  const [aiQuizCount, setAiQuizCount] = useState(5)
   
   const {
     questions,
@@ -69,6 +94,35 @@ function QuizPageContent({ params }: QuizPageProps) {
     }
   }, [courseId, lessonId, contentId, quizId, loadQuiz])
 
+  // Load AI generated questions
+  useEffect(() => {
+    if (aiQuestions && !quizId) {
+      try {
+        const parsedQuestions: AIQuizQuestion[] = JSON.parse(decodeURIComponent(aiQuestions));
+        // Add all AI questions to the quiz
+        parsedQuestions.forEach((question: AIQuizQuestion) => {
+          const formattedQuestion: QuizFormData = {
+            id: question.id,
+            question: question.question,
+            options: question.options,
+            correctAnswer: question.correctAnswer,
+            difficulty: question.difficulty,
+            weight: question.weight,
+          };
+          addQuestion(formattedQuestion);
+        });
+        
+        // Remove aiQuestions from URL to clean it up
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('aiQuestions');
+        router.replace(newUrl.pathname + newUrl.search);
+        
+      } catch (error) {
+        console.error('Failed to parse AI questions:', error);
+      }
+    }
+  }, [aiQuestions, quizId, addQuestion, router])
+
   // Handle scroll to show/hide scroll to top button
   useEffect(() => {
     const handleScroll = () => {
@@ -84,6 +138,61 @@ function QuizPageContent({ params }: QuizPageProps) {
       top: 0,
       behavior: 'smooth'
     })
+  }
+
+  const handleGenerateAIQuiz = async () => {
+    if (!contentId) {
+      alert('Content ID is required')
+      return
+    }
+
+    setAiGenerating(true)
+
+    try {
+      const response = await fetch('http://localhost:8000/generate-quiz-from-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content_id: contentId,
+          quiz_count: aiQuizCount,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate AI quiz')
+      }
+
+      const result: AIQuizResponse = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'AI quiz generation failed')
+      }
+
+      // Add all AI questions to current quiz
+      result.quizzes.forEach((question: AIQuizQuestion) => {
+        const formattedQuestion: QuizFormData = {
+          id: question.id,
+          question: question.question,
+          options: question.options,
+          correctAnswer: question.correctAnswer,
+          difficulty: question.difficulty,
+          weight: question.weight,
+        }
+        addQuestion(formattedQuestion)
+      })
+      
+      // Close dialog and reset form
+      setAiDialogOpen(false)
+      setAiQuizCount(5)
+      
+    } catch (err) {
+      const error = err as Error
+      alert(`AI Generation failed: ${error.message}`)
+    } finally {
+      setAiGenerating(false)
+    }
   }
 
   // Validation: contentId is required
@@ -240,6 +349,81 @@ function QuizPageContent({ params }: QuizPageProps) {
             </div>
             
             <div className="flex items-center gap-3">
+              {/* AI Generate Quiz Button */}
+              <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-blue-100"
+                    disabled={saving || deletingAllQuestions || aiGenerating}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Generate AI Quiz
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-600" />
+                      Generate AI Quiz
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-6 py-4">
+                    <div className="text-center space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        AI will automatically read content documents and video scripts to generate quiz questions
+                      </p>
+                      <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span>Easy (1-4 pts)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                          <span>Medium (5-7 pts)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span>Hard (8-10 pts)</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="count" className="text-center block">Number of Questions</Label>
+                      <Input
+                        id="count"
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={aiQuizCount}
+                        onChange={(e) => setAiQuizCount(parseInt(e.target.value) || 5)}
+                        className="text-center text-lg font-semibold"
+                      />
+                    </div>
+                    
+                    <Button 
+                      onClick={handleGenerateAIQuiz} 
+                      disabled={aiGenerating}
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                      size="lg"
+                    >
+                      {aiGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          AI is generating questions...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Generate {aiQuizCount} Questions
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               {questions.length > 0 && quizId && (
                 <Button 
                   onClick={handleDeleteAllQuestions} 

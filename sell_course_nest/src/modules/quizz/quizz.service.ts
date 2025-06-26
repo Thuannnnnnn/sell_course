@@ -111,7 +111,6 @@ export class QuizzService {
       question.weight = questionDto.weight || 1;
       question.quizz = quiz;
       const savedQuestion = await this.questionRepository.save(question);
-      console.log(`✅ Question saved:`, savedQuestion.questionId);
 
       if (!questionDto.answers || questionDto.answers.length === 0) {
         throw new BadRequestException(
@@ -127,7 +126,7 @@ export class QuizzService {
         );
       }
 
-      console.log(`📝 Processing ${questionDto.answers.length} answers...`);
+
       for (let j = 0; j < questionDto.answers.length; j++) {
         const answerDto = questionDto.answers[j];
         if (!answerDto.answer || answerDto.answer.trim() === '') {
@@ -140,11 +139,11 @@ export class QuizzService {
         answer.isCorrect = answerDto.isCorrect;
         answer.question = savedQuestion;
         const savedAnswer = await this.answerRepository.save(answer);
-        console.log(`✅ Answer ${j + 1} saved:`, savedAnswer.answerId, `(correct: ${savedAnswer.isCorrect})`);
+
       }
     }
 
-    console.log('🎉 All questions and answers processed successfully!');
+
 
     return this.getQuizById(
       quiz.quizzId,
@@ -160,7 +159,7 @@ export class QuizzService {
     lessonId?: string,
     contentId?: string,
   ) {
-    console.log('🔍 Getting quiz by ID:', { quizzId, courseId, lessonId, contentId });
+
 
     // Đơn giản hóa query - chỉ tìm theo quizzId và validate sau
     const quiz = await this.quizzRepository.findOne({
@@ -222,13 +221,7 @@ export class QuizzService {
     lessonId?: string,
     contentId?: string,
   ) {
-    console.log('🔄 Updating quiz:', { 
-      quizzId, 
-      courseId, 
-      lessonId, 
-      contentId,
-      newQuestionsCount: updateQuizzDto.questions?.length || 0
-    });
+
 
     if (!quizzId || typeof quizzId !== 'string') {
       throw new BadRequestException('Quiz ID must be a valid string');
@@ -265,43 +258,30 @@ export class QuizzService {
       throw new NotFoundException(`Quiz with ID ${quizzId} not found`);
     }
 
-    console.log('📋 Current quiz state:', {
-      quizzId: quiz.quizzId,
-      currentQuestionsCount: quiz.questions?.length || 0,
-      currentQuestions:
-        quiz.questions?.map((q) => ({
-          questionId: q.questionId,
-          question: q.question?.substring(0, 50) + '...',
-        })) || [],
-    });
 
-    // 🗑️ STEP 1: Delete all existing questions and their answers
-    console.log('🗑️ Deleting all existing questions...');
+
+    // STEP 1: Delete all existing questions and their answers
     if (quiz.questions && quiz.questions.length > 0) {
       for (const existingQuestion of quiz.questions) {
-        console.log(`🗑️ Deleting question: ${existingQuestion.questionId}`);
+
         
         // Delete all answers for this question
         if (existingQuestion.answers && existingQuestion.answers.length > 0) {
           await this.answerRepository.remove(existingQuestion.answers);
-          console.log(`🗑️ Deleted ${existingQuestion.answers.length} answers`);
+
         }
         
         // Delete the question
         await this.questionRepository.remove(existingQuestion);
-        console.log(`🗑️ Deleted question: ${existingQuestion.questionId}`);
+
       }
     }
-    console.log('✅ All existing questions deleted');
 
-    // 📝 STEP 2: Add all new questions
-    console.log('📝 Adding new questions...');
+
+    // STEP 2: Add all new questions
     for (let i = 0; i < updateQuizzDto.questions.length; i++) {
       const questionDto = updateQuizzDto.questions[i];
-      console.log(
-        `📝 Adding question ${i + 1}:`,
-        questionDto.question?.substring(0, 50) + '...',
-      );
+
       // Since we deleted all existing questions, always create new ones
       const question = new Questionentity();
       question.questionId = uuidv4();
@@ -310,7 +290,7 @@ export class QuizzService {
       question.weight = questionDto.weight || 1;
       question.quizz = quiz;
       const savedQuestion = await this.questionRepository.save(question);
-      console.log(`✅ Question ${i + 1} saved:`, savedQuestion.questionId);
+
 
       // Kiểm tra có ít nhất một câu trả lời đúng
       const hasCorrectAnswer = questionDto.answers.some((a) => a.isCorrect);
@@ -320,9 +300,7 @@ export class QuizzService {
         );
       }
 
-      console.log(
-        `📝 Adding ${questionDto.answers.length} answers for question ${i + 1}...`,
-      );
+
       for (let j = 0; j < questionDto.answers.length; j++) {
         const answerDto = questionDto.answers[j];
         
@@ -333,11 +311,7 @@ export class QuizzService {
         answer.isCorrect = answerDto.isCorrect;
         answer.question = question;
         const savedAnswer = await this.answerRepository.save(answer);
-        console.log(
-          `✅ Answer ${j + 1} saved:`,
-          savedAnswer.answerId,
-          `(correct: ${savedAnswer.isCorrect})`,
-        );
+
       }
     }
 
@@ -352,12 +326,7 @@ export class QuizzService {
     lessonId?: string,
     contentId?: string,
   ) {
-    console.log('🗑️ Deleting all questions from quiz:', { 
-      quizzId, 
-      courseId, 
-      lessonId, 
-      contentId 
-    });
+
 
     const queryOptions: any = {
       where: { quizzId },
