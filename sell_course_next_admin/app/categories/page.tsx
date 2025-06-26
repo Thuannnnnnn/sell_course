@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+import { toast } from "sonner";
 
 interface AddCategoryModalProps {
   open: boolean;
@@ -84,16 +85,29 @@ function EditCategoryModal({
         description: description.trim(),
         parentId: parentId === "none" ? null : parentId,
       }, session.accessToken);
+      toast.success("Category updated successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "message" in err) {
-        setError(
-          (err as { message?: string }).message || "Failed to update category."
-        );
-      } else {
-        setError("Failed to update category.");
-      }
+      const msg = (err && typeof err === "object" && "message" in err)
+        ? (err as { message?: string }).message || "Failed to update category."
+        : "Failed to update category.";
+      setError(msg);
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     } finally {
       setLoading(false);
     }
@@ -230,16 +244,29 @@ function AddCategoryModal({
         description: description.trim(),
         parentId: parentId === "none" ? null : parentId,
       }, session.accessToken);
+      toast.success("Category created successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "message" in err) {
-        setError(
-          (err as { message?: string }).message || "Failed to create category."
-        );
-      } else {
-        setError("Failed to create category.");
-      }
+      const msg = (err && typeof err === "object" && "message" in err)
+        ? (err as { message?: string }).message || "Failed to create category."
+        : "Failed to create category.";
+      setError(msg);
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     } finally {
       setLoading(false);
     }
@@ -373,12 +400,24 @@ export default function CategoryManagementPage() {
     try {
       await deleteCategory(categoryId, session.accessToken);
       setCategories((prev) => prev.filter((c) => c.categoryId !== categoryId));
+      toast.success("Category deleted successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Failed to delete category. Please try again.");
-      }
+      const msg = error instanceof Error ? error.message : "Failed to delete category. Please try again.";
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     }
   };
 

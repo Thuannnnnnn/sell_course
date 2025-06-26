@@ -5,7 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { Header } from "../components/dashboard/Header";
 import React, { useState } from "react";
-import { Toaster } from "../components/ui/sonner";
+import { Toaster } from "sonner";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,6 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider refetchOnWindowFocus={false}>
+          <Toaster position="top-right" />
           <div className="flex h-screen bg-background">
             {/* Sidebar */}
             <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
@@ -43,7 +44,6 @@ export default function RootLayout({
               {/* Page Content */}
               <main className="flex-1 overflow-y-auto p-4 md:p-6">
                 {children}
-                <Toaster />
               </main>
             </div>
           </div>

@@ -8,6 +8,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Edit, Trash2, Plus, BookOpen, FileText, ArrowLeft } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/card";
+import { toast } from "sonner";
 
 function AddLessonModal({
   courseId,
@@ -50,11 +51,27 @@ function AddLessonModal({
       );
       console.log("Lesson created:", response);
       setLessonName("");
+      toast.success("Lesson created successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
       onSuccess();
       onClose();
     } catch (err) {
       console.error("Error creating lesson:", err);
       setError("Failed to create lesson.");
+      toast.error("Failed to create lesson.", {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     } finally {
       setLoading(false);
     }
@@ -127,10 +144,26 @@ function EditLessonModal({
     setError("");
     try {
       await updateLesson(lesson.lessonId, { lessonName }, accessToken);
+      toast.success("Lesson updated successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
       onSuccess();
       onClose();
     } catch {
       setError("Failed to update lesson.");
+      toast.error("Failed to update lesson.", {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     } finally {
       setLoading(false);
     }
@@ -241,7 +274,6 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
     try {
       await deleteLesson(lessonId, session.accessToken);
-      console.log("Lesson deleted:", lessonId);
       setLessons((prev) => {
         const filtered = prev.filter((l) => l.lessonId !== lessonId);
         const reordered = filtered.map((l, idx) => ({ ...l, order: idx + 1 }));
@@ -250,9 +282,24 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
         });
         return reordered;
       });
+      toast.success("Lesson deleted successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Failed to delete lesson. Please try again.");
+      toast.error("Failed to delete lesson.", {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
     }
   };
 
