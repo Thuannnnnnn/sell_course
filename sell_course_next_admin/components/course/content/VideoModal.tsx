@@ -15,7 +15,7 @@ import ReactPlayer from "react-player";
 
 import {
   createVideo,
-  getVideoById,
+  // Removed getVideoById
   updateVideoFile,
   updateVideoScript,
   deleteVideo,
@@ -62,6 +62,7 @@ interface VideoModalProps {
   params: { lessonId: string; contentId: string };
   triggerButton?: React.ReactNode;
   video?: VideoState | null;
+  onVideoUpdate?: () => void; // Callback to notify parent of update
 }
 
 const VideoModal: React.FC<VideoModalProps> = ({
@@ -70,6 +71,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
   params,
   triggerButton,
   video: propVideo,
+  onVideoUpdate,
 }) => {
   console.log(
     "VideoModal is rendering. isOpen:",
@@ -93,7 +95,6 @@ const VideoModal: React.FC<VideoModalProps> = ({
   const [dragOverVideo, setDragOverVideo] = useState<boolean>(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-
 
   const [playerReady, setPlayerReady] = useState<boolean>(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
@@ -161,7 +162,6 @@ const VideoModal: React.FC<VideoModalProps> = ({
       "error"
     );
   };
-
 
   const handlePlayerBuffer = () => {
     console.log("ReactPlayer: Video is buffering");
@@ -256,6 +256,45 @@ const VideoModal: React.FC<VideoModalProps> = ({
     setDragOver(false);
   };
 
+  const handleUpdateScript = async () => {
+    if (!videoData || !session?.accessToken) {
+      showMessage(
+        "Cannot update script: video data or access token missing.",
+        "error"
+      );
+      return;
+    }
+    setLoading(true);
+    try {
+      const blob = new Blob([scriptContent], { type: "application/json" });
+      const newScriptFile = new File([blob], "script.json", {
+        type: "application/json",
+      });
+      await updateVideoScript(
+        videoData.videoId,
+        newScriptFile,
+        session.accessToken
+      );
+      showMessage("Video script updated successfully!", "success");
+      setIsScriptEditing(false);
+      onClose();
+      if (onVideoUpdate) {
+        onVideoUpdate();
+      } else {
+        // window.location.reload();
+      }
+    } catch (error) {
+      showMessage(
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while updating script",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!title.trim()) {
@@ -271,6 +310,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
     try {
       if (videoData) {
         // Update mode
+        let updateOccurred = false;
         if (videoFile) {
           await updateVideoFile(
             videoData.videoId,
@@ -278,6 +318,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
             session.accessToken
           );
           showMessage("Video file updated successfully!", "success");
+          updateOccurred = true;
         }
         if (scriptFile) {
           await updateVideoScript(
@@ -286,14 +327,9 @@ const VideoModal: React.FC<VideoModalProps> = ({
             session.accessToken
           );
           showMessage("Video script updated successfully!", "success");
-        }
-        // Nếu chỉ thay đổi title, cần có API riêng để cập nhật title
-        // Hiện tại, nếu không có file mới, chỉ thông báo không có gì để cập nhật
-        if (!videoFile && !scriptFile && !isScriptEditing) {
-          showMessage("No new file selected for update.", "success");
+          updateOccurred = true;
         }
 
-        // Cập nhật script content nếu đang chỉnh sửa
         if (
           isScriptEditing &&
           scriptContent !==
@@ -315,23 +351,19 @@ const VideoModal: React.FC<VideoModalProps> = ({
             session.accessToken
           );
           showMessage("Video script updated successfully!", "success");
+          updateOccurred = true;
         }
 
-        // Sau khi cập nhật, tải lại dữ liệu video để hiển thị thông tin mới nhất
-        const updatedVideo = await getVideoById(videoData.contents.contentId);
-        setVideoData(updatedVideo);
-        setTitle(updatedVideo.title);
-        if (updatedVideo.urlScript) {
-          fetch(updatedVideo.urlScript)
-            .then((res) => res.json())
-            .then((data) => setScriptContent(JSON.stringify(data, null, 2)))
-            .catch((err) => {
-              console.error("Failed to load script:", err);
-              showMessage("Failed to load script content.", "error");
-              setScriptContent("");
-            });
+        if (!updateOccurred) {
+          showMessage("No new file selected for update.", "success");
+        }
+
+        // Close modal and reload page after successful update
+        onClose();
+        if (onVideoUpdate) {
+          onVideoUpdate(); // This will trigger page reload in parent
         } else {
-          setScriptContent("");
+          window.location.reload(); // Fallback reload if no parent callback
         }
       } else {
         // Create mode
@@ -348,6 +380,14 @@ const VideoModal: React.FC<VideoModalProps> = ({
         );
         setVideoData(newVideo);
         showMessage("Video created successfully!", "success");
+
+        // Close modal and reload page after successful creation
+        onClose();
+        if (onVideoUpdate) {
+          onVideoUpdate(); // This will trigger page reload in parent
+        } else {
+          window.location.reload(); // Fallback reload if no parent callback
+        }
       }
 
       setVideoFile(null);
@@ -375,7 +415,14 @@ const VideoModal: React.FC<VideoModalProps> = ({
       showMessage("Video deleted successfully!", "success");
       setVideoData(null);
       setDeleteDialogOpen(false);
+
+      // Close modal and reload page after successful deletion
       onClose();
+      if (onVideoUpdate) {
+        onVideoUpdate(); // This will trigger page reload in parent
+      } else {
+        window.location.reload(); // Fallback reload if no parent callback
+      }
     } catch (error) {
       showMessage(
         error instanceof Error
@@ -446,7 +493,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
           width="100%"
           height="100%"
           controls={true}
-          playing={false} // Don't auto-play
+          playing={false} // Don\"t auto-play
           muted={true} // Muted by default for autoplay compatibility
           onReady={handlePlayerReady}
           onError={handlePlayerError}
@@ -631,6 +678,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
                     <span>{new Date(videoData.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
+                
               </div>
 
               <Separator />
@@ -669,6 +717,23 @@ const VideoModal: React.FC<VideoModalProps> = ({
                       >
                         <X className="w-4 h-4 mr-2" />
                         Cancel
+                      </Button>
+                      <Button
+                        onClick={handleUpdateScript} // New button for script update
+                        disabled={loading}
+                        className="bg-[#513deb] hover:bg-[#513deb]/90 text-white"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Update Script
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>

@@ -38,10 +38,10 @@ export const createVideo = async (
   }
 };
 
-export const getVideoById = async (contentId: string): Promise<VideoState> => {
+export const getVideoById = async (videoId: string): Promise<VideoState> => {
   try {
     const response = await axios.get<VideoState>(
-      `${API_BASE_URL}/video/view_video/${contentId}`
+      `${API_BASE_URL}/video/view_video/${videoId}`
     );
     return response.data;
   } catch (error) {

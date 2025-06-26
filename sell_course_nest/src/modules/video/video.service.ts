@@ -396,15 +396,15 @@ export class VideoService {
     }
   }
 
-  async viewVideoById(contentId: string): Promise<Video> {
+  async viewVideoById(videoId: string): Promise<Video> {
     try {
       const video = await this.videoRepository.findOne({
-        relations: ['contents'],
-        where: { videoId: contentId },
+        relations: ['video'],
+        where: { videoId: videoId },
       });
       if (!video) {
         throw new NotFoundException(
-          `Video with contentId '${contentId}' not found`,
+          `Video with videoId '${videoId}' not found`,
         );
       }
       return video;

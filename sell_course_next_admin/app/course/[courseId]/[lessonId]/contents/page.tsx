@@ -72,7 +72,6 @@ function EditContentModal({
   const [error, setError] = useState("");
   const [hasDocument, setHasDocument] = useState(false);
   const [checkingDocument, setCheckingDocument] = useState(false);
-
   useEffect(() => {
     if (content && open) {
       setContentName(content.contentName);
@@ -591,13 +590,16 @@ export default function LessonContentsPage() {
 
   const openVideoModal = (contentId: string) => {
     setSelectedVideoContentId(contentId);
+
     setShowVideoModal(true);
   };
 
   const handleEdit = (content: Content) => {
     setSelectedContent(content);
     setShowEditModal(true);
+    window.location.reload();
   };
+
 
   return (
     <div className="space-y-6">

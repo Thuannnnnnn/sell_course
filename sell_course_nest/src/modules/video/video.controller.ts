@@ -191,12 +191,12 @@ export class VideoController {
     return this.videoService.viewVideo();
   }
 
-  @Get('/video/view_video/:contentId')
+  @Get('/video/view_video/:videoId')
   @ApiOperation({
     summary: 'Get video by content ID',
     description: 'Retrieve video details by content ID',
   })
-  @ApiParam({ name: 'contentId', description: 'Content ID', type: 'string' })
+  @ApiParam({ name: 'videoId', description: 'Content ID', type: 'string' })
   @ApiResponse({
     status: 200,
     description: 'Video retrieved successfully',
@@ -221,7 +221,7 @@ export class VideoController {
   })
   @ApiResponse({ status: 404, description: 'Video not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  async viewVideoId(@Param('contentId') contentId: string) {
-    return this.videoService.viewVideoById(contentId);
+  async viewVideoId(@Param('videoId') videoId: string) {
+    return this.videoService.viewVideoById(videoId);
   }
 }
