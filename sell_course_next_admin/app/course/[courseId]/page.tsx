@@ -186,8 +186,8 @@ function EditLessonModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading}
               style={{
                 backgroundColor: '#513deb',
