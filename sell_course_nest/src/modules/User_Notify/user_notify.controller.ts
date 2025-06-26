@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { UserNotifyService } from './user_notify.service';
 import { UpdateUserNotifyDto } from './dto/user-notify.dto';
-import { UserNotify } from './entities/user_Notify.entity';
+import { UserNotify } from './entities/User_Notify.entity';
 
 @ApiTags('User Notifications')
 @Controller('api/user_notify/')

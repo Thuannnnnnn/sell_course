@@ -17,6 +17,12 @@ export const authOptions: NextAuthOptions = {
             {
               email: credentials?.email,
               password: credentials?.password,
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              timeout: 10000, // 10 second timeout
             }
           );
           const data = response.data;

@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { Permission } from '../../permission/entities/permission.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { UserNotify } from '../../User_Notify/entities/user_Notify.entity';
+import { UserNotify } from '../../User_Notify/entities/User_Notify.entity';
 import { Forum } from '../../forum/entities/forum.entity';
 import { Waitlist } from '../../waitlist/entities/waitlist.entity';
 import { ReactionTopic } from '../../forum/entities/reaction_topic.entity';

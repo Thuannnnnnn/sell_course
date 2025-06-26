@@ -3,10 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Lesson } from '../../lesson/entities/lesson.entity';
+import { Quizz } from '../../quizz/entities/quizz.entity';
 
 @Entity('contents')
 export class Contents {
@@ -15,6 +17,12 @@ export class Contents {
 
   @ManyToOne(() => Lesson, (lesson) => lesson.contents, { onDelete: 'CASCADE' })
   lesson: Lesson;
+
+  @OneToMany(() => Quizz, (quizz) => quizz.contents, {
+    cascade: true,
+    onDelete: 'CASCADE'
+  })
+  quizzes: Quizz[];
 
   @Column({ name: 'content_name', type: 'varchar', length: 255 })
   contentName: string;

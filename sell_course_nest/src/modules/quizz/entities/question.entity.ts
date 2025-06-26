@@ -21,7 +21,20 @@ export class Questionentity {
   @Column({ type: 'text' })
   question: string;
 
-  @OneToMany(() => AnswerEntity, (answer) => answer.question)
+  @Column({ 
+    type: 'enum', 
+    enum: ['easy', 'medium', 'hard'], 
+    default: 'medium',
+  })
+  difficulty: 'easy' | 'medium' | 'hard';
+
+  @Column({ type: 'integer', default: 1 })
+  weight: number;
+
+  @OneToMany(() => AnswerEntity, (answer) => answer.question, {
+    cascade: true,
+    onDelete: 'CASCADE'
+  })
   answers: AnswerEntity[];
 
   @Column({
@@ -30,4 +43,6 @@ export class Questionentity {
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
+
+  
 }

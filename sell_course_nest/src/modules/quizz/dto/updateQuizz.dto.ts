@@ -5,6 +5,10 @@ import {
   IsUUID,
   IsOptional,
   IsBoolean,
+  IsEnum,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -27,6 +31,16 @@ class UpdateQuestionDto {
 
   @IsString()
   question: string;
+
+  @IsEnum(['easy', 'medium', 'hard'])
+  @IsOptional()
+  difficulty?: 'easy' | 'medium' | 'hard';
+
+  @IsNumber()
+  @Min(1)
+  @Max(10)
+  @IsOptional()
+  weight?: number;
 
   @IsArray()
   @ValidateNested({ each: true })
