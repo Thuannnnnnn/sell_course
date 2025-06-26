@@ -385,7 +385,9 @@ export class VideoService {
 
   async viewVideo(): Promise<Video[]> {
     try {
-      return await this.videoRepository.find();
+      return await this.videoRepository.find({
+        relations: ['contents'],
+      });
     } catch (error) {
       throw new InternalServerErrorException(
         'Error retrieving video list',
@@ -397,6 +399,7 @@ export class VideoService {
   async viewVideoById(contentId: string): Promise<Video> {
     try {
       const video = await this.videoRepository.findOne({
+        relations: ['contents'],
         where: { videoId: contentId },
       });
       if (!video) {

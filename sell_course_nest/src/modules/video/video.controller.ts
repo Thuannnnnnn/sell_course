@@ -23,7 +23,7 @@ import {
 export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
-  @Post('/admin/video/create_video')
+  @Post('/instructor/video/create_video')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Create new video',
@@ -58,7 +58,7 @@ export class VideoController {
     return this.videoService.uploadFile(file, title, contentId);
   }
 
-  @Put('/admin/video/update_script/:videoId')
+  @Put('/instructor/video/update_script/:videoId')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Update video script',
@@ -92,7 +92,7 @@ export class VideoController {
     return this.videoService.updateScript(videoId, file);
   }
 
-  @Put('/admin/video/update_video/:videoId')
+  @Put('/instructor/video/update_video/:videoId')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Update video file',
@@ -130,7 +130,7 @@ export class VideoController {
     return this.videoService.updateVideo(videoId, file);
   }
 
-  @Delete('/admin/video/delete_video_script/:videoId')
+  @Delete('/instructor/video/delete_video_script/:videoId')
   @ApiOperation({
     summary: 'Delete video and script',
     description:
@@ -156,7 +156,7 @@ export class VideoController {
     return this.videoService.deleteVideoScript(videoId);
   }
 
-  @Get('/admin/video/view_video_list')
+  @Get('/instructor/video/view_video_list')
   @ApiOperation({
     summary: 'Get all videos',
     description: 'Retrieve list of all videos in the system',
