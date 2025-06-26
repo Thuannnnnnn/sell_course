@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Contents } from './entities/contents.entity';
 import { Lesson } from '../lesson/entities/lesson.entity';
+import { Quizz } from '../quizz/entities/quizz.entity';
+import { Questionentity } from '../quizz/entities/question.entity';
+import { AnswerEntity } from '../quizz/entities/answer.entity';
 
 @Injectable()
 export class ContentService {
@@ -11,6 +14,12 @@ export class ContentService {
     private readonly contentRepository: Repository<Contents>,
     @InjectRepository(Lesson)
     private readonly lessonRepository: Repository<Lesson>,
+    @InjectRepository(Quizz)
+    private readonly quizzRepository: Repository<Quizz>,
+    @InjectRepository(Questionentity)
+    private readonly questionRepository: Repository<Questionentity>,
+    @InjectRepository(AnswerEntity)
+    private readonly answerRepository: Repository<AnswerEntity>,
   ) {}
 
   async createContent(
@@ -65,11 +74,76 @@ export class ContentService {
   }
 
   async deleteContent(contentId: string) {
+    console.log('🗑️ Deleting content:', contentId);
+
+    // First, check if content exists
+    const content = await this.contentRepository.findOne({
+      where: { contentId },
+    });
+
+    if (!content) {
+      throw new HttpException('Content not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Get all quizzes for this content
+    const quizzes = await this.quizzRepository.find({
+      where: { contentId },
+      relations: ['questions', 'questions.answers'],
+    });
+
+
+
+    // Delete in correct order: answers -> questions -> quizzes -> content
+    for (const quiz of quizzes) {
+
+      
+      // Delete all answers for this quiz's questions
+      for (const question of quiz.questions || []) {
+        if (question.answers && question.answers.length > 0) {
+          await this.answerRepository.remove(question.answers);
+
+        }
+      }
+      
+      // Delete all questions for this quiz
+      if (quiz.questions && quiz.questions.length > 0) {
+        await this.questionRepository.remove(quiz.questions);
+
+      }
+    }
+
+    // Delete all quizzes
+    if (quizzes.length > 0) {
+      await this.quizzRepository.remove(quizzes);
+
+    }
+
+    // Finally delete the content
+
     const result = await this.contentRepository.delete(contentId);
+    
     if (result.affected === 0) {
       throw new HttpException('Content not found', HttpStatus.NOT_FOUND);
     }
-    return { message: 'Content deleted successfully' };
+
+    console.log('✅ Content deleted successfully');
+    return { 
+      message: 'Content deleted successfully',
+      deletedQuizzes: quizzes.length,
+      deletedQuestions: quizzes.reduce(
+        (total, quiz) => total + (quiz.questions?.length || 0),
+        0,
+      ),
+      deletedAnswers: quizzes.reduce(
+        (total, quiz) =>
+          total +
+          (quiz.questions?.reduce(
+            (qTotal, question) => qTotal + (question.answers?.length || 0),
+            0,
+          ) || 0),
+        0,
+      ),
+    };
   }
 
   async updateContent(

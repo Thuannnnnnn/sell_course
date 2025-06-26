@@ -4,6 +4,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 // Fetch contents by lesson ID
 export async function fetchContentsByLesson(lessonId: string, accessToken: string): Promise<Content[]> {
+  console.log('🌐 API: Fetching contents for lesson:', lessonId);
+  
   const response = await fetch(`${API_BASE_URL}/api/admin/content/view_content/${lessonId}`, {
     method: "GET",
     headers: {
@@ -14,14 +16,19 @@ export async function fetchContentsByLesson(lessonId: string, accessToken: strin
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    console.log('❌ API: Fetch contents failed:', { status: response.status, errorData });
     throw new Error(errorData.message || "Failed to fetch contents for this lesson");
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('✅ API: Contents fetched successfully:', { count: result.length, contents: result });
+  return result;
 }
 
 // Create a new content
 export async function createContent(data: CreateContentRequest, accessToken: string): Promise<Content> {
+  console.log('🌐 API: Creating content:', { url: `${API_BASE_URL}/api/admin/content/create_content`, data });
+  
   const response = await fetch(`${API_BASE_URL}/api/admin/content/create_content`, {
     method: "POST",
     headers: {
@@ -33,10 +40,13 @@ export async function createContent(data: CreateContentRequest, accessToken: str
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    console.log('❌ API: Create content failed:', { status: response.status, errorData });
     throw new Error(errorData.message || "Failed to create content");
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('✅ API: Content created successfully:', result);
+  return result;
 }
 
 // Update a content

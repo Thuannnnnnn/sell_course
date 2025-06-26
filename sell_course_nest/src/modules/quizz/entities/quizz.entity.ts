@@ -4,7 +4,7 @@ import {
   OneToMany,
   Column,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
 } from 'typeorm';
 import { Contents } from '../../contents/entities/contents.entity';
 import { Questionentity } from './question.entity';
@@ -23,11 +23,14 @@ export class Quizz {
   @Column({ name: 'course_id', type: 'uuid' })
   courseId: string;
 
-  @OneToOne(() => Contents)
+  @ManyToOne(() => Contents, (contents) => contents.quizzes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'content_id' })
   contents: Contents;
 
-  @OneToMany(() => Questionentity, (question) => question.quizz)
+  @OneToMany(() => Questionentity, (question) => question.quizz, {
+    cascade: true,
+    onDelete: 'CASCADE'
+  })
   questions: Questionentity[];
 
   @Column({

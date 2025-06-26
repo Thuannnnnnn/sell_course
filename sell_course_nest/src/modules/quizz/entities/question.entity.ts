@@ -31,7 +31,10 @@ export class Questionentity {
   @Column({ type: 'integer', default: 1 })
   weight: number;
 
-  @OneToMany(() => AnswerEntity, (answer) => answer.question)
+  @OneToMany(() => AnswerEntity, (answer) => answer.question, {
+    cascade: true,
+    onDelete: 'CASCADE'
+  })
   answers: AnswerEntity[];
 
   @Column({

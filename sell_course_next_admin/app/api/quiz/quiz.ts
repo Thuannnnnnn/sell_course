@@ -45,9 +45,11 @@ export const quizApi = {
     contentId: string,
     quizId: string
   ): Promise<Quiz> => {
-    const response = await apiClient.get(
-      `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/${quizId}`
-    );
+    const url = `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/${quizId}`;
+
+    
+    const response = await apiClient.get(url);
+
     return response.data;
   },
 
@@ -57,9 +59,11 @@ export const quizApi = {
     lessonId: string,
     contentId: string
   ): Promise<Quiz[]> => {
-    const response = await apiClient.get(
-      `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes`
-    );
+    const url = `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes`;
+
+    
+    const response = await apiClient.get(url);
+
     return response.data;
   },
 
@@ -71,10 +75,11 @@ export const quizApi = {
     quizId: string,
     quizData: UpdateQuizDto
   ): Promise<Quiz> => {
-    const response = await apiClient.put(
-      `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/${quizId}`,
-      quizData
-    );
+    const url = `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/${quizId}`;
+
+    
+    const response = await apiClient.put(url, quizData);
+
     return response.data;
   },
 
@@ -88,6 +93,21 @@ export const quizApi = {
     await apiClient.delete(
       `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/${quizId}`
     );
+  },
+
+  // Delete all questions from quiz
+  deleteAllQuestions: async (
+    courseId: string,
+    lessonId: string,
+    contentId: string,
+    quizId: string
+  ): Promise<{ message: string; deletedCount: number }> => {
+    const url = `/api/instructor/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/${quizId}/questions`;
+    console.log('🌐 API: Deleting all questions:', { url, courseId, lessonId, contentId, quizId });
+    
+    const response = await apiClient.delete(url);
+    console.log('✅ API: All questions deleted:', response.data);
+    return response.data;
   },
 
   // Delete question

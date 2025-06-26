@@ -89,6 +89,21 @@ export class AdminQuizzController {
     );
   }
 
+  @Delete(':quizId/questions')
+  async deleteAllQuestions(
+    @Param('courseId', ParseUUIDPipe) courseId: string,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    @Param('contentId', ParseUUIDPipe) contentId: string,
+    @Param('quizId', ParseUUIDPipe) quizId: string,
+  ) {
+    return this.quizzService.deleteAllQuestions(
+      quizId,
+      courseId,
+      lessonId,
+      contentId,
+    );
+  }
+
   @Delete(':quizId')
   async deleteQuizz(
     @Param('courseId', ParseUUIDPipe) courseId: string,

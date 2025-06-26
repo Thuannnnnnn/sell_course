@@ -8,6 +8,7 @@ import {
   createContent,
 } from "../../../../api/lessons/content";
 import { fetchLessons } from "../../../../api/lessons/lesson";
+import { quizApi } from "../../../../api/quiz/quiz";
 import { Content } from "../../../../types/lesson";
 import { Lesson } from "../../../../types/lesson";
 import {
@@ -27,6 +28,7 @@ import {
   Video,
   Image,
   CircleFadingPlus,
+  HelpCircle,
 } from "lucide-react";
 import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
@@ -58,7 +60,9 @@ function AddContentModal({
   const [error, setError] = useState("");
 
   useEffect(() => {
+    console.log('🔄 AddContentModal state changed:', { open });
     if (!open) {
+      console.log('🧹 Clearing modal form data');
       setContentName("");
       setContentType("");
       setError("");
@@ -67,7 +71,12 @@ function AddContentModal({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!session?.accessToken) return;
+    console.log('📝 Creating content:', { lessonId, contentName, contentType });
+    
+    if (!session?.accessToken) {
+      console.log('❌ No access token');
+      return;
+    }
     if (!contentName.trim()) {
       setError("Content name is required.");
       return;
@@ -79,7 +88,7 @@ function AddContentModal({
     setLoading(true);
     setError("");
     try {
-      await createContent(
+      const result = await createContent(
         {
           lessonId,
           contentName,
@@ -87,9 +96,11 @@ function AddContentModal({
         },
         session.accessToken
       );
+      console.log('✅ Content created successfully:', result);
       onSuccess();
       onClose();
     } catch (err: unknown) {
+      console.log('❌ Error creating content:', err);
       if (err && typeof err === "object" && "message" in err) {
         setError(
           (err as { message?: string }).message || "Failed to add content."
@@ -183,6 +194,8 @@ export default function LessonContentsPage() {
   const lessonId = params.lessonId as string;
   const courseId = params.courseId as string;
 
+  console.log('🎯 LessonContentsPage loaded:', { courseId, lessonId });
+
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [contents, setContents] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,14 +215,22 @@ export default function LessonContentsPage() {
           fetchLessons(session.accessToken),
           fetchContentsByLesson(lessonId, session.accessToken),
         ]);
+        console.log('📚 Loaded data:', { 
+          lessonsCount: lessonsData.length, 
+          contentsCount: contentsData.length,
+          contents: contentsData 
+        });
+        
         const foundLesson = lessonsData.find(
           (l: Lesson) => l.lessonId === lessonId
         );
         if (!foundLesson) {
+          console.log('❌ Lesson not found:', lessonId);
           setError("Lesson not found.");
           setLoading(false);
           return;
         }
+        console.log('✅ Lesson found:', foundLesson);
         setLesson(foundLesson);
         setContents(contentsData);
       } catch {
@@ -223,6 +244,7 @@ export default function LessonContentsPage() {
     }
   }, [session, lessonId]);
   const handleAdd = () => {
+    console.log('➕ Opening add content modal');
     setShowAddModal(true);
   };
   const handleDelete = async (contentId: string) => {
@@ -248,13 +270,16 @@ export default function LessonContentsPage() {
 
   const refreshContents = async () => {
     if (!session?.accessToken) return;
+    console.log('🔄 Refreshing contents for lesson:', lessonId);
     try {
       const contentsData = await fetchContentsByLesson(
         lessonId,
         session.accessToken
       );
+      console.log('✅ Contents refreshed:', contentsData);
       setContents(contentsData);
-    } catch {
+    } catch (error) {
+      console.log('❌ Failed to refresh contents:', error);
       setError("Failed to reload contents.");
     }
   };
@@ -265,6 +290,8 @@ export default function LessonContentsPage() {
         return <Video className="h-4 w-4" />;
       case "image":
         return <Image className="h-4 w-4" />;
+      case "quizz":
+        return <HelpCircle className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }
@@ -276,6 +303,8 @@ export default function LessonContentsPage() {
         return "bg-blue-100 text-blue-800";
       case "image":
         return "bg-green-100 text-green-800";
+      case "quizz":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -346,7 +375,14 @@ export default function LessonContentsPage() {
             <div className="space-y-3">
               {contents
                 .sort((a, b) => a.order - b.order)
-                .map((content) => (
+                .map((content) => {
+                  console.log('🎨 Rendering content:', {
+                    contentId: content.contentId,
+                    contentName: content.contentName,
+                    contentType: content.contentType,
+                    isQuizz: content.contentType.toLowerCase() === 'quizz'
+                  });
+                  return (
                   <div
                     key={content.contentId}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
@@ -369,12 +405,43 @@ export default function LessonContentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                      >
-                        <CircleFadingPlus className="h-4 w-4" />
-                      </Button>
+                      {content.contentType.toLowerCase() === 'quizz' && (
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={async () => {
+
+
+                            try {
+                              // Check if quiz already exists for this content
+                              const quizzes = await quizApi.getQuizzesByContentId(courseId, lessonId, content.contentId);
+                              
+                              let quizUrl;
+                              if (quizzes && quizzes.length > 0) {
+                                // Quiz exists, navigate with quizId
+                                const existingQuiz = quizzes[0]; // Take first quiz
+                                quizUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}&quizId=${existingQuiz.quizzId}`;
+
+                              } else {
+                                // No quiz exists, navigate without quizId
+                                quizUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
+
+                              }
+                              
+                              router.push(quizUrl);
+                            } catch (error) {
+
+                              // Fallback to navigate without quizId
+                              const fallbackUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
+
+                              router.push(fallbackUrl);
+                            }
+                          }}
+                          title="Manage Quiz"
+                        >
+                          <CircleFadingPlus className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         size="icon"
                         variant="outline"
@@ -395,7 +462,8 @@ export default function LessonContentsPage() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
 
               {contents.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">

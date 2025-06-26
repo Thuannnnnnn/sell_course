@@ -14,7 +14,8 @@ import {
   AlertCircle,
   ArrowLeft,
   Clock,
-  HelpCircle
+  HelpCircle,
+  Eraser
 } from 'lucide-react';
 import { quizApi } from '../../../../../../api/quiz/quiz';
 import { Quiz } from '../../../../../../types/quiz';
@@ -31,6 +32,7 @@ function QuizManagePageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deletingQuestions, setDeletingQuestions] = useState<string | null>(null);
 
   const loadQuizzes = useCallback(async () => {
     if (!courseId || !lessonId || !contentId) return;
@@ -90,6 +92,41 @@ function QuizManagePageContent() {
       setError(error.response?.data?.message || error.message || 'Failed to delete quiz');
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleDeleteAllQuestions = async (quizId: string) => {
+    if (!courseId || !lessonId || !contentId) return;
+    
+    const quiz = quizzes.find(q => q.quizzId === quizId);
+    if (!quiz || quiz.questions.length === 0) {
+      alert('No questions to delete in this quiz.');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete all ${quiz.questions.length} questions from this quiz? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingQuestions(quizId);
+    try {
+      const result = await quizApi.deleteAllQuestions(courseId, lessonId, contentId, quizId);
+      
+      // Update the quiz in state to remove all questions
+      setQuizzes(prevQuizzes => 
+        prevQuizzes.map(q => 
+          q.quizzId === quizId 
+            ? { ...q, questions: [] }
+            : q
+        )
+      );
+
+      alert(`✅ Successfully deleted ${result.deletedCount} questions!`);
+    } catch (err) {
+      const error = err as Error & { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || error.message || 'Failed to delete questions');
+    } finally {
+      setDeletingQuestions(null);
     }
   };
 
@@ -207,26 +244,45 @@ function QuizManagePageContent() {
                       </div>
                     )}
 
-                    <div className="flex gap-2 pt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditQuiz(quiz.quizzId)}
-                        className="flex-1 flex items-center gap-2"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteQuiz(quiz.quizzId)}
-                        disabled={deleting === quiz.quizzId}
-                        className="flex items-center gap-2"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        {deleting === quiz.quizzId ? 'Deleting...' : 'Delete'}
-                      </Button>
+                    <div className="flex flex-col gap-2 pt-4">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditQuiz(quiz.quizzId)}
+                          className="flex-1 flex items-center gap-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteQuiz(quiz.quizzId)}
+                          disabled={deleting === quiz.quizzId}
+                          className="flex items-center gap-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          {deleting === quiz.quizzId ? 'Deleting...' : 'Delete'}
+                        </Button>
+                      </div>
+                      
+                      {/* Delete All Questions Button */}
+                      {quiz.questions.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteAllQuestions(quiz.quizzId)}
+                          disabled={deletingQuestions === quiz.quizzId}
+                          className="w-full flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300"
+                        >
+                          <Eraser className="h-4 w-4" />
+                          {deletingQuestions === quiz.quizzId 
+                            ? 'Deleting Questions...' 
+                            : `Delete All ${quiz.questions.length} Questions`
+                          }
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

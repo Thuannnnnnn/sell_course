@@ -8,6 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
 import { Course } from '../course/entities/course.entity';
+import { Contents } from '../contents/entities/contents.entity';
+import { Quizz } from '../quizz/entities/quizz.entity';
+import { Questionentity } from '../quizz/entities/question.entity';
+import { AnswerEntity } from '../quizz/entities/answer.entity';
 import { UpdateLessonDTO, CourseWithLessonsDto } from './dto/lesson.dto';
 import { plainToInstance } from 'class-transformer';
 @Injectable()
@@ -17,6 +21,14 @@ export class LessonService {
     private readonly lessonRepository: Repository<Lesson>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @InjectRepository(Contents)
+    private readonly contentRepository: Repository<Contents>,
+    @InjectRepository(Quizz)
+    private readonly quizzRepository: Repository<Quizz>,
+    @InjectRepository(Questionentity)
+    private readonly questionRepository: Repository<Questionentity>,
+    @InjectRepository(AnswerEntity)
+    private readonly answerRepository: Repository<AnswerEntity>,
   ) {}
 
   async createLesson(lessonName: string, courseId: string): Promise<boolean> {
@@ -98,8 +110,49 @@ export class LessonService {
       throw new NotFoundException('Lesson not found');
     }
 
+    // Get all contents for this lesson
+    const contents = await this.contentRepository.find({
+      where: { lesson: { lessonId } },
+    });
+
+    // Delete each content and its related data
+    for (const content of contents) {
+      await this.deleteContentAndRelatedData(content.contentId);
+    }
+
+    // Finally delete the lesson
     await this.lessonRepository.delete(lessonId);
     return { message: 'Lesson deleted successfully' };
+  }
+
+  private async deleteContentAndRelatedData(contentId: string): Promise<void> {
+    // Get all quizzes for this content
+    const quizzes = await this.quizzRepository.find({
+      where: { contentId },
+      relations: ['questions', 'questions.answers'],
+    });
+
+    // Delete in correct order: answers -> questions -> quizzes -> content
+    for (const quiz of quizzes) {
+      // Delete all answers for this quiz's questions
+      for (const question of quiz.questions || []) {
+        if (question.answers && question.answers.length > 0) {
+          await this.answerRepository.remove(question.answers);
+        }
+      }
+      // Delete all questions for this quiz
+      if (quiz.questions && quiz.questions.length > 0) {
+        await this.questionRepository.remove(quiz.questions);
+      }
+    }
+
+    // Delete all quizzes
+    if (quizzes.length > 0) {
+      await this.quizzRepository.remove(quizzes);
+    }
+
+    // Finally delete the content
+    await this.contentRepository.delete(contentId);
   }
 
   async getLessonsByCourseId(courseId: string): Promise<CourseWithLessonsDto> {
