@@ -26,6 +26,7 @@ import {
   ArrowLeft,
   FileText,
   Video,
+  Image,
   CircleFadingPlus,
   HelpCircle,
 } from "lucide-react";
