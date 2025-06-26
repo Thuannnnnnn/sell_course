@@ -64,13 +64,13 @@ export function ExamComponent({ exam }: ExamComponentProps) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button
+        {/* <Button
           className="w-full"
           disabled={exam.isLocked}
           variant={exam.isLocked ? 'outline' : 'default'}
         >
           {exam.isLocked ? 'Locked' : 'Start Exam'}
-        </Button>
+        </Button> */}
       </CardFooter>
     </Card>
   )

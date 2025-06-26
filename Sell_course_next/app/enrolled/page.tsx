@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { Button } from '../../components/ui/button'
 import { Progress } from '../../components/ui/progress'
 import { ArrowLeft, BookOpen, GraduationCap } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group'
+import { Label } from '../../components/ui/label'
+import { CheckCircle, AlertCircle } from 'lucide-react'
 
 type Lesson = {
   id: number;
@@ -128,10 +131,80 @@ export function CourseLearnPage() {
   const [currentLesson, setCurrentLesson] = useState<Lesson>(
     COURSE_DATA.modules[0].lessons[0],
   )
+  // Exam state
+  const [activeExamId, setActiveExamId] = useState<number | null>(null)
+  const [examQuestionIdx, setExamQuestionIdx] = useState(0)
+  const [examSelected, setExamSelected] = useState<string | null>(null)
+  const [examSubmitted, setExamSubmitted] = useState(false)
+  const [examScore, setExamScore] = useState(0)
+  const [examCompleted, setExamCompleted] = useState(false)
+
+  // Mock exam questions (replace with real data as needed)
+  const examQuestions = [
+    {
+      id: 1,
+      question: 'What is CSS used for?',
+      options: [
+        'Structuring web content',
+        'Styling web pages',
+        'Programming logic',
+        'Database management',
+      ],
+      correctAnswer: 'Styling web pages',
+    },
+    {
+      id: 2,
+      question: 'Which property changes text color in CSS?',
+      options: ['font-size', 'color', 'background', 'text-align'],
+      correctAnswer: 'color',
+    },
+    {
+      id: 3,
+      question: 'How do you select an element with id="main" in CSS?',
+      options: ['#main', '.main', 'main', '*main'],
+      correctAnswer: '#main',
+    },
+  ]
+
   const handleLessonChange = (lesson: Lesson) => {
     setCurrentLesson(lesson)
     setActiveTab('content')
   }
+
+  // Exam logic
+  const handleStartExam = (examId: number) => {
+    setActiveExamId(examId)
+    setExamQuestionIdx(0)
+    setExamSelected(null)
+    setExamSubmitted(false)
+    setExamScore(0)
+    setExamCompleted(false)
+  }
+  const handleExamSubmit = () => {
+    if (!examSelected) return
+    setExamSubmitted(true)
+    if (examSelected === examQuestions[examQuestionIdx].correctAnswer) {
+      setExamScore((prev) => prev + 1)
+    }
+  }
+  const handleExamNext = () => {
+    if (examQuestionIdx < examQuestions.length - 1) {
+      setExamQuestionIdx((idx) => idx + 1)
+      setExamSelected(null)
+      setExamSubmitted(false)
+    } else {
+      setExamCompleted(true)
+    }
+  }
+  const handleExamRetry = () => {
+    setExamQuestionIdx(0)
+    setExamSelected(null)
+    setExamSubmitted(false)
+    setExamScore(0)
+    setExamCompleted(false)
+    setActiveExamId(null)
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
@@ -199,9 +272,126 @@ export function CourseLearnPage() {
               </TabsContent>
               <TabsContent value="exams" className="mt-0">
                 <div className="grid md:grid-cols-2 gap-6">
-                  {COURSE_DATA.exams.map((exam) => (
-                    <ExamComponent key={exam.id} exam={exam} />
-                  ))}
+                  {activeExamId === null ? (
+                    COURSE_DATA.exams.map((exam) => (
+                      <div key={exam.id} className="bg-white dark:bg-card rounded-xl shadow-lg p-6 flex flex-col gap-4">
+                        <ExamComponent exam={exam} />
+                        <Button
+                          className="mt-2"
+                          onClick={() => handleStartExam(exam.id)}
+                          disabled={exam.isLocked}
+                        >
+                          Start Exam
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2">
+                      {/* Exam in-progress UI */}
+                      {!examCompleted ? (
+                        <div className="max-w-xl mx-auto bg-white dark:bg-card rounded-xl shadow-lg p-8">
+                          <div className="flex justify-between items-center mb-4">
+                            <div className="text-sm font-medium">
+                              Question {examQuestionIdx + 1} of {examQuestions.length}
+                            </div>
+                            <div className="text-sm font-medium">
+                              Score: {examScore}/{examQuestionIdx}
+                            </div>
+                          </div>
+                          <Progress value={((examQuestionIdx + 1) / examQuestions.length) * 100} className="mb-8" />
+                          <div className="mb-6 text-lg font-semibold">
+                            {examQuestions[examQuestionIdx].question}
+                          </div>
+                          <RadioGroup
+                            value={examSelected || ''}
+                            onValueChange={setExamSelected}
+                            disabled={examSubmitted}
+                          >
+                            {examQuestions[examQuestionIdx].options.map((option, idx) => (
+                              <div
+                                key={idx}
+                                className={`flex items-center space-x-2 border p-4 rounded-md mb-2 ${examSubmitted ? (option === examQuestions[examQuestionIdx].correctAnswer ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : examSelected === option ? 'border-red-500 bg-red-50 dark:bg-red-950/20' : '') : 'hover:bg-accent'}`}
+                              >
+                                <RadioGroupItem
+                                  value={option}
+                                  id={`exam-option-${idx}`}
+                                  className="border-primary"
+                                />
+                                <Label
+                                  htmlFor={`exam-option-${idx}`}
+                                  className="flex-1 cursor-pointer py-2"
+                                >
+                                  {option}
+                                </Label>
+                                {examSubmitted &&
+                                  option === examQuestions[examQuestionIdx].correctAnswer && (
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                  )}
+                                {examSubmitted &&
+                                  examSelected === option &&
+                                  option !== examQuestions[examQuestionIdx].correctAnswer && (
+                                    <AlertCircle className="h-5 w-5 text-red-500" />
+                                  )}
+                              </div>
+                            ))}
+                          </RadioGroup>
+                          <div className="flex justify-between mt-4">
+                            <Button
+                              variant="outline"
+                              onClick={handleExamRetry}
+                            >
+                              Cancel
+                            </Button>
+                            {examSubmitted ? (
+                              <Button onClick={handleExamNext}>
+                                {examQuestionIdx < examQuestions.length - 1
+                                  ? 'Next Question'
+                                  : 'Finish Exam'}
+                              </Button>
+                            ) : (
+                              <Button onClick={handleExamSubmit} disabled={!examSelected}>
+                                Submit Answer
+                              </Button>
+                            )}
+                          </div>
+                          {examSubmitted && (
+                            <div
+                              className={`mt-3 text-sm ${examSelected === examQuestions[examQuestionIdx].correctAnswer ? 'text-green-500' : 'text-red-500'}`}
+                            >
+                              {examSelected === examQuestions[examQuestionIdx].correctAnswer
+                                ? 'Correct! Good job.'
+                                : `Incorrect. The correct answer is: ${examQuestions[examQuestionIdx].correctAnswer}`}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="max-w-xl mx-auto bg-white dark:bg-card rounded-xl shadow-lg p-8 text-center">
+                          <div className="text-2xl font-bold mb-4">Exam Completed!</div>
+                          <div className="flex justify-center mb-6">
+                            <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-4xl font-bold">
+                                {Math.round((examScore / examQuestions.length) * 100)}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-xl mb-2">
+                            You scored {examScore} out of {examQuestions.length}
+                          </div>
+                          {examScore === examQuestions.length ? (
+                            <div className="flex items-center justify-center gap-2 text-green-500 mb-4">
+                              <CheckCircle />
+                              <span>Perfect score! Great job!</span>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground mb-4">
+                              Review the material and try again to improve your score.
+                            </div>
+                          )}
+                          <Button onClick={handleExamRetry}>Retry Exam</Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
