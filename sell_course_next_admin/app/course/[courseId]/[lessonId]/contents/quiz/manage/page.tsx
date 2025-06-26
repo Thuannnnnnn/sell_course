@@ -266,7 +266,6 @@ function QuizManagePageContent() {
                           {deleting === quiz.quizzId ? 'Deleting...' : 'Delete'}
                         </Button>
                       </div>
-                      
                       {/* Delete All Questions Button */}
                       {quiz.questions.length > 0 && (
                         <Button
@@ -274,7 +273,7 @@ function QuizManagePageContent() {
                           size="sm"
                           onClick={() => handleDeleteAllQuestions(quiz.quizzId)}
                           disabled={deletingQuestions === quiz.quizzId}
-                          className="w-full flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300"
+                          className="w-full flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Eraser className="h-4 w-4" />
                           {deletingQuestions === quiz.quizzId 

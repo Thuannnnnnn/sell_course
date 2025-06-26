@@ -61,9 +61,7 @@ function AddContentModal({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    console.log('🔄 AddContentModal state changed:', { open });
     if (!open) {
-      console.log('🧹 Clearing modal form data');
       setContentName("");
       setContentType("");
       setError("");
@@ -72,10 +70,8 @@ function AddContentModal({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('📝 Creating content:', { lessonId, contentName, contentType });
     
     if (!session?.accessToken) {
-      console.log('❌ No access token');
       return;
     }
     if (!contentName.trim()) {
@@ -89,7 +85,7 @@ function AddContentModal({
     setLoading(true);
     setError("");
     try {
-      const result = await createContent(
+      await createContent(
         {
           lessonId,
           contentName,
@@ -97,11 +93,9 @@ function AddContentModal({
         },
         session.accessToken
       );
-      console.log('✅ Content created successfully:', result);
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      console.log('❌ Error creating content:', err);
       if (err && typeof err === "object" && "message" in err) {
         setError(
           (err as { message?: string }).message || "Failed to add content."
@@ -298,7 +292,7 @@ export default function LessonContentsPage() {
       case "video":
         return <Video className="h-4 w-4" />;
       case "image":
-        return <Image className="h-4 w-4" />;
+        return <Image className="h-4 w-4" aria-label="Image content" />;
       case "quizz":
         return <HelpCircle className="h-4 w-4" />;
       default:
@@ -327,12 +321,12 @@ export default function LessonContentsPage() {
     );
   }
 
-  const openDocumentModal = (contentType: string, contentId: string) => {
-    if (contentType === "doc") {
-      setSelectedContentId(contentId);
-      setShowDocumentModal(true);
-    }
-  };
+  // const openDocumentModal = (contentType: string, contentId: string) => {
+  //   if (contentType === "doc") {
+  //     setSelectedContentId(contentId);
+  //     setShowDocumentModal(true);
+  //   }
+  // };
 
   const closeDocumentModal = () => {
     setShowDocumentModal(false);
@@ -436,7 +430,6 @@ export default function LessonContentsPage() {
                             try {
                               // Check if quiz already exists for this content
                               const quizzes = await quizApi.getQuizzesByContentId(courseId, lessonId, content.contentId);
-                              
                               let quizUrl;
                               if (quizzes && quizzes.length > 0) {
                                 // Quiz exists, navigate with quizId
@@ -448,7 +441,6 @@ export default function LessonContentsPage() {
                                 quizUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
 
                               }
-                              
                               router.push(quizUrl);
                             } catch {
 

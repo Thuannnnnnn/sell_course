@@ -25,7 +25,7 @@ function AddLessonModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting lesson with data:", { lessonName, courseId });
+
     if (!lessonName.trim()) {
       setError("Please enter a lesson name.");
       return;
@@ -44,11 +44,11 @@ function AddLessonModal({
       const lessonsCount = (await fetchLessons(session.accessToken)).filter(
         (lesson) => lesson.course != null && String(lesson.course.courseId) === String(courseId)
       ).length;
-      const response = await createLesson(
+      await createLesson(
         { lessonName, courseId, order: lessonsCount + 1 },
         session.accessToken
       );
-      console.log("Lesson created:", response);
+
       setLessonName("");
       onSuccess();
       onClose();
@@ -191,10 +191,7 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
   const [editLesson, setEditLesson] = useState<Lesson | null>(null);
 
   const loadData = useCallback(async () => {
-    console.log("loadData called with courseId:", courseId);
-    console.log("Session:", session);
     if (!session || !session.accessToken) {
-      console.log("Session not ready, skipping loadData");
       setError("You are not logged in or lack access rights.");
       setLoading(false);
       return;
@@ -203,15 +200,10 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     setError("");
     try {
       const lessonsData = await fetchLessons(session.accessToken);
-      console.log("Fetched lessons:", lessonsData);
       const filtered = lessonsData.filter(
         (lesson) => lesson.course != null && String(lesson.course.courseId) === String(courseId)
       );
-      console.log("Filtered lessons:", filtered);
       setLessons(filtered);
-      if (filtered.length === 0) {
-        console.log("No lessons found for courseId:", courseId);
-      }
     } catch (err) {
       console.error("Error fetching lessons:", err);
       setError("Failed to load data. Please try again later.");
@@ -241,7 +233,7 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
     try {
       await deleteLesson(lessonId, session.accessToken);
-      console.log("Lesson deleted:", lessonId);
+
       setLessons((prev) => {
         const filtered = prev.filter((l) => l.lessonId !== lessonId);
         const reordered = filtered.map((l, idx) => ({ ...l, order: idx + 1 }));
@@ -260,7 +252,7 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     router.push(`/course/${courseId}/${lessonId}/contents`);
   };
 
-  console.log("Rendering lessons:", lessons);
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -382,7 +374,7 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
 
 export default function CourseLessonPage({ params }: { params: { courseId: string } }) {
   const { courseId } = params;
-  console.log("CourseLessonPage courseId:", courseId);
+
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

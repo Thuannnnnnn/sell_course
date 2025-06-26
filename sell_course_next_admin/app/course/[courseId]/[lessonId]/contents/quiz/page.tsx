@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import QuestionForm from '../../../../../../components/quiz/QuestionForm'
 import QuestionList from '../../../../../../components/quiz/QuestionList'
-import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser } from 'lucide-react'
+import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser, ArrowUp } from 'lucide-react'
 import { Button } from '../../../../../../components/ui/button'
 import { Alert, AlertDescription } from '../../../../../../components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../../../components/ui/card'
@@ -31,6 +31,7 @@ function QuizPageContent({ params }: QuizPageProps) {
   // All hooks must be called before any early returns
   const [editingQuestion, setEditingQuestion] = useState<QuizFormData | null>(null)
   const [deletingAllQuestions, setDeletingAllQuestions] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
   
   const {
     questions,
@@ -67,6 +68,23 @@ function QuizPageContent({ params }: QuizPageProps) {
       loadQuiz()
     }
   }, [courseId, lessonId, contentId, quizId, loadQuiz])
+
+  // Handle scroll to show/hide scroll to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
 
   // Validation: contentId is required
   if (!contentId) {
@@ -238,6 +256,16 @@ function QuizPageContent({ params }: QuizPageProps) {
                   onClick={handleSaveQuiz} 
                   disabled={saving || deletingAllQuestions}
                   className="flex items-center gap-2"
+                  style={{
+            backgroundColor: "#513deb",
+            color: "white",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#4f46e5";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#513deb";
+          }}
                 >
                   <Save className="h-4 w-4" />
                   {saving ? 'Saving...' : quizId ? 'Update Quiz' : 'Save Quiz'}
@@ -262,22 +290,29 @@ function QuizPageContent({ params }: QuizPageProps) {
             </Alert>
           )}
           {/* Main Content */}
-          <div className="grid gap-8 lg:grid-cols-2">
-            {/* Question Form Section */}
-            <Card className="h-fit">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  {editingQuestion ? 'Edit Question' : 'Add New Question'}
-                </CardTitle>
-                <CardDescription>
-                  {editingQuestion 
-                    ? 'Modify the selected question details below'
-                    : 'Create a new quiz question with multiple choice answers'
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+          <div className="grid gap-6 xl:grid-cols-5 lg:grid-cols-1">
+            {/* Question Form Section - Sticky on larger screens */}
+            <div className="xl:col-span-2 lg:col-span-1 order-1 xl:order-1">
+              <div className="space-y-4">
+                {/* Form Header Card */}
+                <Card className="bg-gradient-to-r from-[#513deb]/5 to-[#4f46e5]/5 border-[#513deb]/20">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="p-2 bg-[#513deb]/10 rounded-lg">
+                        <Plus className="h-5 w-5 text-[#513deb]" />
+                      </div>
+                      {editingQuestion ? 'Edit Question' : 'Create New Question'}
+                    </CardTitle>
+                    <CardDescription className="text-base">
+                      {editingQuestion 
+                        ? 'Modify the selected question details below'
+                        : 'Design engaging quiz questions with multiple choice answers'
+                      }
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+
+                {/* Question Form */}
                 <QuestionForm
                   onSubmit={
                     editingQuestion ? handleEditQuestion : handleAddQuestion
@@ -285,41 +320,101 @@ function QuizPageContent({ params }: QuizPageProps) {
                   initialQuestion={editingQuestion}
                   key={editingQuestion?.id}
                 />
-              </CardContent>
-            </Card>
+
+                {/* Quick Stats Card */}
+                {questions.length > 0 && (
+                  <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-2xl font-bold text-green-600">{questions.length}</div>
+                          <div className="text-xs text-gray-600">Questions</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {questions.reduce((sum, q) => sum + (q.weight || 1), 0)}
+                          </div>
+                          <div className="text-xs text-gray-600">Total Points</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-purple-600">
+                            {Math.round(questions.reduce((sum, q) => sum + (q.weight || 1), 0) / questions.length * 10) / 10}
+                          </div>
+                          <div className="text-xs text-gray-600">Avg Points</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
 
             {/* Questions List Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Quiz Questions ({questions.length})</span>
-                  {questions.length > 0 && (
-                    <Badge variant="secondary">
-                      {questions.length} question{questions.length !== 1 ? 's' : ''}
-                    </Badge>
+            <div className="xl:col-span-3 lg:col-span-1 order-2 xl:order-2">
+              <Card className="h-fit">
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
+                  <CardTitle className="flex items-center justify-between text-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gray-200 rounded-lg">
+                        <BookOpen className="h-5 w-5 text-gray-700" />
+                      </div>
+                      <span>Quiz Questions</span>
+                    </div>
+                    {questions.length > 0 && (
+                      <Badge variant="secondary" className="text-sm px-3 py-1">
+                        {questions.length} question{questions.length !== 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Manage your quiz questions. Click edit to modify or delete to remove.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {questions.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <div className="max-w-md mx-auto">
+                        <div className="relative mb-6">
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#513deb]/20 to-[#4f46e5]/20 rounded-full blur-xl"></div>
+                          <BookOpen className="relative h-16 w-16 mx-auto text-[#513deb] opacity-60" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-800 mb-3">No questions yet</h3>
+                        <p className="text-gray-600 mb-6">
+                          Start building your quiz by adding your first question using the form on the left.
+                        </p>
+                        <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                          <div className="h-1 w-8 bg-gradient-to-r from-[#513deb] to-[#4f46e5] rounded-full"></div>
+                          <span>Get started now</span>
+                          <div className="h-1 w-8 bg-gradient-to-r from-[#4f46e5] to-[#513deb] rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="max-h-[800px] overflow-y-auto custom-scrollbar-enhanced">
+                      <QuestionList
+                        questions={questions}
+                        onEdit={startEditQuestion}
+                        onDelete={handleDeleteQuestion}
+                      />
+                    </div>
                   )}
-                </CardTitle>
-                <CardDescription>
-                  Manage your quiz questions. Click edit to modify or delete to remove.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                {questions.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium mb-2">No questions yet</p>
-                    <p className="text-sm">Start by adding your first quiz question using the form on the left.</p>
-                  </div>
-                ) : (
-                  <QuestionList
-                    questions={questions}
-                    onEdit={startEditQuestion}
-                    onDelete={handleDeleteQuestion}
-                  />
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
+
+          {/* Floating Scroll to Top Button */}
+          {showScrollTop && (
+            <div className="fixed bottom-8 right-8 z-50">
+              <Button
+                onClick={scrollToTop}
+                size="icon"
+                className="h-12 w-12 rounded-full bg-gradient-to-r from-[#513deb] to-[#4f46e5] hover:from-[#4f46e5] hover:to-[#4338ca] shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+              >
+                <ArrowUp className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
