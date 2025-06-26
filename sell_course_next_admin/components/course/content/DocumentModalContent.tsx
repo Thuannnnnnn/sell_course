@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
+
 import { useSession } from "next-auth/react";
 import {
   FileText,
@@ -39,13 +39,13 @@ import {
   Edit3,
   Save,
   X,
-  AlertCircle,
-  CheckCircle2,
   Loader2,
   Calendar,
   ExternalLink,
+  LucideTrash,
 } from "lucide-react";
 
+import { toast } from "sonner";
 interface DocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -64,8 +64,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
+
   const [doc, setDoc] = useState<Docs | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -125,12 +124,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   }, [doc, previewKey]);
 
   const showMessage = (msg: string, type: "success" | "error") => {
-    setMessage(msg);
-    setMessageType(type);
-    setTimeout(() => {
-      setMessage("");
-      setMessageType("");
-    }, 5000);
+    if (type === "success") {
+      toast.success(msg);
+    } else {
+      toast.error(msg);
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,29 +271,6 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     }
   };
 
-  const getFileIcon = (fileName: string | undefined) => {
-    if (!fileName) {
-      return <FileText className="w-8 h-8 text-gray-500" />;
-    }
-
-    const extension = fileName.split(".").pop()?.toLowerCase();
-    switch (extension) {
-      case "pdf":
-        return <FileText className="w-8 h-8 text-red-500" />;
-      case "doc":
-      case "docx":
-        return <FileText className="w-8 h-8 text-[#FF6B00]" />;
-      case "ppt":
-      case "pptx":
-        return <FileText className="w-8 h-8 text-orange-500" />;
-      case "xls":
-      case "xlsx":
-        return <FileText className="w-8 h-8 text-green-500" />;
-      default:
-        return <FileText className="w-8 h-8 text-gray-500" />;
-    }
-  };
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -377,63 +352,34 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
     return (
       <div className="space-y-6 flex-grow flex flex-col">
-        {message && (
-          <Alert
-            className={
-              messageType === "success"
-                ? "border-[#7CFC00] bg-lime-50"
-                : "border-red-500 bg-red-50"
-            }
-          >
-            {messageType === "success" ? (
-              <CheckCircle2 className="h-4 w-4 text-[#7CFC00]" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-red-500" />
-            )}
-            <AlertTitle
-              className={
-                messageType === "success" ? "text-[#7CFC00]" : "text-red-700"
-              }
-            >
-              {messageType === "success" ? "Success!" : "Error Occurred!"}
-            </AlertTitle>
-            <AlertDescription
-              className={
-                messageType === "success" ? "text-lime-700" : "text-red-700"
-              }
-            >
-              {message}
-            </AlertDescription>
-          </Alert>
-        )}
-
         {doc ? (
-          <Card className="overflow-hidden shadow-lg border-[#00BFFF]">
-            <CardHeader className="bg-gradient-to-r from-[#A259FF] to-[#00BFFF] text-white">
-              <div className="flex items-center justify-between">
+          <Card className="overflow-hidden shadow-lg border-black">
+            <CardHeader>
+              <div className="flex items-center  justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    {getFileIcon(doc.title)}
+                  <div className="bg-white/20 p-2 rounded-lg border border-[#513deb]">
+                    <FileText
+                      className="w-8 h-8 text-gray-500 border-[#513deb]"
+                      color="#513deb"
+                    />
                   </div>
                   <div className="space-y-1">
                     {isEditing ? (
                       <Input
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="text-lg font-semibold bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                        className="text-lg font-semibold"
                         placeholder="Enter document name..."
                       />
                     ) : (
                       <CardTitle className="text-xl">{doc.title}</CardTitle>
                     )}
-                    <div className="flex items-center space-x-4 text-white/80 text-sm">
+                    <div className="flex items-center space-x-4  text-sm">
                       <div className="flex items-center space-x-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          Created: {new Date().toLocaleDateString("en-US")}
-                        </span>
+                        <Calendar className="w-4 h-4" color="#513deb" />
+                        <span>{new Date().toLocaleDateString("en-US")}</span>
                       </div>
-                      <Badge className="bg-[#FF6B00] text-white hover:bg-orange-600">
+                      <Badge className="bg-[#513deb]  hover:bg-[#4f46e5]">
                         {getFileExtension(doc.title)}
                       </Badge>
                     </div>
@@ -447,7 +393,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                         onClick={handleSubmit}
                         disabled={loading}
                         size="sm"
-                        className="bg-[#FF6B00] hover:bg-orange-600 text-white"
+                        className="bg-[#513deb] hover:bg-[#4f46e5]"
                       >
                         {loading ? (
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -464,7 +410,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                         }}
                         size="sm"
                         variant="outline"
-                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                        className="bg-[#FF6B1E] hover:bg-[#FF6B1E]/90 transition-all duration-200 text-white"
                       >
                         <X className="w-4 h-4 mr-2" />
                         Cancel
@@ -474,7 +420,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                     <Button
                       onClick={() => setIsEditing(true)}
                       size="sm"
-                      className="bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
+                      className="bg-[#513deb] hover:bg-[#4f46e5]  transition-all duration-200 hover:scale-105"
                     >
                       <Edit3 className="w-4 h-4 mr-2" />
                       Edit
@@ -487,75 +433,82 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
             <CardContent className="p-6 space-y-6">
               {/* File Upload Section (when editing) */}
               {isEditing && (
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-base font-medium text-[#A259FF]">
-                      Update File (optional)
-                    </Label>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Select a new file to replace the current document
-                    </p>
-                  </div>
-
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
-                      dragOver
-                        ? "border-[#A259FF] bg-purple-50 scale-105"
-                        : "border-[#00BFFF] hover:border-[#A259FF] hover:bg-purple-50/50"
-                    }`}
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="w-12 h-12 text-[#FF6B00] mx-auto mb-4" />
-                    <p className="text-lg font-medium text-[#A259FF] mb-2">
-                      Drag and drop your file here
-                    </p>
-                    <p className="text-gray-500 mb-4">
-                      or{" "}
-                      <span className="text-[#FF6B00] font-medium">
-                        click to select a file
-                      </span>
-                    </p>
-                    <div className="flex justify-center space-x-4 text-sm text-gray-500">
-                      <span>DOCX</span>
+                <>
+                  <Separator className="bg-[#00BFFF]/20" />
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-base font-medium">
+                        Update File (optional)
+                      </Label>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Select a new file to replace the current document
+                      </p>
                     </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".docx"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </div>
 
-                  {file && (
-                    <Card className="border-[#00BFFF] bg-sky-50">
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                          {getFileIcon(file.name)}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-[#A259FF] truncate">
-                              {file.name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {formatFileSize(file.size)}
-                            </p>
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
+                        dragOver
+                          ? "border-[#A259FF] bg-purple-50 scale-105"
+                          : "border-black hover:border-[#00BFFF] hover:bg-purple-50/50"
+                      }`}
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="w-12 h-12 text-[#2596be] mx-auto mb-4" />
+                      <p className="text-lg font-medium mb-2">
+                        Drag and drop your file here
+                      </p>
+                      <p className="text-gray-500 mb-4">
+                        or{" "}
+                        <span className=" font-medium">
+                          click to select a file
+                        </span>
+                      </p>
+                      <div className="flex justify-center space-x-4 text-sm text-gray-500">
+                        <span>DOCX</span>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".docx"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                    </div>
+
+                    {file && (
+                      <Card className="border-black bg-sky-50">
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <FileText
+                              className="w-8 h-8 text-gray-500 border-[#513deb]"
+                              color="#513deb"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-[#000000] truncate">
+                                {file.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {formatFileSize(file.size)}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setFile(null)}
+                              className="hover:bg-red-100 hover:text-red-600"
+                            >
+                              <LucideTrash className="w-4 h-4" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setFile(null)}
-                            className="hover:bg-red-100 hover:text-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                  <Separator className="bg-[#00BFFF]/20" />
+                </>
               )}
 
               {!isEditing && (
@@ -563,8 +516,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                   <Separator className="bg-[#00BFFF]/20" />
 
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center space-x-2 text-[#A259FF]">
-                      <Eye className="w-5 h-5 text-[#FF6B00]" />
+                    <h3 className="text-lg font-semibold flex items-center space-x-2">
+                      <Eye className="w-5 h-5 text-[#2596be]" />
                       <span>Document Preview</span>
                     </h3>
 
@@ -590,7 +543,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       onClick={() => window.open(doc.url, "_blank")}
-                      className="flex-1 bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
+                      className="flex-1 bg-[#513deb] hover:bg-[#4f46e5] text-white transition-all duration-200 hover:scale-105"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       View Full Document
@@ -623,6 +576,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                           <Button
                             variant="outline"
                             onClick={() => setDeleteDialogOpen(false)}
+                            className="bg-[#FF6B1E] hover:bg-[#FF6B1E]/90 transition-all duration-200 text-white"
                           >
                             Cancel
                           </Button>
@@ -647,23 +601,21 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-[#00BFFF] shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-[#A259FF] to-[#00BFFF] text-white">
+          <Card className="border-black shadow-lg">
+            <CardHeader className="">
               <CardTitle className="text-xl flex items-center space-x-2">
-                <Upload className="w-6 h-6" />
+                <Upload className="w-6 h-6" color="#2596be" />
                 <span>Create New Document</span>
               </CardTitle>
-              <CardDescription className="text-white/80">
+              <CardDescription className="">
                 Upload a document to get started
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
+              <Separator className="bg-[#00BFFF]/20" />
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="title"
-                    className="text-base font-medium text-[#A259FF]"
-                  >
+                  <Label htmlFor="title" className="text-base font-medium">
                     Document Title
                   </Label>
                   <Input
@@ -671,15 +623,13 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter document title..."
-                    className="border-[#00BFFF] focus:border-[#A259FF] focus:ring-[#A259FF]"
+                    className="border-black/50 hover:border-black/100 focus:border-black focus:ring-1 transition-all duration-200"
                   />
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-base font-medium text-[#A259FF]">
-                      Upload File
-                    </Label>
+                    <Label className="text-base font-medium">Upload File</Label>
                     <p className="text-sm text-gray-500 mt-1">
                       Select a document file to upload (Max 10MB)
                     </p>
@@ -689,20 +639,20 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                     className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer ${
                       dragOver
                         ? "border-[#A259FF] bg-purple-50 scale-105"
-                        : "border-[#00BFFF] hover:border-[#A259FF] hover:bg-purple-50/50"
+                        : "border-black hover:border-[#00BFFF] hover:bg-purple-50/50"
                     }`}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload className="w-12 h-12 text-[#FF6B00] mx-auto mb-4" />
-                    <p className="text-lg font-medium text-[#A259FF] mb-2">
+                    <Upload className="w-12 h-12 text-[#2596be] mx-auto mb-4" />
+                    <p className="text-lg font-medium  mb-2">
                       Drag and drop your file here
                     </p>
                     <p className="text-gray-500 mb-4">
                       or{" "}
-                      <span className="text-[#FF6B00] font-medium">
+                      <span className=" font-medium">
                         click to select a file
                       </span>
                     </p>
@@ -719,14 +669,15 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                   </div>
 
                   {file && (
-                    <Card className="border-[#00BFFF] bg-sky-50">
+                    <Card className="border-black bg-sky-50">
                       <CardContent className="p-4">
                         <div className="flex items-center space-x-3">
-                          {getFileIcon(file.name)}
+                          <FileText
+                            className="w-8 h-8 text-gray-500 border-[#513deb]"
+                            color="#513deb"
+                          />
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-[#A259FF] truncate">
-                              {file.name}
-                            </p>
+                            <p className="font-medium truncate">{file.name}</p>
                             <p className="text-sm text-gray-500">
                               {formatFileSize(file.size)}
                             </p>
@@ -737,7 +688,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                             onClick={() => setFile(null)}
                             className="hover:bg-red-100 hover:text-red-600"
                           >
-                            <X className="w-4 h-4" />
+                            <LucideTrash className="w-4 h-4" />
                           </Button>
                         </div>
                       </CardContent>
@@ -748,7 +699,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                 <Button
                   type="submit"
                   disabled={loading || !title?.trim() || !file}
-                  className="w-full bg-[#FF6B00] hover:bg-orange-600 text-white transition-all duration-200 hover:scale-105"
+                  className="w-full bg-[#513deb] hover:bg-[#4f46e5] text-white transition-all duration-200 hover:scale-105"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -770,7 +721,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       {triggerButton && <DialogTrigger asChild>{triggerButton}</DialogTrigger>}
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#A259FF]">
+          <DialogTitle className="text-2xl font-bold">
             Document Manager
           </DialogTitle>
           <DialogDescription>
