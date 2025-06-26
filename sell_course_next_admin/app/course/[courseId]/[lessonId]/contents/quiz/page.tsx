@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import QuestionForm from '../../../../../../components/quiz/QuestionForm'
 import QuestionList from '../../../../../../components/quiz/QuestionList'
 import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser } from 'lucide-react'
@@ -28,11 +28,48 @@ function QuizPageContent({ params }: QuizPageProps) {
   const contentId = searchParams.get('contentId')
   const quizId = searchParams.get('quizId')
 
+  // All hooks must be called before any early returns
+  const [editingQuestion, setEditingQuestion] = useState<QuizFormData | null>(null)
+  const [deletingAllQuestions, setDeletingAllQuestions] = useState(false)
+  
+  const {
+    questions,
+    loading,
+    saving,
+    error,
+    success,
+    newQuizId,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion,
+    loadQuiz,
+    saveQuiz
+  } = useQuiz({ courseId: courseId || undefined, lessonId: lessonId || undefined, contentId: contentId || undefined, quizId: quizId || undefined })
+  
+  // Handle redirect after quiz creation
+  useEffect(() => {
+    if (newQuizId && !quizId) {
+      const newUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${contentId}&quizId=${newQuizId}`;
+      router.push(newUrl);
+    }
+  }, [newQuizId, quizId, courseId, lessonId, contentId, router]);
 
+  // Clear newQuizId when we already have a quizId
+  useEffect(() => {
+    if (quizId && newQuizId) {
+      // clearMessages(); // This would clear success message too
+    }
+  }, [quizId, newQuizId]);
+
+  // Load existing quiz data
+  useEffect(() => {
+    if (courseId && lessonId && contentId && quizId) {
+      loadQuiz()
+    }
+  }, [courseId, lessonId, contentId, quizId, loadQuiz])
 
   // Validation: contentId is required
   if (!contentId) {
-
     return (
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <div className="text-center">
@@ -51,54 +88,6 @@ function QuizPageContent({ params }: QuizPageProps) {
       </div>
     )
   }
-
-  const [editingQuestion, setEditingQuestion] = useState<QuizFormData | null>(null)
-  const [deletingAllQuestions, setDeletingAllQuestions] = useState(false)
-  
-  const {
-    questions,
-    loading,
-    saving,
-    error,
-    success,
-    newQuizId,
-    addQuestion,
-    updateQuestion,
-    deleteQuestion,
-    loadQuiz,
-    saveQuiz
-  } = useQuiz({ courseId: courseId || undefined, lessonId: lessonId || undefined, contentId: contentId || undefined, quizId: quizId || undefined })
-  
-
-
-  // Handle redirect after quiz creation
-  useEffect(() => {
-    if (newQuizId && !quizId) {
-
-      const newUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${contentId}&quizId=${newQuizId}`;
-      router.push(newUrl);
-    }
-  }, [newQuizId, quizId, courseId, lessonId, contentId, router]);
-
-  // Clear newQuizId when we already have a quizId
-  useEffect(() => {
-    if (quizId && newQuizId) {
-
-      // clearMessages(); // This would clear success message too
-    }
-  }, [quizId, newQuizId]);
-
-  // Load existing quiz data
-  useEffect(() => {
-
-
-    if (courseId && lessonId && contentId && quizId) {
-
-      loadQuiz()
-    } else {
-
-    }
-  }, [courseId, lessonId, contentId, quizId, loadQuiz])
 
   const handleAddQuestion = (question: QuizFormData) => {
 

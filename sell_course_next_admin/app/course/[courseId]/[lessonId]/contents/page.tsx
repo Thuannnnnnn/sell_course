@@ -429,7 +429,7 @@ export default function LessonContentsPage() {
                               }
                               
                               router.push(quizUrl);
-                            } catch (error) {
+                            } catch {
 
                               // Fallback to navigate without quizId
                               const fallbackUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
