@@ -41,6 +41,9 @@ import {
 } from "../../../../../components/ui/select";
 import DocumentModal from "../../../../../components/course/content/DocumentModalContent";
 import { toast } from "sonner";
+import VideoModal from "components/course/content/VideoModal";
+import { getAllVideos } from "app/api/lessons/Video/video";
+import { VideoState } from "app/types/video";
 
 interface AddContentModalProps {
   open: boolean;
@@ -69,11 +72,12 @@ function EditContentModal({
   const [error, setError] = useState("");
   const [hasDocument, setHasDocument] = useState(false);
   const [checkingDocument, setCheckingDocument] = useState(false);
-
   useEffect(() => {
     if (content && open) {
       setContentName(content.contentName);
-      setContentType(content.contentType ? content.contentType.toLowerCase() : "");
+      setContentType(
+        content.contentType ? content.contentType.toLowerCase() : ""
+      );
       setError("");
       setCheckingDocument(true);
       const checkDocument = async () => {
@@ -117,26 +121,27 @@ function EditContentModal({
       );
       toast.success("Content updated successfully!", {
         style: {
-          background: '#10b981',
-          color: 'white',
-          border: '1px solid #059669',
+          background: "#10b981",
+          color: "white",
+          border: "1px solid #059669",
         },
-        icon: '✅',
+        icon: "✅",
       });
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      const msg = (err && typeof err === "object" && "message" in err)
-        ? (err as { message?: string }).message || "Failed to update content."
-        : "Failed to update content.";
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message?: string }).message || "Failed to update content."
+          : "Failed to update content.";
       setError(msg);
       toast.error(msg, {
         style: {
-          background: '#ef4444',
-          color: 'white',
-          border: '1px solid #dc2626',
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
         },
-        icon: '❌',
+        icon: "❌",
       });
     } finally {
       setLoading(false);
@@ -167,7 +172,8 @@ function EditContentModal({
                 <Label htmlFor="edit-contentType">Content Type</Label>
                 {contentType && (
                   <span className="inline-block mb-1 ml-2 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                    Current: {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
+                    Current:{" "}
+                    {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
                   </span>
                 )}
                 {checkingDocument ? (
@@ -183,7 +189,10 @@ function EditContentModal({
                       required
                       disabled
                     >
-                      <SelectTrigger id="edit-contentType" className="bg-gray-100">
+                      <SelectTrigger
+                        id="edit-contentType"
+                        className="bg-gray-100"
+                      >
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -193,8 +202,9 @@ function EditContentModal({
                       </SelectContent>
                     </Select>
                     <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-                      <strong>Note:</strong> Content type cannot be changed because this content has an attached document. 
-                      You must delete the document first to change the content type.
+                      <strong>Note:</strong> Content type cannot be changed
+                      because this content has an attached document. You must
+                      delete the document first to change the content type.
                     </div>
                   </div>
                 ) : (
@@ -297,26 +307,27 @@ function AddContentModal({
       );
       toast.success("Content created successfully!", {
         style: {
-          background: '#10b981',
-          color: 'white',
-          border: '1px solid #059669',
+          background: "#10b981",
+          color: "white",
+          border: "1px solid #059669",
         },
-        icon: '✅',
+        icon: "✅",
       });
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      const msg = (err && typeof err === "object" && "message" in err)
-        ? (err as { message?: string }).message || "Failed to add content."
-        : "Failed to add content.";
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message?: string }).message || "Failed to add content."
+          : "Failed to add content.";
       setError(msg);
       toast.error(msg, {
         style: {
-          background: '#ef4444',
-          color: 'white',
-          border: '1px solid #dc2626',
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
         },
-        icon: '❌',
+        icon: "❌",
       });
     } finally {
       setLoading(false);
@@ -417,7 +428,11 @@ export default function LessonContentsPage() {
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     null
   );
-
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [selectedVideoContentId, setSelectedVideoContentId] = useState<
+    string | null
+  >(null);
+  const [allVideos, setAllVideos] = useState<VideoState[]>([]);
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -428,9 +443,10 @@ export default function LessonContentsPage() {
           setLoading(false);
           return;
         }
-        const [lessonsData, contentsData] = await Promise.all([
+        const [lessonsData, contentsData, videosData] = await Promise.all([
           fetchLessons(session.accessToken),
           fetchContentsByLesson(lessonId, session.accessToken),
+          getAllVideos(),
         ]);
         const foundLesson = lessonsData.find(
           (l: Lesson) => l.lessonId === lessonId
@@ -442,7 +458,9 @@ export default function LessonContentsPage() {
         }
         setLesson(foundLesson);
         setContents(contentsData);
-      } catch {
+        setAllVideos(videosData);
+      } catch (err) {
+        console.error("Failed to load data:", err);
         setError("Failed to load data. Please try again later.");
       } finally {
         setLoading(false);
@@ -464,44 +482,49 @@ export default function LessonContentsPage() {
 
     try {
       await deleteContent(contentId, session.accessToken);
-      
+
       // Update order for remaining contents
-      const remainingContents = contents.filter((c) => c.contentId !== contentId);
+      const remainingContents = contents.filter(
+        (c) => c.contentId !== contentId
+      );
       const updatedOrderContents = remainingContents.map((c, idx) => ({
         contentId: c.contentId,
         order: idx + 1,
       }));
-      
+
       if (updatedOrderContents.length > 0) {
         await updateContentOrder(
           { contents: updatedOrderContents },
           session.accessToken
         );
       }
-      
+
       setContents((prev) => {
         const filtered = prev.filter((c) => c.contentId !== contentId);
         const reordered = filtered.map((c, idx) => ({ ...c, order: idx + 1 }));
         return reordered;
       });
-      
+
       toast.success("Content deleted successfully!", {
         style: {
-          background: '#10b981',
-          color: 'white',
-          border: '1px solid #059669',
+          background: "#10b981",
+          color: "white",
+          border: "1px solid #059669",
         },
-        icon: '✅',
+        icon: "✅",
       });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Failed to delete content. Please try again.";
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to delete content. Please try again.";
       toast.error(msg, {
         style: {
-          background: '#ef4444',
-          color: 'white',
-          border: '1px solid #dc2626',
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
         },
-        icon: '❌',
+        icon: "❌",
       });
     }
   };
@@ -513,6 +536,8 @@ export default function LessonContentsPage() {
         session.accessToken
       );
       setContents(contentsData);
+      const videosData = await getAllVideos();
+      setAllVideos(videosData);
     } catch {
       setError("Failed to reload contents.");
     }
@@ -558,10 +583,23 @@ export default function LessonContentsPage() {
     setSelectedContentId(null);
   };
 
+  const closeVideoModal = () => {
+    setShowVideoModal(false);
+    setSelectedVideoContentId(null);
+  };
+
+  const openVideoModal = (contentId: string) => {
+    setSelectedVideoContentId(contentId);
+
+    setShowVideoModal(true);
+  };
+
   const handleEdit = (content: Content) => {
     setSelectedContent(content);
     setShowEditModal(true);
+    window.location.reload();
   };
+
 
   return (
     <div className="space-y-6">
@@ -644,12 +682,16 @@ export default function LessonContentsPage() {
                     <Button
                       size="icon"
                       variant="outline"
-                      onClick={() =>
-                        openDocumentModal(
-                          content.contentType,
-                          content.contentId
-                        )
-                      }
+                      onClick={() => {
+                        if (content.contentType === "doc") {
+                          openDocumentModal(
+                            content.contentType,
+                            content.contentId
+                          );
+                        } else if (content.contentType === "video") {
+                          openVideoModal(content.contentId);
+                        }
+                      }}
                     >
                       <CircleFadingPlus className="h-4 w-4" />
                     </Button>
@@ -686,6 +728,22 @@ export default function LessonContentsPage() {
           isOpen={showDocumentModal}
           onClose={closeDocumentModal}
           params={{ lessonId, contentId: selectedContentId }}
+        />
+      )}
+      {showVideoModal && selectedVideoContentId && (
+        <VideoModal
+          isOpen={showVideoModal}
+          onClose={closeVideoModal}
+          params={{ lessonId, contentId: selectedVideoContentId }}
+          video={
+            selectedVideoContentId
+              ? allVideos.find(
+                  (v) =>
+                    v.contents &&
+                    v.contents.contentId === selectedVideoContentId
+                )
+              : null
+          }
         />
       )}
       <EditContentModal
