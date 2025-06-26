@@ -66,6 +66,11 @@ export const courseApi = {
     return apiCall<CourseResponseDTO>(`/api/courses/getByCourse/${courseId}`);
   },
 
+  // Get courses by category (public endpoint)
+  getCoursesByCategory: async (categoryId: string): Promise<CourseResponseDTO[]> => {
+    return apiCall<CourseResponseDTO[]>(`/api/getByCategory/${categoryId}`);
+  },
+
   // Admin endpoints (require authentication)
   admin: {
     // Get all courses (admin)

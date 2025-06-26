@@ -167,4 +167,9 @@ export class CourseController {
   async deleteCourse(@Param('id') courseId: string): Promise<void> {
     await this.courseService.deleteCourse(courseId);
   }
+
+  @Get('getByCategory/:category_id')
+  async getByCategory(@Param('category_id') category_id: string) {
+    return this.courseService.getCoursesByCategory(category_id);
+  }
 }

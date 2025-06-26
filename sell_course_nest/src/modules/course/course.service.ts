@@ -283,4 +283,12 @@ export class CourseService {
     await this.CourseRepository.remove(course);
     throw new HttpException('Removed', HttpStatus.OK);
   }
+
+  async getCoursesByCategory(categoryId: string): Promise<Course[]> {
+    return this.CourseRepository.find({
+      where: { category: { categoryId } },
+      relations: ['category'],
+      order: { createdAt: 'DESC' },
+    });
+  }
 }
