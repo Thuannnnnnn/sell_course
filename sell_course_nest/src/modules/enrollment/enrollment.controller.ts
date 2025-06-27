@@ -36,6 +36,21 @@ export class EnrollmentController {
     );
   }
 
+  @Post('check')
+  async checkEnrollment(
+    @Body()
+    body: {
+      userId: string;
+      courseId: string;
+    },
+  ): Promise<{ enrolled: boolean }> {
+    const isEnrolled = await this.enrollmentService.checkEnrollment(
+      body.userId,
+      body.courseId,
+    );
+    return { enrolled: isEnrolled };
+  }
+
   @Get(':enrollmentId')
   async getEnrollmentById(
     @Param('enrollmentId') enrollmentId: number,

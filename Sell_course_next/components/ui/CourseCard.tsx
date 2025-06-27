@@ -28,9 +28,6 @@ export function CourseCard({ course, showWishlistButton = true }: CourseProps) {
       setImageSrc("/placeholder-course.jpg");
     }
   };
-
-  // Check if the image URL is from an external domain that might not be configured
-  const isExternalImage = imageSrc && !imageSrc.startsWith('/') && !imageSrc.startsWith('data:');
   
   return (
     <Card className="overflow-hidden flex flex-col justify-between hover:shadow-lg transition-shadow duration-300 relative">
@@ -42,7 +39,7 @@ export function CourseCard({ course, showWishlistButton = true }: CourseProps) {
       )}
 
       <div className="aspect-video w-full overflow-hidden bg-gray-200 flex items-center justify-center">
-        {isExternalImage && !imageError ? (
+        {imageSrc && !imageError ? (
           <Image
             src={imageSrc}
             alt={title}
