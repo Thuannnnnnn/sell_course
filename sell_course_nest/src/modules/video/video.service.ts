@@ -399,7 +399,6 @@ export class VideoService {
   async viewVideoById(videoId: string): Promise<Video> {
     try {
       const video = await this.videoRepository.findOne({
-        relations: ['video'],
         where: { videoId: videoId },
       });
       if (!video) {

@@ -1,56 +1,101 @@
-import React from 'react'
-import { Card, CardContent } from '../ui/card'
-import { Separator } from '../ui/separator'
-import { Button } from '../ui/button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { VideoLesson } from './VideoLesson'
-import { DocLesson } from './DocLesson'
-import { QuizComponent } from './QuizComponent'
+import React from "react";
+import { Card, CardContent } from "../ui/card";
+import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { VideoLesson } from "./VideoLesson";
+import { DocLesson } from "./DocLesson";
+import { QuizComponent } from "./QuizComponent";
+
+// Updated interface to match CourseLearnPage usage
 interface LessonContentProps {
-  lesson: {
-    title: string;
-    type: string;
-    duration: string;
-  }
+  Lesson: {
+    lessonId: string;
+    lessonName: string;
+    order: number;
+    courseId: string;
+    createdAt: Date;
+    updatedAt: Date;
+    contents?: Content[];
+  };
+  content: {
+    contentId: string;
+    contentName: string;
+    contentType: string;
+    order: number;
+    lessonId: string;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  getContentDuration: (content: Content) => string;
 }
-export function LessonContent({ lesson }: LessonContentProps) {
+
+interface Content {
+  contentId: string;
+  contentName: string;
+  contentType: string;
+  order: number;
+  lessonId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export function LessonContent({
+  content,
+  getContentDuration,
+}: LessonContentProps) {
   const renderLessonContent = () => {
-    switch (lesson.type) {
-      case 'video':
-        return <VideoLesson lesson={{
-          title: lesson.title,
-          content: {
-            videoUrl: '',
-            description: ''
-          }
-        }} />
-      case 'text':
-        return <DocLesson lesson={{
-          title: lesson.title,
-          content: ''
-        }} />
-      case 'quiz':
-        return <QuizComponent lesson={{
-          id: '',
-          title: lesson.title,
-          quiz: {
-            id: '',
-            questions: []
-          }
-        }} />
+    switch (content.contentType) {
+      case "video":
+        return (
+          <VideoLesson
+            lesson={{
+              title: content.contentName,
+              content: {
+                videoUrl: "",
+                description: "",
+              },
+            }}
+          />
+        );
+      case "text":
+        return (
+          <DocLesson
+            lesson={{
+              title: content.contentName,
+              content: "",
+            }}
+          />
+        );
+      case "quiz":
+        return (
+          <QuizComponent
+            lesson={{
+              id: content.contentId,
+              title: content.contentName,
+              quiz: {
+                id: content.contentId,
+                questions: [],
+              },
+            }}
+          />
+        );
       default:
-        return <div>Unsupported lesson type</div>
+        return <div>Unsupported lesson type</div>;
     }
-  }
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{lesson.title}</h1>
-        <p className="text-muted-foreground">{lesson.duration}</p>
+        <h1 className="text-2xl font-bold">{content.contentName}</h1>
+        <p className="text-muted-foreground">{getContentDuration(content)}</p>
       </div>
+
       <Card>
         <CardContent className="p-0">{renderLessonContent()}</CardContent>
       </Card>
+
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Additional Resources</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -80,6 +125,7 @@ export function LessonContent({ lesson }: LessonContentProps) {
               <div className="text-sm text-muted-foreground">PDF, 2.3MB</div>
             </div>
           </Card>
+
           <Card className="p-4 flex items-center gap-3 cursor-pointer hover:bg-accent/50 transition-colors">
             <div className="bg-primary/10 text-primary p-2 rounded-full">
               <svg
@@ -106,7 +152,9 @@ export function LessonContent({ lesson }: LessonContentProps) {
           </Card>
         </div>
       </div>
+
       <Separator />
+
       <div className="flex justify-between">
         <Button variant="outline" className="flex items-center gap-2">
           <ChevronLeft className="h-4 w-4" />
@@ -118,5 +166,5 @@ export function LessonContent({ lesson }: LessonContentProps) {
         </Button>
       </div>
     </div>
-  )
+  );
 }

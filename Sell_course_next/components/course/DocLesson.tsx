@@ -1,11 +1,11 @@
-'use client'
-import React from 'react'
-import { ScrollArea } from '@/components/ui/scroll-area'
+"use client";
+import React from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 interface TextLessonProps {
   lesson: {
     title: string;
     content: string;
-  }
+  };
 }
 export function DocLesson({ lesson }: TextLessonProps) {
   return (
@@ -14,7 +14,7 @@ export function DocLesson({ lesson }: TextLessonProps) {
         <h2>{lesson.title}</h2>
         <p>
           HTML elements are the building blocks of HTML pages. An HTML element
-          is defined by a start tag, some content, and an end tag. For example,{' '}
+          is defined by a start tag, some content, and an end tag. For example,{" "}
           <code>&lt;p&gt;This is a paragraph&lt;/p&gt;</code> defines a
           paragraph.
         </p>
@@ -37,30 +37,30 @@ export function DocLesson({ lesson }: TextLessonProps) {
         <h3>Common HTML Elements</h3>
         <ul>
           <li>
-            <strong>Headings:</strong> HTML headings are defined with the{' '}
+            <strong>Headings:</strong> HTML headings are defined with the{" "}
             <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code> tags.
-            <code>&lt;h1&gt;</code> defines the most important heading while{' '}
+            <code>&lt;h1&gt;</code> defines the most important heading while{" "}
             <code>&lt;h6&gt;</code> defines the least important heading.
           </li>
           <li>
-            <strong>Paragraphs:</strong> HTML paragraphs are defined with the{' '}
+            <strong>Paragraphs:</strong> HTML paragraphs are defined with the{" "}
             <code>&lt;p&gt;</code> tag.
           </li>
           <li>
-            <strong>Links:</strong> HTML links are defined with the{' '}
+            <strong>Links:</strong> HTML links are defined with the{" "}
             <code>&lt;a&gt;</code> tag. The link's destination is specified in
             the <code>href</code> attribute.
           </li>
           <li>
-            <strong>Images:</strong> HTML images are defined with the{' '}
+            <strong>Images:</strong> HTML images are defined with the{" "}
             <code>&lt;img&gt;</code> tag. The source file (<code>src</code>),
-            alternative text (<code>alt</code>), <code>width</code>, and{' '}
+            alternative text (<code>alt</code>), <code>width</code>, and{" "}
             <code>height</code> are provided as attributes.
           </li>
           <li>
-            <strong>Lists:</strong> HTML lists are defined with the{' '}
-            <code>&lt;ul&gt;</code> (unordered/bullet list) or{' '}
-            <code>&lt;ol&gt;</code> (ordered/numbered list) tag, followed by{' '}
+            <strong>Lists:</strong> HTML lists are defined with the{" "}
+            <code>&lt;ul&gt;</code> (unordered/bullet list) or{" "}
+            <code>&lt;ol&gt;</code> (ordered/numbered list) tag, followed by{" "}
             <code>&lt;li&gt;</code> tags (list items).
           </li>
         </ul>
@@ -122,7 +122,7 @@ export function DocLesson({ lesson }: TextLessonProps) {
             the path to the image to be displayed
           </li>
           <li>
-            The <code>width</code> and <code>height</code> attributes of{' '}
+            The <code>width</code> and <code>height</code> attributes of{" "}
             <code>&lt;img&gt;</code> provide size information for images
           </li>
           <li>
@@ -148,5 +148,5 @@ export function DocLesson({ lesson }: TextLessonProps) {
         </p>
       </div>
     </ScrollArea>
-  )
+  );
 }
