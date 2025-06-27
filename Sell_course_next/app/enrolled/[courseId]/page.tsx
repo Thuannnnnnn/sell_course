@@ -278,7 +278,7 @@ export function CourseLearnPage({ params }: CourseLearnPageProps) {
     switch (content.contentType) {
       case "video":
         return "12:30";
-      case "text":
+      case "doc":
         return "15 mins read";
       case "quiz":
         return "10 questions";

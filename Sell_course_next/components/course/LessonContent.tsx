@@ -47,17 +47,7 @@ export function LessonContent({
   const renderLessonContent = () => {
     switch (content.contentType) {
       case "video":
-        return (
-          <VideoLesson
-            lesson={{
-              title: content.contentName,
-              content: {
-                videoUrl: "",
-                description: "",
-              },
-            }}
-          />
-        );
+        return <VideoLesson content={content} />;
       case "text":
         return (
           <DocLesson

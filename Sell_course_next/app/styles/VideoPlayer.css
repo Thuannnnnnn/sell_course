@@ -1,0 +1,306 @@
+/* VideoPlayer.css - YouTube-style video player styles */
+
+/* Custom scrollbar for transcript */
+.transcript-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.transcript-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.transcript-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.transcript-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Video player container animations */
+.video-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-container.with-transcript {
+  width: 66.666667%;
+}
+
+.video-container.full-width {
+  width: 100%;
+}
+
+/* Transcript sidebar animations */
+.transcript-sidebar {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.transcript-sidebar.hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Active transcript item highlight */
+.transcript-item {
+  transition: all 0.2s ease-in-out;
+  border-left: 4px solid transparent;
+}
+
+.transcript-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: translateX(2px);
+}
+
+.transcript-item.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+  transform: translateX(4px);
+}
+
+.transcript-item.active .transcript-text {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Video controls overlay */
+.video-controls-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    transparent 100%
+  );
+  transition: opacity 0.3s ease-in-out;
+}
+
+.video-controls-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Custom progress bar */
+.progress-bar {
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.progress-bar:hover {
+  height: 6px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #ff0000;
+  transition: width 0.1s ease-out;
+  border-radius: 2px;
+}
+
+.progress-bar-buffer {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 2px;
+}
+
+/* Volume slider */
+.volume-slider {
+  width: 80px;
+  transition: width 0.2s ease-in-out;
+}
+
+.volume-slider:hover {
+  width: 100px;
+}
+
+/* Control buttons */
+.control-button {
+  padding: 8px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-button:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+  transform: scale(1.1);
+}
+
+.control-button.play-pause {
+  width: 64px;
+  height: 64px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.control-button.play-pause:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+  transform: scale(1.05);
+}
+
+/* Time display */
+.time-display {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Transcript timestamp */
+.transcript-timestamp {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+  color: #6b7280;
+  min-width: 50px;
+  text-align: right;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.transcript-timestamp:hover {
+  color: #3b82f6;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .video-container.with-transcript {
+    width: 100%;
+  }
+  
+  .transcript-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    z-index: 50;
+    padding: 1rem;
+  }
+  
+  .transcript-sidebar.hidden {
+    transform: translateX(100%);
+  }
+  
+  .control-button.play-pause {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .volume-slider {
+    width: 60px;
+  }
+  
+  .time-display {
+    font-size: 12px;
+    min-width: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .transcript-item {
+    padding: 12px;
+  }
+  
+  .transcript-timestamp {
+    font-size: 10px;
+    min-width: 40px;
+  }
+  
+  .control-button {
+    padding: 6px;
+  }
+  
+  .control-button.play-pause {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .transcript-item {
+    color: #f3f4f6;
+  }
+  
+  .transcript-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .transcript-item.active {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+  
+  .transcript-item.active .transcript-text {
+    color: #f3f4f6;
+  }
+  
+  .transcript-timestamp {
+    color: #9ca3af;
+  }
+  
+  .transcript-timestamp:hover {
+    color: #60a5fa;
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: background-color 0.2s ease-in-out, 
+              color 0.2s ease-in-out, 
+              transform 0.2s ease-in-out,
+              opacity 0.2s ease-in-out;
+}
+
+/* Focus styles for accessibility */
+.control-button:focus,
+.transcript-item:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .transcript-item.active {
+    border-left-color: #000;
+    background-color: #fff;
+  }
+  
+  .control-button {
+    border: 2px solid #fff;
+  }
+  
+  .progress-bar-fill {
+    background-color: #000;
+  }
+}
+

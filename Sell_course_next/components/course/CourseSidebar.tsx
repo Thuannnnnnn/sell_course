@@ -55,7 +55,7 @@ export function CourseSidebar({
     switch (contentType) {
       case 'video':
         return <Play className="h-4 w-4 text-blue-500" />
-      case 'text':
+      case 'doc':
         return <FileText className="h-4 w-4 text-gray-500" />
       case 'quiz':
         return <HelpCircle className="h-4 w-4 text-orange-500" />

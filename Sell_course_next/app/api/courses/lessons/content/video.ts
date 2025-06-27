@@ -20,6 +20,20 @@ export const getVideoById = async (videoId: string): Promise<VideoState> => {
   }
 };
 
+export const getVideoByContentId = async (contentId: string): Promise<VideoState> => {
+  try {
+    const response = await axios.get<VideoState>(
+      `${API_BASE_URL}/video/view_video_content/${contentId}`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to fetch video");
+    } else {
+      throw new Error("An unexpected error occurred");
+    }
+  }
+};
 
 export const getAllVideos = async (): Promise<VideoState[]> => {
   const response = await axios.get<VideoState[]>(
