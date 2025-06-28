@@ -250,9 +250,9 @@ export default function QuizPage({
     : null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto h-[calc(100vh-100px)] flex flex-col">
       {/* Header */}
-      <Card>
+      <Card className="mb-4 flex-shrink-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
@@ -278,78 +278,82 @@ export default function QuizPage({
         </CardContent>
       </Card>
 
-      {/* Question */}
-      <QuizQuestion
-        question={currentQuestion}
-        selectedOption={currentSelectedAnswerIndex}
-        onSelectOption={handleSelectAnswer}
-      />
+      {/* Question - Main content that takes available space */}
+      <div className="flex-grow overflow-auto mb-4">
+        <QuizQuestion
+          question={currentQuestion}
+          selectedOption={currentSelectedAnswerIndex}
+          onSelectOption={handleSelectAnswer}
+        />
+      </div>
 
-      {/* Navigation */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={previousQuestion}
-              disabled={currentQuestionIndex === 0}
-            >
-              Previous
-            </Button>
-
-            <div className="flex items-center gap-2">
-              {selectedAnswers[currentQuestionIndex] !== null && (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              )}
-              <span className="text-sm text-muted-foreground">
-                {selectedAnswers[currentQuestionIndex] !== null ? 'Answered' : 'Not answered'}
-              </span>
-            </div>
-
-            {isLastQuestion ? (
+      {/* Navigation - Fixed at bottom */}
+      <div className="flex-shrink-0">
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <Button
-                onClick={handleSubmitQuiz}
-                disabled={isSubmitting || !canSubmit}
-                className="min-w-[100px]"
+                variant="outline"
+                onClick={previousQuestion}
+                disabled={currentQuestionIndex === 0}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
+                Previous
               </Button>
-            ) : (
-              <Button onClick={nextQuestion}>
-                Next
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Question Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Question Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-            {questions.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToQuestion(index)}
-                className={`
-                  w-8 h-8 rounded text-xs font-medium transition-colors
-                  ${index === currentQuestionIndex
-                    ? 'bg-primary text-primary-foreground'
-                    : selectedAnswers[index] !== null
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }
-                `}
-              >
-                {index + 1}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex items-center gap-2">
+                {selectedAnswers[currentQuestionIndex] !== null && (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                )}
+                <span className="text-sm text-muted-foreground">
+                  {selectedAnswers[currentQuestionIndex] !== null ? 'Answered' : 'Not answered'}
+                </span>
+              </div>
+
+              {isLastQuestion ? (
+                <Button
+                  onClick={handleSubmitQuiz}
+                  disabled={isSubmitting || !canSubmit}
+                  className="min-w-[100px]"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
+                </Button>
+              ) : (
+                <Button onClick={nextQuestion}>
+                  Next
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Question Overview */}
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="text-lg">Question Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="py-2">
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+              {questions.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToQuestion(index)}
+                  className={`
+                    w-8 h-8 rounded text-xs font-medium transition-colors
+                    ${index === currentQuestionIndex
+                      ? 'bg-primary text-primary-foreground'
+                      : selectedAnswers[index] !== null
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }
+                  `}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
