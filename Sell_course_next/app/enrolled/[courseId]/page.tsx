@@ -1,26 +1,21 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { CourseSidebar } from "../../../components/course/CourseSidebar";
-import { LessonContent } from "../../../components/course/LessonContent";
-import { ExamComponent } from "../../../components/course/ExamComponent";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../../components/ui/tabs";
-import { Button } from "../../../components/ui/button";
-import { Progress } from "../../../components/ui/progress";
-import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
-import { Label } from "../../../components/ui/label";
-import { CheckCircle, AlertCircle } from "lucide-react";
-import { useParams } from "next/navigation";
-import {
-  courseApi,
-  contentApi,
-  examApi,
-} from "../../api/courses/lessons/lessons";
+'use client'
+import React, { useState, useEffect, useCallback } from 'react'
+import { CourseSidebar } from '../../../components/course/CourseSidebar'
+import { LessonContent } from '../../../components/course/LessonContent'
+import { ExamComponent } from '../../../components/course/ExamComponent'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs'
+import { Button } from '../../../components/ui/button'
+import { Progress } from '../../../components/ui/progress'
+import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '../../../components/ui/radio-group'
+import { Label } from '../../../components/ui/label'
+import { CheckCircle, AlertCircle } from 'lucide-react'
+import { useParams } from 'next/navigation'
+import { 
+  courseApi, 
+  contentApi, 
+  examApi 
+} from '../../api/courses/lessons/lessons'
 import {
   CourseData,
   LessonWithContent,
@@ -33,7 +28,7 @@ import {
 } from "../../types/Course/Lesson/Lessons";
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
 
-export function CourseLearnPage() {
+export default function CourseLearnPage() {
   const params = useParams();
   const courseId = params.courseId as string;
 
@@ -82,8 +77,7 @@ export function CourseLearnPage() {
   };
 
   // Fetch course data from API
-  useEffect(() => {
-    const fetchCourseData = async () => {
+  const fetchCourseData = useCallback(async () => {
       if (!courseId) return;
 
       setLoading(true);
@@ -112,18 +106,15 @@ export function CourseLearnPage() {
               const contents = lesson.contents || [];
 
               // Determine lesson type and content based on first content
-              let lessonType: "video" | "text" | "quiz" = "text";
-              let lessonContent:
-                | VideoState
-                | DocumentResponse
-                | QuizResponse
-                | { text: string } = { text: "No content available" };
-              let duration = "5 mins read";
+              let lessonType: 'video' | 'text' | 'quiz';
+              let lessonContent: VideoState | DocumentResponse | QuizResponse | { text: string } = { text: 'No content available' };
+              let duration = '5 mins read';
 
               if (contents && contents.length > 0) {
                 const firstContent = contents[0];
 
                 try {
+                  console.log('🔍 Processing content:', firstContent.contentType, firstContent);
                   switch (firstContent.contentType.toLowerCase()) {
                     case "video":
                       lessonType = "video";
@@ -143,10 +134,12 @@ export function CourseLearnPage() {
                       };
                       duration = "5 mins read";
                       break;
-                    case "quiz":
-                      lessonType = "quiz";
-                      const quizContent =
-                        (await contentApi.getQuizContent()) as QuizResponse;
+                    case 'quiz':
+                    case 'quizz':
+                      console.log('📝 Loading quiz content...');
+                      lessonType = 'quiz';
+                      const quizContent = await contentApi.getQuizContent(courseId, lesson.lessonId, firstContent.contentId) as QuizResponse;
+                      console.log('✅ Quiz content loaded:', quizContent);
                       lessonContent = quizContent;
                       duration = `${
                         quizContent.questions?.length || 0
@@ -154,14 +147,16 @@ export function CourseLearnPage() {
                       break;
 
                     default:
-                      lessonType = "text";
-                      lessonContent = { text: "Content not available" };
-                      duration = "5 mins read";
+                      console.log('❌ Unknown content type:', firstContent.contentType);
+                      lessonType = 'text';
+                      lessonContent = { text: 'Content not available' };
+                      duration = '5 mins read';
                   }
-                } catch {
-                  lessonType = "text";
-                  lessonContent = { text: "Content not available" };
-                  duration = "5 mins read";
+                } catch (error) {
+                  console.error('❌ Error loading content:', error);
+                  lessonType = 'text';
+                  lessonContent = { text: 'Content not available' };
+                  duration = '5 mins read';
                 }
 
                 const transformedLesson: LessonWithContent = {
@@ -250,10 +245,11 @@ export function CourseLearnPage() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchCourseData();
   }, [courseId, completedContents]);
+
+  useEffect(() => {
+    fetchCourseData();
+  }, [fetchCourseData]);
 
   const handleLessonSelect = (lesson: LessonResponse) => {
     setCurrentLesson(lesson);
@@ -355,8 +351,8 @@ export function CourseLearnPage() {
 
   // Handle content completion
   const handleContentComplete = (contentId: string) => {
-    setCompletedContents((prev) => new Set([...Array.from(prev), contentId]));
-
+    setCompletedContents(prev => new Set([...Array.from(prev), contentId]));
+    
     // Update lesson completion status if all contents are completed
     if (currentLesson) {
       const allContents = currentLesson.contents || [];
@@ -486,11 +482,19 @@ export function CourseLearnPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="content" className="mt-0">
-                {currentContent && (
-                  <LessonContent
-                    lesson={currentContent}
-                    content={selectedContent}
-                    onContentComplete={handleContentComplete}
+                {currentLesson && (
+                  <LessonContent 
+                    lesson={{
+                      id: currentLesson.lessonId,
+                      title: currentLesson.lessonName,
+                      type: currentContent?.type || "text",
+                      duration: currentLesson.duration || "5 mins",
+                      content: currentContent?.content,
+                      contents: currentLesson.contents
+                    }} 
+                    content={selectedContent} 
+                    courseId={courseId} 
+                    onContentComplete={handleContentComplete} 
                   />
                 )}
               </TabsContent>
@@ -663,5 +667,3 @@ export function CourseLearnPage() {
     </div>
   );
 }
-
-export default CourseLearnPage;

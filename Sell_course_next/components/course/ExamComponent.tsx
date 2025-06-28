@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../ui/card'
-import { Button } from '../ui/button'
+
 import { Clock, FileText, Lock, AlertTriangle } from 'lucide-react'
 import { cn } from '../../lib/utils'
 interface ExamComponentProps {
