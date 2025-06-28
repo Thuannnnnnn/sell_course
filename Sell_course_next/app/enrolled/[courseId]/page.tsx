@@ -22,11 +22,11 @@ import {
   ContentResponse,
   LessonResponse,
   CourseResponse,
-  VideoResponse,
   DocumentResponse,
   QuizResponse,
   ExamQuestion
 } from '../../types/Course/Lesson/Lessons'
+import { VideoState } from '@/app/types/Course/Lesson/content/video'
 
 // Use the Lesson type from CourseSidebar
 type Lesson = {
@@ -92,7 +92,7 @@ export function CourseLearnPage() {
 
               // Determine lesson type and content based on first content
               let lessonType: 'video' | 'text' | 'quiz' = 'text';
-              let lessonContent: VideoResponse | DocumentResponse | QuizResponse | { text: string } = { text: 'No content available' };
+              let lessonContent: VideoState | DocumentResponse | QuizResponse | { text: string } = { text: 'No content available' };
               let duration = '5 mins read';
 
               if (contents && contents.length > 0) {
@@ -102,7 +102,7 @@ export function CourseLearnPage() {
                   switch (firstContent.contentType.toLowerCase()) {
                     case 'video':
                       lessonType = 'video';
-                      const videoContent = await contentApi.getVideoContent(firstContent.contentId) as VideoResponse;
+                      const videoContent = await contentApi.getVideoContent(firstContent.contentId) as VideoState;
                       lessonContent = videoContent;
                       duration = '10:25';
                       break;
@@ -302,7 +302,7 @@ export function CourseLearnPage() {
 
   // Handle content completion
   const handleContentComplete = (contentId: string) => {
-    setCompletedContents(prev => new Set([...prev, contentId]));
+    setCompletedContents(prev => new Set([...Array.from(prev), contentId]));
     
     // Update lesson completion status if all contents are completed
     if (currentLesson) {

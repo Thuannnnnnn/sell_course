@@ -1,4 +1,4 @@
-import { Content } from "../Lessons";
+import { ContentResponse } from "../Lessons";
 
 // app/types/video.d.ts
 export interface VideoState {
@@ -8,7 +8,7 @@ export interface VideoState {
   url: string;
   urlScript: string;
   createdAt: string;
-  contents: Content;
+  contents: ContentResponse;
 }
 
 

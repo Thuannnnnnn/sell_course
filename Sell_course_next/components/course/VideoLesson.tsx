@@ -18,9 +18,8 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
-import { Content } from "@/app/types/Course/Lesson/Lessons";
+
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
-import { getVideoByContentId } from "@/app/api/courses/lessons/content/video";
 
 // Định nghĩa interface cho mỗi từ trong script theo định dạng mới
 interface WordItem {
@@ -69,12 +68,12 @@ interface DiscussionItem {
 }
 
 // Updated props interface to match your structure
-interface VideoLessonProps {
-  content: Content;
+interface VideoLessonProps extends VideoState {
+  onComplete?: (contentId: string) => void;
+  videoData: VideoState;
 }
 
-export function VideoLesson({ content }: VideoLessonProps) {
-  const [videoData, setVideoData] = useState<VideoState | null>(null);
+export function VideoLesson({ onComplete, videoData }: VideoLessonProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -167,31 +166,22 @@ export function VideoLesson({ content }: VideoLessonProps) {
       try {
         setLoading(true);
         setError(null);
-        console.log(content);
-        // Only fetch if content type is video
-        if (content.contentType.toLowerCase() === "video") {
-          const data = await getVideoByContentId(content.contentId);
-          setVideoData(data);
 
-          // Fetch transcript if urlScript exists
-          if (data?.urlScript) {
-            try {
-              const scriptResponse = await fetch(data.urlScript);
-              if (!scriptResponse.ok) {
-                throw new Error(`HTTP error! status: ${scriptResponse.status}`);
-              }
-              const scriptData: ScriptResponse[] = await scriptResponse.json();
-
-              // Xử lý dữ liệu script thành format 10s mỗi dòng
-              const processedTranscript = processScriptData(scriptData);
-              setTranscript(processedTranscript);
-            } catch (scriptErr) {
-              console.error("Error fetching transcript:", scriptErr);
-              // Optionally set a specific error for transcript
+        if (videoData?.urlScript) {
+          try {
+            const scriptResponse = await fetch(videoData.urlScript);
+            if (!scriptResponse.ok) {
+              throw new Error(`HTTP error! status: ${scriptResponse.status}`);
             }
+            const scriptData: ScriptResponse[] = await scriptResponse.json();
+
+            // Xử lý dữ liệu script thành format 10s mỗi dòng
+            const processedTranscript = processScriptData(scriptData);
+            setTranscript(processedTranscript);
+          } catch (scriptErr) {
+            console.error("Error fetching transcript:", scriptErr);
+            // Optionally set a specific error for transcript
           }
-        } else {
-          setError("This content is not a video");
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load video");
@@ -202,7 +192,7 @@ export function VideoLesson({ content }: VideoLessonProps) {
     };
 
     fetchVideoAndTranscriptData();
-  }, [content]);
+  }, [videoData.urlScript]);
 
   // Tự động ẩn controls sau 3 giây không hoạt động
   useEffect(() => {
@@ -337,31 +327,14 @@ export function VideoLesson({ content }: VideoLessonProps) {
     }
   };
 
-  // Show message if content is not a video
-  if (content.contentType.toLowerCase() !== "video") {
-    return (
-      <div className="w-full">
-        <AspectRatio ratio={16 / 9}>
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <AlertCircle className="w-8 h-8" />
-              <span>This content is not a video</span>
-              <span className="text-sm">
-                Content type: {content.contentType}
-              </span>
-            </div>
-          </div>
-        </AspectRatio>
-      </div>
-    );
-  }
-
   // Render loading state
   if (loading) {
     return (
       <div className="w-full">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">{content.contentName}</h2>
+          <h2 className="text-2xl font-bold">
+            {videoData?.contents.contentType}
+          </h2>
         </div>
         <AspectRatio ratio={16 / 9}>
           <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -380,7 +353,9 @@ export function VideoLesson({ content }: VideoLessonProps) {
     return (
       <div className="w-full">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">{content.contentName}</h2>
+          <h2 className="text-2xl font-bold">
+            {videoData?.contents.contentName}
+          </h2>
         </div>
         <AspectRatio ratio={16 / 9}>
           <div className="w-full h-full bg-muted flex items-center justify-center">

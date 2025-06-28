@@ -1,14 +1,6 @@
 // API Response Types for Course Learning System
 
-// Video API Response
-export interface VideoResponse {
-  videoId: string;
-  title: string;
-  url: string;
-  description?: string;
-  duration?: string;
-  createdAt: string;
-}
+
 
 // Document API Response
 export interface DocumentResponse {
