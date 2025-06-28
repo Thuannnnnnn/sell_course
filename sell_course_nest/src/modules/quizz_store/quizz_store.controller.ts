@@ -37,6 +37,24 @@ export class QuizzStoreController {
       lessonId, 
       contentId,
     );
+    // Transform the result to match frontend expectations
+    const transformedResult = {
+      storeId: result.storeId,
+      quizzId: result.quizz.quizzId,
+      userId: result.user.user_id,
+      score: result.score,
+      answers: result.answers,
+      createdAt: result.createdAt,
+      scoreAnalysis: result.scoreAnalysis,
+      detailedAnalysis: result.detailedAnalysis,
+      feedback: result.feedback,
+    };
+    // Return in the format expected by frontend
+    return {
+      success: true,
+      data: [transformedResult], // Frontend expects an array
+      message: 'Quiz submitted successfully',
+    };
   }
 
   @Get(':quizId/results')
