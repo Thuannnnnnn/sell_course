@@ -47,6 +47,17 @@ export class EnrollmentService {
     return this.enrollmentRepository.save(enrollment);
   }
 
+  async checkEnrollment(userId: string, courseId: string): Promise<boolean> {
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        user: { user_id: userId },
+        course: { courseId: courseId },
+      },
+      relations: ['user', 'course'],
+    });
+    return !!enrollment;
+  }
+
   async getEnrollmentById(enrollmentId: number): Promise<Enrollment> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: { enrollmentId },
