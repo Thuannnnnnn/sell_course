@@ -155,6 +155,8 @@ export function LessonContent({ lesson, content, onContentComplete }: LessonCont
     }
   };
 
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -197,6 +199,7 @@ export function LessonContent({ lesson, content, onContentComplete }: LessonCont
               <div className="text-sm text-muted-foreground">PDF, 2.3MB</div>
             </div>
           </Card>
+
           <Card className="p-4 flex items-center gap-3 cursor-pointer hover:bg-accent/50 transition-colors">
             <div className="bg-primary/10 text-primary p-2 rounded-full">
               <svg
@@ -237,5 +240,5 @@ export function LessonContent({ lesson, content, onContentComplete }: LessonCont
         </Button>
       </div>
     </div>
-  )
+  );
 }

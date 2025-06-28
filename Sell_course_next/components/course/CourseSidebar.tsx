@@ -45,7 +45,7 @@ interface CourseSidebarProps {
 }
 
 export function CourseSidebar({
-  modules,
+  lessons,
   currentLesson,
   currentContentId,
   onLessonSelect,
@@ -65,15 +65,16 @@ export function CourseSidebar({
 
   const getLessonIcon = (type: string, isCompleted: boolean) => {
     if (isCompleted) return <CheckCircle className="h-4 w-4 text-green-500" />
-    switch (type) {
+    
+    switch (contentType) {
       case 'video':
         return <Play className="h-4 w-4" />
       case 'doc':
         return <FileText className="h-4 w-4" />
       case 'quiz':
-        return <HelpCircle className="h-4 w-4" />
+        return <HelpCircle className="h-4 w-4 text-orange-500" />
       default:
-        return <FileText className="h-4 w-4" />
+        return <FileText className="h-4 w-4 text-gray-500" />
     }
   }
 
