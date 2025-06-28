@@ -14,6 +14,7 @@ import {
   ContentData,
 } from "../../app/types/Course/Lesson/Lessons";
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
+import AIChatWindow from "@/components/course/AIChatWindow";
 
 interface LessonContentProps {
   lesson: {
@@ -21,11 +22,7 @@ interface LessonContentProps {
     title: string;
     type: string;
     duration: string;
-    content?:
-      | VideoState
-      | DocumentResponse
-      | QuizResponse
-      | { text: string };
+    content?: VideoState | DocumentResponse | QuizResponse | { text: string };
     contents?: ContentResponse[];
   };
   content?: ContentResponse | null;
@@ -40,7 +37,7 @@ export function LessonContent({
   const [contentData, setContentData] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [urlBot, setUrlBot] = useState<string | null>(null);
   useEffect(() => {
     const fetchContent = async () => {
       const selected = content || (lesson.contents && lesson.contents[0]);
@@ -57,12 +54,14 @@ export function LessonContent({
               `/api/video/view_video_content/${selected.contentId}`
             );
             setContentData({ type: "video", data: videoData });
+            setUrlBot(videoData.urlScript);
             break;
           case "doc":
             const docData = await apiCall<DocumentResponse>(
               `/api/docs/view_doc/${selected.contentId}`
             );
             setContentData({ type: "doc", data: docData });
+            setUrlBot(docData.url);
             break;
           case "quiz":
             const quizData = await apiCall<QuizResponse>(`/api/quizz/random`);
@@ -264,6 +263,7 @@ export function LessonContent({
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
+      <AIChatWindow urlBot={urlBot || ""} />
     </div>
   );
 }
