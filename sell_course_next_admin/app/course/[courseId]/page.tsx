@@ -299,7 +299,9 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
     router.push(`/course/${courseId}/${lessonId}/contents`);
   };
 
-
+  const handleViewExam = () => {
+    router.push(`/course/${courseId}/exam`);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -314,23 +316,42 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
           </Button>
           <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
         </div>
-        <Button
-          className="flex items-center gap-2"
-          onClick={() => setShowAddModal(true)}
-          style={{
-            backgroundColor: '#513deb',
-            color: 'white',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#4f46e5';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#513deb';
-          }}
-        >
-          <Plus className="h-5 w-5" />
-          Add Lesson
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            className="flex items-center gap-2"
+            onClick={handleViewExam}
+            style={{
+              backgroundColor: '#10b981',
+              color: 'white',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#059669';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#10b981';
+            }}
+          >
+            <FileText className="h-5 w-5" />
+            Exam
+          </Button>
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => setShowAddModal(true)}
+            style={{
+              backgroundColor: '#513deb',
+              color: 'white',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4f46e5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#513deb';
+            }}
+          >
+            <Plus className="h-5 w-5" />
+            Add Lesson
+          </Button>
+        </div>
       </div>
       <div className="mb-4">
         <Input
