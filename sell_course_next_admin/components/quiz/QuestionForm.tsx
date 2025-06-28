@@ -9,15 +9,20 @@ import { QuizFormData } from '../../app/types/quiz'
 import { Check, Sparkles, Target, Award } from 'lucide-react'
 interface QuestionFormProps {
   onSubmit: (question: QuizFormData) => void
+  onCancel?: () => void
   initialQuestion?: QuizFormData | null
+  disabled?: boolean
+  disabledMessage?: string
 }
-export default function QuestionForm({ onSubmit, initialQuestion }: QuestionFormProps) {
+export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disabled = false, disabledMessage }: QuestionFormProps) {
   const [question, setQuestion] = useState('')
   const [options, setOptions] = useState(['', '', '', ''])
   const [correctAnswer, setCorrectAnswer] = useState(0)
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
   const [weight, setWeight] = useState(5) // Start with medium default
   const [error, setError] = useState('')
+  const [isDirty, setIsDirty] = useState(false)
+  const [initialData, setInitialData] = useState<any>(null)
 
   // Define difficulty point ranges
   const getDifficultyRange = (difficulty: string) => {
@@ -47,9 +52,62 @@ export default function QuestionForm({ onSubmit, initialQuestion }: QuestionForm
       setOptions(initialQuestion.options)
       setCorrectAnswer(initialQuestion.correctAnswer)
       setDifficulty(initialQuestion.difficulty || 'medium')
-      setWeight(initialQuestion.weight || 1)
+      setWeight(initialQuestion.weight || 5)
+      
+      // Store initial data for comparison
+      setInitialData({
+        question: initialQuestion.question,
+        options: initialQuestion.options,
+        correctAnswer: initialQuestion.correctAnswer,
+        difficulty: initialQuestion.difficulty || 'medium',
+        weight: initialQuestion.weight || 5
+      })
+    } else {
+      // For new questions, set initial data as empty
+      setInitialData({
+        question: '',
+        options: ['', '', '', ''],
+        correctAnswer: 0,
+        difficulty: 'medium',
+        weight: 5
+      })
     }
+    setIsDirty(false)
   }, [initialQuestion])
+
+  // Check if form has been modified
+  const checkForChanges = () => {
+    if (!initialData) return false
+    
+    return (
+      question !== initialData.question ||
+      JSON.stringify(options) !== JSON.stringify(initialData.options) ||
+      correctAnswer !== initialData.correctAnswer ||
+      difficulty !== initialData.difficulty ||
+      weight !== initialData.weight
+    )
+  }
+
+  // Update dirty state when form changes
+  useEffect(() => {
+    setIsDirty(checkForChanges())
+  }, [question, options, correctAnswer, difficulty, weight, initialData])
+
+  // Handle cancel with confirmation
+  const handleCancel = () => {
+    if (isDirty) {
+      const isEdit = !!initialQuestion
+      const message = isEdit 
+        ? "You haven't updated the question yet. Are you sure you want to exit without saving changes?"
+        : "You haven't saved the question yet. Are you sure you want to exit without saving?"
+      
+      if (window.confirm(message)) {
+        onCancel?.()
+      }
+    } else {
+      onCancel?.()
+    }
+  }
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -101,9 +159,19 @@ export default function QuestionForm({ onSubmit, initialQuestion }: QuestionForm
 
   return (
     <div>
-      <Card className="border-2 shadow-xl bg-white transition-all duration-300 hover:shadow-2xl">
+      {/* Disabled Message */}
+      {disabled && disabledMessage && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+            <span className="text-red-700 font-medium">{disabledMessage}</span>
+          </div>
+        </div>
+      )}
+      
+      <Card className={`border-2 shadow-xl bg-white transition-all duration-300 hover:shadow-2xl ${disabled ? 'opacity-60' : ''}`}>
         <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className={`space-y-6 ${disabled ? 'pointer-events-none' : ''}`}>
             {error && (
               <div className="flex items-center gap-3 text-sm text-red-600 bg-red-50 border border-red-200 p-4 rounded-lg animate-in slide-in-from-top-2 duration-300">
                 <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
@@ -269,10 +337,11 @@ export default function QuestionForm({ onSubmit, initialQuestion }: QuestionForm
               </div>
             </div>
 
-            {/* Submit Button */}
-            <div className="pt-4">
+            {/* Action Buttons */}
+            <div className="pt-4 space-y-3">
               <Button 
                 type="submit" 
+                disabled={disabled}
                 className="w-full h-14 text-base font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl"
                 style={{
                   background: 'linear-gradient(135deg, #513deb 0%, #4f46e5 100%)',
@@ -299,6 +368,18 @@ export default function QuestionForm({ onSubmit, initialQuestion }: QuestionForm
                   )}
                 </div>
               </Button>
+              
+              {/* Cancel Button - Only show if onCancel is provided */}
+              {onCancel && (
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="w-full h-12 text-base font-medium border-2 hover:bg-gray-50 transition-all duration-200"
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
 
             {/* Progress Indicator */}

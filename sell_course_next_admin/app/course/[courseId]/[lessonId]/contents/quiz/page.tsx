@@ -59,6 +59,11 @@ function QuizPageContent({ params }: QuizPageProps) {
 
   // All hooks must be called before any early returns
   const [editingQuestion, setEditingQuestion] = useState<QuizFormData | null>(null)
+  
+  // Handle cancel editing/adding
+  const handleCancelForm = () => {
+    setEditingQuestion(null)
+  }
   const [deletingAllQuestions, setDeletingAllQuestions] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   
@@ -68,7 +73,7 @@ function QuizPageContent({ params }: QuizPageProps) {
   const [aiQuizCount, setAiQuizCount] = useState(5)
   const MAX_QUESTIONS = 20
   const MIN_AI_QUESTIONS = 1
-  const MAX_AI_QUESTIONS = 15
+  const MAX_AI_QUESTIONS = 20
   const [lessonUrls, setLessonUrls] = useState<string[]>([])
   const [loadingUrls, setLoadingUrls] = useState(false)
   
@@ -267,9 +272,8 @@ function QuizPageContent({ params }: QuizPageProps) {
         addQuestion(formattedQuestion)
       })
       
-      // Show success message with source files info
-      const sourceFiles = result.source_files?.join(', ') || 'Unknown';
-      alert(`✅ Successfully generated ${result.quizzes.length} quiz questions from: ${sourceFiles}`);
+      // Show success message (generic for security)
+      alert(`✅ Successfully generated ${result.quizzes.length} quiz questions from lesson content!`);
       
       // Close dialog and reset form
       setAiDialogOpen(false)
@@ -305,7 +309,12 @@ function QuizPageContent({ params }: QuizPageProps) {
   }
 
   const handleAddQuestion = (question: QuizFormData) => {
-
+    // Check if adding would exceed the limit
+    if (questions.length >= MAX_QUESTIONS) {
+      alert(`Maximum ${MAX_QUESTIONS} questions allowed per quiz. You currently have ${questions.length} questions.`)
+      return
+    }
+    
     addQuestion(question)
   }
 
@@ -654,8 +663,8 @@ function QuizPageContent({ params }: QuizPageProps) {
                     </CardTitle>
                     <CardDescription className="text-base">
                       {editingQuestion 
-                        ? 'Modify the selected question details below'
-                        : 'Design engaging quiz questions with multiple choice answers'
+                        ? 'Edit selected question details below and update data on your right button'
+: 'Design engaging quiz questions with multiple choice answers on the button below and save data on your right button'
                       }
                     </CardDescription>
                   </CardHeader>
@@ -666,7 +675,13 @@ function QuizPageContent({ params }: QuizPageProps) {
                   onSubmit={
                     editingQuestion ? handleEditQuestion : handleAddQuestion
                   }
+                  onCancel={handleCancelForm}
                   initialQuestion={editingQuestion}
+                  disabled={!editingQuestion && questions.length >= MAX_QUESTIONS}
+                  disabledMessage={!editingQuestion && questions.length >= MAX_QUESTIONS 
+                    ? `Maximum ${MAX_QUESTIONS} questions reached. Delete existing questions to add new ones.`
+                    : undefined
+                  }
                   key={editingQuestion?.id}
                 />
 
