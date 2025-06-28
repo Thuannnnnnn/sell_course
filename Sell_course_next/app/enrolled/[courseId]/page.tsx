@@ -107,7 +107,7 @@ export default function CourseLearnPage() {
 
               // Determine lesson type and content based on first content
               let lessonType: 'video' | 'text' | 'quiz';
-              let lessonContent: VideoResponse | DocumentResponse | QuizResponse | { text: string } = { text: 'No content available' };
+              let lessonContent: VideoState | DocumentResponse | QuizResponse | { text: string } = { text: 'No content available' };
               let duration = '5 mins read';
 
               if (contents && contents.length > 0) {
@@ -482,7 +482,21 @@ export default function CourseLearnPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="content" className="mt-0">
-                {currentLesson && <LessonContent lesson={currentLesson} content={selectedContent} courseId={courseId} onContentComplete={handleContentComplete} />}
+                {currentLesson && (
+                  <LessonContent 
+                    lesson={{
+                      id: currentLesson.lessonId,
+                      title: currentLesson.lessonName,
+                      type: currentContent?.type || "text",
+                      duration: currentLesson.duration || "5 mins",
+                      content: currentContent?.content,
+                      contents: currentLesson.contents
+                    }} 
+                    content={selectedContent} 
+                    courseId={courseId} 
+                    onContentComplete={handleContentComplete} 
+                  />
+                )}
               </TabsContent>
               <TabsContent value="exams" className="mt-0">
                 <div className="grid md:grid-cols-2 gap-6">

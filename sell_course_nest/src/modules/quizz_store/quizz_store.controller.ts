@@ -49,12 +49,11 @@ export class QuizzStoreController {
       detailedAnalysis: result.detailedAnalysis,
       feedback: result.feedback,
     };
-    
     // Return in the format expected by frontend
     return {
       success: true,
       data: [transformedResult], // Frontend expects an array
-      message: 'Quiz submitted successfully'
+      message: 'Quiz submitted successfully',
     };
   }
 
