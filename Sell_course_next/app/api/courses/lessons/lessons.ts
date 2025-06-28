@@ -36,7 +36,7 @@ export const courseApi = {
 // Content API
 export const contentApi = {
   getVideoContent: async (contentId: string) => {
-    return apiCall(`/api/video/view_video/${contentId}`);
+    return apiCall(`/api/video/view_video_content/${contentId}`);
   },
   
   getDocumentContent: async (contentId: string) => {

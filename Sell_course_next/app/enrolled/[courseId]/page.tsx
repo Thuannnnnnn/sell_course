@@ -22,48 +22,59 @@ import {
   ContentResponse,
   LessonResponse,
   CourseResponse,
-  VideoResponse,
   DocumentResponse,
   QuizResponse,
-  ExamQuestion
-} from '../../types/Course/Lesson/Lessons'
-
-// Use the Lesson type from CourseSidebar
-type Lesson = {
-  id: string
-  title: string
-  type: string
-  isCompleted: boolean
-  duration: string
-  contents?: {
-    contentId: string
-    contentName: string
-    contentType: string
-  }[]
-}
+  ExamQuestion,
+} from "../../types/Course/Lesson/Lessons";
+import { VideoState } from "@/app/types/Course/Lesson/content/video";
 
 export default function CourseLearnPage() {
   const params = useParams();
   const courseId = params.courseId as string;
-  
-  const [activeTab, setActiveTab] = useState('content')
-  const [courseData, setCourseData] = useState<CourseData | null>(null)
-  const [currentLesson, setCurrentLesson] = useState<LessonWithContent | null>(null)
-  const [currentContentId, setCurrentContentId] = useState<string | undefined>(undefined)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  
-  // Exam state
-  const [activeExamId, setActiveExamId] = useState<number | null>(null)
-  const [examQuestionIdx, setExamQuestionIdx] = useState(0)
-  const [examSelected, setExamSelected] = useState<string | null>(null)
-  const [examSubmitted, setExamSubmitted] = useState(false)
-  const [examScore, setExamScore] = useState(0)
-  const [examCompleted, setExamCompleted] = useState(false)
-  const [examQuestions, setExamQuestions] = useState<ExamQuestion[]>([])
 
-  const [selectedContent, setSelectedContent] = useState<ContentResponse | null>(null);
-  const [completedContents, setCompletedContents] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState("content");
+  const [courseData, setCourseData] = useState<CourseData | null>(null);
+  const [currentLesson, setCurrentLesson] = useState<LessonResponse | null>(
+    null
+  );
+  const [currentContent, setCurrentContent] =
+    useState<LessonWithContent | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Exam state
+  const [activeExamId, setActiveExamId] = useState<number | null>(null);
+  const [examQuestionIdx, setExamQuestionIdx] = useState(0);
+  const [examSelected, setExamSelected] = useState<string | null>(null);
+  const [examSubmitted, setExamSubmitted] = useState(false);
+  const [examScore, setExamScore] = useState(0);
+  const [examCompleted, setExamCompleted] = useState(false);
+  const [examQuestions, setExamQuestions] = useState<ExamQuestion[]>([]);
+
+  const [selectedContent, setSelectedContent] =
+    useState<ContentResponse | null>(null);
+  const [completedContents, setCompletedContents] = useState<Set<string>>(
+    new Set()
+  );
+  const [lessons, setLessons] = useState<LessonResponse[]>([]);
+
+  // Helper functions for sidebar
+  const getContentDuration = (content: ContentResponse): string => {
+    switch (content.contentType.toLowerCase()) {
+      case "video":
+        return "10:25";
+      case "doc":
+        return "5 mins read";
+      case "quiz":
+        return "10 questions";
+      default:
+        return "5 mins";
+    }
+  };
+
+  const isContentCompleted = (content: ContentResponse): boolean => {
+    return completedContents.has(content.contentId);
+  };
 
   // Fetch course data from API
   const fetchCourseData = useCallback(async () => {
@@ -74,13 +85,18 @@ export default function CourseLearnPage() {
 
       try {
         // Fetch course details
-        const course = await courseApi.getCourseById(courseId) as CourseResponse;
+        const course = (await courseApi.getCourseById(
+          courseId
+        )) as CourseResponse;
 
         // Fetch lessons for this course
-        const lessonsResponse = await courseApi.getLessonsByCourseId(courseId) as { lessons: LessonResponse[] };
-        
+        const lessonsResponse = (await courseApi.getLessonsByCourseId(
+          courseId
+        )) as { lessons: LessonResponse[] };
+
         // Extract lessons from the response
         const lessons = lessonsResponse.lessons || [];
+        setLessons(lessons);
 
         // Process each lesson to get its contents
         const lessonsWithContent = await Promise.all(
@@ -100,17 +116,23 @@ export default function CourseLearnPage() {
                 try {
                   console.log('🔍 Processing content:', firstContent.contentType, firstContent);
                   switch (firstContent.contentType.toLowerCase()) {
-                    case 'video':
-                      lessonType = 'video';
-                      const videoContent = await contentApi.getVideoContent(firstContent.contentId) as VideoResponse;
+                    case "video":
+                      lessonType = "video";
+                      const videoContent = (await contentApi.getVideoContent(
+                        firstContent.contentId
+                      )) as VideoState;
                       lessonContent = videoContent;
-                      duration = '10:25';
+                      duration = "10:25";
                       break;
-                    case 'doc':
-                      lessonType = 'text';
-                      const docContent = await contentApi.getDocumentContent(firstContent.contentId) as DocumentResponse;
-                      lessonContent = { text: docContent.url } as { text: string };
-                      duration = '5 mins read';
+                    case "doc":
+                      lessonType = "text";
+                      const docContent = (await contentApi.getDocumentContent(
+                        firstContent.contentId
+                      )) as DocumentResponse;
+                      lessonContent = { text: docContent.url } as {
+                        text: string;
+                      };
+                      duration = "5 mins read";
                       break;
                     case 'quiz':
                     case 'quizz':
@@ -119,9 +141,11 @@ export default function CourseLearnPage() {
                       const quizContent = await contentApi.getQuizContent(courseId, lesson.lessonId, firstContent.contentId) as QuizResponse;
                       console.log('✅ Quiz content loaded:', quizContent);
                       lessonContent = quizContent;
-                      duration = `${quizContent.questions?.length || 0} questions`;
+                      duration = `${
+                        quizContent.questions?.length || 0
+                      } questions`;
                       break;
-                      
+
                     default:
                       console.log('❌ Unknown content type:', firstContent.contentType);
                       lessonType = 'text';
@@ -142,10 +166,10 @@ export default function CourseLearnPage() {
                   duration,
                   isCompleted: false,
                   content: lessonContent,
-                  contents: contents.map(content => ({
+                  contents: contents.map((content) => ({
                     ...content,
-                    isCompleted: completedContents.has(content.contentId)
-                  }))
+                    isCompleted: completedContents.has(content.contentId),
+                  })),
                 };
                 return transformedLesson;
               } else {
@@ -153,22 +177,22 @@ export default function CourseLearnPage() {
                 return {
                   id: lesson.lessonId,
                   title: lesson.lessonName,
-                  type: 'text' as const,
-                  duration: '5 mins read',
+                  type: "text" as const,
+                  duration: "5 mins read",
                   isCompleted: false,
-                  content: { text: 'No content available' },
-                  contents: []
+                  content: { text: "No content available" },
+                  contents: [],
                 };
               }
             } catch {
               return {
                 id: lesson.lessonId,
                 title: lesson.lessonName,
-                type: 'text' as const,
-                duration: '5 mins read',
+                type: "text" as const,
+                duration: "5 mins read",
                 isCompleted: false,
-                content: { text: 'Error loading content' },
-                contents: []
+                content: { text: "Error loading content" },
+                contents: [],
               };
             }
           })
@@ -178,39 +202,46 @@ export default function CourseLearnPage() {
         const courseData: CourseData = {
           id: course.courseId,
           title: course.title,
-          instructor: course.instructorName || 'Unknown Instructor',
+          instructor: course.instructorName || "Unknown Instructor",
           progress: 35, // This should come from enrollment progress
           modules: [
             {
-              id: '1',
-              title: 'Course Content',
-              lessons: lessonsWithContent
-            }
+              id: "1",
+              title: "Course Content",
+              lessons: lessonsWithContent,
+            },
           ],
           exams: [
             {
               id: 1,
-              title: 'Mid-course Assessment',
+              title: "Mid-course Assessment",
               questions: 25,
-              duration: '45 mins',
+              duration: "45 mins",
               isLocked: false,
             },
             {
               id: 2,
-              title: 'Final Certification Exam',
+              title: "Final Certification Exam",
               questions: 50,
-              duration: '90 mins',
+              duration: "90 mins",
               isLocked: true,
             },
-          ]
+          ],
         };
 
         setCourseData(courseData);
-        if (lessonsWithContent.length > 0) {
-          setCurrentLesson(lessonsWithContent[0]);
+
+        // Set initial lesson and content
+        if (lessons.length > 0) {
+          setCurrentLesson(lessons[0]);
+          if (lessonsWithContent.length > 0) {
+            setCurrentContent(lessonsWithContent[0]);
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load course data');
+        setError(
+          err instanceof Error ? err.message : "Failed to load course data"
+        );
       } finally {
         setLoading(false);
       }
@@ -220,28 +251,38 @@ export default function CourseLearnPage() {
     fetchCourseData();
   }, [fetchCourseData]);
 
-  const handleLessonChange = async (lesson: LessonWithContent) => {
+  const handleLessonSelect = (lesson: LessonResponse) => {
     setCurrentLesson(lesson);
-    setActiveTab('content');
-  };
+    setActiveTab("content");
 
-  const handleLessonSelect = (lesson: Lesson) => {
     // Find the corresponding LessonWithContent from our data
-    const lessonWithContent = courseData?.modules[0].lessons.find(l => l.id === lesson.id);
+    const lessonWithContent = courseData?.modules[0].lessons.find(
+      (l) => l.id === lesson.lessonId
+    );
     if (lessonWithContent) {
-      handleLessonChange(lessonWithContent);
+      setCurrentContent(lessonWithContent);
     }
   };
 
-  const handleContentSelect = async (lessonId: string, contentId: string) => {
-    setCurrentContentId(contentId);
-    // Find and set the lesson containing this content
-    const lesson = courseData?.modules[0].lessons.find((l: LessonWithContent) => l.id === lessonId);
+  const handleContentSelect = async (content: ContentResponse) => {
+    setSelectedContent(content);
+
+    // Find the lesson containing this content
+    const lesson = lessons.find((l: LessonResponse) =>
+      l.contents.some((c) => c.contentId === content.contentId)
+    );
     if (lesson) {
       setCurrentLesson(lesson);
     }
-    const content = lesson?.contents?.find((c: ContentResponse) => c.contentId === contentId);
-    setSelectedContent(content || null);
+
+    // Find the corresponding LessonWithContent
+    const lessonWithContent = courseData?.modules[0].lessons.find(
+      (l: LessonWithContent) =>
+        l.contents.some((c) => c.contentId === content.contentId)
+    );
+    if (lessonWithContent) {
+      setCurrentContent(lessonWithContent);
+    }
   };
 
   // Exam logic with API calls
@@ -255,26 +296,28 @@ export default function CourseLearnPage() {
 
     try {
       // Fetch exam questions from API
-      const questions = await examApi.getExamQuestions(examId) as ExamQuestion[];
+      const questions = (await examApi.getExamQuestions(
+        examId
+      )) as ExamQuestion[];
       setExamQuestions(questions);
     } catch {
-      setError('Failed to load exam questions');
+      setError("Failed to load exam questions");
     }
   };
 
   const handleExamSubmit = async () => {
     if (!examSelected || !activeExamId) return;
-    
+
     setExamSubmitted(true);
-    
+
     try {
       // Submit answer to API
-      const result = await examApi.submitExamAnswer(
-        activeExamId, 
-        examQuestions[examQuestionIdx].id, 
+      const result = (await examApi.submitExamAnswer(
+        activeExamId,
+        examQuestions[examQuestionIdx].id,
         examSelected
-      ) as { correct: boolean };
-      
+      )) as { correct: boolean };
+
       if (result.correct) {
         setExamScore((prev) => prev + 1);
       }
@@ -314,22 +357,22 @@ export default function CourseLearnPage() {
     if (currentLesson) {
       const allContents = currentLesson.contents || [];
       const completedCount = completedContents.size + 1; // +1 for current content
-      
+
       if (completedCount >= allContents.length) {
         // Mark lesson as completed
-        setCourseData(prev => {
+        setCourseData((prev) => {
           if (!prev) return prev;
-          
+
           return {
             ...prev,
-            modules: prev.modules.map(module => ({
+            modules: prev.modules.map((module) => ({
               ...module,
-              lessons: module.lessons.map(lesson => 
-                lesson.id === currentLesson.id 
+              lessons: module.lessons.map((lesson) =>
+                lesson.id === currentLesson.lessonId
                   ? { ...lesson, isCompleted: true }
                   : lesson
-              )
-            }))
+              ),
+            })),
           };
         });
       }
@@ -365,7 +408,8 @@ export default function CourseLearnPage() {
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Course Not Found</h2>
           <p className="text-muted-foreground mb-4">
-            The course you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
+            The course you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have access to it.
           </p>
           <Button asChild>
             <a href="/courses">Browse Courses</a>
@@ -407,11 +451,13 @@ export default function CourseLearnPage() {
         {/* Sidebar */}
         <aside className="sticky top-20 h-[calc(100vh-5rem)] z-30">
           <CourseSidebar
-            modules={courseData.modules}
+            lessons={lessons}
             currentLesson={currentLesson}
-            currentContentId={currentContentId}
+            currentContent={currentContent}
             onLessonSelect={handleLessonSelect}
             onContentSelect={handleContentSelect}
+            getContentDuration={getContentDuration}
+            isContentCompleted={isContentCompleted}
           />
         </aside>
         {/* Main Content */}
@@ -442,7 +488,10 @@ export default function CourseLearnPage() {
                 <div className="grid md:grid-cols-2 gap-6">
                   {activeExamId === null ? (
                     courseData.exams.map((exam) => (
-                      <div key={exam.id} className="bg-white dark:bg-card rounded-xl shadow-lg p-6 flex flex-col gap-4">
+                      <div
+                        key={exam.id}
+                        className="bg-white dark:bg-card rounded-xl shadow-lg p-6 flex flex-col gap-4"
+                      >
                         <ExamComponent exam={exam} />
                         <Button
                           className="mt-2"
@@ -460,85 +509,119 @@ export default function CourseLearnPage() {
                         <div className="max-w-xl mx-auto bg-white dark:bg-card rounded-xl shadow-lg p-8">
                           <div className="flex justify-between items-center mb-4">
                             <div className="text-sm font-medium">
-                              Question {examQuestionIdx + 1} of {examQuestions.length}
+                              Question {examQuestionIdx + 1} of{" "}
+                              {examQuestions.length}
                             </div>
                             <div className="text-sm font-medium">
                               Score: {examScore}/{examQuestionIdx}
                             </div>
                           </div>
-                          <Progress value={((examQuestionIdx + 1) / examQuestions.length) * 100} className="mb-8" />
+                          <Progress
+                            value={
+                              ((examQuestionIdx + 1) / examQuestions.length) *
+                              100
+                            }
+                            className="mb-8"
+                          />
                           <div className="mb-6 text-lg font-semibold">
                             {examQuestions[examQuestionIdx].question}
                           </div>
                           <RadioGroup
-                            value={examSelected || ''}
+                            value={examSelected || ""}
                             onValueChange={setExamSelected}
                             disabled={examSubmitted}
                           >
-                            {examQuestions[examQuestionIdx].options.map((option: string, idx: number) => (
-                              <div
-                                key={idx}
-                                className={`flex items-center space-x-2 border p-4 rounded-md mb-2 ${examSubmitted ? (option === examQuestions[examQuestionIdx].correctAnswer ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : examSelected === option ? 'border-red-500 bg-red-50 dark:bg-red-950/20' : '') : 'hover:bg-accent'}`}
-                              >
-                                <RadioGroupItem
-                                  value={option}
-                                  id={`exam-option-${idx}`}
-                                  className="border-primary"
-                                />
-                                <Label
-                                  htmlFor={`exam-option-${idx}`}
-                                  className="flex-1 cursor-pointer py-2"
+                            {examQuestions[examQuestionIdx].options.map(
+                              (option: string, idx: number) => (
+                                <div
+                                  key={idx}
+                                  className={`flex items-center space-x-2 border p-4 rounded-md mb-2 ${
+                                    examSubmitted
+                                      ? option ===
+                                        examQuestions[examQuestionIdx]
+                                          .correctAnswer
+                                        ? "border-green-500 bg-green-50 dark:bg-green-950/20"
+                                        : examSelected === option
+                                        ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                                        : ""
+                                      : "hover:bg-accent"
+                                  }`}
                                 >
-                                  {option}
-                                </Label>
-                                {examSubmitted &&
-                                  option === examQuestions[examQuestionIdx].correctAnswer && (
-                                    <CheckCircle className="h-5 w-5 text-green-500" />
-                                  )}
-                                {examSubmitted &&
-                                  examSelected === option &&
-                                  option !== examQuestions[examQuestionIdx].correctAnswer && (
-                                    <AlertCircle className="h-5 w-5 text-red-500" />
-                                  )}
-                              </div>
-                            ))}
+                                  <RadioGroupItem
+                                    value={option}
+                                    id={`exam-option-${idx}`}
+                                    className="border-primary"
+                                  />
+                                  <Label
+                                    htmlFor={`exam-option-${idx}`}
+                                    className="flex-1 cursor-pointer py-2"
+                                  >
+                                    {option}
+                                  </Label>
+                                  {examSubmitted &&
+                                    option ===
+                                      examQuestions[examQuestionIdx]
+                                        .correctAnswer && (
+                                      <CheckCircle className="h-5 w-5 text-green-500" />
+                                    )}
+                                  {examSubmitted &&
+                                    examSelected === option &&
+                                    option !==
+                                      examQuestions[examQuestionIdx]
+                                        .correctAnswer && (
+                                      <AlertCircle className="h-5 w-5 text-red-500" />
+                                    )}
+                                </div>
+                              )
+                            )}
                           </RadioGroup>
                           <div className="flex justify-between mt-4">
-                            <Button
-                              variant="outline"
-                              onClick={handleExamRetry}
-                            >
+                            <Button variant="outline" onClick={handleExamRetry}>
                               Cancel
                             </Button>
                             {examSubmitted ? (
                               <Button onClick={handleExamNext}>
                                 {examQuestionIdx < examQuestions.length - 1
-                                  ? 'Next Question'
-                                  : 'Finish Exam'}
+                                  ? "Next Question"
+                                  : "Finish Exam"}
                               </Button>
                             ) : (
-                              <Button onClick={handleExamSubmit} disabled={!examSelected}>
+                              <Button
+                                onClick={handleExamSubmit}
+                                disabled={!examSelected}
+                              >
                                 Submit Answer
                               </Button>
                             )}
                           </div>
                           {examSubmitted && (
                             <div
-                              className={`mt-3 text-sm ${examSelected === examQuestions[examQuestionIdx].correctAnswer ? 'text-green-500' : 'text-red-500'}`}
+                              className={`mt-3 text-sm ${
+                                examSelected ===
+                                examQuestions[examQuestionIdx].correctAnswer
+                                  ? "text-green-500"
+                                  : "text-red-500"
+                              }`}
                             >
-                              {examSelected === examQuestions[examQuestionIdx].correctAnswer
-                                ? 'Correct! Good job.'
+                              {examSelected ===
+                              examQuestions[examQuestionIdx].correctAnswer
+                                ? "Correct! Good job."
                                 : `Incorrect. The correct answer is: ${examQuestions[examQuestionIdx].correctAnswer}`}
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className="max-w-xl mx-auto bg-white dark:bg-card rounded-xl shadow-lg p-8 text-center">
-                          <div className="text-2xl font-bold mb-4">Exam Completed!</div>
+                          <div className="text-2xl font-bold mb-4">
+                            Exam Completed!
+                          </div>
                           <div className="flex justify-center mb-6">
                             <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
                               <span className="text-4xl font-bold">
-                                {Math.round((examScore / examQuestions.length) * 100)}%
+                                {Math.round(
+                                  (examScore / examQuestions.length) * 100
+                                )}
+                                %
                               </span>
                             </div>
                           </div>
@@ -552,7 +635,8 @@ export default function CourseLearnPage() {
                             </div>
                           ) : (
                             <div className="text-muted-foreground mb-4">
-                              Review the material and try again to improve your score.
+                              Review the material and try again to improve your
+                              score.
                             </div>
                           )}
                           <Button onClick={handleExamRetry}>Retry Exam</Button>
@@ -567,5 +651,5 @@ export default function CourseLearnPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }

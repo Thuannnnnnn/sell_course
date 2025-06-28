@@ -8,12 +8,12 @@ import { DocLesson } from './DocLesson'
 import QuizIntegration from './QuizIntegration'
 import { apiCall } from '../../app/api/courses/lessons/lessons'
 import {
-  VideoResponse,
   DocumentResponse,
   QuizResponse,
   ContentResponse,
-  ContentData
-} from '../../app/types/Course/Lesson/Lessons'
+  ContentData,
+} from "../../app/types/Course/Lesson/Lessons";
+import { VideoState } from "@/app/types/Course/Lesson/content/video";
 
 interface LessonContentProps {
   lesson: {
@@ -21,7 +21,11 @@ interface LessonContentProps {
     title: string;
     type: string;
     duration: string;
-    content?: VideoResponse | DocumentResponse | QuizResponse | { text: string };
+    content?:
+      | VideoState
+      | DocumentResponse
+      | QuizResponse
+      | { text: string };
     contents?: ContentResponse[];
   };
   content?: ContentResponse | null;
@@ -46,13 +50,17 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
       try {
         console.log('🔍 LessonContent - Processing content:', selected.contentType, selected);
         switch (selected.contentType.toLowerCase()) {
-          case 'video':
-            const videoData = await apiCall<VideoResponse>(`/api/video/view_video/${selected.contentId}`);
-            setContentData({ type: 'video', data: videoData });
+          case "video":
+            const videoData = await apiCall<VideoState>(
+              `/api/video/view_video_content/${selected.contentId}`
+            );
+            setContentData({ type: "video", data: videoData });
             break;
-          case 'doc':
-            const docData = await apiCall<DocumentResponse>(`/api/docs/view_doc/${selected.contentId}`);
-            setContentData({ type: 'doc', data: docData });
+          case "doc":
+            const docData = await apiCall<DocumentResponse>(
+              `/api/docs/view_doc/${selected.contentId}`
+            );
+            setContentData({ type: "doc", data: docData });
             break;
           case 'quiz':
           case 'quizz':
@@ -110,28 +118,33 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
     }
 
     switch (contentData.type) {
-      case 'video':
-        const videoData = contentData.data as VideoResponse;
+      case "video":
+        const videoData = contentData.data as VideoState;
         return (
-          <VideoLesson 
-            lesson={{
-              title: lesson.title,
-              content: {
-                videoUrl: videoData.url || '',
-                description: videoData.description || ''
-              }
-            }} 
+          <VideoLesson
+            videoData={videoData}
+            videoId={videoData.videoId}
+            title={videoData.title}
+            description={videoData.description}
+            url={videoData.url}
+            urlScript={videoData.urlScript}
+            createdAt={videoData.videoId}
+            contents={videoData.contents}
+            onComplete={onContentComplete}
           />
         );
 
-      case 'doc':
+      case "doc":
         const docData = contentData.data as DocumentResponse;
         return (
-          <DocLesson 
+          <DocLesson
             lesson={{
-              title: content?.contentName || lesson.contents?.[0]?.contentName || lesson.title,
-              content: docData.url || '',
-              contentType: docData.fileType || 'pdf'
+              title:
+                content?.contentName ||
+                lesson.contents?.[0]?.contentName ||
+                lesson.title,
+              content: docData.url || "",
+              contentType: docData.fileType || "pdf",
             }}
             documentData={docData}
             onComplete={onContentComplete}
@@ -165,7 +178,9 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
       default:
         return (
           <div className="p-8 text-center">
-            <p className="text-muted-foreground">Unsupported content type: {contentData.type}</p>
+            <p className="text-muted-foreground">
+              Unsupported content type: {contentData.type}
+            </p>
           </div>
         );
     }
@@ -174,16 +189,18 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{content?.contentName || lesson.contents?.[0]?.contentName || lesson.title}</h1>
+        <h1 className="text-2xl font-bold">
+          {content?.contentName ||
+            lesson.contents?.[0]?.contentName ||
+            lesson.title}
+        </h1>
         <p className="text-muted-foreground">{lesson.duration}</p>
       </div>
-      
+
       <Card>
-        <CardContent className="p-0">
-          {renderLessonContent()}
-        </CardContent>
+        <CardContent className="p-0">{renderLessonContent()}</CardContent>
       </Card>
-      
+
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Additional Resources</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -213,6 +230,7 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
               <div className="text-sm text-muted-foreground">PDF, 2.3MB</div>
             </div>
           </Card>
+
           <Card className="p-4 flex items-center gap-3 cursor-pointer hover:bg-accent/50 transition-colors">
             <div className="bg-primary/10 text-primary p-2 rounded-full">
               <svg
@@ -239,9 +257,9 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
           </Card>
         </div>
       </div>
-      
+
       <Separator />
-      
+
       <div className="flex justify-between">
         <Button variant="outline" className="flex items-center gap-2">
           <ChevronLeft className="h-4 w-4" />
@@ -253,5 +271,5 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
         </Button>
       </div>
     </div>
-  )
+  );
 }
