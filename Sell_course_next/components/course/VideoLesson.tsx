@@ -72,17 +72,17 @@ export function VideoLesson({ lesson }: VideoLessonProps) {
             <div className="space-y-4">
               <p className="text-sm">
                 <span className="text-muted-foreground">[00:00]</span> Hello and
-                welcome to this lesson on HTML basics. Today we're going to be
+                welcome to this lesson on HTML basics. Today we&apos;re going to be
                 covering the fundamental building blocks of the web.
               </p>
               <p className="text-sm">
                 <span className="text-muted-foreground">[00:15]</span> HTML
-                stands for HyperText Markup Language, and it's the standard
+                stands for HyperText Markup Language, and it&apos;s the standard
                 markup language for documents designed to be displayed in a web
                 browser.
               </p>
               <p className="text-sm">
-                <span className="text-muted-foreground">[00:30]</span> Let's
+                <span className="text-muted-foreground">[00:30]</span> Let&apos;s
                 start by looking at the basic structure of an HTML document.
                 Every HTML document begins with a document type declaration,
                 followed by the html element, which contains the head and body

@@ -30,13 +30,32 @@ export class QuizzStoreController {
   ) {
     // Đảm bảo quizId từ URL được sử dụng
     submitQuizDto.quizzId = quizId;
-    return this.quizzStoreService.submitQuiz(
-      req.user.userId, 
-      submitQuizDto, 
-      courseId, 
-      lessonId, 
+    const result = await this.quizzStoreService.submitQuiz(
+      req.user.user_id,
+      submitQuizDto,
+      courseId,
+      lessonId,
       contentId,
     );
+    // Transform the result to match frontend expectations
+    const transformedResult = {
+      storeId: result.storeId,
+      quizzId: result.quizz.quizzId,
+      userId: result.user.user_id,
+      score: result.score,
+      answers: result.answers,
+      createdAt: result.createdAt,
+      scoreAnalysis: result.scoreAnalysis,
+      detailedAnalysis: result.detailedAnalysis,
+      feedback: result.feedback,
+    };
+    
+    // Return in the format expected by frontend
+    return {
+      success: true,
+      data: [transformedResult], // Frontend expects an array
+      message: 'Quiz submitted successfully'
+    };
   }
 
   @Get(':quizId/results')
@@ -48,7 +67,7 @@ export class QuizzStoreController {
     @Param('quizId', ParseUUIDPipe) quizId: string,
   ) {
     return this.quizzStoreService.getUserQuizResults(
-      req.user.userId,
+      req.user.user_id,
       quizId,
       contentId,
       courseId,
@@ -65,7 +84,7 @@ export class QuizzStoreController {
     @Param('quizId', ParseUUIDPipe) quizId: string,
   ) {
     return this.quizzStoreService.getDetailedQuizAnalysis(
-      req.user.userId,
+      req.user.user_id,
       quizId,
       contentId,
       courseId,
@@ -81,7 +100,7 @@ export class QuizzStoreController {
     @Param('contentId', ParseUUIDPipe) contentId: string,
   ) {
     return this.quizzStoreService.getUserQuizResultsByContent(
-      req.user.userId,
+      req.user.user_id,
       contentId,
       courseId,
       lessonId,
@@ -97,7 +116,7 @@ export class UserQuizResultsController {
 
   @Get()
   async getAllResults(@Request() req) {
-    return this.quizzStoreService.getAllUserQuizResults(req.user.userId);
+    return this.quizzStoreService.getAllUserQuizResults(req.user.user_id);
   }
 
   @Get('courses/:courseId')
@@ -106,7 +125,7 @@ export class UserQuizResultsController {
     @Param('courseId', ParseUUIDPipe) courseId: string,
   ) {
     return this.quizzStoreService.getUserQuizResultsByCourse(
-      req.user.userId,
+      req.user.user_id,
       courseId,
     );
   }
@@ -118,7 +137,7 @@ export class UserQuizResultsController {
     @Param('lessonId', ParseUUIDPipe) lessonId: string,
   ) {
     return this.quizzStoreService.getUserQuizResultsByLesson(
-      req.user.userId,
+      req.user.user_id,
       courseId,
       lessonId,
     );

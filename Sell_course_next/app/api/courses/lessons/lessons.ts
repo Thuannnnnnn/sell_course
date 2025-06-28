@@ -43,8 +43,8 @@ export const contentApi = {
     return apiCall(`/api/docs/view_doc/${contentId}`);
   },
   
-  getQuizContent: async () => {
-    return apiCall(`/api/quizz/random`);
+  getQuizContent: async (courseId: string, lessonId: string, contentId: string) => {
+    return apiCall(`/api/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/random`);
   },
 };
 

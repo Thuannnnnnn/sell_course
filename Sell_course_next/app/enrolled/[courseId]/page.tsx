@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { CourseSidebar } from '../../../components/course/CourseSidebar'
 import { LessonContent } from '../../../components/course/LessonContent'
 import { ExamComponent } from '../../../components/course/ExamComponent'
@@ -42,7 +42,7 @@ type Lesson = {
   }[]
 }
 
-export function CourseLearnPage() {
+export default function CourseLearnPage() {
   const params = useParams();
   const courseId = params.courseId as string;
   
@@ -66,8 +66,7 @@ export function CourseLearnPage() {
   const [completedContents, setCompletedContents] = useState<Set<string>>(new Set());
 
   // Fetch course data from API
-  useEffect(() => {
-    const fetchCourseData = async () => {
+  const fetchCourseData = useCallback(async () => {
       if (!courseId) return;
 
       setLoading(true);
@@ -91,7 +90,7 @@ export function CourseLearnPage() {
               const contents = lesson.contents || [];
 
               // Determine lesson type and content based on first content
-              let lessonType: 'video' | 'text' | 'quiz' = 'text';
+              let lessonType: 'video' | 'text' | 'quiz';
               let lessonContent: VideoResponse | DocumentResponse | QuizResponse | { text: string } = { text: 'No content available' };
               let duration = '5 mins read';
 
@@ -99,6 +98,7 @@ export function CourseLearnPage() {
                 const firstContent = contents[0];
 
                 try {
+                  console.log('🔍 Processing content:', firstContent.contentType, firstContent);
                   switch (firstContent.contentType.toLowerCase()) {
                     case 'video':
                       lessonType = 'video';
@@ -113,18 +113,23 @@ export function CourseLearnPage() {
                       duration = '5 mins read';
                       break;
                     case 'quiz':
+                    case 'quizz':
+                      console.log('📝 Loading quiz content...');
                       lessonType = 'quiz';
-                      const quizContent = await contentApi.getQuizContent() as QuizResponse;
+                      const quizContent = await contentApi.getQuizContent(courseId, lesson.lessonId, firstContent.contentId) as QuizResponse;
+                      console.log('✅ Quiz content loaded:', quizContent);
                       lessonContent = quizContent;
                       duration = `${quizContent.questions?.length || 0} questions`;
                       break;
                       
                     default:
+                      console.log('❌ Unknown content type:', firstContent.contentType);
                       lessonType = 'text';
                       lessonContent = { text: 'Content not available' };
                       duration = '5 mins read';
                   }
-                } catch {
+                } catch (error) {
+                  console.error('❌ Error loading content:', error);
                   lessonType = 'text';
                   lessonContent = { text: 'Content not available' };
                   duration = '5 mins read';
@@ -209,10 +214,11 @@ export function CourseLearnPage() {
       } finally {
         setLoading(false);
       }
-    };
+  }, [courseId, completedContents]);
 
+  useEffect(() => {
     fetchCourseData();
-  }, [courseId]);
+  }, [fetchCourseData]);
 
   const handleLessonChange = async (lesson: LessonWithContent) => {
     setCurrentLesson(lesson);
@@ -302,7 +308,7 @@ export function CourseLearnPage() {
 
   // Handle content completion
   const handleContentComplete = (contentId: string) => {
-    setCompletedContents(prev => new Set([...prev, contentId]));
+    setCompletedContents(prev => new Set([...Array.from(prev), contentId]));
     
     // Update lesson completion status if all contents are completed
     if (currentLesson) {
@@ -430,7 +436,7 @@ export function CourseLearnPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="content" className="mt-0">
-                {currentLesson && <LessonContent lesson={currentLesson} content={selectedContent} onContentComplete={handleContentComplete} />}
+                {currentLesson && <LessonContent lesson={currentLesson} content={selectedContent} courseId={courseId} onContentComplete={handleContentComplete} />}
               </TabsContent>
               <TabsContent value="exams" className="mt-0">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -563,5 +569,3 @@ export function CourseLearnPage() {
     </div>
   )
 }
-
-export default CourseLearnPage;
