@@ -415,14 +415,12 @@ export class VideoService {
 
   async viewVideoByContentId(contentId: string): Promise<Video> {
     try {
-      console.log('contentId:', contentId);
       const video = await this.videoRepository
         .createQueryBuilder('video')
         .innerJoinAndSelect('video.contents', 'contents')
         .where('contents.contentId = :contentId', { contentId })
         .getOne();
 
-      console.log('Video:', video);
       if (!video) {
         throw new NotFoundException(
           `Video with contentId '${contentId}' not found`,

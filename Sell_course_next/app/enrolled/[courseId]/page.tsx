@@ -1,21 +1,26 @@
-'use client'
-import React, { useState, useEffect, useCallback } from 'react'
-import { CourseSidebar } from '../../../components/course/CourseSidebar'
-import { LessonContent } from '../../../components/course/LessonContent'
-import { ExamComponent } from '../../../components/course/ExamComponent'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs'
-import { Button } from '../../../components/ui/button'
-import { Progress } from '../../../components/ui/progress'
-import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from 'lucide-react'
-import { RadioGroup, RadioGroupItem } from '../../../components/ui/radio-group'
-import { Label } from '../../../components/ui/label'
-import { CheckCircle, AlertCircle } from 'lucide-react'
-import { useParams } from 'next/navigation'
-import { 
-  courseApi, 
-  contentApi, 
-  examApi 
-} from '../../api/courses/lessons/lessons'
+"use client";
+import React, { useState, useEffect } from "react";
+import { CourseSidebar } from "../../../components/course/CourseSidebar";
+import { LessonContent } from "../../../components/course/LessonContent";
+import { ExamComponent } from "../../../components/course/ExamComponent";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../../components/ui/tabs";
+import { Button } from "../../../components/ui/button";
+import { Progress } from "../../../components/ui/progress";
+import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
+import { Label } from "../../../components/ui/label";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import { useParams } from "next/navigation";
+import {
+  courseApi,
+  contentApi,
+  examApi,
+} from "../../api/courses/lessons/lessons";
 import {
   CourseData,
   LessonWithContent,
@@ -27,20 +32,60 @@ import {
   ExamQuestion,
 } from "../../types/Course/Lesson/Lessons";
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
+import {
+  markContentAsCompleted,
+  getLessonProgress,
+  getCourseProgress,
+  getContentStatus,
+  getCompletedContentsCount,
+} from "../../api/Progress/progress";
+import {
+  ContentProgressStatus,
+  CourseProgressResponse,
+  LessonProgressResponseDto,
+  CompletedCountResponse,
+} from "@/app/types/Progress/progress";
+import { useSession } from "next-auth/react";
 
-export default function CourseLearnPage() {
+// Enhanced types for progress tracking
+interface LessonWithProgress extends LessonResponse {
+  isCompleted: boolean;
+  completedContentsCount: number;
+  totalContentsCount: number;
+  contents: ContentWithProgress[];
+}
+
+interface ContentWithProgress extends ContentResponse {
+  isCompleted: boolean;
+}
+
+export function CourseLearnPage() {
   const params = useParams();
   const courseId = params.courseId as string;
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
+  // UI State
   const [activeTab, setActiveTab] = useState("content");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Course Data
   const [courseData, setCourseData] = useState<CourseData | null>(null);
-  const [currentLesson, setCurrentLesson] = useState<LessonResponse | null>(
+  const [lessons, setLessons] = useState<LessonWithProgress[]>([]);
+  const [currentLesson, setCurrentLesson] = useState<LessonWithProgress | null>(
     null
   );
   const [currentContent, setCurrentContent] =
     useState<LessonWithContent | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedContent, setSelectedContent] =
+    useState<ContentWithProgress | null>(null);
+
+  // Progress State
+  const [courseProgress, setCourseProgress] = useState<number>(0);
+  const [completedContents, setCompletedContents] = useState<Set<string>>(
+    new Set()
+  );
 
   // Exam state
   const [activeExamId, setActiveExamId] = useState<number | null>(null);
@@ -51,39 +96,119 @@ export default function CourseLearnPage() {
   const [examCompleted, setExamCompleted] = useState(false);
   const [examQuestions, setExamQuestions] = useState<ExamQuestion[]>([]);
 
-  const [selectedContent, setSelectedContent] =
-    useState<ContentResponse | null>(null);
-  const [completedContents, setCompletedContents] = useState<Set<string>>(
-    new Set()
-  );
-  const [lessons, setLessons] = useState<LessonResponse[]>([]);
+  // Load all progress data for the course
+  const loadProgressData = async () => {
+    if (!userId || lessons.length === 0) return;
 
-  // Helper functions for sidebar
-  const getContentDuration = (content: ContentResponse): string => {
-    switch (content.contentType.toLowerCase()) {
-      case "video":
-        return "10:25";
-      case "doc":
-        return "5 mins read";
-      case "quiz":
-        return "10 questions";
-      default:
-        return "5 mins";
+    try {
+      console.log("📊 Loading progress data for course:", courseId);
+
+      // Get course progress
+      const courseProgressData: CourseProgressResponse =
+        await getCourseProgress(courseId, userId);
+      setCourseProgress(courseProgressData.progress);
+
+      // Get progress for each lesson and its contents
+      const lessonsWithProgress = await Promise.all(
+        lessons.map(async (lesson) => {
+          try {
+            // Get lesson progress
+            const lessonProgress: LessonProgressResponseDto =
+              await getLessonProgress(lesson.lessonId, userId);
+
+            // Get completed contents count for this lesson
+            const completedCount: CompletedCountResponse =
+              await getCompletedContentsCount(lesson.lessonId, userId);
+
+            // Get progress for each content in the lesson
+            const contentsWithProgress = await Promise.all(
+              lesson.contents.map(async (content) => {
+                try {
+                  const contentStatus: ContentProgressStatus =
+                    await getContentStatus(content.contentId, userId);
+                  return {
+                    ...content,
+                    isCompleted: contentStatus.isCompleted,
+                  } as ContentWithProgress;
+                } catch (error) {
+                  console.warn(
+                    `Failed to load status for content ${content.contentId}:`,
+                    error
+                  );
+                  return {
+                    ...content,
+                    isCompleted: false,
+                  } as ContentWithProgress;
+                }
+              })
+            );
+
+            return {
+              ...lesson,
+              isCompleted: lessonProgress.isCompleted,
+              completedContentsCount: completedCount.completedContentsCount,
+              totalContentsCount: lesson.contents.length,
+              contents: contentsWithProgress,
+            } as LessonWithProgress;
+          } catch (error) {
+            console.warn(
+              `Failed to load progress for lesson ${lesson.lessonId}:`,
+              error
+            );
+            return {
+              ...lesson,
+              isCompleted: false,
+              completedContentsCount: 0,
+              totalContentsCount: lesson.contents.length,
+              contents: lesson.contents.map((content) => ({
+                ...content,
+                isCompleted: false,
+              })) as ContentWithProgress[],
+            } as LessonWithProgress;
+          }
+        })
+      );
+
+      setLessons(lessonsWithProgress);
+
+      // Update completed contents set
+      const allCompletedContents = new Set<string>();
+      lessonsWithProgress.forEach((lesson) => {
+        lesson.contents.forEach((content) => {
+          if (content.isCompleted) {
+            allCompletedContents.add(content.contentId);
+          }
+        });
+      });
+      setCompletedContents(allCompletedContents);
+
+      // Update current lesson if it exists
+      if (currentLesson) {
+        const updatedCurrentLesson = lessonsWithProgress.find(
+          (l) => l.lessonId === currentLesson.lessonId
+        );
+        if (updatedCurrentLesson) {
+          setCurrentLesson(updatedCurrentLesson);
+        }
+      }
+
+      console.log("✅ Progress data loaded successfully");
+    } catch (error) {
+      console.error("❌ Failed to load progress data:", error);
     }
   };
 
-  const isContentCompleted = (content: ContentResponse): boolean => {
-    return completedContents.has(content.contentId);
-  };
-
   // Fetch course data from API
-  const fetchCourseData = useCallback(async () => {
-      if (!courseId) return;
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      if (!courseId || !userId) return;
 
       setLoading(true);
       setError(null);
 
       try {
+        console.log("🔄 Fetching course data for:", courseId);
+
         // Fetch course details
         const course = (await courseApi.getCourseById(
           courseId
@@ -93,28 +218,41 @@ export default function CourseLearnPage() {
         const lessonsResponse = (await courseApi.getLessonsByCourseId(
           courseId
         )) as { lessons: LessonResponse[] };
+        const rawLessons = lessonsResponse.lessons || [];
 
-        // Extract lessons from the response
-        const lessons = lessonsResponse.lessons || [];
-        setLessons(lessons);
+        // Transform lessons to include progress structure
+        const initialLessons: LessonWithProgress[] = rawLessons.map(
+          (lesson) => ({
+            ...lesson,
+            isCompleted: false,
+            completedContentsCount: 0,
+            totalContentsCount: lesson.contents?.length || 0,
+            contents: (lesson.contents || []).map((content) => ({
+              ...content,
+              isCompleted: false,
+            })) as ContentWithProgress[],
+          })
+        );
 
-        // Process each lesson to get its contents
+        setLessons(initialLessons);
+
+        // Process lessons for course data
         const lessonsWithContent = await Promise.all(
-          lessons.map(async (lesson: LessonResponse) => {
+          initialLessons.map(async (lesson: LessonWithProgress) => {
             try {
-              // Use contents from the API response
               const contents = lesson.contents || [];
+              let lessonType: "video" | "text" | "quiz" = "text";
+              let lessonContent:
+                | VideoState
+                | DocumentResponse
+                | QuizResponse
+                | { text: string } = { text: "No content available" };
+              let duration = "5 mins read";
 
-              // Determine lesson type and content based on first content
-              let lessonType: 'video' | 'text' | 'quiz';
-              let lessonContent: VideoState | DocumentResponse | QuizResponse | { text: string } = { text: 'No content available' };
-              let duration = '5 mins read';
-
-              if (contents && contents.length > 0) {
+              if (contents.length > 0) {
                 const firstContent = contents[0];
 
                 try {
-                  console.log('🔍 Processing content:', firstContent.contentType, firstContent);
                   switch (firstContent.contentType.toLowerCase()) {
                     case "video":
                       lessonType = "video";
@@ -134,46 +272,36 @@ export default function CourseLearnPage() {
                       };
                       duration = "5 mins read";
                       break;
-                    case 'quiz':
-                    case 'quizz':
-                      console.log('📝 Loading quiz content...');
-                      lessonType = 'quiz';
-                      const quizContent = await contentApi.getQuizContent(courseId, lesson.lessonId, firstContent.contentId) as QuizResponse;
-                      console.log('✅ Quiz content loaded:', quizContent);
+                    case "quiz":
+                      lessonType = "quiz";
+                      const quizContent =
+                        (await contentApi.getQuizContent()) as QuizResponse;
                       lessonContent = quizContent;
                       duration = `${
                         quizContent.questions?.length || 0
                       } questions`;
                       break;
-
                     default:
-                      console.log('❌ Unknown content type:', firstContent.contentType);
-                      lessonType = 'text';
-                      lessonContent = { text: 'Content not available' };
-                      duration = '5 mins read';
+                      lessonType = "text";
+                      lessonContent = { text: "Content not available" };
+                      duration = "5 mins read";
                   }
-                } catch (error) {
-                  console.error('❌ Error loading content:', error);
-                  lessonType = 'text';
-                  lessonContent = { text: 'Content not available' };
-                  duration = '5 mins read';
+                } catch {
+                  lessonType = "text";
+                  lessonContent = { text: "Content not available" };
+                  duration = "5 mins read";
                 }
 
-                const transformedLesson: LessonWithContent = {
+                return {
                   id: lesson.lessonId,
                   title: lesson.lessonName,
                   type: lessonType,
                   duration,
-                  isCompleted: false,
+                  isCompleted: false, // Will be updated by progress loading
                   content: lessonContent,
-                  contents: contents.map((content) => ({
-                    ...content,
-                    isCompleted: completedContents.has(content.contentId),
-                  })),
-                };
-                return transformedLesson;
+                  contents: contents,
+                } as LessonWithContent;
               } else {
-                // No contents available
                 return {
                   id: lesson.lessonId,
                   title: lesson.lessonName,
@@ -198,12 +326,12 @@ export default function CourseLearnPage() {
           })
         );
 
-        // Group lessons into modules (for now, just one module)
+        // Create course data
         const courseData: CourseData = {
           id: course.courseId,
           title: course.title,
           instructor: course.instructorName || "Unknown Instructor",
-          progress: 35, // This should come from enrollment progress
+          progress: 0, // Will be updated by progress loading
           modules: [
             {
               id: "1",
@@ -232,56 +360,159 @@ export default function CourseLearnPage() {
         setCourseData(courseData);
 
         // Set initial lesson and content
-        if (lessons.length > 0) {
-          setCurrentLesson(lessons[0]);
+        if (initialLessons.length > 0) {
+          setCurrentLesson(initialLessons[0]);
           if (lessonsWithContent.length > 0) {
             setCurrentContent(lessonsWithContent[0]);
           }
         }
+
+        console.log("✅ Course data loaded successfully");
       } catch (err) {
+        console.error("❌ Failed to load course data:", err);
         setError(
           err instanceof Error ? err.message : "Failed to load course data"
         );
       } finally {
         setLoading(false);
       }
-  }, [courseId, completedContents]);
+    };
 
-  useEffect(() => {
     fetchCourseData();
-  }, [fetchCourseData]);
+  }, [courseId, userId]);
 
-  const handleLessonSelect = (lesson: LessonResponse) => {
-    setCurrentLesson(lesson);
-    setActiveTab("content");
+  // Load progress data after lessons are loaded
+  useEffect(() => {
+    if (lessons.length > 0 && userId) {
+      loadProgressData();
+    }
+  }, [lessons.length, userId]);
 
-    // Find the corresponding LessonWithContent from our data
-    const lessonWithContent = courseData?.modules[0].lessons.find(
-      (l) => l.id === lesson.lessonId
-    );
-    if (lessonWithContent) {
-      setCurrentContent(lessonWithContent);
+  // Update course data when progress changes
+  useEffect(() => {
+    if (courseData && lessons.length > 0) {
+      const updatedCourseData = {
+        ...courseData,
+        progress: courseProgress,
+        modules: courseData.modules.map((module) => ({
+          ...module,
+          lessons: module.lessons.map((lesson) => {
+            const progressLesson = lessons.find(
+              (l) => l.lessonId === lesson.id
+            );
+            if (progressLesson) {
+              return {
+                ...lesson,
+                isCompleted: progressLesson.isCompleted,
+                contents: lesson.contents.map((content) => ({
+                  ...content,
+                  isCompleted: completedContents.has(content.contentId),
+                })),
+              };
+            }
+            return lesson;
+          }),
+        })),
+      };
+      setCourseData(updatedCourseData);
+    }
+  }, [courseProgress, completedContents, lessons]);
+
+  // Helper functions for sidebar
+  const getContentDuration = (content: ContentResponse): string => {
+    switch (content.contentType.toLowerCase()) {
+      case "video":
+        return "10:25";
+      case "doc":
+        return "5 mins read";
+      case "quiz":
+        return "10 questions";
+      default:
+        return "5 mins";
     }
   };
 
-  const handleContentSelect = async (content: ContentResponse) => {
-    setSelectedContent(content);
+  const isContentCompleted = (content: ContentResponse): boolean => {
+    return completedContents.has(content.contentId);
+  };
 
-    // Find the lesson containing this content
-    const lesson = lessons.find((l: LessonResponse) =>
-      l.contents.some((c) => c.contentId === content.contentId)
+  // Handle lesson selection
+  const handleLessonSelect = (lesson: LessonResponse) => {
+    // Find the lesson with progress data
+    const lessonWithProgress = lessons.find(
+      (l) => l.lessonId === lesson.lessonId
     );
-    if (lesson) {
-      setCurrentLesson(lesson);
+    if (lessonWithProgress) {
+      setCurrentLesson(lessonWithProgress);
+      setActiveTab("content");
+
+      // Find the corresponding LessonWithContent from courseData
+      const lessonWithContent = courseData?.modules[0].lessons.find(
+        (l) => l.id === lesson.lessonId
+      );
+      if (lessonWithContent) {
+        setCurrentContent(lessonWithContent);
+      }
+
+      // Set first content as selected if available
+      if (lessonWithProgress.contents.length > 0) {
+        setSelectedContent(lessonWithProgress.contents[0]);
+      }
     }
+  };
 
-    // Find the corresponding LessonWithContent
-    const lessonWithContent = courseData?.modules[0].lessons.find(
-      (l: LessonWithContent) =>
+  // Handle content selection
+  const handleContentSelect = async (content: ContentResponse) => {
+    // Find content with progress data
+    const contentWithProgress = lessons
+      .flatMap((l) => l.contents)
+      .find((c) => c.contentId === content.contentId);
+
+    if (contentWithProgress) {
+      setSelectedContent(contentWithProgress);
+
+      // Find the lesson containing this content
+      const lesson = lessons.find((l: LessonWithProgress) =>
         l.contents.some((c) => c.contentId === content.contentId)
-    );
-    if (lessonWithContent) {
-      setCurrentContent(lessonWithContent);
+      );
+      if (lesson) {
+        setCurrentLesson(lesson);
+      }
+
+      // Find the corresponding LessonWithContent
+      const lessonWithContent = courseData?.modules[0].lessons.find(
+        (l: LessonWithContent) =>
+          l.contents.some((c) => c.contentId === content.contentId)
+      );
+      if (lessonWithContent) {
+        setCurrentContent(lessonWithContent);
+      }
+    }
+  };
+
+  // Handle content completion
+  const handleContentComplete = async (contentId: string) => {
+    if (!currentLesson || !userId) return;
+
+    try {
+      console.log("✅ Marking content as completed:", contentId);
+
+      // Mark content as completed via API
+      await markContentAsCompleted(userId, contentId, currentLesson.lessonId);
+
+      // Update local state immediately for better UX
+      setCompletedContents((prev) => new Set([...Array.from(prev), contentId]));
+
+      // Refresh progress data to get updated counts and completion status
+      await loadProgressData();
+
+      console.log("✅ Content marked as completed successfully");
+    } catch (error) {
+      console.error("❌ Failed to mark content as completed:", error);
+      setError("Failed to save progress. Please try again.");
+
+      // Still update local state for better UX even if API fails
+      setCompletedContents((prev) => new Set([...Array.from(prev), contentId]));
     }
   };
 
@@ -349,36 +580,6 @@ export default function CourseLearnPage() {
     setExamQuestions([]);
   };
 
-  // Handle content completion
-  const handleContentComplete = (contentId: string) => {
-    setCompletedContents(prev => new Set([...Array.from(prev), contentId]));
-    
-    // Update lesson completion status if all contents are completed
-    if (currentLesson) {
-      const allContents = currentLesson.contents || [];
-      const completedCount = completedContents.size + 1; // +1 for current content
-
-      if (completedCount >= allContents.length) {
-        // Mark lesson as completed
-        setCourseData((prev) => {
-          if (!prev) return prev;
-
-          return {
-            ...prev,
-            modules: prev.modules.map((module) => ({
-              ...module,
-              lessons: module.lessons.map((lesson) =>
-                lesson.id === currentLesson.lessonId
-                  ? { ...lesson, isCompleted: true }
-                  : lesson
-              ),
-            })),
-          };
-        });
-      }
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -439,19 +640,20 @@ export default function CourseLearnPage() {
             <div className="flex flex-col gap-1 w-48">
               <div className="flex justify-between text-sm">
                 <span>Course Progress</span>
-                <span>{courseData.progress}%</span>
+                <span>{Math.round(courseProgress)}%</span>
               </div>
-              <Progress value={courseData.progress} className="h-2" />
+              <Progress value={courseProgress} className="h-2" />
             </div>
             <Button>Continue Learning</Button>
           </div>
         </div>
       </header>
+
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="sticky top-20 h-[calc(100vh-5rem)] z-30">
           <CourseSidebar
-            lessons={lessons}
+            lessons={lessons} // Pass lessons with progress data
             currentLesson={currentLesson}
             currentContent={currentContent}
             onLessonSelect={handleLessonSelect}
@@ -460,6 +662,7 @@ export default function CourseLearnPage() {
             isContentCompleted={isContentCompleted}
           />
         </aside>
+
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
           <div className="container py-10 ml-6">
@@ -481,23 +684,21 @@ export default function CourseLearnPage() {
                   Exams & Assessments
                 </TabsTrigger>
               </TabsList>
+
               <TabsContent value="content" className="mt-0">
-                {currentLesson && (
-                  <LessonContent 
-                    lesson={{
-                      id: currentLesson.lessonId,
-                      title: currentLesson.lessonName,
-                      type: currentContent?.type || "text",
-                      duration: currentLesson.duration || "5 mins",
-                      content: currentContent?.content,
-                      contents: currentLesson.contents
-                    }} 
+                {currentContent && (
+                  <LessonContent
+                    lesson={currentContent}
                     content={selectedContent} 
-                    courseId={courseId} 
-                    onContentComplete={handleContentComplete} 
+                    onContentComplete={handleContentComplete}
+                    courseId={courseId}
+                    isContentCompleted={
+                      selectedContent ? selectedContent.isCompleted : false
+                    }
                   />
                 )}
               </TabsContent>
+
               <TabsContent value="exams" className="mt-0">
                 <div className="grid md:grid-cols-2 gap-6">
                   {activeExamId === null ? (
@@ -667,3 +868,5 @@ export default function CourseLearnPage() {
     </div>
   );
 }
+
+export default CourseLearnPage;

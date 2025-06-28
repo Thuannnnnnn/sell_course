@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent } from '../ui/card'
-import { Separator } from '../ui/separator'
-import { Button } from '../ui/button'
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
-import { VideoLesson } from './VideoLesson'
-import { DocLesson } from './DocLesson'
-import QuizIntegration from './QuizIntegration'
-import { apiCall } from '../../app/api/courses/lessons/lessons'
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "../ui/card";
+import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import { ChevronLeft, ChevronRight, Loader2, CheckCircle } from "lucide-react";
+import { VideoLesson } from "./VideoLesson";
+import { DocLesson } from "./DocLesson";
+import QuizIntegration from "./QuizIntegration";
+import { apiCall } from "../../app/api/courses/lessons/lessons";
 import {
   DocumentResponse,
   QuizResponse,
@@ -15,28 +15,42 @@ import {
 } from "../../app/types/Course/Lesson/Lessons";
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
 
+// Enhanced interface to match CourseLearnPage structure
+interface ContentWithProgress extends ContentResponse {
+  isCompleted: boolean;
+}
+
 interface LessonContentProps {
   lesson: {
     id: string;
     title: string;
     type: string;
     duration: string;
-    content?:
-      | VideoState
-      | DocumentResponse
-      | QuizResponse
-      | { text: string };
+    content?: VideoState | DocumentResponse | QuizResponse | { text: string };
     contents?: ContentResponse[];
   };
-  content?: ContentResponse | null;
+  content?: ContentWithProgress | null; // Updated to include progress data
   courseId: string;
   onContentComplete?: (contentId: string) => void;
+  isContentCompleted?: boolean; // Additional prop to track completion status
 }
 
-export function LessonContent({ lesson, content, courseId, onContentComplete }: LessonContentProps) {
+export function LessonContent({
+  lesson,
+  content,
+  courseId,
+  onContentComplete,
+  isContentCompleted = false,
+}: LessonContentProps) {
   const [contentData, setContentData] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [localCompleted, setLocalCompleted] = useState(false);
+
+  // Update local completion state when prop changes
+  useEffect(() => {
+    setLocalCompleted(isContentCompleted);
+  }, [isContentCompleted]);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -45,10 +59,17 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
         setContentData(null);
         return;
       }
+
       setLoading(true);
       setError(null);
+
       try {
-        console.log('🔍 LessonContent - Processing content:', selected.contentType, selected);
+        console.log(
+          "🔍 LessonContent - Processing content:",
+          selected.contentType,
+          selected
+        );
+
         switch (selected.contentType.toLowerCase()) {
           case "video":
             const videoData = await apiCall<VideoState>(
@@ -56,33 +77,73 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
             );
             setContentData({ type: "video", data: videoData });
             break;
+
           case "doc":
             const docData = await apiCall<DocumentResponse>(
               `/api/docs/view_doc/${selected.contentId}`
             );
             setContentData({ type: "doc", data: docData });
             break;
-          case 'quiz':
-          case 'quizz':
-            console.log('📝 LessonContent - Loading quiz content...');
-            const quizData = await apiCall<QuizResponse>(`/api/courses/${courseId}/lessons/${lesson.id}/contents/${selected.contentId}/quizzes/random`);
-            console.log('✅ LessonContent - Quiz content loaded:', quizData);
-            setContentData({ type: 'quiz', data: quizData });
+
+          case "quiz":
+          case "quizz":
+            console.log("📝 LessonContent - Loading quiz content...");
+            const quizData = await apiCall<QuizResponse>(
+              `/api/courses/${courseId}/lessons/${lesson.id}/contents/${selected.contentId}/quizzes/random`
+            );
+            console.log("✅ LessonContent - Quiz content loaded:", quizData);
+            setContentData({ type: "quiz", data: quizData });
             break;
+
           default:
-            console.log('❌ LessonContent - Unknown content type:', selected.contentType);
-            setContentData({ type: 'text', data: { text: 'Content not available' } });
+            console.log(
+              "❌ LessonContent - Unknown content type:",
+              selected.contentType
+            );
+            setContentData({
+              type: "text",
+              data: { text: "Content not available" },
+            });
         }
       } catch (err) {
-        console.error('❌ LessonContent - Error loading content:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load content');
-        setContentData({ type: 'text', data: { text: 'Error loading content' } });
+        console.error("❌ LessonContent - Error loading content:", err);
+        setError(err instanceof Error ? err.message : "Failed to load content");
+        setContentData({
+          type: "text",
+          data: { text: "Error loading content" },
+        });
       } finally {
         setLoading(false);
       }
     };
+
     fetchContent();
   }, [lesson.contents, lesson.title, content, courseId, lesson.id]);
+
+  // Enhanced completion handler
+  const handleContentComplete = async (contentId: string) => {
+    console.log("📋 LessonContent - Handling content completion:", contentId);
+
+    // Update local state immediately for better UX
+    setLocalCompleted(true);
+
+    // Call parent completion handler
+    if (onContentComplete) {
+      try {
+        await onContentComplete(contentId);
+        console.log(
+          "✅ LessonContent - Content completion handled successfully"
+        );
+      } catch (error) {
+        console.error(
+          "❌ LessonContent - Failed to handle content completion:",
+          error
+        );
+        // Revert local state if API call fails
+        setLocalCompleted(false);
+      }
+    }
+  };
 
   const renderLessonContent = () => {
     if (loading) {
@@ -117,6 +178,9 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
       );
     }
 
+    const currentContentId =
+      content?.contentId || lesson.contents?.[0]?.contentId;
+
     switch (contentData.type) {
       case "video":
         const videoData = contentData.data as VideoState;
@@ -130,7 +194,12 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
             urlScript={videoData.urlScript}
             createdAt={videoData.videoId}
             contents={videoData.contents}
-            onComplete={onContentComplete}
+            onComplete={() => {
+              if (currentContentId) {
+                handleContentComplete(currentContentId);
+              }
+            }}
+            isCompleted={localCompleted} // Pass completion status
           />
         );
 
@@ -139,6 +208,7 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
         return (
           <DocLesson
             lesson={{
+              id: lesson.id,
               title:
                 content?.contentName ||
                 lesson.contents?.[0]?.contentName ||
@@ -147,31 +217,47 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
               contentType: docData.fileType || "pdf",
             }}
             documentData={docData}
-            onComplete={onContentComplete}
-            contentId={content?.contentId || lesson.contents?.[0]?.contentId}
+            onComplete={() => {
+              if (currentContentId) {
+                handleContentComplete(currentContentId);
+              }
+            }}
+            contentId={currentContentId}
+            isCompleted={localCompleted} // Pass completion status
           />
         );
 
-      case 'quiz':
+      case "quiz":
         const quizData = contentData.data as QuizResponse;
         return (
           <QuizIntegration
             courseId={courseId}
             lessonId={lesson.id}
-            contentId={content?.contentId || lesson.contents?.[0]?.contentId || ''}
+            contentId={currentContentId || ""}
             quizId={quizData.quizzId}
             title={content?.contentName || lesson.title}
-            description={quizData.description || "Test your knowledge with this quiz"}
+            description={
+              quizData.description || "Test your knowledge with this quiz"
+            }
             showResults={true}
             onComplete={(score, results) => {
-              console.log('Quiz completed:', { score, results });
-              // Không gọi onContentComplete ngay lập tức để người dùng có thể xem kết quả bài kiểm tra
-              // Thay vào đó, chúng ta sẽ đánh dấu nội dung là đã hoàn thành khi người dùng rời khỏi trang
-              // hoặc khi họ chuyển sang nội dung khác
-              // if (onContentComplete) {
-              //   onContentComplete(content?.contentId || lesson.contents?.[0]?.contentId || '');
-              // }
+              console.log("Quiz completed:", { score, results });
+
+              if (currentContentId && score !== undefined) {
+                const totalQuestions = Array.isArray(results)
+                  ? results.length
+                  : 1;
+                const correctAnswers = Array.isArray(results)
+                  ? results.filter((r) => r.correct).length
+                  : 0;
+                const percentage = (correctAnswers / totalQuestions) * 100;
+
+                if (percentage >= 60) {
+                  handleContentComplete(currentContentId);
+                }
+              }
             }}
+            isCompleted={localCompleted}
           />
         );
 
@@ -186,15 +272,42 @@ export function LessonContent({ lesson, content, courseId, onContentComplete }: 
     }
   };
 
+  const currentContentName =
+    content?.contentName || lesson.contents?.[0]?.contentName || lesson.title;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">
-          {content?.contentName ||
-            lesson.contents?.[0]?.contentName ||
-            lesson.title}
-        </h1>
-        <p className="text-muted-foreground">{lesson.duration}</p>
+      {/* Header with completion indicator */}
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">{currentContentName}</h1>
+            {localCompleted && (
+              <div className="flex items-center gap-1 text-green-600 bg-green-50 dark:bg-green-950/20 px-2 py-1 rounded-full text-sm">
+                <CheckCircle className="h-4 w-4" />
+                <span>Completed</span>
+              </div>
+            )}
+          </div>
+          <p className="text-muted-foreground">{lesson.duration}</p>
+        </div>
+
+        {/* Manual completion button for certain content types */}
+        {!localCompleted && contentData?.type === "doc" && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              const currentContentId =
+                content?.contentId || lesson.contents?.[0]?.contentId;
+              if (currentContentId) {
+                handleContentComplete(currentContentId);
+              }
+            }}
+            className="ml-4"
+          >
+            Mark as Complete
+          </Button>
+        )}
       </div>
 
       <Card>
