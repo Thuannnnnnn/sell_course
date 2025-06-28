@@ -415,14 +415,12 @@ export class VideoService {
 
   async viewVideoByContentId(contentId: string): Promise<Video> {
     try {
-      console.log('contentId:', contentId);
       const video = await this.videoRepository
         .createQueryBuilder('video')
         .innerJoinAndSelect('video.contents', 'contents')
         .where('contents.contentId = :contentId', { contentId })
         .getOne();
 
-      console.log('Video:', video);
       if (!video) {
         throw new NotFoundException(
           `Video with contentId '${contentId}' not found`,
@@ -438,20 +436,13 @@ export class VideoService {
     }
   }
 
-  // Helper method để xóa tất cả files của video từ Azure
   private async deleteVideoFiles(videoId: string) {
     try {
-      // Lấy folder prefix (videos/videoId/)
       const folderPrefix = `videos/${videoId}/`;
-
-      // Xóa tất cả files trong folder này
-      // Note: Azure SDK không có direct method để xóa folder,
-      // nhưng ta có thể xóa từng file dựa trên pattern
       const containerClient = this.blobServiceClient.getContainerClient(
         process.env.AZURE_STORAGE_CONTAINER_NAME || 'default-container',
       );
 
-      // List tất cả blobs có prefix này
       const blobs = containerClient.listBlobsFlat({ prefix: folderPrefix });
 
       for await (const blob of blobs) {

@@ -78,6 +78,7 @@ export function CourseLearnPage() {
   };
 
   const isContentCompleted = (content: ContentResponse): boolean => {
+      
     return completedContents.has(content.contentId);
   };
 
