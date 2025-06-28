@@ -1,152 +1,303 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-interface TextLessonProps {
-  lesson: {
-    title: string;
-    content: string;
-  }
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Download, FileText, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
+import { apiCall } from '../../app/api/courses/lessons/lessons'
+import { DocumentData, DocLessonProps as BaseDocLessonProps } from '../../app/types/Course/Lesson/content/document'
+
+interface DocLessonProps extends BaseDocLessonProps {
+  onComplete?: (contentId: string) => void;
+  contentId?: string;
 }
-export function DocLesson({ lesson }: TextLessonProps) {
-  return (
-    <ScrollArea className="h-[600px]">
-      <div className="p-6 prose max-w-none">
-        <h2>{lesson.title}</h2>
-        <p>
-          HTML elements are the building blocks of HTML pages. An HTML element
-          is defined by a start tag, some content, and an end tag. For example,{' '}
-          <code>&lt;p&gt;This is a paragraph&lt;/p&gt;</code> defines a
-          paragraph.
-        </p>
-        <h3>HTML Document Structure</h3>
-        <p>A basic HTML document has the following structure:</p>
-        <pre className="bg-muted p-4 rounded-md overflow-x-auto">
-          <code>
-            {`<!DOCTYPE html>
-<html>
-<head>
-  <title>Page Title</title>
-</head>
-<body>
-  <h1>My First Heading</h1>
-  <p>My first paragraph.</p>
-</body>
-</html>`}
-          </code>
-        </pre>
-        <h3>Common HTML Elements</h3>
-        <ul>
-          <li>
-            <strong>Headings:</strong> HTML headings are defined with the{' '}
-            <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code> tags.
-            <code>&lt;h1&gt;</code> defines the most important heading while{' '}
-            <code>&lt;h6&gt;</code> defines the least important heading.
-          </li>
-          <li>
-            <strong>Paragraphs:</strong> HTML paragraphs are defined with the{' '}
-            <code>&lt;p&gt;</code> tag.
-          </li>
-          <li>
-            <strong>Links:</strong> HTML links are defined with the{' '}
-            <code>&lt;a&gt;</code> tag. The link's destination is specified in
-            the <code>href</code> attribute.
-          </li>
-          <li>
-            <strong>Images:</strong> HTML images are defined with the{' '}
-            <code>&lt;img&gt;</code> tag. The source file (<code>src</code>),
-            alternative text (<code>alt</code>), <code>width</code>, and{' '}
-            <code>height</code> are provided as attributes.
-          </li>
-          <li>
-            <strong>Lists:</strong> HTML lists are defined with the{' '}
-            <code>&lt;ul&gt;</code> (unordered/bullet list) or{' '}
-            <code>&lt;ol&gt;</code> (ordered/numbered list) tag, followed by{' '}
-            <code>&lt;li&gt;</code> tags (list items).
-          </li>
-        </ul>
-        <h3>Semantic HTML Elements</h3>
-        <p>
-          Semantic HTML elements clearly describe their meaning to both the
-          browser and the developer. Examples of semantic elements:
-        </p>
-        <ul>
-          <li>
-            <code>&lt;article&gt;</code> - Defines independent, self-contained
-            content
-          </li>
-          <li>
-            <code>&lt;aside&gt;</code> - Defines content aside from the page
-            content
-          </li>
-          <li>
-            <code>&lt;details&gt;</code> - Defines additional details that the
-            user can view or hide
-          </li>
-          <li>
-            <code>&lt;figcaption&gt;</code> - Defines a caption for a
-            &lt;figure&gt; element
-          </li>
-          <li>
-            <code>&lt;figure&gt;</code> - Specifies self-contained content, like
-            illustrations, diagrams, photos, code listings, etc.
-          </li>
-          <li>
-            <code>&lt;footer&gt;</code> - Defines a footer for a document or
-            section
-          </li>
-          <li>
-            <code>&lt;header&gt;</code> - Specifies a header for a document or
-            section
-          </li>
-          <li>
-            <code>&lt;main&gt;</code> - Specifies the main content of a document
-          </li>
-          <li>
-            <code>&lt;nav&gt;</code> - Defines navigation links
-          </li>
-          <li>
-            <code>&lt;section&gt;</code> - Defines a section in a document
-          </li>
-        </ul>
-        <h3>HTML Attributes</h3>
-        <p>
-          HTML attributes provide additional information about HTML elements:
-        </p>
-        <ul>
-          <li>
-            The <code>href</code> attribute of <code>&lt;a&gt;</code> specifies
-            the URL of the page the link goes to
-          </li>
-          <li>
-            The <code>src</code> attribute of <code>&lt;img&gt;</code> specifies
-            the path to the image to be displayed
-          </li>
-          <li>
-            The <code>width</code> and <code>height</code> attributes of{' '}
-            <code>&lt;img&gt;</code> provide size information for images
-          </li>
-          <li>
-            The <code>alt</code> attribute of <code>&lt;img&gt;</code> provides
-            an alternate text for an image
-          </li>
-          <li>
-            The <code>style</code> attribute is used to add styles to an
-            element, such as color, font, size, and more
-          </li>
-          <li>
-            The <code>lang</code> attribute of the <code>&lt;html&gt;</code> tag
-            declares the language of the Web page
-          </li>
-          <li>
-            The <code>title</code> attribute defines some extra information
-            about an element
-          </li>
-        </ul>
-        <p>
-          Understanding these fundamental HTML elements and attributes is
-          essential for creating well-structured web pages.
-        </p>
+
+export function DocLesson({ lesson, documentData: propDocumentData, onComplete, contentId }: DocLessonProps) {
+  const [documentData, setDocumentData] = useState<DocumentData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [documentContent, setDocumentContent] = useState<string>('');
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [completing, setCompleting] = useState(false);
+
+  // Use provided document data or fetch it
+  useEffect(() => {
+    const fetchDocument = async () => {
+      // If document data is provided, use it directly
+      if (propDocumentData) {
+        // Map propDocumentData to DocumentData type
+        const mappedData: DocumentData = {
+          contentId: propDocumentData.contentId || propDocumentData.docsId || '',
+          contentName: propDocumentData.contentName || propDocumentData.title || '',
+          contentType: propDocumentData.contentType || 'doc',
+          url: propDocumentData.url || '',
+          documentUrl: propDocumentData.documentUrl,
+          fileType: propDocumentData.fileType || (propDocumentData.url ? propDocumentData.url.split('.').pop()?.toLowerCase() : 'pdf'),
+          fileSize: propDocumentData.fileSize,
+          description: propDocumentData.description
+        };
+        setDocumentData(mappedData);
+        const docUrl = propDocumentData.url || propDocumentData.documentUrl || lesson.content;
+        if (docUrl) {
+          // Determine file type from URL extension if not provided
+          let fileType = propDocumentData.fileType;
+          if (!fileType && docUrl) {
+            const extension = docUrl.split('.').pop()?.toLowerCase();
+            fileType = extension || 'pdf';
+          }
+          await fetchDocumentContent(docUrl, fileType || 'pdf');
+        }
+        return;
+      }
+
+      // Otherwise, try to fetch from API (fallback)
+      if (!lesson.content) {
+        setDocumentContent('No document URL provided');
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Try to fetch document metadata first
+        try {
+          const docData = await apiCall<DocumentData>(`/api/docs/view_doc/${lesson.content}`);
+          setDocumentData(docData);
+          
+          // If we have a document URL, try to fetch the content
+          const docUrl = docData.url || docData.documentUrl || lesson.content;
+          if (docUrl) {
+            await fetchDocumentContent(docUrl, docData.fileType || 'pdf');
+          }
+        } catch {
+          // If metadata fetch fails, try to use the content URL directly
+          await fetchDocumentContent(lesson.content, lesson.contentType || 'pdf');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load document');
+        setDocumentContent('Error loading document content');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchDocumentContent = async (url: string, fileType: string) => {
+      try {
+        if (fileType.toLowerCase() === 'pdf') {
+          // For PDFs, we'll show an embedded viewer
+          setDocumentContent(`PDF document loaded from: ${url}`);
+        } else if (fileType.toLowerCase() === 'doc' || fileType.toLowerCase() === 'docx') {
+          // For Word documents, we'll show a link to Microsoft Office Online
+          setDocumentContent(`Word document loaded from: ${url}`);
+        } else if (fileType.toLowerCase() === 'txt') {
+          // For text files, try to fetch the content
+          const response = await fetch(url);
+          if (response.ok) {
+            const text = await response.text();
+            setDocumentContent(text);
+          } else {
+            setDocumentContent(`Text document loaded from: ${url}`);
+          }
+        } else {
+          setDocumentContent(`Document loaded from: ${url}`);
+        }
+      } catch {
+        setDocumentContent(`Document loaded from: ${url}`);
+      }
+    };
+
+    fetchDocument();
+  }, [lesson.content, lesson.contentType, propDocumentData]);
+
+  const handleDownload = () => {
+    const url = documentData?.url || documentData?.documentUrl || lesson.content;
+    if (url) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = documentData?.contentName || 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleComplete = async () => {
+    setCompleting(true);
+    try {
+      // Here you would typically call an API to mark the lesson as completed
+      // For now, we'll just simulate the API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setIsCompleted(true);
+      
+      // Call the callback to notify parent component
+      if (onComplete && contentId) {
+        onComplete(contentId);
+      }
+      
+      console.log('Lesson marked as completed:', lesson.title);
+    } catch (err) {
+      console.error('Failed to mark lesson as completed:', err);
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading document...</p>
+        </div>
       </div>
-    </ScrollArea>
-  )
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-4" />
+          <p className="text-destructive mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Document Header */}
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-3">
+          <FileText className="h-6 w-6 text-primary" />
+          <div>
+            <h3 className="font-semibold">{documentData?.contentName}</h3>
+            {documentData && (
+              <p className="text-sm text-muted-foreground">
+                {documentData.fileType?.toUpperCase()} • {documentData.fileSize ? `${(documentData.fileSize / 1024 / 1024).toFixed(1)}MB` : 'Unknown size'}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleDownload} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Download
+          </Button>
+          {isCompleted ? (
+            <Button variant="outline" size="sm" disabled className="text-green-600 border-green-600">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Completed
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleComplete} 
+              size="sm" 
+              disabled={completing}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {completing ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle className="h-4 w-4 mr-2" />
+              )}
+              {completing ? 'Marking...' : 'Mark as Complete'}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Document Content */}
+      <ScrollArea className="h-[600px]">
+        <div className="p-6">
+          {(() => {
+            if (documentData?.fileType?.toLowerCase() === 'pdf') {
+              return (
+                // PDF Viewer
+                <div className="space-y-4">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <iframe
+                      src={`${documentData.url || documentData.documentUrl || lesson.content}#toolbar=0`}
+                      className="w-full h-96 border rounded"
+                      title={lesson.title}
+                    />
+                  </div>
+                  <div className="prose max-w-none">
+                    <h4>Document Information</h4>
+                    <p><strong>Title:</strong> {documentData.contentName || lesson.title}</p>
+                    <p><strong>Type:</strong> {documentData.fileType?.toUpperCase() || 'PDF'}</p>
+                    <p><strong>Size:</strong> {documentData.fileSize ? `${(documentData.fileSize / 1024 / 1024).toFixed(1)}MB` : 'Unknown'}</p>
+                    {documentData.description && (
+                      <p><strong>Description:</strong> {documentData.description}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            } else if (documentData?.fileType?.toLowerCase() === 'doc' || documentData?.fileType?.toLowerCase() === 'docx') {
+              return (
+                // Word Document Viewer
+                <div className="space-y-4">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <iframe
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentData.url || documentData.documentUrl || lesson.content)}`}
+                      className="w-full h-96 border rounded"
+                      title={lesson.title}
+                    />
+                  </div>
+                  <div className="prose max-w-none">
+                    <h4>Document Information</h4>
+                    <p><strong>Title:</strong> {documentData.contentName || lesson.title}</p>
+                    <p><strong>Type:</strong> {documentData.fileType?.toUpperCase() || 'DOC'}</p>
+                    <p><strong>Size:</strong> {documentData.fileSize ? `${(documentData.fileSize / 1024 / 1024).toFixed(1)}MB` : 'Unknown'}</p>
+                    {documentData.description && (
+                      <p><strong>Description:</strong> {documentData.description}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            } else if (documentData?.fileType?.toLowerCase() === 'txt') {
+              return (
+                // Text Content
+                <div className="prose max-w-none">
+                  <h4>{documentData?.contentName || lesson.title}</h4>
+                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto whitespace-pre-wrap">
+                    {documentContent}
+                  </pre>
+                </div>
+              );
+            } else {
+              return (
+                // Generic Document Display
+                <div className="prose max-w-none">
+                  <h4>{documentData?.contentName || lesson.title}</h4>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="text-center space-y-4">
+                        <FileText className="h-16 w-16 text-muted-foreground mx-auto" />
+                        <div>
+                          <h5 className="font-semibold">{documentData?.contentName || lesson.title}</h5>
+                          <p className="text-sm text-muted-foreground">
+                            {documentData?.fileType?.toUpperCase() || 'Document'} • {documentData?.fileSize ? `${(documentData.fileSize / 1024 / 1024).toFixed(1)}MB` : 'Unknown size'}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {documentData?.description && (
+                    <div className="mt-4">
+                      <h5>Description</h5>
+                      <p>{documentData.description}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+          })()}
+        </div>
+      </ScrollArea>
+    </div>
+  );
 }

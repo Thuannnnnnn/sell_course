@@ -224,4 +224,38 @@ export class VideoController {
   async viewVideoId(@Param('videoId') videoId: string) {
     return this.videoService.viewVideoById(videoId);
   }
+
+  @Get('/video/view_video_content/:contentId')
+  @ApiOperation({
+    summary: 'Get video by content ID',
+    description: 'Retrieve video details by content ID',
+  })
+  @ApiParam({ name: 'contentId', description: 'Content ID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Video retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        videoId: { type: 'string', example: 'uuid-string' },
+        title: { type: 'string', example: 'Sample Video Title' },
+        description: { type: 'string', example: 'Sample Video Description' },
+        url: {
+          type: 'string',
+          example: 'https://storage.azure.com/video.m3u8',
+        },
+        urlScript: {
+          type: 'string',
+          example: 'https://storage.azure.com/script.json',
+        },
+        createdAt: { type: 'string', format: 'date-time' },
+        contents: { type: 'object' },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Video not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async viewVideoBycontentId(@Param('contentId') contentId: string) {
+    return this.videoService.viewVideoByContentId(contentId);
+  }
 }
