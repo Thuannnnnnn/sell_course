@@ -16,12 +16,13 @@ export interface DocumentResponse {
   description?: string;
 }
 
-// Quiz API Response
+// Quiz API Response (for Lesson content)
 export interface QuizResponse {
-  quizId: string;
-  title: string;
+  quizzId: string;
+  title?: string;
+  description?: string;
   questions: QuizQuestion[];
-  totalQuestions: number;
+  totalQuestions?: number;
   timeLimit?: number;
   createdAt: string;
 }
@@ -29,9 +30,13 @@ export interface QuizResponse {
 export interface QuizQuestion {
   questionId: string;
   question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation?: string;
+  answers: {
+    answerId: string;
+    answer: string;
+    isCorrect: boolean;
+  }[];
+  difficulty?: 'easy' | 'medium' | 'hard';
+  weight?: number;
 }
 
 // Content API Response

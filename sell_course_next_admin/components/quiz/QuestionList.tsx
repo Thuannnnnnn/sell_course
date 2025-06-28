@@ -12,6 +12,17 @@ export default function QuestionList({
   onEdit,
   onDelete,
 }: QuestionListProps) {
+  
+  // Handle delete with confirmation
+  const handleDelete = (id: string, questionText: string) => {
+    const shortText = questionText.length > 50 
+      ? questionText.substring(0, 50) + "..." 
+      : questionText
+    
+    if (window.confirm(`Are you sure you want to delete this question?\n\n"${shortText}"`)) {
+      onDelete(id)
+    }
+  }
   if (questions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-lg bg-muted/30">
@@ -42,7 +53,7 @@ export default function QuestionList({
             <QuestionCard
               question={question}
               onEdit={onEdit}
-              onDelete={onDelete}
+              onDelete={(id) => handleDelete(id, question.question)}
             />
           </div>
         </div>

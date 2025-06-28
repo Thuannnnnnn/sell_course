@@ -73,7 +73,7 @@ interface VideoLessonProps extends VideoState {
   videoData: VideoState;
 }
 
-export function VideoLesson({ onComplete, videoData }: VideoLessonProps) {
+export function VideoLesson({ videoData }: VideoLessonProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);

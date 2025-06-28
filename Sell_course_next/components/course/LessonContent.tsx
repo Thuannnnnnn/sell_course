@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "../ui/card";
-import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { VideoLesson } from "./VideoLesson";
-import { DocLesson } from "./DocLesson";
-import { QuizComponent } from "./QuizComponent";
-import { apiCall } from "../../app/api/courses/lessons/lessons";
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent } from '../ui/card'
+import { Separator } from '../ui/separator'
+import { Button } from '../ui/button'
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { VideoLesson } from './VideoLesson'
+import { DocLesson } from './DocLesson'
+import QuizIntegration from './QuizIntegration'
+import { apiCall } from '../../app/api/courses/lessons/lessons'
 import {
   DocumentResponse,
   QuizResponse,
@@ -26,14 +26,11 @@ interface LessonContentProps {
     contents?: ContentResponse[];
   };
   content?: ContentResponse | null;
+  courseId: string;
   onContentComplete?: (contentId: string) => void;
 }
 
-export function LessonContent({
-  lesson,
-  content,
-  onContentComplete,
-}: LessonContentProps) {
+export function LessonContent({ lesson, content, courseId, onContentComplete }: LessonContentProps) {
   const [contentData, setContentData] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +45,7 @@ export function LessonContent({
       setLoading(true);
       setError(null);
       try {
+        console.log('🔍 LessonContent - Processing content:', selected.contentType, selected);
         switch (selected.contentType.toLowerCase()) {
           case "video":
             const videoData = await apiCall<VideoState>(
@@ -63,28 +61,27 @@ export function LessonContent({
             setContentData({ type: "doc", data: docData });
             setUrlBot(docData.url);
             break;
-          case "quiz":
-            const quizData = await apiCall<QuizResponse>(`/api/quizz/random`);
-            setContentData({ type: "quiz", data: quizData });
+          case 'quiz':
+          case 'quizz':
+            console.log('📝 LessonContent - Loading quiz content...');
+            const quizData = await apiCall<QuizResponse>(`/api/courses/${courseId}/lessons/${lesson.id}/contents/${selected.contentId}/quizzes/random`);
+            console.log('✅ LessonContent - Quiz content loaded:', quizData);
+            setContentData({ type: 'quiz', data: quizData });
             break;
           default:
-            setContentData({
-              type: "text",
-              data: { text: "Content not available" },
-            });
+            console.log('❌ LessonContent - Unknown content type:', selected.contentType);
+            setContentData({ type: 'text', data: { text: 'Content not available' } });
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load content");
-        setContentData({
-          type: "text",
-          data: { text: "Error loading content" },
-        });
+        console.error('❌ LessonContent - Error loading content:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load content');
+        setContentData({ type: 'text', data: { text: 'Error loading content' } });
       } finally {
         setLoading(false);
       }
     };
     fetchContent();
-  }, [lesson.contents, lesson.title, content]);
+  }, [lesson.contents, lesson.title, content, courseId, lesson.id]);
 
   const renderLessonContent = () => {
     if (loading) {
@@ -154,16 +151,25 @@ export function LessonContent({
           />
         );
 
-      case "quiz":
+      case 'quiz':
+        const quizData = contentData.data as QuizResponse;
         return (
-          <QuizComponent
-            lesson={{
-              id: lesson.id,
-              title: lesson.title,
-              quiz: {
-                id: lesson.contents?.[0]?.contentId || "",
-                questions: [],
-              },
+          <QuizIntegration
+            courseId={courseId}
+            lessonId={lesson.id}
+            contentId={content?.contentId || lesson.contents?.[0]?.contentId || ''}
+            quizId={quizData.quizzId}
+            title={content?.contentName || lesson.title}
+            description={quizData.description || "Test your knowledge with this quiz"}
+            showResults={true}
+            onComplete={(score, results) => {
+              console.log('Quiz completed:', { score, results });
+              // Không gọi onContentComplete ngay lập tức để người dùng có thể xem kết quả bài kiểm tra
+              // Thay vào đó, chúng ta sẽ đánh dấu nội dung là đã hoàn thành khi người dùng rời khỏi trang
+              // hoặc khi họ chuyển sang nội dung khác
+              // if (onContentComplete) {
+              //   onContentComplete(content?.contentId || lesson.contents?.[0]?.contentId || '');
+              // }
             }}
           />
         );
