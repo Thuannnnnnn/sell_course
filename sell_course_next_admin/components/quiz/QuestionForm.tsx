@@ -22,7 +22,13 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
   const [weight, setWeight] = useState(5) // Start with medium default
   const [error, setError] = useState('')
   const [isDirty, setIsDirty] = useState(false)
-  const [initialData, setInitialData] = useState<any>(null)
+  const [initialData, setInitialData] = useState<{
+    question: string
+    options: string[]
+    correctAnswer: number
+    difficulty: 'easy' | 'medium' | 'hard'
+    weight: number
+  } | null>(null)
 
   // Define difficulty point ranges
   const getDifficultyRange = (difficulty: string) => {
@@ -75,21 +81,20 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
     setIsDirty(false)
   }, [initialQuestion])
 
-  // Check if form has been modified
-  const checkForChanges = () => {
-    if (!initialData) return false
-    
-    return (
-      question !== initialData.question ||
-      JSON.stringify(options) !== JSON.stringify(initialData.options) ||
-      correctAnswer !== initialData.correctAnswer ||
-      difficulty !== initialData.difficulty ||
-      weight !== initialData.weight
-    )
-  }
-
   // Update dirty state when form changes
   useEffect(() => {
+    const checkForChanges = () => {
+      if (!initialData) return false
+      
+      return (
+        question !== initialData.question ||
+        JSON.stringify(options) !== JSON.stringify(initialData.options) ||
+        correctAnswer !== initialData.correctAnswer ||
+        difficulty !== initialData.difficulty ||
+        weight !== initialData.weight
+      )
+    }
+
     setIsDirty(checkForChanges())
   }, [question, options, correctAnswer, difficulty, weight, initialData])
 

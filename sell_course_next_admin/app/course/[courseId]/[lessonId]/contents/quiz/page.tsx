@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { fetchContentsByLesson } from '../../../../../api/lessons/content'
 import { getDocumentById } from '../../../../../api/lessons/Doc/document'
 import { getAllVideos } from '../../../../../api/lessons/Video/video'
-import { Content } from '../../../../types/lesson'
-import { Docs } from '../../../../types/doc'
-import { VideoState } from '../../../../types/video'
+import { VideoState } from '../../../../../types/video'
+
+
 import QuestionForm from '../../../../../../components/quiz/QuestionForm'
 import QuestionList from '../../../../../../components/quiz/QuestionList'
 import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser, ArrowUp, Sparkles, Loader2, FileText } from 'lucide-react'
@@ -160,7 +160,7 @@ function QuizPageContent({ params }: QuizPageProps) {
   }
 
   // Load URLs from lesson content
-  const loadLessonUrls = async () => {
+  const loadLessonUrls = useCallback(async () => {
     if (!session?.accessToken) return
     
     setLoadingUrls(true)
@@ -198,14 +198,14 @@ function QuizPageContent({ params }: QuizPageProps) {
     } finally {
       setLoadingUrls(false)
     }
-  }
+  }, [lessonId, session?.accessToken])
 
   // Load URLs when dialog opens
   useEffect(() => {
     if (aiDialogOpen && lessonUrls.length === 0) {
       loadLessonUrls()
     }
-  }, [aiDialogOpen, lessonUrls.length, session?.accessToken])
+  }, [aiDialogOpen, lessonUrls.length, session?.accessToken, loadLessonUrls])
 
   const handleGenerateAIQuiz = async () => {
     if (!contentId) {
