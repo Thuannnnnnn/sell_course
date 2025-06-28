@@ -664,6 +664,7 @@ export default function CourseLearnPage() {
           </div>
         </main>
       </div>
+      <div className="fixed bottom-6 right-6 z-50"></div>
     </div>
   );
 }
