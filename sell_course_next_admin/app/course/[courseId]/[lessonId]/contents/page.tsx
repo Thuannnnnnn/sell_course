@@ -74,7 +74,13 @@ function EditContentModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasDocument, setHasDocument] = useState(false);
-  const [checkingDocument, setCheckingDocument] = useState(false);
+  const [hasQuiz, setHasQuiz] = useState(false);
+  const [hasVideo, setHasVideo] = useState(false);
+  const [checkingContent, setCheckingContent] = useState(false);
+  const params = useParams();
+  const courseId = params.courseId as string;
+  const lessonId = params.lessonId as string;
+
   useEffect(() => {
     if (content && open) {
       setContentName(content.contentName);
@@ -82,26 +88,58 @@ function EditContentModal({
         content.contentType ? content.contentType.toLowerCase() : ""
       );
       setError("");
-      setCheckingDocument(true);
-      const checkDocument = async () => {
+      setCheckingContent(true);
+      
+      const checkContent = async () => {
         try {
-          const doc = await getDocumentById(content.contentId);
-          setHasDocument(!!doc);
+          const contentType = content.contentType.toLowerCase();
+          
+          if (contentType === 'doc') {
+            const doc = await getDocumentById(content.contentId);
+            setHasDocument(!!doc);
+          } else if (contentType === 'quizz') {
+            const quizzes = await quizApi.getQuizzesByContentId(courseId, lessonId, content.contentId);
+            setHasQuiz(quizzes && quizzes.length > 0);
+          } else if (contentType === 'video') {
+            const videos = await getAllVideos();
+            const hasVideoContent = videos.some(v => 
+              v.contents && v.contents.contentId === content.contentId
+            );
+            setHasVideo(hasVideoContent);
+          }
         } catch {
           setHasDocument(false);
+          setHasQuiz(false);
+          setHasVideo(false);
         } finally {
-          setCheckingDocument(false);
+          setCheckingContent(false);
         }
       };
-      checkDocument();
+      
+      checkContent();
     } else if (!open) {
       setContentName("");
       setContentType("");
       setError("");
       setHasDocument(false);
-      setCheckingDocument(false);
+      setHasQuiz(false);
+      setHasVideo(false);
+      setCheckingContent(false);
     }
-  }, [content, open]);
+  }, [content, open, courseId, lessonId]);
+
+  const hasExistingContent = hasDocument || hasQuiz || hasVideo;
+
+  const getContentTypeWarning = () => {
+    if (hasDocument) {
+      return "Content type cannot be changed because this content has an attached document. You must delete the document first to change the content type.";
+    } else if (hasQuiz) {
+      return "Content type cannot be changed because this content has an attached quiz. You must delete the quiz first to change the content type.";
+    } else if (hasVideo) {
+      return "Content type cannot be changed because this content has an attached video. You must delete the video first to change the content type.";
+    }
+    return "";
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -179,12 +217,12 @@ function EditContentModal({
                     {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
                   </span>
                 )}
-                {checkingDocument ? (
+                {checkingContent ? (
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
                     Checking content status...
                   </div>
-                ) : hasDocument ? (
+                ) : hasExistingContent ? (
                   <div className="space-y-2">
                     <Select
                       value={contentType}
@@ -205,9 +243,7 @@ function EditContentModal({
                       </SelectContent>
                     </Select>
                     <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-                      <strong>Note:</strong> Content type cannot be changed
-                      because this content has an attached document. You must
-                      delete the document first to change the content type.
+                      <strong>Note:</strong> {getContentTypeWarning()}
                     </div>
                   </div>
                 ) : (
@@ -239,18 +275,18 @@ function EditContentModal({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={loading || checkingDocument}
+                  disabled={loading || checkingContent}
                   style={{
                     backgroundColor: "#513deb",
                     color: "white",
                   }}
                   onMouseEnter={(e) => {
-                    if (!loading && !checkingDocument) {
+                    if (!loading && !checkingContent) {
                       e.currentTarget.style.backgroundColor = "#4f46e5";
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading && !checkingDocument) {
+                    if (!loading && !checkingContent) {
                       e.currentTarget.style.backgroundColor = "#513deb";
                     }
                   }}
@@ -441,6 +477,7 @@ export default function LessonContentsPage() {
     string | null
   >(null);
   const [allVideos, setAllVideos] = useState<VideoState[]>([]);
+  
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -545,6 +582,7 @@ export default function LessonContentsPage() {
       });
     }
   };
+  
   const refreshContents = async () => {
     if (!session?.accessToken) return;
     console.log('🔄 Refreshing contents for lesson:', lessonId);
@@ -588,6 +626,42 @@ export default function LessonContentsPage() {
     }
   };
 
+  const handleManageContent = async (content: Content) => {
+    const contentType = content.contentType.toLowerCase();
+    
+    if (contentType === 'quizz') {
+      try {
+        // Check if quiz already exists for this content
+        const quizzes = await quizApi.getQuizzesByContentId(courseId, lessonId, content.contentId);
+        let quizUrl;
+        if (quizzes && quizzes.length > 0) {
+          // Quiz exists, navigate with quizId
+          const existingQuiz = quizzes[0]; // Take first quiz
+          quizUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}&quizId=${existingQuiz.quizzId}`;
+        } else {
+          // No quiz exists, navigate without quizId
+          quizUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
+        }
+        router.push(quizUrl);
+      } catch {
+        // Fallback to navigate without quizId
+        const fallbackUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
+        router.push(fallbackUrl);
+      }
+    } else if (contentType === 'doc') {
+      setSelectedContentId(content.contentId);
+      setShowDocumentModal(true);
+    } else if (contentType === 'video') {
+      setSelectedVideoContentId(content.contentId);
+      setShowVideoModal(true);
+    }
+  };
+
+  const handleEdit = (content: Content) => {
+    setSelectedContent(content);
+    setShowEditModal(true);
+  };
+
   if (!lesson) {
     return (
       <div className="space-y-6">
@@ -595,36 +669,6 @@ export default function LessonContentsPage() {
       </div>
     );
   }
-
-  const openDocumentModal = (contentType: string, contentId: string) => {
-    if (contentType === "doc") {
-      setSelectedContentId(contentId);
-      setShowDocumentModal(true);
-    }
-  };
-
-  const closeDocumentModal = () => {
-    setShowDocumentModal(false);
-    setSelectedContentId(null);
-  };
-
-  const closeVideoModal = () => {
-    setShowVideoModal(false);
-    setSelectedVideoContentId(null);
-  };
-
-  const openVideoModal = (contentId: string) => {
-    setSelectedVideoContentId(contentId);
-
-    setShowVideoModal(true);
-  };
-
-  const handleEdit = (content: Content) => {
-    setSelectedContent(content);
-    setShowEditModal(true);
-    window.location.reload();
-  };
-
 
   return (
     <div className="space-y-6">
@@ -691,141 +735,54 @@ export default function LessonContentsPage() {
                     isQuizz: content.contentType.toLowerCase() === 'quizz'
                   });
                   return (
-                  <div
-                    key={content.contentId}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
-                        {content.order}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getContentTypeIcon(content.contentType)}
-                        <div>
-                          <h3 className="font-medium">{content.contentName}</h3>
-                          <Badge
-                            variant="outline"
-                            className={getContentTypeColor(content.contentType)}
-                          >
-                            {content.contentType}
-                          </Badge>
+                    <div
+                      key={content.contentId}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
+                          {content.order}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getContentTypeIcon(content.contentType)}
+                          <div>
+                            <h3 className="font-medium">{content.contentName}</h3>
+                            <Badge
+                              variant="outline"
+                              className={getContentTypeColor(content.contentType)}
+                            >
+                              {content.contentType}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {content.contentType.toLowerCase() === 'quizz' && (
+                      <div className="flex items-center space-x-2">
                         <Button
                           size="icon"
                           variant="outline"
-                          onClick={async () => {
-
-
-                            try {
-                              // Check if quiz already exists for this content
-                              const quizzes = await quizApi.getQuizzesByContentId(courseId, lessonId, content.contentId);
-                              let quizUrl;
-                              if (quizzes && quizzes.length > 0) {
-                                // Quiz exists, navigate with quizId
-                                const existingQuiz = quizzes[0]; // Take first quiz
-                                quizUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}&quizId=${existingQuiz.quizzId}`;
-
-                              } else {
-                                // No quiz exists, navigate without quizId
-                                quizUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
-
-                              }
-                              router.push(quizUrl);
-                            } catch {
-
-                              // Fallback to navigate without quizId
-                              const fallbackUrl = `/course/${courseId}/${lessonId}/contents/quiz?contentId=${content.contentId}`;
-
-                              router.push(fallbackUrl);
-                            }
-                          }}
-                          title="Manage Quiz"
+                          onClick={() => handleManageContent(content)}
+                          title={`Manage ${content.contentType}`}
                         >
                           <CircleFadingPlus className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() =>
-                          router.push(
-                            `/course/${courseId}/${lessonId}/contents/edit/${content.contentId}`
-                          )
-                        }
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        onClick={() => handleDelete(content.contentId)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  );
-                })}
-              {contents.map((content) => (
-                <div
-                  key={content.contentId}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
-                      {content.order}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {getContentTypeIcon(content.contentType)}
-                      <div>
-                        <h3 className="font-medium">{content.contentName}</h3>
-                        <Badge
+                        <Button
+                          size="icon"
                           variant="outline"
-                          className={getContentTypeColor(content.contentType)}
+                          onClick={() => handleEdit(content)}
                         >
-                          {content.contentType}
-                        </Badge>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          onClick={() => handleDelete(content.contentId)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={() => {
-                        if (content.contentType === "doc") {
-                          openDocumentModal(
-                            content.contentType,
-                            content.contentId
-                          );
-                        } else if (content.contentType === "video") {
-                          openVideoModal(content.contentId);
-                        }
-                      }}
-                    >
-                      <CircleFadingPlus className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={() => handleEdit(content)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      onClick={() => handleDelete(content.contentId)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
 
               {contents.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
@@ -837,17 +794,25 @@ export default function LessonContentsPage() {
           </CardContent>
         </Card>
       )}
+      
       {showDocumentModal && selectedContentId && (
         <DocumentModal
           isOpen={showDocumentModal}
-          onClose={closeDocumentModal}
+          onClose={() => {
+            setShowDocumentModal(false);
+            setSelectedContentId(null);
+          }}
           params={{ lessonId, contentId: selectedContentId }}
         />
       )}
+      
       {showVideoModal && selectedVideoContentId && (
         <VideoModal
           isOpen={showVideoModal}
-          onClose={closeVideoModal}
+          onClose={() => {
+            setShowVideoModal(false);
+            setSelectedVideoContentId(null);
+          }}
           params={{ lessonId, contentId: selectedVideoContentId }}
           video={
             selectedVideoContentId
@@ -860,6 +825,7 @@ export default function LessonContentsPage() {
           }
         />
       )}
+      
       <EditContentModal
         open={showEditModal}
         onClose={() => setShowEditModal(false)}
