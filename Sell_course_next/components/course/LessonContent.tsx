@@ -19,6 +19,7 @@ import { VideoState } from "@/app/types/Course/Lesson/content/video";
 interface ContentWithProgress extends ContentResponse {
   isCompleted: boolean;
 }
+import AIChatWindow from "@/components/course/AIChatWindow";
 
 interface LessonContentProps {
   lesson: {
@@ -52,6 +53,7 @@ export function LessonContent({
     setLocalCompleted(isContentCompleted);
   }, [isContentCompleted]);
 
+  const [urlBot, setUrlBot] = useState<string | null>(null);
   useEffect(() => {
     const fetchContent = async () => {
       const selected = content || (lesson.contents && lesson.contents[0]);
@@ -76,6 +78,7 @@ export function LessonContent({
               `/api/video/view_video_content/${selected.contentId}`
             );
             setContentData({ type: "video", data: videoData });
+            setUrlBot(videoData.urlScript);
             break;
 
           case "doc":
@@ -83,6 +86,7 @@ export function LessonContent({
               `/api/docs/view_doc/${selected.contentId}`
             );
             setContentData({ type: "doc", data: docData });
+            setUrlBot(docData.url);
             break;
 
           case "quiz":
@@ -383,6 +387,7 @@ export function LessonContent({
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
+      <AIChatWindow urlBot={urlBot || ""} />
     </div>
   );
 }

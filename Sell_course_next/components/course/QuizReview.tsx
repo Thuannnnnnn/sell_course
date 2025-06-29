@@ -165,7 +165,7 @@ export default function QuizReview({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 space-y-6 overflow-hidden">
+    <div className="w-full max-w-4xl mx-auto px-4 space-y-6">
       {/* Review Header */}
       <Card className="border shadow-sm">
         <CardContent className="p-6">
@@ -231,140 +231,142 @@ export default function QuizReview({
         </CardContent>
       </Card>
 
-      {/* Review Questions */}
-      <div className="space-y-6">
-        <div className="text-center">
-          <h3 className="text-lg font-bold mb-2">All Questions & Answers</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Review each question below. Correct answers are highlighted in green, incorrect answers in red.
-          </p>
-        </div>
-        
-        {questions.map((question, questionIndex) => {
-          const userAnswerId = selectedAnswers[question.questionId];
-          const correctAnswer = question.answers.find(answer => answer.isCorrect);
-          const isCorrect = userAnswerId === correctAnswer?.answerId;
+      {/* Review Questions - Now in a scrollable container */}
+      <Card className="border shadow-sm">
+        <CardContent className="p-6">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-bold mb-2">All Questions & Answers</h3>
+            <p className="text-sm text-muted-foreground">
+              Review each question below. Correct answers are highlighted in green, incorrect answers in red.
+            </p>
+          </div>
+          
+          <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-2 space-y-6">
+            {questions.map((question, questionIndex) => {
+              const userAnswerId = selectedAnswers[question.questionId];
+              const correctAnswer = question.answers.find(answer => answer.isCorrect);
+              const isCorrect = userAnswerId === correctAnswer?.answerId;
 
-          return (
-            <Card key={question.questionId} className={`border ${isCorrect ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4 mb-4">
-                  <div className={`p-2 rounded-full flex-shrink-0 ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
-                    {isCorrect ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-red-600" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <h3 className="text-lg font-semibold">Question {questionIndex + 1}</h3>
-                      <Badge variant="outline" className="text-xs">
-                        {question.difficulty?.charAt(0).toUpperCase() + question.difficulty?.slice(1)}
-                      </Badge>
-                      <Badge variant={isCorrect ? "default" : "destructive"} className="text-xs">
-                        {isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                      </Badge>
+              return (
+                <div key={question.questionId} className={`border rounded-lg p-6 ${isCorrect ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}>
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className={`p-2 rounded-full flex-shrink-0 ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
+                      {isCorrect ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                      )}
                     </div>
-                    <p className="text-base mb-4 break-words">{question.question}</p>
-                    
-                    <div className="space-y-3">
-                      {question.answers.map((answer, answerIndex) => {
-                        const isUserAnswer = answer.answerId === userAnswerId;
-                        const isCorrectAnswer = answer.isCorrect;
-                        const optionLetter = String.fromCharCode(65 + answerIndex);
-                        
-                        let borderColor = 'border-border';
-                        let bgColor = 'bg-card';
-                        let textColor = 'text-foreground';
-                        
-                        if (isCorrectAnswer) {
-                          borderColor = 'border-green-300';
-                          bgColor = 'bg-green-50';
-                          textColor = 'text-green-700';
-                        } else if (isUserAnswer && !isCorrectAnswer) {
-                          borderColor = 'border-red-300';
-                          bgColor = 'bg-red-50';
-                          textColor = 'text-red-700';
-                        }
-                        
-                        return (
-                          <div
-                            key={answer.answerId}
-                            className={`p-3 rounded-lg border ${borderColor} ${bgColor}`}
-                          >
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                              <div className="flex items-center gap-3 flex-1">
-                                <div className={`flex items-center justify-center h-7 w-7 rounded-full border-2 text-sm font-bold flex-shrink-0
-                                  ${isCorrectAnswer 
-                                    ? 'border-green-500 bg-green-500 text-white' 
-                                    : isUserAnswer 
-                                      ? 'border-red-500 bg-red-500 text-white'
-                                      : 'border-muted-foreground text-muted-foreground'}
-                                `}>
-                                  {optionLetter}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <h3 className="text-lg font-semibold">Question {questionIndex + 1}</h3>
+                        <Badge variant="outline" className="text-xs">
+                          {question.difficulty?.charAt(0).toUpperCase() + question.difficulty?.slice(1)}
+                        </Badge>
+                        <Badge variant={isCorrect ? "default" : "destructive"} className="text-xs">
+                          {isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                        </Badge>
+                      </div>
+                      <p className="text-base mb-4 break-words">{question.question}</p>
+                      
+                      <div className="space-y-3">
+                        {question.answers.map((answer, answerIndex) => {
+                          const isUserAnswer = answer.answerId === userAnswerId;
+                          const isCorrectAnswer = answer.isCorrect;
+                          const optionLetter = String.fromCharCode(65 + answerIndex);
+                          
+                          let borderColor = 'border-border';
+                          let bgColor = 'bg-card';
+                          let textColor = 'text-foreground';
+                          
+                          if (isCorrectAnswer) {
+                            borderColor = 'border-green-300';
+                            bgColor = 'bg-green-50';
+                            textColor = 'text-green-700';
+                          } else if (isUserAnswer && !isCorrectAnswer) {
+                            borderColor = 'border-red-300';
+                            bgColor = 'bg-red-50';
+                            textColor = 'text-red-700';
+                          }
+                          
+                          return (
+                            <div
+                              key={answer.answerId}
+                              className={`p-3 rounded-lg border ${borderColor} ${bgColor}`}
+                            >
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <div className={`flex items-center justify-center h-7 w-7 rounded-full border-2 text-sm font-bold flex-shrink-0
+                                    ${isCorrectAnswer 
+                                      ? 'border-green-500 bg-green-500 text-white' 
+                                      : isUserAnswer 
+                                        ? 'border-red-500 bg-red-500 text-white'
+                                        : 'border-muted-foreground text-muted-foreground'}
+                                  `}>
+                                    {optionLetter}
+                                  </div>
+                                  <span className={`text-sm ${textColor} font-medium break-words`}>
+                                    {answer.answer}
+                                  </span>
                                 </div>
-                                <span className={`text-sm ${textColor} font-medium break-words`}>
-                                  {answer.answer}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {isCorrectAnswer && (
-                                  <Badge variant="default" className="text-xs bg-green-600 text-white">
-                                    ✓ Correct Answer
-                                  </Badge>
-                                )}
-                                {isUserAnswer && !isCorrectAnswer && (
-                                  <Badge variant="destructive" className="text-xs">
-                                    ✗ Your Answer
-                                  </Badge>
-                                )}
-                                {isUserAnswer && isCorrectAnswer && (
-                                  <Badge variant="default" className="text-xs bg-green-600 text-white">
-                                    ✓ Your Correct Answer
-                                  </Badge>
-                                )}
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {isCorrectAnswer && (
+                                    <Badge variant="default" className="text-xs bg-green-600 text-white">
+                                      ✓ Correct Answer
+                                    </Badge>
+                                  )}
+                                  {isUserAnswer && !isCorrectAnswer && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      ✗ Your Answer
+                                    </Badge>
+                                  )}
+                                  {isUserAnswer && isCorrectAnswer && (
+                                    <Badge variant="default" className="text-xs bg-green-600 text-white">
+                                      ✓ Your Correct Answer
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Always show explanation for learning purposes */}
+                      <div className={`mt-4 p-3 border rounded-lg ${
+                        isCorrect 
+                          ? 'bg-green-50/50 border-green-200' 
+                          : 'bg-blue-50/50 border-blue-200'
+                      }`}>
+                        <div className="flex items-start gap-2">
+                          <BookOpen className={`h-4 w-4 mt-0.5 ${isCorrect ? 'text-green-600' : 'text-blue-600'}`} />
+                          <div>
+                            <p className={`text-sm font-medium ${isCorrect ? 'text-green-700' : 'text-blue-700'}`}>
+                              {isCorrect ? 'Well done!' : 'Explanation:'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {isCorrect 
+                                ? `You correctly identified "${correctAnswer?.answer}" as the right answer.`
+                                : `The correct answer is "${correctAnswer?.answer}".`
+                              }
+                              {question.explanation && (
+                                <span className="block mt-1">{question.explanation}</span>
+                              )}
+                              {!question.explanation && !isCorrect && (
+                                <span className="block mt-1">Review the course material to understand this concept better.</span>
+                              )}
+                            </p>
                           </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Always show explanation for learning purposes */}
-                    <div className={`mt-4 p-3 border rounded-lg ${
-                      isCorrect 
-                        ? 'bg-green-50/50 border-green-200' 
-                        : 'bg-blue-50/50 border-blue-200'
-                    }`}>
-                      <div className="flex items-start gap-2">
-                        <BookOpen className={`h-4 w-4 mt-0.5 ${isCorrect ? 'text-green-600' : 'text-blue-600'}`} />
-                        <div>
-                          <p className={`text-sm font-medium ${isCorrect ? 'text-green-700' : 'text-blue-700'}`}>
-                            {isCorrect ? 'Well done!' : 'Explanation:'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {isCorrect 
-                              ? `You correctly identified "${correctAnswer?.answer}" as the right answer.`
-                              : `The correct answer is "${correctAnswer?.answer}".`
-                            }
-                            {question.explanation && (
-                              <span className="block mt-1">{question.explanation}</span>
-                            )}
-                            {!question.explanation && !isCorrect && (
-                              <span className="block mt-1">Review the course material to understand this concept better.</span>
-                            )}
-                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Review Footer */}
       <Card className="border shadow-sm">

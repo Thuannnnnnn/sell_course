@@ -312,111 +312,83 @@ export default function QuizIntegration({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 overflow-hidden">
+    <div className="w-full max-w-4xl mx-auto px-4 h-[calc(100vh-100px)] flex flex-col overflow-hidden">
       {/* Enhanced Quiz Overview */}
-      <Card className="border shadow-sm">
-        <CardHeader className="text-center pb-6">
-          <div className="flex items-center justify-center mb-4">
+      <Card className="border shadow-sm flex-grow overflow-auto">
+        <CardHeader className="text-center pb-4">
+          <div className="flex items-center justify-center mb-3">
             <div className="p-3 bg-primary/10 rounded-full">
               <Target className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold mb-3">{title}</CardTitle>
-          <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            {description}
-          </p>
+          <CardTitle className="text-2xl font-bold mb-2">
+            {title}
+          </CardTitle>
+          <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">{description}</p>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           {/* Enhanced Quiz Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-muted/50 rounded-lg border">
-              <Clock className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-              <div className="font-bold text-blue-700 text-xs uppercase tracking-wide">
-                Time Limit
-              </div>
-              <div className="text-2xl font-bold text-blue-600 mt-1">
-                30 min
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-muted/50 rounded-lg border">
+              <Clock className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+              <div className="font-bold text-blue-700 text-xs uppercase tracking-wide">Time Limit</div>
+              <div className="text-xl font-bold text-blue-600 mt-1">30 min</div>
             </div>
-            <div className="text-center p-4 bg-muted/50 rounded-lg border">
-              <Trophy className="h-6 w-6 text-green-600 mx-auto mb-2" />
-              <div className="font-bold text-green-700 text-xs uppercase tracking-wide">
-                Completion Score
-              </div>
-              <div className="text-2xl font-bold text-green-600 mt-1">50%</div>
+            <div className="text-center p-3 bg-muted/50 rounded-lg border">
+              <Trophy className="h-5 w-5 text-green-600 mx-auto mb-1" />
+              <div className="font-bold text-green-700 text-xs uppercase tracking-wide">Passing Score</div>
+              <div className="text-xl font-bold text-green-600 mt-1">70%</div>
             </div>
-            <div className="text-center p-4 bg-muted/50 rounded-lg border">
-              <TrendingUp className="h-6 w-6 text-purple-600 mx-auto mb-2" />
-              <div className="font-bold text-purple-700 text-xs uppercase tracking-wide">
-                Attempts
-              </div>
-              <div className="text-2xl font-bold text-purple-600 mt-1">
-                Unlimited
-              </div>
+            <div className="text-center p-3 bg-muted/50 rounded-lg border">
+              <TrendingUp className="h-5 w-5 text-purple-600 mx-auto mb-1" />
+              <div className="font-bold text-purple-700 text-xs uppercase tracking-wide">Attempts</div>
+              <div className="text-xl font-bold text-purple-600 mt-1">Unlimited</div>
             </div>
           </div>
 
           {/* Enhanced Last Score Display */}
-          {lastScore !== null && (
-            <div
-              className={`text-center p-4 rounded-lg border ${
-                isPassingScore(lastScore)
-                  ? "bg-green-50/50 border-green-200"
-                  : "bg-red-50/50 border-red-200"
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2 mb-3">
-                {isPassingScore(lastScore) ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
+          {completed && lastScore !== null && (
+            <div className={`text-center p-3 rounded-lg border ${
+              lastScore >= 70 
+                ? 'bg-green-50/50 border-green-200' 
+                : 'bg-orange-50/50 border-orange-200'
+            }`}>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                {lastScore >= 70 ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
                 ) : (
-                  <Target className="h-6 w-6 text-red-600" />
+                  <Target className="h-5 w-5 text-orange-600" />
                 )}
-                <span className="text-lg font-bold">Your Latest Score</span>
+                <span className="text-base font-bold">Your Latest Score</span>
               </div>
-              <div
-                className={`text-4xl font-bold mb-3 ${
-                  isPassingScore(lastScore) ? "text-green-600" : "text-red-600"
-                }`}
-              >
+              <div className={`text-3xl font-bold mb-2 ${
+                lastScore >= 70 ? 'text-green-600' : 'text-orange-600'
+              }`}>
                 {lastScore}%
               </div>
-              <Badge
-                variant={isPassingScore(lastScore) ? "default" : "destructive"}
-                className="text-base px-3 py-1 font-semibold"
+              <Badge 
+                variant={lastScore >= 70 ? "default" : "destructive"}
+                className="text-sm px-2 py-0.5 font-semibold"
               >
                 {isPassingScore(lastScore) ? "COMPLETED ✓" : "NOT COMPLETED"}
               </Badge>
-              {isPassingScore(lastScore) ? (
-                <p className="text-green-700 mt-2 text-sm font-medium">
-                  Excellent! You&apos;ve successfully completed this quiz!
-                </p>
-              ) : (
-                <p className="text-red-700 mt-2 text-sm font-medium">
-                  You need at least 50% to complete this quiz. Keep trying!
-                </p>
+              {lastScore >= 70 && (
+                <p className="text-green-700 mt-2 text-xs font-medium">Congratulations! You&apos;ve mastered this topic!</p>
               )}
             </div>
           )}
 
           {/* Enhanced Instructions */}
-          <div className="bg-muted/50 p-4 rounded-lg border">
-            <h4 className="font-bold mb-3 flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" />
+          <div className="bg-muted/50 p-3 rounded-lg border">
+            <h4 className="font-bold mb-2 flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
               Instructions
             </h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-1 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold">•</span>
-                <span>
-                  Read each question carefully and select the best answer
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary font-bold">•</span>
-                <span>
-                  You need at least 50% correct answers to complete this quiz
-                </span>
+                <span>Read each question carefully and select the best answer</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold">•</span>
@@ -439,23 +411,23 @@ export default function QuizIntegration({
 
           {/* Enhanced Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={handleStartQuiz}
-              size="lg"
+            <Button 
+              onClick={handleStartQuiz} 
+              size="default" 
               className="flex items-center gap-2"
             >
-              <Play className="h-5 w-5" />
-              {completed ? "Retake Quiz" : "Start Quiz Now"}
+              <Play className="h-4 w-4" />
+              {completed ? 'Retake Quiz' : 'Start Quiz Now'}
             </Button>
 
             {showResults && (
-              <Button
-                variant="outline"
-                size="lg"
+              <Button 
+                variant="outline" 
+                size="default"
                 onClick={handleViewResults}
                 className="flex items-center gap-2"
               >
-                <BarChart3 className="h-5 w-5" />
+                <BarChart3 className="h-4 w-4" />
                 View Performance
               </Button>
             )}
@@ -463,51 +435,27 @@ export default function QuizIntegration({
         </CardContent>
       </Card>
 
-      {/* Quick Stats (if have last score) */}
-      {lastScore !== null && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Stats</CardTitle>
+      {/* Quick Stats (if completed) */}
+      {completed && (
+        <Card className="mt-4">
+          <CardHeader className="py-3">
+            <CardTitle className="text-base">Quick Stats</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="text-lg font-bold text-blue-600">
-                  {lastScore}%
-                </div>
-                <div className="text-sm text-blue-700">Last Score</div>
+          <CardContent className="py-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="text-center p-2 bg-blue-50 rounded-lg">
+                <div className="text-base font-bold text-blue-600">{lastScore}%</div>
+                <div className="text-xs text-blue-700">Last Score</div>
               </div>
-              <div
-                className={`text-center p-3 rounded-lg ${
-                  isPassingScore(lastScore) ? "bg-green-50" : "bg-red-50"
-                }`}
-              >
-                <div
-                  className={`text-lg font-bold ${
-                    isPassingScore(lastScore)
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {isPassingScore(lastScore) ? "Completed" : "Not Completed"}
+              <div className="text-center p-2 bg-green-50 rounded-lg">
+                <div className="text-base font-bold text-green-600">
+                  {lastScore && lastScore >= 70 ? 'Passed' : 'Failed'}
                 </div>
-                <div
-                  className={`text-sm ${
-                    isPassingScore(lastScore)
-                      ? "text-green-700"
-                      : "text-red-700"
-                  }`}
-                >
-                  Status
-                </div>
+                <div className="text-xs text-green-700">Status</div>
               </div>
-              <div className="text-center p-3 bg-purple-50 rounded-lg">
-                <div className="text-lg font-bold text-purple-600">
-                  {isPassingScore(lastScore)
-                    ? "50%+"
-                    : `${50 - lastScore}% to go`}
-                </div>
-                <div className="text-sm text-purple-700">Progress</div>
+              <div className="text-center p-2 bg-purple-50 rounded-lg">
+                <div className="text-base font-bold text-purple-600">1</div>
+                <div className="text-xs text-purple-700">Attempts</div>
               </div>
             </div>
           </CardContent>
