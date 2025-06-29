@@ -105,7 +105,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
-      host: 'localhost',
+      host: process.env.REDIS_HOST,
       port: 6379,
       ttl: 300,
     }),
@@ -119,9 +119,9 @@ import { CacheModule } from '@nestjs/cache-manager';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
       entities: [
         LogoSetting,
         VersionSetting,
