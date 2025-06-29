@@ -274,8 +274,11 @@ export function CourseLearnPage() {
                       break;
                     case "quiz":
                       lessonType = "quiz";
-                      const quizContent =
-                        (await contentApi.getQuizContent()) as QuizResponse;
+                      const quizContent = (await contentApi.getQuizContent(
+                        courseId,
+                        lesson.lessonId,
+                        firstContent.contentId
+                      )) as QuizResponse;
                       lessonContent = quizContent;
                       duration = `${
                         quizContent.questions?.length || 0
@@ -386,35 +389,40 @@ export function CourseLearnPage() {
     if (lessons.length > 0 && userId) {
       loadProgressData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessons.length, userId]);
 
   // Update course data when progress changes
   useEffect(() => {
-    if (courseData && lessons.length > 0) {
-      const updatedCourseData = {
-        ...courseData,
-        progress: courseProgress,
-        modules: courseData.modules.map((module) => ({
-          ...module,
-          lessons: module.lessons.map((lesson) => {
-            const progressLesson = lessons.find(
-              (l) => l.lessonId === lesson.id
-            );
-            if (progressLesson) {
-              return {
-                ...lesson,
-                isCompleted: progressLesson.isCompleted,
-                contents: lesson.contents.map((content) => ({
-                  ...content,
-                  isCompleted: completedContents.has(content.contentId),
-                })),
-              };
-            }
-            return lesson;
-          }),
-        })),
-      };
-      setCourseData(updatedCourseData);
+    if (lessons.length > 0) {
+      setCourseData((prevCourseData) => {
+        if (!prevCourseData) return null;
+
+        const updatedCourseData = {
+          ...prevCourseData,
+          progress: courseProgress,
+          modules: prevCourseData.modules.map((module) => ({
+            ...module,
+            lessons: module.lessons.map((lesson) => {
+              const progressLesson = lessons.find(
+                (l) => l.lessonId === lesson.id
+              );
+              if (progressLesson) {
+                return {
+                  ...lesson,
+                  isCompleted: progressLesson.isCompleted,
+                  contents: lesson.contents.map((content) => ({
+                    ...content,
+                    isCompleted: completedContents.has(content.contentId),
+                  })),
+                };
+              }
+              return lesson;
+            }),
+          })),
+        };
+        return updatedCourseData;
+      });
     }
   }, [courseProgress, completedContents, lessons]);
 
@@ -689,7 +697,7 @@ export function CourseLearnPage() {
                 {currentContent && (
                   <LessonContent
                     lesson={currentContent}
-                    content={selectedContent} 
+                    content={selectedContent}
                     onContentComplete={handleContentComplete}
                     courseId={courseId}
                     isContentCompleted={
@@ -711,7 +719,7 @@ export function CourseLearnPage() {
                         <Button
                           className="mt-2"
                           onClick={() => handleStartExam(exam.id)}
-                          disabled={exam.isLocked}
+                          disabled={exam.isLocked || courseProgress < 100}
                         >
                           Start Exam
                         </Button>
