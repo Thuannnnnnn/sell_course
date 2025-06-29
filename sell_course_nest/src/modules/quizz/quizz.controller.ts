@@ -138,4 +138,14 @@ export class QuizzController {
       lessonId,
     );
   }
+
+  @Get(':quizId')
+  async getQuiz(
+    @Param('courseId', ParseUUIDPipe) courseId: string,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    @Param('contentId', ParseUUIDPipe) contentId: string,
+    @Param('quizId', ParseUUIDPipe) quizId: string,
+  ) {
+    return this.quizzService.getQuizById(quizId, courseId, lessonId, contentId);
+  }
 }
