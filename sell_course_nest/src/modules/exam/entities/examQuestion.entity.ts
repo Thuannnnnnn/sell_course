@@ -18,7 +18,7 @@ export class ExamQuestion {
   examId: string;
 
   @ManyToOne(() => Exam, (exam) => exam.questions, {
-    onDelete: 'CASCADE' // Delete questions when exam is deleted
+    onDelete: 'CASCADE', // Delete questions when exam is deleted
   })
   @JoinColumn({ name: 'exam_id' })
   exam: Exam;
@@ -38,7 +38,7 @@ export class ExamQuestion {
 
   @OneToMany(() => Answer, (answer) => answer.question, {
     cascade: true, // Save/update answers when question is saved
-    eager: true    // Always load answers with questions
+    eager: true, // Always load answers with questions
   })
   answers: Answer[];
 
