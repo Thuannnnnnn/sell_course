@@ -11,7 +11,6 @@ import {
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { SubmitExamDto } from './dto/submit-exam.dto';
 import { ResultExamService } from './result_exam.service';
-// jjjjj
 @Controller('api')
 @UseGuards(JwtAuthGuard)
 export class ResultExamController {
