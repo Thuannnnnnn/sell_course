@@ -5,8 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { fetchContentsByLesson } from '../../../../../api/lessons/content'
 import { getDocumentById } from '../../../../../api/lessons/Doc/document'
-import { getAllVideos } from '../../../../../api/lessons/Video/video'
-import { VideoState } from '../../../../../types/video'
+import { getVideoByContentId} from '../../../../../api/lessons/Video/video'
+
 
 
 import QuestionForm from '../../../../../../components/quiz/QuestionForm'
@@ -178,19 +178,20 @@ function QuizPageContent({ params }: QuizPageProps) {
           } catch (error) {
             console.warn('Failed to load document:', content.contentId, error)
           }
-        } else if (content.contentType.toLowerCase() === 'video') {
+        }
+        if (content.contentType.toLowerCase() === 'video') {
           try {
-            const videos = await getAllVideos()
-            const video = videos.find((v: VideoState) => v.videoId === content.contentId)
-            if (video?.url) {
-              urls.push(video.url)
+            const videos = await getVideoByContentId(content.contentId)
+            if (videos?.urlScript) {
+              urls.push(videos.urlScript)
+              console.log('Loaded video script:', videos.urlScript)
+              console.log("video", videos)
             }
           } catch (error) {
             console.warn('Failed to load video:', content.contentId, error)
           }
         }
       }
-      
       setLessonUrls(urls)
       console.log('Loaded lesson URLs:', urls)
     } catch (error) {
