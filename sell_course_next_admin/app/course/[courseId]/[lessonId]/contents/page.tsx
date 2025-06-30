@@ -32,6 +32,7 @@ import {
   Image,
   CircleFadingPlus,
   HelpCircle,
+  School,
 } from "lucide-react";
 import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
@@ -692,22 +693,40 @@ export default function LessonContentsPage() {
             {contents.length} content item{contents.length !== 1 ? "s" : ""}
           </Badge>
         </div>
-        <Button
-          onClick={handleAdd}
-          style={{
-            backgroundColor: "#513deb",
-            color: "white",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#4f46e5";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "#513deb";
-          }}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Content
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => router.push(`/course/${courseId}/exam`)}
+            style={{
+              backgroundColor: "#513deb",
+              color: "white",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#4f46e5";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#513deb";
+            }}
+          >
+            <School className="h-4 w-4 mr-2" />
+            Exam
+          </Button>
+          <Button
+            onClick={handleAdd}
+            style={{
+              backgroundColor: "#513deb",
+              color: "white",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#4f46e5";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#513deb";
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Content
+          </Button>
+        </div>
       </div>
 
       <AddContentModal
