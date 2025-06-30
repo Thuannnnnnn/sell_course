@@ -158,7 +158,7 @@ export default function QuizPage({
               <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
                 <Trophy className="h-8 w-8 text-purple-600 mx-auto mb-3" />
                 <div className="font-bold text-purple-700 text-sm uppercase tracking-wide">Passing Score</div>
-                <div className="text-3xl font-bold text-purple-600 mt-1">70%</div>
+                <div className="text-3xl font-bold text-purple-600 mt-1">50%</div>
               </div>
             </div>
 

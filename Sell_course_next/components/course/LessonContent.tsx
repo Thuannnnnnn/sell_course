@@ -256,7 +256,7 @@ export function LessonContent({
                   : 0;
                 const percentage = (correctAnswers / totalQuestions) * 100;
 
-                if (percentage >= 60) {
+                if (percentage >= 50) {
                   handleContentComplete(currentContentId);
                 }
               }

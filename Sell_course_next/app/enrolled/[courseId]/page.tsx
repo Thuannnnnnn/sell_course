@@ -59,7 +59,7 @@ interface ContentWithProgress extends ContentResponse {
   isCompleted: boolean;
 }
 
-export function CourseLearnPage() {
+export default function CourseLearnPage() {
   const params = useParams();
   const courseId = params.courseId as string;
   const { data: session } = useSession();
@@ -877,5 +877,3 @@ export function CourseLearnPage() {
     </div>
   );
 }
-
-export default CourseLearnPage;
