@@ -1,14 +1,6 @@
 // API Response Types for Course Learning System
 
-// Video API Response
-export interface VideoResponse {
-  videoId: string;
-  title: string;
-  url: string;
-  description?: string;
-  duration?: string;
-  createdAt: string;
-}
+import { VideoState } from "./content/video";
 
 // Document API Response
 export interface DocumentResponse {
@@ -24,12 +16,13 @@ export interface DocumentResponse {
   description?: string;
 }
 
-// Quiz API Response
+// Quiz API Response (for Lesson content)
 export interface QuizResponse {
-  quizId: string;
-  title: string;
+  quizzId: string;
+  title?: string;
+  description?: string;
   questions: QuizQuestion[];
-  totalQuestions: number;
+  totalQuestions?: number;
   timeLimit?: number;
   createdAt: string;
 }
@@ -37,9 +30,13 @@ export interface QuizResponse {
 export interface QuizQuestion {
   questionId: string;
   question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation?: string;
+  answers: {
+    answerId: string;
+    answer: string;
+    isCorrect: boolean;
+  }[];
+  difficulty?: 'easy' | 'medium' | 'hard';
+  weight?: number;
 }
 
 // Content API Response
@@ -50,9 +47,9 @@ export interface ContentResponse {
   url?: string;
   description?: string;
   createdAt: string;
+  order: number;
 }
 
-// Lesson API Response
 export interface LessonResponse {
   lessonId: string;
   lessonName: string;
@@ -102,17 +99,17 @@ export interface ApiErrorResponse {
 
 // Frontend Types
 export interface ContentData {
-  type: 'video' | 'doc' | 'quiz' | 'text';
-  data: VideoResponse | DocumentResponse | QuizResponse | { text: string };
+  type: "video" | "doc" | "quiz" | "text";
+  data: VideoState | DocumentResponse | QuizResponse | { text: string };
 }
 
 export interface LessonWithContent {
   id: string;
   title: string;
-  type: 'video' | 'text' | 'quiz';
+  type: "video" | "text" | "quiz";
   duration: string;
   isCompleted: boolean;
-  content: VideoResponse | DocumentResponse | QuizResponse | { text: string };
+  content: VideoState | DocumentResponse | QuizResponse | { text: string };
   contents: ContentResponse[];
 }
 

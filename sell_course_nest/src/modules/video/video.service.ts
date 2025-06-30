@@ -399,7 +399,6 @@ export class VideoService {
   async viewVideoById(videoId: string): Promise<Video> {
     try {
       const video = await this.videoRepository.findOne({
-        relations: ['video'],
         where: { videoId: videoId },
       });
       if (!video) {
@@ -411,6 +410,29 @@ export class VideoService {
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException('Error retrieving video by ID');
+    }
+  }
+
+  async viewVideoByContentId(contentId: string): Promise<Video> {
+    try {
+      const video = await this.videoRepository
+        .createQueryBuilder('video')
+        .innerJoinAndSelect('video.contents', 'contents')
+        .where('contents.contentId = :contentId', { contentId })
+        .getOne();
+
+      if (!video) {
+        throw new NotFoundException(
+          `Video with contentId '${contentId}' not found`,
+        );
+      }
+
+      return video;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException(
+        'Error retrieving video by content ID',
+      );
     }
   }
 

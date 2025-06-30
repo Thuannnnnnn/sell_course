@@ -1,183 +1,282 @@
-'use client'
-import React, { useState } from 'react'
+"use client";
+import React, { useState } from "react";
 import {
   ChevronDown,
   CheckCircle,
   Play,
   FileText,
   HelpCircle,
-  Video,
-} from 'lucide-react'
-import { cn } from '../../lib/utils'
-import { Button } from '../ui/button'
+  Clock,
+  BookOpen,
+} from "lucide-react";
+import { cn } from "../../lib/utils";
+import { Button } from "../ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '../ui/collapsible'
-
-interface Content {
-  contentId: string
-  contentName: string
-  contentType: string
-  isCompleted?: boolean
-}
-
-interface Lesson {
-  id: string
-  title: string
-  type: string
-  isCompleted: boolean
-  duration: string
-  contents?: Content[]
-}
+} from "../ui/collapsible";
+import {
+  ContentResponse,
+  LessonResponse,
+  LessonWithContent,
+} from "@/app/types/Course/Lesson/Lessons";
 
 interface CourseSidebarProps {
-  modules: Array<{
-    id: string
-    title: string
-    lessons: Lesson[]
-  }>
-  currentLesson: Lesson | null
-  currentContentId?: string
-  onLessonSelect: (lesson: Lesson) => void
-  onContentSelect?: (lessonId: string, contentId: string) => void
+  lessons: LessonResponse[];
+  currentLesson: LessonResponse | null;
+  currentContent: LessonWithContent | null;
+  onLessonSelect: (lesson: LessonResponse) => void;
+  onContentSelect: (content: ContentResponse) => void;
+  getContentDuration: (content: ContentResponse) => string;
+  isContentCompleted: (content: ContentResponse) => boolean;
 }
 
 export function CourseSidebar({
-  modules,
+  lessons,
   currentLesson,
-  currentContentId,
+  currentContent,
   onLessonSelect,
   onContentSelect,
+  getContentDuration,
+  isContentCompleted,
 }: CourseSidebarProps) {
-  // Flatten all lessons from all modules
-  const allLessons = modules.flatMap(module => module.lessons);
-  const [openLessons, setOpenLessons] = useState<string[]>([])
+  const [openLessons, setOpenLessons] = useState<string[]>([
+    lessons[0]?.lessonId,
+  ]);
 
   const toggleLesson = (lessonId: string) => {
     setOpenLessons((prev) =>
       prev.includes(lessonId)
         ? prev.filter((id) => id !== lessonId)
-        : [...prev, lessonId],
-    )
-  }
+        : [...prev, lessonId]
+    );
+  };
 
-  const getLessonIcon = (type: string, isCompleted: boolean) => {
-    if (isCompleted) return <CheckCircle className="h-4 w-4 text-green-500" />
-    switch (type) {
-      case 'video':
-        return <Play className="h-4 w-4" />
-      case 'doc':
-        return <FileText className="h-4 w-4" />
-      case 'quiz':
-        return <HelpCircle className="h-4 w-4" />
-      default:
-        return <FileText className="h-4 w-4" />
-    }
-  }
+  const getContentIcon = (contentType: string, isCompleted: boolean) => {
+    // Always show completion status first
+    if (isCompleted) return <CheckCircle className="h-4 w-4 text-green-500" />;
 
-  const getContentIcon = (contentType: string) => {
+    // Show type-specific icons for uncompleted content
     switch (contentType.toLowerCase()) {
-      case 'video':
-        return <Video className="h-3 w-3" />
-      case 'doc':
-        return <FileText className="h-3 w-3" />
-      case 'quiz':
-        return <HelpCircle className="h-3 w-3" />
+      case "video":
+        return <Play className="h-4 w-4 text-blue-500" />;
+      case "doc":
+        return <FileText className="h-4 w-4 text-gray-500" />;
+      case "quiz":
+        return <HelpCircle className="h-4 w-4 text-orange-500" />;
       default:
-        return <FileText className="h-3 w-3" />
+        return <FileText className="h-4 w-4 text-gray-500" />;
     }
-  }
+  };
+
+  const getLessonProgress = (lesson: LessonResponse) => {
+    if (!lesson.contents || lesson.contents.length === 0) return 0;
+    const completedCount = lesson.contents.filter((content) =>
+      isContentCompleted(content)
+    ).length;
+    return Math.round((completedCount / lesson.contents.length) * 100);
+  };
+
+  const isLessonCompleted = (lesson: LessonResponse) => {
+    return getLessonProgress(lesson) === 100;
+  };
+
+  const getLessonCompletionStats = (lesson: LessonResponse) => {
+    if (!lesson.contents || lesson.contents.length === 0) {
+      return { completed: 0, total: 0 };
+    }
+
+    const completed = lesson.contents.filter((content) =>
+      isContentCompleted(content)
+    ).length;
+    const total = lesson.contents.length;
+
+    return { completed, total };
+  };
 
   return (
-    <div className="w-72 border-r bg-card/50 overflow-y-auto max-h-[calc(100vh-4rem)]">
-      <div className="p-4 font-medium border-b">Course Content</div>
-      
-      <div className="p-0">
-        {allLessons.map((lesson: Lesson) => (
-          <Collapsible
-            key={lesson.id}
-            open={openLessons.includes(lesson.id)}
-            onOpenChange={() => toggleLesson(lesson.id)}
-            className="border-b"
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className={cn(
-                  'w-full justify-between rounded-none h-auto py-3 px-4 border-l-2',
-                  currentLesson?.id === lesson.id
-                    ? 'border-l-primary bg-accent'
-                    : 'border-l-transparent hover:bg-accent/50',
-                )}
-                onClick={() => onLessonSelect(lesson)}
-              >
-                <div className="flex items-center gap-3 w-full">
-                  <div className="flex-shrink-0">
-                    {getLessonIcon(lesson.type, lesson.isCompleted)}
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <div className="text-sm font-medium truncate">
-                      {lesson.title}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {lesson.duration}
-                    </div>
-                  </div>
-                  {lesson.contents && lesson.contents.length > 0 && (
-                    <ChevronDown
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-200 flex-shrink-0',
-                        openLessons.includes(lesson.id) ? 'rotate-180' : '',
-                      )}
-                    />
-                  )}
-                </div>
-              </Button>
-            </CollapsibleTrigger>
-            {lesson.contents && lesson.contents.length > 0 && (
-              <CollapsibleContent className="px-0">
-                <ul>
-                  {lesson.contents.map((content: Content) => (
-                    <li key={content.contentId}>
-                      <Button
-                        variant="ghost"
-                        className={cn(
-                          "w-full justify-start rounded-none h-auto py-2 px-8 text-left text-xs hover:bg-accent/30",
-                          currentContentId === content.contentId 
-                            ? "bg-primary/10 border-l-2 border-l-primary font-semibold text-primary" 
-                            : ""
-                        )}
-                        onClick={() => onContentSelect?.(lesson.id, content.contentId)}
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          <div className="flex-shrink-0">
-                            {getContentIcon(content.contentType)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">
-                              {content.contentName}
-                            </div>
-                            <div className="text-xs text-muted-foreground capitalize">
-                              {content.contentType}
-                            </div>
-                          </div>
-                          {content.isCompleted && (
-                            <div className="flex-shrink-0">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                            </div>
-                          )}
-                        </div>
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </CollapsibleContent>
-            )}
-          </Collapsible>
-        ))}
+    <div className="w-80 border-r bg-card/50 overflow-y-auto max-h-[calc(100vh-4rem)]">
+      <div className="p-4 font-semibold border-b bg-background/50 sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-5 w-5" />
+          Course Lessons
+        </div>
       </div>
+
+      <div className="p-0">
+        {lessons.map((lesson) => {
+          const lessonProgress = getLessonProgress(lesson);
+          const isCompleted = isLessonCompleted(lesson);
+          const { completed, total } = getLessonCompletionStats(lesson);
+
+          return (
+            <Collapsible
+              key={lesson.lessonId}
+              open={openLessons.includes(lesson.lessonId)}
+              onOpenChange={() => toggleLesson(lesson.lessonId)}
+              className="border-b"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-between rounded-none h-auto py-4 px-4 text-left",
+                    currentLesson &&
+                      currentLesson.lessonId === lesson.lessonId &&
+                      "bg-accent"
+                  )}
+                  onClick={() => onLessonSelect(lesson)}
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="flex-shrink-0">
+                      {isCompleted ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+                          <span className="text-xs font-medium">
+                            {lesson.order || 1}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm leading-tight mb-1">
+                        {lesson.lessonName}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{total} items</span>
+                        {total > 0 && (
+                          <>
+                            <span>•</span>
+                            <span
+                              className={cn(
+                                "font-medium",
+                                isCompleted
+                                  ? "text-green-600"
+                                  : "text-muted-foreground"
+                              )}
+                            >
+                              {completed}/{total} completed
+                            </span>
+                          </>
+                        )}
+                        {lessonProgress > 0 && (
+                          <>
+                            <span>•</span>
+                            <span
+                              className={cn(
+                                "font-medium",
+                                isCompleted ? "text-green-600" : "text-blue-600"
+                              )}
+                            >
+                              {lessonProgress}%
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200 flex-shrink-0",
+                      openLessons.includes(lesson.lessonId) ? "rotate-180" : ""
+                    )}
+                  />
+                </Button>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="">
+                {lesson.contents && lesson.contents.length > 0 && (
+                  <div className="py-2">
+                    {lesson.contents
+                      .sort((a, b) => a.order - b.order)
+                      .map((content) => {
+                        const isCompleted = isContentCompleted(content);
+                        const duration = getContentDuration(content);
+                        const isCurrentContent = currentContent?.contents?.some(
+                          (c) => c.contentId === content.contentId
+                        );
+
+                        return (
+                          <Button
+                            key={content.contentId}
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start rounded-none h-auto py-3 px-8 text-left border-l-2 hover:bg-accent/50",
+                              isCurrentContent
+                                ? "border-l-primary bg-accent/80"
+                                : "border-l-transparent",
+                              // Add visual indicator for completed content
+                              isCompleted &&
+                                "bg-green-50/50 dark:bg-green-950/10"
+                            )}
+                            onClick={() => onContentSelect(content)}
+                          >
+                            <div className="flex items-center gap-3 w-full">
+                              <div className="flex-shrink-0">
+                                {getContentIcon(
+                                  content.contentType,
+                                  isCompleted
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div
+                                  className={cn(
+                                    "font-medium text-sm leading-tight mb-1",
+                                    isCompleted &&
+                                      "line-through text-muted-foreground"
+                                  )}
+                                >
+                                  {content.contentName || content.contentId}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <Clock className="h-3 w-3" />
+                                  <span className="text-muted-foreground">
+                                    {duration}
+                                  </span>
+                                  {isCompleted && (
+                                    <>
+                                      <span className="text-muted-foreground">
+                                        •
+                                      </span>
+                                      <span className="text-green-600 font-medium flex items-center gap-1">
+                                        <CheckCircle className="h-3 w-3" />
+                                        Completed
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              {/* Additional completion indicator on the right */}
+                              {isCompleted && (
+                                <div className="flex-shrink-0">
+                                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                </div>
+                              )}
+                            </div>
+                          </Button>
+                        );
+                      })}
+                  </div>
+                )}
+                {(!lesson.contents || lesson.contents.length === 0) && (
+                  <div className="px-8 py-4 text-sm text-muted-foreground">
+                    No content available for this lesson
+                  </div>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
+      </div>
+
+      {lessons.length === 0 && (
+        <div className="p-8 text-center text-muted-foreground">
+          <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p className="text-sm">No lessons available</p>
+        </div>
+      )}
     </div>
-  )
+  );
 }

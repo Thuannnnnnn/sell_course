@@ -28,6 +28,7 @@ export interface DocumentData {
 // Document Props for components
 export interface DocLessonProps {
   lesson: {
+    id: string
     title: string;
     content: string;
     contentType?: string;

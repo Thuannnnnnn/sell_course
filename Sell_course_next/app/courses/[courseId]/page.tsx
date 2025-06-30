@@ -136,15 +136,26 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
           {/* Header (main info) */}
           <div className="flex-1">
             <h1 className="text-4xl font-bold mb-2">{course.title}</h1>
-            <p className="text-lg text-gray-600 mb-4">{course.short_description}</p>
+            <p className="text-lg text-gray-600 mb-4">
+              {course.short_description}
+            </p>
             <div className="flex items-center gap-4 mb-4">
-              <Image src={course.instructorAvatar || '/logo.png'} alt={course.instructorName} width={40} height={40} className="rounded-full" />
+              <Image
+                src={course.instructorAvatar || "/logo.png"}
+                alt={course.instructorName}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
               <span className="font-medium">{course.instructorName}</span>
-              <span className="text-yellow-500 font-semibold flex items-center">★ {course.rating}</span>
+              <span className="text-yellow-500 font-semibold flex items-center">
+                ★ {course.rating}
+              </span>
               <span className="text-gray-400 text-sm">{course.level}</span>
             </div>
             <div className="text-gray-400 text-sm mb-2">
-              {course.duration} hours • Last updated: {new Date(course.updatedAt).toLocaleDateString()}
+              {course.duration} hours • Last updated:{" "}
+              {new Date(course.updatedAt).toLocaleDateString()}
             </div>
           </div>
           {/* Sidebar (purchase) */}
@@ -193,7 +204,9 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
           <h3 className="text-xl font-bold mb-4">Students Also Bought</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {relatedCourses.length === 0 && (
-              <div className="text-gray-400 col-span-3">No related courses found.</div>
+              <div className="text-gray-400 col-span-3">
+                No related courses found.
+              </div>
             )}
             {relatedCourses.map(rc => (
               <CourseCard

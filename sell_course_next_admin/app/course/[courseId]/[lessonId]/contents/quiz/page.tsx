@@ -1,10 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { fetchContentsByLesson } from '../../../../../api/lessons/content'
+import { getDocumentById } from '../../../../../api/lessons/Doc/document'
+import { getAllVideos } from '../../../../../api/lessons/Video/video'
+import { VideoState } from '../../../../../types/video'
+
+
 import QuestionForm from '../../../../../../components/quiz/QuestionForm'
 import QuestionList from '../../../../../../components/quiz/QuestionList'
-import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser, ArrowUp, Sparkles, Loader2 } from 'lucide-react'
+import { BookOpen, Save, AlertCircle, ArrowLeft, Plus, Eraser, ArrowUp, Sparkles, Loader2, FileText } from 'lucide-react'
 import { Button } from '../../../../../../components/ui/button'
 import { Alert, AlertDescription } from '../../../../../../components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../../../components/ui/card'
@@ -30,6 +37,7 @@ interface AIQuizQuestion {
 interface AIQuizResponse {
   success: boolean
   quizzes: AIQuizQuestion[]
+  source_files: string[]
   error?: string
 }
 
@@ -44,12 +52,18 @@ function QuizPageContent({ params }: QuizPageProps) {
   const { courseId, lessonId } = params
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
   const contentId = searchParams.get('contentId')
   const quizId = searchParams.get('quizId')
   const aiQuestions = searchParams.get('aiQuestions')
 
   // All hooks must be called before any early returns
   const [editingQuestion, setEditingQuestion] = useState<QuizFormData | null>(null)
+  
+  // Handle cancel editing/adding
+  const handleCancelForm = () => {
+    setEditingQuestion(null)
+  }
   const [deletingAllQuestions, setDeletingAllQuestions] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   
@@ -57,6 +71,11 @@ function QuizPageContent({ params }: QuizPageProps) {
   const [aiDialogOpen, setAiDialogOpen] = useState(false)
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiQuizCount, setAiQuizCount] = useState(5)
+  const MAX_QUESTIONS = 20
+  const MIN_AI_QUESTIONS = 1
+  const MAX_AI_QUESTIONS = 20
+  const [lessonUrls, setLessonUrls] = useState<string[]>([])
+  const [loadingUrls, setLoadingUrls] = useState(false)
   
   const {
     questions,
@@ -140,23 +159,92 @@ function QuizPageContent({ params }: QuizPageProps) {
     })
   }
 
+  // Load URLs from lesson content
+  const loadLessonUrls = useCallback(async () => {
+    if (!session?.accessToken) return
+    
+    setLoadingUrls(true)
+    try {
+      const contents = await fetchContentsByLesson(lessonId, session.accessToken)
+      const urls: string[] = []
+      
+      for (const content of contents) {
+        if (content.contentType.toLowerCase() === 'doc') {
+          try {
+            const doc = await getDocumentById(content.contentId)
+            if (doc?.url) {
+              urls.push(doc.url)
+            }
+          } catch (error) {
+            console.warn('Failed to load document:', content.contentId, error)
+          }
+        } else if (content.contentType.toLowerCase() === 'video') {
+          try {
+            const videos = await getAllVideos()
+            const video = videos.find((v: VideoState) => v.videoId === content.contentId)
+            if (video?.url) {
+              urls.push(video.url)
+            }
+          } catch (error) {
+            console.warn('Failed to load video:', content.contentId, error)
+          }
+        }
+      }
+      
+      setLessonUrls(urls)
+      console.log('Loaded lesson URLs:', urls)
+    } catch (error) {
+      console.error('Failed to load lesson content:', error)
+    } finally {
+      setLoadingUrls(false)
+    }
+  }, [lessonId, session?.accessToken])
+
+  // Load URLs when dialog opens
+  useEffect(() => {
+    if (aiDialogOpen && lessonUrls.length === 0) {
+      loadLessonUrls()
+    }
+  }, [aiDialogOpen, lessonUrls.length, session?.accessToken, loadLessonUrls])
+
   const handleGenerateAIQuiz = async () => {
     if (!contentId) {
       alert('Content ID is required')
       return
     }
 
+    // Check if we have URLs from lesson content
+    if (lessonUrls.length === 0) {
+      alert('No content URLs found in this lesson. Please add documents or videos first.')
+      return
+    }
+
+    // Check if adding new questions would exceed the limit
+    const currentQuestionCount = questions.length
+    const remainingSlots = MAX_QUESTIONS - currentQuestionCount
+    
+    if (currentQuestionCount >= MAX_QUESTIONS) {
+      alert(`Maximum ${MAX_QUESTIONS} questions allowed per quiz.`)
+      return
+    }
+    
+    if (aiQuizCount > remainingSlots) {
+      alert(`Can only add ${remainingSlots} more question${remainingSlots !== 1 ? 's' : ''}. Current: ${currentQuestionCount}/${MAX_QUESTIONS}`)
+      return
+    }
+
     setAiGenerating(true)
 
     try {
-      const response = await fetch('http://localhost:8000/generate-quiz-from-content', {
+      const response = await fetch('http://localhost:8000/generate-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content_id: contentId,
+          urls: lessonUrls,
           quiz_count: aiQuizCount,
+          difficulty: "medium"
         }),
       })
 
@@ -165,6 +253,7 @@ function QuizPageContent({ params }: QuizPageProps) {
       }
 
       const result: AIQuizResponse = await response.json()
+
       
       if (!result.success) {
         throw new Error(result.error || 'AI quiz generation failed')
@@ -182,6 +271,9 @@ function QuizPageContent({ params }: QuizPageProps) {
         }
         addQuestion(formattedQuestion)
       })
+      
+      // Show success message (generic for security)
+      alert(`✅ Successfully generated ${result.quizzes.length} quiz questions from lesson content!`);
       
       // Close dialog and reset form
       setAiDialogOpen(false)
@@ -217,7 +309,12 @@ function QuizPageContent({ params }: QuizPageProps) {
   }
 
   const handleAddQuestion = (question: QuizFormData) => {
-
+    // Check if adding would exceed the limit
+    if (questions.length >= MAX_QUESTIONS) {
+      alert(`Maximum ${MAX_QUESTIONS} questions allowed per quiz. You currently have ${questions.length} questions.`)
+      return
+    }
+    
     addQuestion(question)
   }
 
@@ -339,10 +436,12 @@ function QuizPageContent({ params }: QuizPageProps) {
                     Create and manage quiz questions for this content
                   </p>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <Badge variant="outline">Course: {courseId.slice(-8)}</Badge>
-                    <Badge variant="outline">Lesson: {lessonId.slice(-8)}</Badge>
-                    <Badge variant="outline">Content: {contentId.slice(-8)}</Badge>
-                    {quizId && <Badge variant="secondary">Quiz: {quizId.slice(-8)}</Badge>}
+                    <Badge 
+                      variant={questions.length >= MAX_QUESTIONS ? "destructive" : questions.length >= MAX_QUESTIONS * 0.8 ? "default" : "secondary"}
+                      className="font-medium"
+                    >
+                      {questions.length}/{MAX_QUESTIONS} Questions
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -355,7 +454,7 @@ function QuizPageContent({ params }: QuizPageProps) {
                   <Button 
                     variant="outline" 
                     className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-blue-100"
-                    disabled={saving || deletingAllQuestions || aiGenerating}
+                    disabled={saving || deletingAllQuestions || aiGenerating || questions.length >= MAX_QUESTIONS}
                   >
                     <Sparkles className="h-4 w-4" />
                     Generate AI Quiz
@@ -373,6 +472,30 @@ function QuizPageContent({ params }: QuizPageProps) {
                       <p className="text-sm text-muted-foreground">
                         AI will automatically read content documents and video scripts to generate quiz questions
                       </p>
+                      
+                      {/* Content URLs Status */}
+                      <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+                        {loadingUrls ? (
+                          <div className="flex items-center justify-center gap-2 text-sm">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Loading lesson content...</span>
+                          </div>
+                        ) : (
+                          <div className="text-sm">
+                            <div className="flex items-center justify-center gap-2 text-blue-600">
+                              <FileText className="h-4 w-4" />
+                              <span className="font-medium">
+                                {lessonUrls.length} content file{lessonUrls.length !== 1 ? 's' : ''} found
+                              </span>
+                            </div>
+                            {lessonUrls.length === 0 && (
+                              <p className="text-xs text-orange-600 mt-1">
+                                No documents or videos found in this lesson
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -390,21 +513,67 @@ function QuizPageContent({ params }: QuizPageProps) {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="count" className="text-center block">Number of Questions</Label>
+                      <Label htmlFor="count" className="text-center block">
+                        Number of Questions
+                        <span className="text-xs text-muted-foreground block mt-1">
+                          Current: {questions.length}/{MAX_QUESTIONS} questions
+                        </span>
+                      </Label>
+                      
+                      {/* Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all ${
+                            questions.length >= MAX_QUESTIONS 
+                              ? 'bg-red-500' 
+                              : questions.length >= MAX_QUESTIONS * 0.8 
+                              ? 'bg-yellow-500' 
+                              : 'bg-green-500'
+                          }`}
+                          style={{ width: `${(questions.length / MAX_QUESTIONS) * 100}%` }}
+                        ></div>
+                      </div>
                       <Input
                         id="count"
                         type="number"
-                        min="1"
-                        max="20"
+                        min={MIN_AI_QUESTIONS}
+                        max={Math.min(MAX_AI_QUESTIONS, MAX_QUESTIONS - questions.length)}
                         value={aiQuizCount}
-                        onChange={(e) => setAiQuizCount(parseInt(e.target.value) || 5)}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || MIN_AI_QUESTIONS
+                          const maxAllowed = Math.min(MAX_AI_QUESTIONS, MAX_QUESTIONS - questions.length)
+                          setAiQuizCount(Math.min(value, maxAllowed))
+                        }}
                         className="text-center text-lg font-semibold"
                       />
+                      
+                      {/* Warning messages */}
+                      {questions.length >= MAX_QUESTIONS && (
+                        <div className="text-center p-2 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-600 font-medium">
+                            Maximum {MAX_QUESTIONS} questions reached!
+                          </p>
+                        </div>
+                      )}
+                      
+                      {questions.length >= MAX_QUESTIONS * 0.8 && questions.length < MAX_QUESTIONS && (
+                        <div className="text-center p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-sm text-yellow-600">
+                            {MAX_QUESTIONS - questions.length} questions remaining
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     <Button 
                       onClick={handleGenerateAIQuiz} 
-                      disabled={aiGenerating}
+                      disabled={
+                        aiGenerating || 
+                        loadingUrls || 
+                        lessonUrls.length === 0 ||
+                        questions.length >= MAX_QUESTIONS ||
+                        aiQuizCount > (MAX_QUESTIONS - questions.length)
+                      }
                       className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                       size="lg"
                     >
@@ -412,6 +581,11 @@ function QuizPageContent({ params }: QuizPageProps) {
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           AI is generating questions...
+                        </>
+                      ) : questions.length >= MAX_QUESTIONS ? (
+                        <>
+                          <AlertCircle className="h-4 w-4 mr-2" />
+                          Maximum {MAX_QUESTIONS} Questions Reached
                         </>
                       ) : (
                         <>
@@ -489,8 +663,8 @@ function QuizPageContent({ params }: QuizPageProps) {
                     </CardTitle>
                     <CardDescription className="text-base">
                       {editingQuestion 
-                        ? 'Modify the selected question details below'
-                        : 'Design engaging quiz questions with multiple choice answers'
+                        ? 'Edit selected question details below and update data on your right button'
+: 'Design engaging quiz questions with multiple choice answers on the button below and save data on your right button'
                       }
                     </CardDescription>
                   </CardHeader>
@@ -501,7 +675,13 @@ function QuizPageContent({ params }: QuizPageProps) {
                   onSubmit={
                     editingQuestion ? handleEditQuestion : handleAddQuestion
                   }
+                  onCancel={handleCancelForm}
                   initialQuestion={editingQuestion}
+                  disabled={!editingQuestion && questions.length >= MAX_QUESTIONS}
+                  disabledMessage={!editingQuestion && questions.length >= MAX_QUESTIONS 
+                    ? `Maximum ${MAX_QUESTIONS} questions reached. Delete existing questions to add new ones.`
+                    : undefined
+                  }
                   key={editingQuestion?.id}
                 />
 
