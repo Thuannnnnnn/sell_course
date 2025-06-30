@@ -6,6 +6,7 @@ import { Lesson } from '../lesson/entities/lesson.entity';
 import { Quizz } from '../quizz/entities/quizz.entity';
 import { Questionentity } from '../quizz/entities/question.entity';
 import { AnswerEntity } from '../quizz/entities/answer.entity';
+import { QuizzStore } from '../quizz_store/entities/quizz_store.entity';
 
 @Injectable()
 export class ContentService {
@@ -20,6 +21,8 @@ export class ContentService {
     private readonly questionRepository: Repository<Questionentity>,
     @InjectRepository(AnswerEntity)
     private readonly answerRepository: Repository<AnswerEntity>,
+    @InjectRepository(QuizzStore)
+    private readonly quizzStoreRepository: Repository<QuizzStore>,
   ) {}
 
   async createContent(
@@ -90,29 +93,35 @@ export class ContentService {
 
 
 
-    // Delete in correct order: answers -> questions -> quizzes -> content
+    // Count and delete in correct order: quizz_store -> answers -> questions -> quizzes -> content
+    let deletedQuizzStoreCount = 0;
+    
     for (const quiz of quizzes) {
-
+      
+      // First, count and delete all quiz store records for this quiz
+      const quizzStoreCount = await this.quizzStoreRepository.count({ 
+        where: { quizz: { quizzId: quiz.quizzId } } 
+      });
+      deletedQuizzStoreCount += quizzStoreCount;
+      
+      await this.quizzStoreRepository.delete({ quizz: { quizzId: quiz.quizzId } });
       
       // Delete all answers for this quiz's questions
       for (const question of quiz.questions || []) {
         if (question.answers && question.answers.length > 0) {
           await this.answerRepository.remove(question.answers);
-
         }
       }
       
       // Delete all questions for this quiz
       if (quiz.questions && quiz.questions.length > 0) {
         await this.questionRepository.remove(quiz.questions);
-
       }
     }
 
     // Delete all quizzes
     if (quizzes.length > 0) {
       await this.quizzRepository.remove(quizzes);
-
     }
 
     // Finally delete the content
@@ -126,6 +135,7 @@ export class ContentService {
     return { 
       message: 'Content deleted successfully',
       deletedQuizzes: quizzes.length,
+      deletedQuizzStoreRecords: deletedQuizzStoreCount,
       deletedQuestions: quizzes.reduce(
         (total, quiz) => total + (quiz.questions?.length || 0),
         0,

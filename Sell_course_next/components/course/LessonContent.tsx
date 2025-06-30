@@ -127,6 +127,7 @@ export function LessonContent({
   // Enhanced completion handler
   const handleContentComplete = async (contentId: string) => {
     console.log("📋 LessonContent - Handling content completion:", contentId);
+    console.log("📋 LessonContent - onContentComplete exists:", !!onContentComplete);
 
     // Update local state immediately for better UX
     setLocalCompleted(true);
@@ -134,6 +135,7 @@ export function LessonContent({
     // Call parent completion handler
     if (onContentComplete) {
       try {
+        console.log("📋 LessonContent - Calling parent onContentComplete...");
         await onContentComplete(contentId);
         console.log(
           "✅ LessonContent - Content completion handled successfully"
@@ -146,6 +148,8 @@ export function LessonContent({
         // Revert local state if API call fails
         setLocalCompleted(false);
       }
+    } else {
+      console.log("❌ LessonContent - No onContentComplete callback provided");
     }
   };
 
@@ -245,20 +249,24 @@ export function LessonContent({
             }
             showResults={true}
             onComplete={(score, results) => {
-              console.log("Quiz completed:", { score, results });
+              console.log("🎯 Quiz completed:", { score, results });
+              console.log("🎯 Score type:", typeof score, "Score value:", score);
+              console.log("🎯 Results type:", typeof results, "Results:", results);
 
               if (currentContentId && score !== undefined) {
-                const totalQuestions = Array.isArray(results)
-                  ? results.length
-                  : 1;
-                const correctAnswers = Array.isArray(results)
-                  ? results.filter((r) => r.correct).length
-                  : 0;
-                const percentage = (correctAnswers / totalQuestions) * 100;
-
-                if (percentage >= 50) {
+                // Use the score directly from QuizTaking since it's already calculated
+                const finalScore = score;
+                console.log("🎯 Final score:", finalScore);
+                console.log("🎯 Content ID:", currentContentId);
+                
+                if (finalScore >= 50) {
+                  console.log("✅ Score >= 50%, marking content as complete");
                   handleContentComplete(currentContentId);
+                } else {
+                  console.log("❌ Score < 50%, not marking as complete");
                 }
+              } else {
+                console.log("❌ Missing contentId or score:", { currentContentId, score });
               }
             }}
             isCompleted={localCompleted}

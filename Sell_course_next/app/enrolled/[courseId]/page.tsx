@@ -500,10 +500,17 @@ export default function CourseLearnPage() {
 
   // Handle content completion
   const handleContentComplete = async (contentId: string) => {
-    if (!currentLesson || !userId) return;
+    console.log("🚀 CourseLearnPage - handleContentComplete called:", contentId);
+    console.log("🚀 CourseLearnPage - currentLesson:", currentLesson?.lessonId);
+    console.log("🚀 CourseLearnPage - userId:", userId);
+    
+    if (!currentLesson || !userId) {
+      console.log("❌ CourseLearnPage - Missing currentLesson or userId");
+      return;
+    }
 
     try {
-      console.log("✅ Marking content as completed:", contentId);
+      console.log("✅ CourseLearnPage - Marking content as completed:", contentId);
 
       // Mark content as completed via API
       await markContentAsCompleted(userId, contentId, currentLesson.lessonId);
@@ -514,9 +521,9 @@ export default function CourseLearnPage() {
       // Refresh progress data to get updated counts and completion status
       await loadProgressData();
 
-      console.log("✅ Content marked as completed successfully");
+      console.log("✅ CourseLearnPage - Content marked as completed successfully");
     } catch (error) {
-      console.error("❌ Failed to mark content as completed:", error);
+      console.error("❌ CourseLearnPage - Failed to mark content as completed:", error);
       setError("Failed to save progress. Please try again.");
 
       // Still update local state for better UX even if API fails
