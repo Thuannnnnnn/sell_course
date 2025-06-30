@@ -338,7 +338,7 @@ export default function QuizIntegration({
             <div className="text-center p-3 bg-muted/50 rounded-lg border">
               <Trophy className="h-5 w-5 text-green-600 mx-auto mb-1" />
               <div className="font-bold text-green-700 text-xs uppercase tracking-wide">Passing Score</div>
-              <div className="text-xl font-bold text-green-600 mt-1">70%</div>
+              <div className="text-xl font-bold text-green-600 mt-1">50%</div>
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg border">
               <TrendingUp className="h-5 w-5 text-purple-600 mx-auto mb-1" />

@@ -646,7 +646,7 @@ export default function QuizTaking({
               <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
                 <Trophy className="h-6 w-6 text-purple-600 mx-auto mb-2" />
                 <div className="font-bold text-purple-700 text-xs uppercase tracking-wide">Passing Score</div>
-                <div className="text-2xl font-bold text-purple-600 mt-1">70%</div>
+                <div className="text-2xl font-bold text-purple-600 mt-1">50%</div>
               </div>
             </div>
 
