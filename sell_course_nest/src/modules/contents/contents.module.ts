@@ -6,6 +6,7 @@ import { Lesson } from '../lesson/entities/lesson.entity';
 import { Quizz } from '../quizz/entities/quizz.entity';
 import { Questionentity } from '../quizz/entities/question.entity';
 import { AnswerEntity } from '../quizz/entities/answer.entity';
+import { QuizzStore } from '../quizz_store/entities/quizz_store.entity';
 import { ContentService } from './contents.service';
 
 @Module({
@@ -16,6 +17,7 @@ import { ContentService } from './contents.service';
       Quizz,
       Questionentity,
       AnswerEntity,
+      QuizzStore,
     ]),
   ],
   controllers: [ContentController],

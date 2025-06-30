@@ -77,13 +77,19 @@ export default function QuizIntegration({
   };
 
   const handleQuizComplete = (score: number, results: QuizResult) => {
+    console.log("🎯 QuizIntegration - handleQuizComplete called:", { score, results });
+    
     // Tính điểm chính xác từ kết quả
     const calculatedScore =
       score !== undefined ? score : calculateScore(results);
+    console.log("🎯 QuizIntegration - calculatedScore:", calculatedScore);
+    
     setLastScore(calculatedScore);
 
     // Kiểm tra điều kiện hoàn thành (>= 50%)
     const isPassed = isPassingScore(calculatedScore);
+    console.log("🎯 QuizIntegration - isPassed:", isPassed, "threshold: >= 50%");
+    
     setCompleted(isPassed);
 
     // Hiển thị màn hình kết quả
@@ -111,9 +117,15 @@ export default function QuizIntegration({
       console.error("Error saving quiz results to localStorage:", error);
     }
 
-    // Gọi callback nếu quiz được hoàn thành (pass)
-    if (onComplete && isPassed) {
+    // Gọi callback bất kể quiz có pass hay không - để parent tự quyết định
+    console.log("🎯 QuizIntegration - onComplete exists:", !!onComplete);
+    console.log("🎯 QuizIntegration - will call onComplete:", !!onComplete);
+    
+    if (onComplete) {
+      console.log("🎯 QuizIntegration - calling onComplete with:", calculatedScore, results);
       onComplete(calculatedScore, results);
+    } else {
+      console.log("🎯 QuizIntegration - NOT calling onComplete - no callback provided");
     }
   };
 
