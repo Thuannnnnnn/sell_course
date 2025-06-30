@@ -1,14 +1,24 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Play, Trophy, Clock, BookOpen, BarChart3, Target, CheckCircle, TrendingUp, RotateCcw } from 'lucide-react';
-import QuizTaking from './QuizTaking';
-import QuizResultsList from './QuizResultsList';
-import QuizReview from './QuizReview';
-import { QuizResult } from '../../app/types/Course/Lesson/content/quizz';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import {
+  Play,
+  Trophy,
+  Clock,
+  BookOpen,
+  BarChart3,
+  Target,
+  CheckCircle,
+  TrendingUp,
+  RotateCcw,
+} from "lucide-react";
+import QuizTaking from "./QuizTaking";
+import QuizResultsList from "./QuizResultsList";
+import QuizReview from "./QuizReview";
+import { QuizResult } from "../../app/types/Course/Lesson/content/quizz";
 
 interface QuizIntegrationProps {
   courseId: string;
@@ -19,9 +29,10 @@ interface QuizIntegrationProps {
   description?: string;
   showResults?: boolean;
   onComplete?: (score: number, results: QuizResult) => void;
+  isCompleted?: boolean;
 }
 
-type ViewMode = 'overview' | 'taking' | 'results' | 'review';
+type ViewMode = "overview" | "taking" | "results" | "review";
 
 export default function QuizIntegration({
   courseId,
@@ -31,53 +42,98 @@ export default function QuizIntegration({
   title = "Quiz",
   description = "Test your knowledge with this quiz",
   showResults = true,
-  onComplete
+  onComplete,
+  isCompleted = false,
 }: QuizIntegrationProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('overview');
-  const [completed, setCompleted] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("overview");
+  const [completed, setCompleted] = useState(isCompleted);
   const [lastScore, setLastScore] = useState<number | null>(null);
 
+  // Hàm tính điểm từ kết quả quiz
+  const calculateScore = (results: QuizResult): number => {
+    if (Array.isArray(results)) {
+      const correctAnswers = results.filter((result) => result.correct).length;
+      const totalQuestions = results.length;
+      return totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
+    }
+
+    // Nếu results không phải array, có thể là object với score
+    if (typeof results === "object" && results !== null && "score" in results) {
+      return typeof results.score === "number" ? Math.round(results.score) : 0;
+    }
+
+    return 0;
+  };
+
+  // Kiểm tra xem có pass không (>= 50%)
+  const isPassingScore = (score: number): boolean => {
+    return score >= 50;
+  };
+
   const handleStartQuiz = () => {
-    setViewMode('taking');
+    setViewMode("taking");
   };
 
   const handleQuizComplete = (score: number, results: QuizResult) => {
-    setLastScore(score);
-    setCompleted(true);
+    // Tính điểm chính xác từ kết quả
+    const calculatedScore =
+      score !== undefined ? score : calculateScore(results);
+    setLastScore(calculatedScore);
+
+    // Kiểm tra điều kiện hoàn thành (>= 50%)
+    const isPassed = isPassingScore(calculatedScore);
+    setCompleted(isPassed);
+
     // Hiển thị màn hình kết quả
-    setViewMode('results');
-    
-    // Lưu kết quả bài kiểm tra vào localStorage để có thể xem lại sau này
+    setViewMode("results");
+
+    // Lưu kết quả bài kiểm tra
     try {
-      const quizResults = JSON.parse(localStorage.getItem(`quiz_${courseId}_${lessonId}_${contentId}`) || '[]');
-      quizResults.unshift(results);
-      localStorage.setItem(`quiz_${courseId}_${lessonId}_${contentId}`, JSON.stringify(quizResults));
+      const quizResults = JSON.parse(
+        localStorage.getItem(`quiz_${courseId}_${lessonId}_${contentId}`) ||
+          "[]"
+      );
+      const resultToSave = {
+        ...results,
+        score: calculatedScore,
+        passed: isPassed,
+        completedAt: new Date().toISOString(),
+        quizId: quizId || contentId,
+      };
+      quizResults.unshift(resultToSave);
+      localStorage.setItem(
+        `quiz_${courseId}_${lessonId}_${contentId}`,
+        JSON.stringify(quizResults)
+      );
     } catch (error) {
-      console.error('Error saving quiz results to localStorage:', error);
+      console.error("Error saving quiz results to localStorage:", error);
     }
-    
-    if (onComplete) {
-      onComplete(score, results);
+
+    // Gọi callback nếu quiz được hoàn thành (pass)
+    if (onComplete && isPassed) {
+      onComplete(calculatedScore, results);
     }
   };
 
   const handleViewResults = () => {
-    setViewMode('results');
+    setViewMode("results");
   };
 
   const handleViewReview = () => {
-    setViewMode('review');
+    setViewMode("review");
   };
 
   const handleBackToOverview = () => {
-    setViewMode('overview');
+    setViewMode("overview");
   };
 
-  if (viewMode === 'taking') {
+  if (viewMode === "taking") {
     return (
       <div className="space-y-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleBackToOverview}
           className="mb-4"
         >
@@ -93,12 +149,12 @@ export default function QuizIntegration({
       </div>
     );
   }
-  
-  if (viewMode === 'review') {
+
+  if (viewMode === "review") {
     return (
       <div className="space-y-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleBackToOverview}
           className="mb-4"
         >
@@ -108,62 +164,113 @@ export default function QuizIntegration({
           courseId={courseId}
           lessonId={lessonId}
           contentId={contentId}
-          quizId={quizId || ''}
+          quizId={quizId || ""}
           onBack={handleBackToOverview}
         />
       </div>
     );
   }
 
-  if (viewMode === 'results') {
+  if (viewMode === "results") {
     return (
       <div className="space-y-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleBackToOverview}
           className="mb-4"
         >
           ← Back to Overview
         </Button>
         {/* Hiển thị kết quả bài kiểm tra gần nhất nếu có */}
-        {completed && lastScore !== null ? (
+        {lastScore !== null ? (
           <div className="w-full max-w-4xl mx-auto px-4 overflow-hidden">
-            <Card className={`border shadow-sm ${lastScore >= 70 ? 'border-green-200 bg-green-50/30' : 'border-orange-200 bg-orange-50/30'}`}>
+            <Card
+              className={`border shadow-sm ${
+                isPassingScore(lastScore)
+                  ? "border-green-200 bg-green-50/30"
+                  : "border-red-200 bg-red-50/30"
+              }`}
+            >
               <CardHeader className="text-center pb-6">
                 <div className="flex items-center justify-center mb-4">
-                  <div className={`p-4 rounded-full ${lastScore >= 70 ? 'bg-green-100' : 'bg-orange-100'}`}>
-                    {lastScore >= 70 ? (
+                  <div
+                    className={`p-4 rounded-full ${
+                      isPassingScore(lastScore) ? "bg-green-100" : "bg-red-100"
+                    }`}
+                  >
+                    {isPassingScore(lastScore) ? (
                       <Trophy className="h-12 w-12 text-green-600" />
                     ) : (
-                      <Target className="h-12 w-12 text-orange-600" />
+                      <Target className="h-12 w-12 text-red-600" />
                     )}
                   </div>
                 </div>
                 <CardTitle className="text-3xl font-bold mb-3">
-                  {lastScore >= 70 ? 'Congratulations!' : 'Good Effort!'}
+                  {isPassingScore(lastScore)
+                    ? "Congratulations! Quiz Completed!"
+                    : "Keep Trying!"}
                 </CardTitle>
                 <p className="text-lg text-muted-foreground">
-                  {lastScore >= 70 ? 'You passed the quiz!' : 'Keep practicing to improve your score'}
+                  {isPassingScore(lastScore)
+                    ? "You have successfully completed this quiz!"
+                    : "You need at least 50% to complete this quiz. Try again!"}
                 </p>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
                 {/* Score Display */}
                 <div className="text-center">
-                  <div className={`text-6xl font-bold mb-3 ${lastScore >= 70 ? 'text-green-600' : 'text-orange-600'}`}>
+                  <div
+                    className={`text-6xl font-bold mb-3 ${
+                      isPassingScore(lastScore)
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {lastScore}%
                   </div>
-                  <Badge 
-                    variant={lastScore >= 70 ? "default" : "destructive"} 
+                  <Badge
+                    variant={
+                      isPassingScore(lastScore) ? "default" : "destructive"
+                    }
                     className="text-base px-3 py-1 font-semibold"
                   >
-                    {lastScore >= 70 ? 'PASSED' : 'NEEDS IMPROVEMENT'}
+                    {isPassingScore(lastScore)
+                      ? "COMPLETED ✓"
+                      : "NOT COMPLETED - RETRY NEEDED"}
                   </Badge>
+
+                  {/* Progress indication */}
+                  <div className="mt-4 max-w-md mx-auto">
+                    <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                      <span>Progress</span>
+                      <span>{lastScore}% of 50% required</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className={`h-3 rounded-full transition-all duration-500 ${
+                          isPassingScore(lastScore)
+                            ? "bg-green-500"
+                            : lastScore >= 25
+                            ? "bg-orange-500"
+                            : "bg-red-500"
+                        }`}
+                        style={{ width: `${Math.min(lastScore, 100)}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>0%</span>
+                      <span className="font-medium text-primary">
+                        50% (Required)
+                      </span>
+                      <span>100%</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button 
+                  <Button
                     onClick={handleViewReview}
                     size="lg"
                     className="flex items-center gap-2"
@@ -171,24 +278,34 @@ export default function QuizIntegration({
                     <BookOpen className="h-5 w-5" />
                     Review Questions & Answers
                   </Button>
-                  <Button 
-                    onClick={() => setViewMode('taking')} 
+                  <Button
+                    onClick={() => setViewMode("taking")}
                     size="lg"
-                    variant="outline"
+                    variant={isPassingScore(lastScore) ? "outline" : "default"}
                     className="flex items-center gap-2"
                   >
                     <RotateCcw className="h-5 w-5" />
-                    Retake Quiz
+                    {isPassingScore(lastScore) ? "Retake Quiz" : "Try Again"}
                   </Button>
                 </div>
+
+                {/* Motivational message */}
+                {!isPassingScore(lastScore) && (
+                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-blue-800 font-medium">
+                      💡 Dont give up! Youre {50 - lastScore}% away from
+                      completing this quiz.
+                    </p>
+                    <p className="text-blue-600 text-sm mt-1">
+                      Review the questions and try again. You can do it!
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         ) : (
-          <QuizResultsList 
-            courseId={courseId}
-            lessonId={lessonId}
-          />
+          <QuizResultsList courseId={courseId} lessonId={lessonId} />
         )}
       </div>
     );
@@ -254,7 +371,7 @@ export default function QuizIntegration({
                 variant={lastScore >= 70 ? "default" : "destructive"}
                 className="text-sm px-2 py-0.5 font-semibold"
               >
-                {lastScore >= 70 ? "PASSED ✓" : "NEEDS IMPROVEMENT"}
+                {isPassingScore(lastScore) ? "COMPLETED ✓" : "NOT COMPLETED"}
               </Badge>
               {lastScore >= 70 && (
                 <p className="text-green-700 mt-2 text-xs font-medium">Congratulations! You&apos;ve mastered this topic!</p>
@@ -275,7 +392,9 @@ export default function QuizIntegration({
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold">•</span>
-                <span>Navigate between questions and change your answers anytime</span>
+                <span>
+                  Navigate between questions and change your answers anytime
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold">•</span>
@@ -283,7 +402,9 @@ export default function QuizIntegration({
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold">•</span>
-                <span>Retake the quiz as many times as you want to improve</span>
+                <span>
+                  Retake the quiz as many times as you want to improve
+                </span>
               </li>
             </ul>
           </div>
@@ -298,7 +419,7 @@ export default function QuizIntegration({
               <Play className="h-4 w-4" />
               {completed ? 'Retake Quiz' : 'Start Quiz Now'}
             </Button>
-            
+
             {showResults && (
               <Button 
                 variant="outline" 

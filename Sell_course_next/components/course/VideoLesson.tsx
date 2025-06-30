@@ -15,6 +15,7 @@ import {
   SkipForward,
   Settings,
   Maximize,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
@@ -71,9 +72,14 @@ interface DiscussionItem {
 interface VideoLessonProps extends VideoState {
   onComplete?: (contentId: string) => void;
   videoData: VideoState;
+  isCompleted?: boolean;
 }
 
-export function VideoLesson({ videoData }: VideoLessonProps) {
+export function VideoLesson({
+  videoData,
+  onComplete,
+  isCompleted = false,
+}: VideoLessonProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -86,14 +92,19 @@ export function VideoLesson({ videoData }: VideoLessonProps) {
   const [playerRef, setPlayerRef] = useState<ReactPlayer | null>(null);
   const [showControls, setShowControls] = useState(true);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
+
   // State cho transcript
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentTranscriptIndex, setCurrentTranscriptIndex] =
     useState<number>(-1);
   const [showTranscript, setShowTranscript] = useState(false);
 
-  // State cho discussions (khởi tạo rỗng, nếu cần fetch thì thêm logic fetch)
+  // State cho discussions
   const [discussions] = useState<DiscussionItem[]>([]);
+
+  // State cho auto-complete
+  const [autoCompleted, setAutoCompleted] = useState(false);
+  const [watchedPercentage, setWatchedPercentage] = useState(0);
 
   // Refs cho auto-scroll transcript
   const transcriptContainerRef = useRef<HTMLDivElement>(null);
@@ -180,7 +191,6 @@ export function VideoLesson({ videoData }: VideoLessonProps) {
             setTranscript(processedTranscript);
           } catch (scriptErr) {
             console.error("Error fetching transcript:", scriptErr);
-            // Optionally set a specific error for transcript
           }
         }
       } catch (err) {
@@ -232,6 +242,35 @@ export function VideoLesson({ videoData }: VideoLessonProps) {
       }
     }
   }, [playedSeconds, transcript, currentTranscriptIndex]);
+
+  // Auto-complete logic: Đánh dấu hoàn thành khi xem được 2/3 video
+  useEffect(() => {
+    if (duration > 0 && playedSeconds > 0 && !autoCompleted && !isCompleted) {
+      const percentage = (playedSeconds / duration) * 100;
+      setWatchedPercentage(percentage);
+
+      // Nếu đã xem được 2/3 video (66.67%) thì tự động đánh dấu hoàn thành
+      if (percentage >= 66.67) {
+        console.log(
+          "🎯 Video auto-complete triggered at:",
+          percentage.toFixed(2) + "%"
+        );
+        setAutoCompleted(true);
+
+        // Gọi callback onComplete nếu có
+        if (onComplete && videoData?.videoId) {
+          onComplete(videoData.videoId);
+        }
+      }
+    }
+  }, [
+    playedSeconds,
+    duration,
+    autoCompleted,
+    isCompleted,
+    onComplete,
+    videoData?.videoId,
+  ]);
 
   // Auto-scroll to active transcript when currentTranscriptIndex changes
   useEffect(() => {
@@ -323,7 +362,7 @@ export function VideoLesson({ videoData }: VideoLessonProps) {
     if (playerRef && item.words.length > 0) {
       const startTimeInSeconds = parseFloat(item.words[0].start);
       playerRef.seekTo(startTimeInSeconds);
-      setPlaying(true); // Tự động phát video khi click vào transcript
+      setPlaying(true);
     }
   };
 
@@ -372,6 +411,39 @@ export function VideoLesson({ videoData }: VideoLessonProps) {
 
   return (
     <div className="w-full">
+      {/* Progress and Completion Indicator */}
+      {duration > 0 && isCompleted && (
+        <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Progress:</span>
+              <span className="text-sm text-muted-foreground">
+                {watchedPercentage.toFixed(1)}%
+              </span>
+            </div>
+            {(autoCompleted || isCompleted) && (
+              <div className="flex items-center gap-1 text-green-600 bg-green-50 dark:bg-green-950/20 px-2 py-1 rounded-full text-sm">
+                <CheckCircle className="h-4 w-4" />
+                <span>Completed</span>
+              </div>
+            )}
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all duration-300 ${
+                watchedPercentage >= 66.67 ? "bg-green-500" : "bg-blue-500"
+              }`}
+              style={{ width: `${Math.min(watchedPercentage, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <span>0%</span>
+            <span className="font-medium">66.7% for completion</span>
+            <span>100%</span>
+          </div>
+        </div>
+      )}
+
       {/* Video Player Container */}
       <div className="flex gap-4">
         {/* Main Video Player */}
@@ -404,7 +476,7 @@ export function VideoLesson({ videoData }: VideoLessonProps) {
                         attributes: {
                           crossOrigin: "anonymous",
                         },
-                        forceHLS: true, // Force HLS for M3U8 files
+                        forceHLS: true,
                       },
                     }}
                   />
@@ -584,7 +656,6 @@ export function VideoLesson({ videoData }: VideoLessonProps) {
                             </p>
                           </div>
 
-                          {/* Hiển thị thông tin về segment */}
                           <div className="mt-2 text-xs text-muted-foreground">
                             Duration: ~10s | Words: {item.words.length}
                             {item.words.length > 0 && (

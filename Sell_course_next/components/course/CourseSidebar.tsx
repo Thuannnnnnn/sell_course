@@ -54,8 +54,10 @@ export function CourseSidebar({
   };
 
   const getContentIcon = (contentType: string, isCompleted: boolean) => {
+    // Always show completion status first
     if (isCompleted) return <CheckCircle className="h-4 w-4 text-green-500" />;
 
+    // Show type-specific icons for uncompleted content
     switch (contentType.toLowerCase()) {
       case "video":
         return <Play className="h-4 w-4 text-blue-500" />;
@@ -80,6 +82,19 @@ export function CourseSidebar({
     return getLessonProgress(lesson) === 100;
   };
 
+  const getLessonCompletionStats = (lesson: LessonResponse) => {
+    if (!lesson.contents || lesson.contents.length === 0) {
+      return { completed: 0, total: 0 };
+    }
+
+    const completed = lesson.contents.filter((content) =>
+      isContentCompleted(content)
+    ).length;
+    const total = lesson.contents.length;
+
+    return { completed, total };
+  };
+
   return (
     <div className="w-80 border-r bg-card/50 overflow-y-auto max-h-[calc(100vh-4rem)]">
       <div className="p-4 font-semibold border-b bg-background/50 sticky top-0 z-10">
@@ -93,6 +108,7 @@ export function CourseSidebar({
         {lessons.map((lesson) => {
           const lessonProgress = getLessonProgress(lesson);
           const isCompleted = isLessonCompleted(lesson);
+          const { completed, total } = getLessonCompletionStats(lesson);
 
           return (
             <Collapsible
@@ -129,11 +145,33 @@ export function CourseSidebar({
                         {lesson.lessonName}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{lesson.contents?.length || 0} items</span>
+                        <span>{total} items</span>
+                        {total > 0 && (
+                          <>
+                            <span>•</span>
+                            <span
+                              className={cn(
+                                "font-medium",
+                                isCompleted
+                                  ? "text-green-600"
+                                  : "text-muted-foreground"
+                              )}
+                            >
+                              {completed}/{total} completed
+                            </span>
+                          </>
+                        )}
                         {lessonProgress > 0 && (
                           <>
                             <span>•</span>
-                            <span>{lessonProgress}% complete</span>
+                            <span
+                              className={cn(
+                                "font-medium",
+                                isCompleted ? "text-green-600" : "text-blue-600"
+                              )}
+                            >
+                              {lessonProgress}%
+                            </span>
                           </>
                         )}
                       </div>
@@ -168,7 +206,10 @@ export function CourseSidebar({
                               "w-full justify-start rounded-none h-auto py-3 px-8 text-left border-l-2 hover:bg-accent/50",
                               isCurrentContent
                                 ? "border-l-primary bg-accent/80"
-                                : "border-l-transparent"
+                                : "border-l-transparent",
+                              // Add visual indicator for completed content
+                              isCompleted &&
+                                "bg-green-50/50 dark:bg-green-950/10"
                             )}
                             onClick={() => onContentSelect(content)}
                           >
@@ -180,22 +221,39 @@ export function CourseSidebar({
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm leading-tight mb-1">
+                                <div
+                                  className={cn(
+                                    "font-medium text-sm leading-tight mb-1",
+                                    isCompleted &&
+                                      "line-through text-muted-foreground"
+                                  )}
+                                >
                                   {content.contentName || content.contentId}
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-2 text-xs">
                                   <Clock className="h-3 w-3" />
-                                  <span>{duration}</span>
+                                  <span className="text-muted-foreground">
+                                    {duration}
+                                  </span>
                                   {isCompleted && (
                                     <>
-                                      <span>•</span>
-                                      <span className="text-green-600 font-medium">
+                                      <span className="text-muted-foreground">
+                                        •
+                                      </span>
+                                      <span className="text-green-600 font-medium flex items-center gap-1">
+                                        <CheckCircle className="h-3 w-3" />
                                         Completed
                                       </span>
                                     </>
                                   )}
                                 </div>
                               </div>
+                              {/* Additional completion indicator on the right */}
+                              {isCompleted && (
+                                <div className="flex-shrink-0">
+                                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                </div>
+                              )}
                             </div>
                           </Button>
                         );
