@@ -366,7 +366,7 @@ export function DocLesson({
       )}
 
       {/* Document Content */}
-      <ScrollArea className="h-[600px]" onScrollCapture={handleScroll}>
+      <ScrollArea className="h-[900px]" onScrollCapture={handleScroll}>
         <div className="p-6">
           {(() => {
             if (documentData?.fileType?.toLowerCase() === "pdf") {
@@ -429,7 +429,7 @@ export function DocLesson({
                           documentData.documentUrl ||
                           lesson.content
                       )}`}
-                      className="w-full h-96 border rounded"
+                      className="w-full h-[700px] border rounded"
                       title={lesson.title}
                       onLoad={() => {
                         if (!hasStartedReading) {

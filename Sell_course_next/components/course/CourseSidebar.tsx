@@ -225,7 +225,7 @@ export function CourseSidebar({
                                   className={cn(
                                     "font-medium text-sm leading-tight mb-1",
                                     isCompleted &&
-                                      "line-through text-muted-foreground"
+                                      "text-green-700"
                                   )}
                                 >
                                   {content.contentName || content.contentId}
