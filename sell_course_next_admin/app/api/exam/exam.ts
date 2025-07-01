@@ -41,7 +41,6 @@ export const examApi = {
       courseId,
       ...config
     };
-    
     const response = await apiClient.post(
       '/api/admin/exam/create_from_quizzes',
       payload
@@ -129,7 +128,7 @@ export const examApi = {
     totalWeight: number;
   }> => {
     const exam = await examApi.getExamById(courseId);
-    
+
     const stats = {
       totalQuestions: exam.questions.length,
       questionsByDifficulty: {
@@ -139,7 +138,7 @@ export const examApi = {
       },
       totalWeight: exam.questions.reduce((sum, q) => sum + q.weight, 0)
     };
-    
+
     return stats;
   },
 
@@ -172,7 +171,7 @@ export const examApi = {
     }>;
   }> => {
     const exam = await examApi.getExamById(courseId);
-    
+
     // Remove correct answer information for student view
     return {
       examId: exam.examId,

@@ -20,8 +20,8 @@ import { AnswerEntity } from '../quizz/entities/answer.entity'; // Import quiz a
       // Quiz entities (to read from)
       Quizz,
       Questionentity,
-      AnswerEntity
-    ])
+      AnswerEntity,
+    ]),
   ],
   providers: [ExamQuestionService],
   controllers: [ExamQuestionController],

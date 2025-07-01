@@ -28,7 +28,7 @@ export class ExamQuestionService {
     private readonly quizzRepository: Repository<Quizz>,
     @InjectRepository(Questionentity)
     private readonly quizQuestionRepository: Repository<Questionentity>,
-  ) {}
+  ) { }
 
   /**
    * Create exam by copying questions from quizzes in the course
@@ -63,51 +63,52 @@ export class ExamQuestionService {
     });
 
     if (exam) {
-      // Clear existing questions if exam exists
       await this.clearExamQuestions(exam.examId);
     } else {
-      // Create new exam
       exam = new Exam();
       exam.examId = uuidv4();
       exam.courseId = courseId;
       exam = await this.examRepository.save(exam);
     }
 
-    // Collect all questions from quizzes
-    let allQuizQuestions: Questionentity[] = [];
-    
+    // ✅ LOGIC ĐƯỢC SỬA:
+    let targetQuizzes = quizzes;
+
+    // 1. Xác định quizzes sẽ sử dụng
     if (examConfig?.specificQuizIds && examConfig.specificQuizIds.length > 0) {
-      // Use only specific quizzes
-      const filteredQuizzes = quizzes.filter(quiz => 
+      targetQuizzes = quizzes.filter(quiz =>
         examConfig.specificQuizIds!.includes(quiz.quizzId)
       );
-      allQuizQuestions = filteredQuizzes.flatMap(quiz => quiz.questions || []);
-    } else {
-      // Use all quizzes
-      allQuizQuestions = quizzes.flatMap(quiz => quiz.questions || []);
     }
 
-    if (allQuizQuestions.length === 0) {
-      throw new BadRequestException('No questions found in the selected quizzes');
-    }
+    // 2. Thu thập câu hỏi với giới hạn đúng
+    let selectedQuestions: Questionentity[] = [];
 
-    // Apply question limits if specified
-    let selectedQuestions = allQuizQuestions;
-    
     if (examConfig?.questionsPerQuiz && examConfig.questionsPerQuiz > 0) {
-      // Limit questions per quiz
-      selectedQuestions = [];
-      for (const quiz of quizzes) {
+      // Lấy số câu hỏi giới hạn từ MỖI quiz đã chọn
+      for (const quiz of targetQuizzes) {
         if (quiz.questions && quiz.questions.length > 0) {
           const shuffled = this.shuffleArray([...quiz.questions]);
-          selectedQuestions.push(...shuffled.slice(0, examConfig.questionsPerQuiz));
+          const questionsToTake = Math.min(examConfig.questionsPerQuiz, quiz.questions.length);
+          selectedQuestions.push(...shuffled.slice(0, questionsToTake));
         }
       }
+    } else {
+      // Lấy TẤT CẢ câu hỏi từ các quiz đã chọn
+      selectedQuestions = targetQuizzes.flatMap(quiz => quiz.questions || []);
     }
 
+    // 3. Áp dụng giới hạn tổng số câu hỏi (nếu có)
     if (examConfig?.totalQuestions && examConfig.totalQuestions > 0) {
-      // Limit total questions
-      selectedQuestions = this.shuffleArray(selectedQuestions).slice(0, examConfig.totalQuestions);
+      selectedQuestions = this.shuffleArray(selectedQuestions)
+        .slice(0, examConfig.totalQuestions);
+    }
+
+    // 4. Shuffle final questions
+    selectedQuestions = this.shuffleArray(selectedQuestions);
+
+    if (selectedQuestions.length === 0) {
+      throw new BadRequestException('No questions found with the specified configuration');
     }
 
     // Copy questions from quiz to exam
@@ -321,7 +322,7 @@ export class ExamQuestionService {
       where: { courseId },
       relations: ['questions', 'questions.answers'],
     });
-    
+
     if (!exam) {
       throw new NotFoundException(`Exam with courseId ${courseId} not found`);
     }
@@ -475,7 +476,7 @@ export class ExamQuestionService {
     }
 
     const exam = await this.getExamById(courseId);
-    
+
     const stats = {
       totalQuestions: exam.questions.length,
       questionsByDifficulty: {
@@ -484,11 +485,11 @@ export class ExamQuestionService {
         hard: exam.questions.filter(q => q.difficulty === 'hard').length,
       },
       totalWeight: exam.questions.reduce((sum, q) => sum + (q.weight || 1), 0),
-      averageWeight: exam.questions.length > 0 
-        ? exam.questions.reduce((sum, q) => sum + (q.weight || 1), 0) / exam.questions.length 
+      averageWeight: exam.questions.length > 0
+        ? exam.questions.reduce((sum, q) => sum + (q.weight || 1), 0) / exam.questions.length
         : 0
     };
-    
+
     return stats;
   }
 
@@ -520,7 +521,7 @@ export class ExamQuestionService {
     }
 
     const exam = await this.getExamById(courseId);
-    
+
     // Remove correct answer information for student view
     return {
       examId: exam.examId,

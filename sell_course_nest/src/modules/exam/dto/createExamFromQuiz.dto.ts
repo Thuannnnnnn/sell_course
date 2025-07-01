@@ -1,11 +1,11 @@
-import { 
-  IsUUID, 
-  IsOptional, 
-  IsInt, 
-  Min, 
-  IsBoolean, 
-  IsArray, 
-  ArrayMinSize 
+import {
+  IsUUID,
+  IsOptional,
+  IsInt,
+  Min,
+  IsBoolean,
+  IsArray,
+  ArrayMinSize,
 } from 'class-validator';
 
 export class CreateExamFromQuizzesDto {
