@@ -5,7 +5,7 @@ export interface UserProfile {
   avatarImg: string | null;
   gender: string | null;
   birthDay: string | null;
-  phoneNumber: number | null;
+  phoneNumber: string | null;
   isOAuth: boolean;
   role: string;
   isBan: boolean;
@@ -17,7 +17,7 @@ export interface UpdateProfileRequest {
   avatarImg?: string;
   gender?: string;
   birthDay?: string;
-  phoneNumber?: number;
+  phoneNumber?: string;
 }
 
 export interface EditProfileModalProps {
