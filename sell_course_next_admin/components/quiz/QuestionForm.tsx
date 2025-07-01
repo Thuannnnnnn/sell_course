@@ -198,9 +198,7 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
                   className="h-14 text-base border-2 focus:border-[#513deb] transition-all duration-200 bg-white/80 backdrop-blur-sm"
                   required
                 />
-                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                  <div className={`h-2 w-2 rounded-full transition-colors duration-200 ${question.trim() ? 'bg-green-500' : 'bg-gray-300'}`} />
-                </div>
+                
               </div>
             </div>
 
@@ -250,7 +248,7 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
               <div className="space-y-3">
                 <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                   <div className="h-2 w-2 bg-purple-500 rounded-full" />
-                  Points Value
+                  Points
                   <span className="text-xs text-muted-foreground ml-2">
                     ({getDifficultyRange(difficulty).min}-{getDifficultyRange(difficulty).max} for {difficulty})
                   </span>
@@ -295,7 +293,7 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
                 {options.map((option, index) => (
                   <div key={index} className="group">
                     <div className="flex gap-3 items-center">
-                      <div className="flex-1 relative">
+                      <div className="w-[calc(100%-160px)] relative">
                         <Input
                           value={option}
                           onChange={(e) => {
@@ -304,7 +302,7 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
                             setOptions(newOptions)
                           }}
                           placeholder={`Option ${String.fromCharCode(65 + index)}: Enter answer choice`}
-                          className="h-12 text-base border-2 focus:border-[#513deb] transition-all duration-200 bg-white/80 backdrop-blur-sm pl-10"
+                          className="h-12 text-base border-2 focus:border-[#513deb] transition-all duration-200 bg-white/80 backdrop-blur-sm pl-10 w-full"
                           required
                         />
                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -312,15 +310,13 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
                             {String.fromCharCode(65 + index)}
                           </span>
                         </div>
-                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                          <div className={`h-2 w-2 rounded-full transition-colors duration-200 ${option.trim() ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        </div>
+                       
                       </div>
                       
                       <Button
                         type="button"
                         variant={correctAnswer === index ? 'default' : 'outline'}
-                        className={`min-w-[120px] h-12 transition-all duration-300 transform hover:scale-105 ${
+                        className={`w-[140px] h-12 transition-all duration-300 transform hover:scale-105 ${
                           correctAnswer === index 
                             ? 'bg-[#513deb] hover:bg-[#4f46e5] text-white shadow-lg shadow-[#513deb]/25' 
                             : 'hover:bg-gray-50 border-2'

@@ -11,7 +11,6 @@ import { Textarea } from "../../../components/ui/textarea";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -61,6 +60,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function AddCourseForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const { data: session } = useSession();
@@ -113,6 +113,7 @@ export default function AddCourseForm() {
 
       form.reset();
       setThumbnailPreview(null);
+      setVideoPreview(null);
       router.push("/course");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -136,10 +137,31 @@ export default function AddCourseForm() {
     form.setValue("thumbnail", undefined);
     setThumbnailPreview(null);
   };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setVideoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setVideoPreview(null);
+    }
+  };
+
+  const clearVideo = () => {
+    form.setValue("videoIntro", undefined);
+    setVideoPreview(null);
+  };
   form.watch((value) => {
     if (value.thumbnail?.[0]) {
       handleThumbnailChange({
         target: { files: value.thumbnail },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+    if (value.videoIntro?.[0]) {
+      handleVideoChange({
+        target: { files: value.videoIntro },
       } as React.ChangeEvent<HTMLInputElement>);
     }
   });
@@ -373,20 +395,54 @@ export default function AddCourseForm() {
                   <FormItem>
                     <FormLabel>Intro Video</FormLabel>
                     <FormControl>
-                      <div className="space-y-2">
+                      <div className="space-y-4">
                         <Input
+                          id="videoIntro"
                           type="file"
                           accept="video/*"
-                          onChange={(e) => onChange(e.target.files)}
+                          className={videoPreview ? "hidden" : "block"}
+                          onChange={(e) => {
+                            onChange(e.target.files);
+                            handleVideoChange(e);
+                          }}
                           {...fieldProps}
                         />
-                        <FormDescription>
-                          Upload a short introduction video (optional)
-                        </FormDescription>
-                        {value?.[0] && (
-                          <p className="text-sm text-muted-foreground">
-                            Selected: {value[0].name}
-                          </p>
+                        {videoPreview && (
+                          <Card className="overflow-hidden">
+                            <div className="relative aspect-video">
+                              <video
+                                src={videoPreview}
+                                controls
+                                className="w-full h-full object-cover"
+                                preload="metadata"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2"
+                                onClick={clearVideo}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <CardContent className="p-2">
+                              <p className="text-xs text-muted-foreground">
+                                {value?.[0]?.name}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        )}
+                        {!videoPreview && (
+                          <div className="border border-dashed rounded-md p-8 flex flex-col items-center justify-center text-muted-foreground">
+                            <Upload className="h-8 w-8 mb-2" />
+                            <p className="text-sm font-medium">
+                              Drag and drop or click to upload
+                            </p>
+                            <p className="text-xs">
+                              Upload a short introduction video (optional)
+                            </p>
+                          </div>
                         )}
                       </div>
                     </FormControl>
@@ -440,6 +496,7 @@ export default function AddCourseForm() {
               onClick={() => {
                 form.reset();
                 setThumbnailPreview(null);
+                setVideoPreview(null);
               }}
             >
               Reset Form

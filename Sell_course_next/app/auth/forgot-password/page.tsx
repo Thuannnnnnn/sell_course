@@ -10,6 +10,8 @@ import {
   verifyOtp,
   resetPasswordAPI,
 } from "@/app/api/auth/forgot-password/forgot-password";
+import { PasswordRequirements, PasswordStrengthIndicator } from "@/components/ui/password-requirements";
+import { PasswordConfirmation } from "@/components/ui/password-confirmation";
 
 const ForgotPWPage = () => {
   const [email, setEmail] = useState("");
@@ -90,8 +92,29 @@ const ForgotPWPage = () => {
       return;
     }
 
+    // Enhanced password validation
     if (password.length < 8) {
       setError("Password must be at least 8 characters long");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setError("Password must contain at least one lowercase letter");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setError("Password must contain at least one special character");
       setIsLoading(false);
       return;
     }
@@ -180,11 +203,16 @@ const ForgotPWPage = () => {
         <Input
           id="password"
           type="password"
-          placeholder="Enter new password"
+          placeholder="Enter your new password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        <PasswordRequirements 
+          password={password} 
+          showRequirements={password.length > 0} 
+        />
+        <PasswordStrengthIndicator password={password} />
       </div>
       <div className="space-y-2">
         <label
@@ -196,10 +224,15 @@ const ForgotPWPage = () => {
         <Input
           id="confirmPassword"
           type="password"
-          placeholder="Confirm new password"
+          placeholder="Confirm your new password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
+        />
+        <PasswordConfirmation 
+          password={password} 
+          confirmPassword={confirmPassword}
+          showValidation={confirmPassword.length > 0}
         />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
@@ -258,7 +291,7 @@ const ForgotPWPage = () => {
               {step === "email" &&
                 "Enter your email to receive a password reset link"}
               {step === "otp" && "Enter the OTP sent to your email"}
-              {step === "resetPassword" && "Enter your new password"}
+              {step === "resetPassword" && "Create a secure new password"}
               {step === "success" &&
                 "Your password has been reset successfully"}
             </p>

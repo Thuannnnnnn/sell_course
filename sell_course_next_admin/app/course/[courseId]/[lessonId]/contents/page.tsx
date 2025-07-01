@@ -348,14 +348,7 @@ function AddContentModal({
         },
         session.accessToken
       );
-      toast.success("Content created successfully!", {
-        style: {
-          background: "#10b981",
-          color: "white",
-          border: "1px solid #059669",
-        },
-        icon: "✅",
-      });
+      toast.success("Content created successfully!");
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -364,14 +357,7 @@ function AddContentModal({
           ? (err as { message?: string }).message || "Failed to add content."
           : "Failed to add content.";
       setError(msg);
-      toast.error(msg, {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -460,8 +446,6 @@ export default function LessonContentsPage() {
   const lessonId = params.lessonId as string;
   const courseId = params.courseId as string;
 
-  console.log('🎯 LessonContentsPage loaded:', { courseId, lessonId });
-
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [contents, setContents] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
@@ -478,7 +462,6 @@ export default function LessonContentsPage() {
     string | null
   >(null);
   const [allVideos, setAllVideos] = useState<VideoState[]>([]);
-  
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -494,17 +477,10 @@ export default function LessonContentsPage() {
           fetchContentsByLesson(lessonId, session.accessToken),
           getAllVideos(),
         ]);
-        console.log('📚 Loaded data:', { 
-          lessonsCount: lessonsData.length, 
-          contentsCount: contentsData.length,
-          contents: contentsData 
-        });
-        
         const foundLesson = lessonsData.find(
           (l: Lesson) => l.lessonId === lessonId
         );
         if (!foundLesson) {
-          console.log('❌ Lesson not found:', lessonId);
           setError("Lesson not found.");
           setLoading(false);
           return;
@@ -526,7 +502,6 @@ export default function LessonContentsPage() {
   }, [session, lessonId]);
 
   const handleAdd = () => {
-    console.log('➕ Opening add content modal');
     setShowAddModal(true);
   };
 
@@ -560,30 +535,15 @@ export default function LessonContentsPage() {
         return reordered;
       });
 
-      toast.success("Content deleted successfully!", {
-        style: {
-          background: "#10b981",
-          color: "white",
-          border: "1px solid #059669",
-        },
-        icon: "✅",
-      });
+      toast.success("Content deleted successfully!");
     } catch (error) {
       const msg =
         error instanceof Error
           ? error.message
           : "Failed to delete content. Please try again.";
-      toast.error(msg, {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
+      toast.error(msg);
     }
   };
-  
   const refreshContents = async () => {
     if (!session?.accessToken) return;
     console.log('🔄 Refreshing contents for lesson:', lessonId);
@@ -592,7 +552,6 @@ export default function LessonContentsPage() {
         lessonId,
         session.accessToken
       );
-      console.log('✅ Contents refreshed:', contentsData);
       setContents(contentsData);
       const videosData = await getAllVideos();
       setAllVideos(videosData);
