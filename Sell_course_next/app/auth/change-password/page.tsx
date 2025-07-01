@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { ChangePasswordRequest } from "@/app/types/auth/change-password/api";
 import { changePasswordAPI } from "@/app/api/auth/change-password/changePassword";
 import PageHead from "@/components/layout/Head";
+import { PasswordRequirements, PasswordStrengthIndicator } from "@/components/ui/password-requirements";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -41,8 +42,25 @@ export default function ChangePasswordPage() {
       setError("New password and confirm password do not match.");
       return;
     }
-    if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters long.");
+    // Enhanced password validation
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("New password must contain at least one uppercase letter.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError("New password must contain at least one lowercase letter.");
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      setError("New password must contain at least one number.");
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) {
+      setError("New password must contain at least one special character.");
       return;
     }
     if (currentPassword === newPassword) {
@@ -111,7 +129,7 @@ export default function ChangePasswordPage() {
               Change Password
             </h1>
             <p className="text-sm text-muted-foreground">
-              Please enter your current password and choose a new one
+              Please enter your current password and choose a secure new password
             </p>
           </div>
         </CardHeader>
@@ -150,10 +168,16 @@ export default function ChangePasswordPage() {
               <Input
                 id="newPassword"
                 type="password"
+                placeholder="Enter your new password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
               />
+              <PasswordRequirements 
+                password={newPassword} 
+                showRequirements={newPassword.length > 0} 
+              />
+              <PasswordStrengthIndicator password={newPassword} />
             </div>
             <div className="space-y-2">
               <label
