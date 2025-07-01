@@ -14,6 +14,7 @@ import { ChangePasswordRequest } from "@/app/types/auth/change-password/api";
 import { changePasswordAPI } from "@/app/api/auth/change-password/changePassword";
 import PageHead from "@/components/layout/Head";
 import { PasswordRequirements, PasswordStrengthIndicator } from "@/components/ui/password-requirements";
+import { PasswordConfirmation } from "@/components/ui/password-confirmation";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -189,9 +190,15 @@ export default function ChangePasswordPage() {
               <Input
                 id="confirmPassword"
                 type="password"
+                placeholder="Confirm your new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+              />
+              <PasswordConfirmation 
+                password={newPassword} 
+                confirmPassword={confirmPassword}
+                showValidation={confirmPassword.length > 0}
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>

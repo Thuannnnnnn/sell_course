@@ -198,9 +198,7 @@ export default function QuestionForm({ onSubmit, onCancel, initialQuestion, disa
                   className="h-14 text-base border-2 focus:border-[#513deb] transition-all duration-200 bg-white/80 backdrop-blur-sm"
                   required
                 />
-                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                  <div className={`h-2 w-2 rounded-full transition-colors duration-200 ${question.trim() ? 'bg-green-500' : 'bg-gray-300'}`} />
-                </div>
+                
               </div>
             </div>
 

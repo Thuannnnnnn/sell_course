@@ -16,6 +16,7 @@ import PageHead from "@/components/layout/Head";
 import logo from "@/public/logo.png";
 import Image from "next/image";
 import { PasswordRequirements, PasswordStrengthIndicator } from "@/components/ui/password-requirements";
+import { PasswordConfirmation } from "@/components/ui/password-confirmation";
 export default function RegisterPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -266,6 +267,11 @@ export default function RegisterPage() {
           value={formData.confirmPassword}
           onChange={handleInputChange}
           required
+        />
+        <PasswordConfirmation 
+          password={formData.password} 
+          confirmPassword={formData.confirmPassword}
+          showValidation={formData.confirmPassword.length > 0}
         />
       </div>
 
