@@ -15,6 +15,8 @@ import { FormData } from "@/app/types/auth/Register/register";
 import PageHead from "@/components/layout/Head";
 import logo from "@/public/logo.png";
 import Image from "next/image";
+import { PasswordRequirements, PasswordStrengthIndicator } from "@/components/ui/password-requirements";
+import { PasswordConfirmation } from "@/components/ui/password-confirmation";
 export default function RegisterPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -61,6 +63,7 @@ export default function RegisterPage() {
       return;
     }
 
+    // Enhanced password validation
     if (formData.password.length < 8) {
       setError("Password must be at least 8 characters long");
       setIsLoading(false);
@@ -68,6 +71,21 @@ export default function RegisterPage() {
     }
     if (!/[A-Z]/.test(formData.password)) {
       setError("Password must contain at least one uppercase letter");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[a-z]/.test(formData.password)) {
+      setError("Password must contain at least one lowercase letter");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      setError("Password must contain at least one number");
+      setIsLoading(false);
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
+      setError("Password must contain at least one special character");
       setIsLoading(false);
       return;
     }
@@ -227,6 +245,11 @@ export default function RegisterPage() {
           onChange={handleInputChange}
           required
         />
+        <PasswordRequirements 
+          password={formData.password} 
+          showRequirements={formData.password.length > 0} 
+        />
+        <PasswordStrengthIndicator password={formData.password} />
       </div>
 
       <div className="space-y-2">
@@ -244,6 +267,11 @@ export default function RegisterPage() {
           value={formData.confirmPassword}
           onChange={handleInputChange}
           required
+        />
+        <PasswordConfirmation 
+          password={formData.password} 
+          confirmPassword={formData.confirmPassword}
+          showValidation={formData.confirmPassword.length > 0}
         />
       </div>
 

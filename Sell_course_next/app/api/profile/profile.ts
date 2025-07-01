@@ -82,7 +82,7 @@ export const updateUserProfile = async (
     if (updateData.gender) formData.append("gender", updateData.gender);
     if (updateData.birthDay) formData.append("birthDay", updateData.birthDay);
     if (updateData.phoneNumber !== undefined)
-      formData.append("phoneNumber", updateData.phoneNumber.toString());
+      formData.append("phoneNumber", updateData.phoneNumber);
 
     // Add avatar file if it exists
     if (avatarFile) {
