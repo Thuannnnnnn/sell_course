@@ -51,27 +51,13 @@ function AddLessonModal({
       );
 
       setLessonName("");
-      toast.success("Lesson created successfully!", {
-        style: {
-          background: '#10b981',
-          color: 'white',
-          border: '1px solid #059669',
-        },
-        icon: '✅',
-      });
+      toast.success("Lesson created successfully!");
       onSuccess();
       onClose();
     } catch (err) {
       console.error("Error creating lesson:", err);
       setError("Failed to create lesson.");
-      toast.error("Failed to create lesson.", {
-        style: {
-          background: '#ef4444',
-          color: 'white',
-          border: '1px solid #dc2626',
-        },
-        icon: '❌',
-      });
+      toast.error("Failed to create lesson.");
     } finally {
       setLoading(false);
     }
@@ -144,26 +130,12 @@ function EditLessonModal({
     setError("");
     try {
       await updateLesson(lesson.lessonId, { lessonName }, accessToken);
-      toast.success("Lesson updated successfully!", {
-        style: {
-          background: '#10b981',
-          color: 'white',
-          border: '1px solid #059669',
-        },
-        icon: '✅',
-      });
+      toast.success("Lesson updated successfully!");
       onSuccess();
       onClose();
     } catch {
       setError("Failed to update lesson.");
-      toast.error("Failed to update lesson.", {
-        style: {
-          background: '#ef4444',
-          color: 'white',
-          border: '1px solid #dc2626',
-        },
-        icon: '❌',
-      });
+      toast.error("Failed to update lesson.");
     } finally {
       setLoading(false);
     }
@@ -274,24 +246,10 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
         });
         return reordered;
       });
-      toast.success("Lesson deleted successfully!", {
-        style: {
-          background: '#10b981',
-          color: 'white',
-          border: '1px solid #059669',
-        },
-        icon: '✅',
-      });
+      toast.success("Lesson deleted successfully!");
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error("Failed to delete lesson.", {
-        style: {
-          background: '#ef4444',
-          color: 'white',
-          border: '1px solid #dc2626',
-        },
-        icon: '❌',
-      });
+      toast.error("Failed to delete lesson.");
     }
   };
 

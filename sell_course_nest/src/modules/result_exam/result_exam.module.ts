@@ -5,7 +5,7 @@ import { ResultExam } from './entities/result_exam.entity';
 import { User } from '../user/entities/user.entity';
 import { ExamQuestion } from '../exam/entities/examQuestion.entity';
 import { Answer } from '../exam/entities/answerExam.entity';
-import { ResultExamController } from './result_exmam.controller';
+import { ResultExamController } from './result_exam.controller';
 import { ResultExamService } from './result_exam.service';
 
 @Module({
