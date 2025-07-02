@@ -5,7 +5,7 @@ import { ProfileInfo } from "@/components/sections/ProfileInfo";
 export default function ProfilePage() {
   return (
     <div className="min-h-screen w-full bg-background">
-      <div className="container px-4 md:px-6 py-12">
+      <div className="w-full px-4 md:px-48 py-12">
         <div className="grid gap-8">
           <ProfileInfo />
           {/* <WishlistSection /> */}
