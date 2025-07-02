@@ -6,6 +6,7 @@ import { Sidebar } from "../components/dashboard/Sidebar";
 import { Header } from "../components/dashboard/Header";
 import React, { useState } from "react";
 import { Toaster } from "sonner";
+import { usePathname } from "next/navigation";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,6 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  
+  // Check if current page is auth page
+  const isAuthPage = pathname?.startsWith('/auth');
 
   return (
     <html lang="en">
@@ -32,21 +37,30 @@ export default function RootLayout({
       >
         <SessionProvider refetchOnWindowFocus={false}>
           <Toaster position="top-right" />
-          <div className="flex h-screen bg-background">
-            {/* Sidebar */}
-            <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col md:ml-64">
-              {/* Header */}
-              <Header onMenuClick={() => setSidebarOpen(true)} />
-
-              {/* Page Content */}
-              <main className="flex-1 overflow-y-auto p-4 md:p-6">
-                {children}
-              </main>
+          
+          {isAuthPage ? (
+            // Auth pages - full page without sidebar and header
+            <div className="min-h-screen">
+              {children}
             </div>
-          </div>
+          ) : (
+            // Regular pages - with sidebar and header
+            <div className="flex h-screen bg-background">
+              {/* Sidebar */}
+              <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+
+              {/* Main Content */}
+              <div className="flex-1 flex flex-col md:ml-64">
+                {/* Header */}
+                <Header onMenuClick={() => setSidebarOpen(true)} />
+
+                {/* Page Content */}
+                <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                  {children}
+                </main>
+              </div>
+            </div>
+          )}
         </SessionProvider>
       </body>
     </html>
