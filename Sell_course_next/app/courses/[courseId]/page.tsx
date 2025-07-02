@@ -1,24 +1,38 @@
-'use client';
+"use client";
 
-import courseApi from '@/app/api/courses/courses';
-import { checkEnrollmentServer } from '@/app/api/enrollment/enrollment';
-import { Button } from '@/components/ui/button';
-import { CourseCard } from '@/components/ui/CourseCard';
-import Image from 'next/image';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
-import { CourseResponseDTO, CourseCardData } from '@/app/types/Course/Course';
-import Link from 'next/link';
-import { Play, Clock, Award, Star, CheckCircle, BookOpen, User, Globe, Download } from 'lucide-react';
+import courseApi from "@/app/api/courses/courses";
+import { checkEnrollmentServer } from "@/app/api/enrollment/enrollment";
+import { Button } from "@/components/ui/button";
+import { CourseCard } from "@/components/ui/CourseCard";
+import Image from "next/image";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { CourseResponseDTO, CourseCardData } from "@/app/types/Course/Course";
+import Link from "next/link";
+import {
+  Play,
+  Clock,
+  Award,
+  Star,
+  CheckCircle,
+  BookOpen,
+  User,
+  Globe,
+  Download,
+} from "lucide-react";
 
-export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
+export default function CourseDetailPage({
+  params,
+}: {
+  params: { courseId: string };
+}) {
   const [course, setCourse] = useState<CourseResponseDTO | null>(null);
   const [relatedCourses, setRelatedCourses] = useState<CourseResponseDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -26,11 +40,12 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
         setIsLoading(true);
         const courseData = await courseApi.getCourseById(params.courseId);
         setCourse(courseData);
-        const related = (await courseApi.getCoursesByCategory(courseData.categoryId))
-          .filter(c => c.courseId !== courseData.courseId);
+        const related = (
+          await courseApi.getCoursesByCategory(courseData.categoryId)
+        ).filter((c) => c.courseId !== courseData.courseId);
         setRelatedCourses(related);
       } catch (error) {
-        console.error('Error fetching course:', error);
+        console.error("Error fetching course:", error);
       } finally {
         setIsLoading(false);
       }
@@ -40,14 +55,14 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
 
   useEffect(() => {
     const checkEnrollment = async () => {
-      if (status === 'loading') return;
+      if (status === "loading") return;
       if (session?.user && params.courseId) {
         try {
           setIsCheckingEnrollment(true);
           const response = await checkEnrollmentServer(params.courseId);
           setIsEnrolled(response.enrolled);
         } catch (error) {
-          console.error('Error checking enrollment:', error);
+          console.error("Error checking enrollment:", error);
         } finally {
           setIsCheckingEnrollment(false);
         }
@@ -58,20 +73,25 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
     checkEnrollment();
   }, [session, status, params.courseId]);
 
-  const convertToCourseCardData = (course: CourseResponseDTO): CourseCardData => ({
+  const convertToCourseCardData = (
+    course: CourseResponseDTO
+  ): CourseCardData => ({
     id: course.courseId,
     title: course.title,
     instructor: course.instructorName,
     price: `$${course.price}`,
     rating: course.rating,
-    image: course.thumbnail || '/logo.png',
+    image: course.thumbnail || "/logo.png",
     description: course.short_description,
     level: course.level,
     duration: course.duration,
   });
 
   const courseFeatures = [
-    { icon: <Clock className="w-5 h-5" />, text: `${course?.duration || 0} hours on-demand video` },
+    {
+      icon: <Clock className="w-5 h-5" />,
+      text: `${course?.duration || 0} hours on-demand video`,
+    },
     { icon: <BookOpen className="w-5 h-5" />, text: "Downloadable resources" },
     { icon: <Award className="w-5 h-5" />, text: "Certificate of completion" },
     { icon: <Globe className="w-5 h-5" />, text: "Lifetime access" },
@@ -79,9 +99,12 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
   ];
 
   const renderActionButton = () => {
-    if (status === 'loading' || isCheckingEnrollment) {
+    if (status === "loading" || isCheckingEnrollment) {
       return (
-        <Button disabled className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg">
+        <Button
+          disabled
+          className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
+        >
           <div className="flex items-center justify-center gap-2">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             Loading...
@@ -100,10 +123,13 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
       );
     }
 
-    if (isEnrolled) {
+    if (isEnrolled || session.user.role === "ADMIN") {
       return (
-        <Link href={`/enrolled/${params.courseId}/dashboard`} className="block w-full">
-          <Button disabled className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg">
+        <Link href={`/enrolled/${params.courseId}`} className="block w-full">
+          <Button
+            disabled
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
+          >
             <CheckCircle className="w-5 h-5 mr-2" />
             Enrolled
           </Button>
@@ -125,7 +151,9 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div className="text-xl font-semibold text-gray-700">Loading course...</div>
+          <div className="text-xl font-semibold text-gray-700">
+            Loading course...
+          </div>
         </div>
       </div>
     );
@@ -135,8 +163,12 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-3xl shadow-xl">
-          <div className="text-2xl font-bold text-red-600 mb-2">Course not found</div>
-          <div className="text-gray-600">The course you are looking for does not exist</div>
+          <div className="text-2xl font-bold text-red-600 mb-2">
+            Course not found
+          </div>
+          <div className="text-gray-600">
+            The course you are looking for does not exist
+          </div>
         </div>
       </div>
     );
@@ -165,7 +197,9 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                   </span>
                   <div className="flex items-center gap-1">
                     <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    <span className="font-semibold text-gray-700">{course.rating}</span>
+                    <span className="font-semibold text-gray-700">
+                      {course.rating}
+                    </span>
                   </div>
                 </div>
                 <h1 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
@@ -200,14 +234,14 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
               {/* Navigation Tabs */}
               <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-2 shadow-lg border border-white/20">
                 <div className="flex gap-2">
-                  {['overview'].map((tab) => (
+                  {["overview"].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
                       className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 capitalize ${
                         activeTab === tab
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                          : 'text-gray-600 hover:bg-gray-100'
+                          ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                          : "text-gray-600 hover:bg-gray-100"
                       }`}
                     >
                       {tab}
@@ -218,9 +252,11 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
 
               {/* Tab Content */}
               <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20">
-                {activeTab === 'overview' && (
+                {activeTab === "overview" && (
                   <div className="space-y-6">
-                    <h2 className="text-3xl font-bold text-gray-900">Course Overview</h2>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Course Overview
+                    </h2>
                     <p className="text-gray-700 text-lg leading-relaxed">
                       {course.description}
                     </p>
@@ -231,28 +267,44 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                           className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100"
                         >
                           <div className="text-blue-600">{feature.icon}</div>
-                          <span className="text-gray-700 font-medium">{feature.text}</span>
+                          <span className="text-gray-700 font-medium">
+                            {feature.text}
+                          </span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {activeTab === 'curriculum' && (
+                {activeTab === "curriculum" && (
                   <div className="space-y-6">
-                    <h2 className="text-3xl font-bold text-gray-900">Course Curriculum</h2>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Course Curriculum
+                    </h2>
                     <div className="space-y-4">
                       {[1, 2, 3, 4].map((section) => (
-                        <div key={section} className="border border-gray-200 rounded-xl overflow-hidden">
+                        <div
+                          key={section}
+                          className="border border-gray-200 rounded-xl overflow-hidden"
+                        >
                           <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b">
-                            <h3 className="font-semibold text-gray-900">Section {section}: Advanced Concepts</h3>
+                            <h3 className="font-semibold text-gray-900">
+                              Section {section}: Advanced Concepts
+                            </h3>
                           </div>
                           <div className="p-4 space-y-2">
                             {[1, 2, 3].map((lesson) => (
-                              <div key={lesson} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg">
+                              <div
+                                key={lesson}
+                                className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg"
+                              >
                                 <Play className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-700">Lesson {lesson}: Implementation Details</span>
-                                <span className="ml-auto text-sm text-gray-500">12:34</span>
+                                <span className="text-gray-700">
+                                  Lesson {lesson}: Implementation Details
+                                </span>
+                                <span className="ml-auto text-sm text-gray-500">
+                                  12:34
+                                </span>
                               </div>
                             ))}
                           </div>
@@ -262,12 +314,17 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                   </div>
                 )}
 
-                {activeTab === 'reviews' && (
+                {activeTab === "reviews" && (
                   <div className="space-y-6">
-                    <h2 className="text-3xl font-bold text-gray-900">Student Reviews</h2>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Student Reviews
+                    </h2>
                     <div className="space-y-4">
                       {[1, 2, 3].map((review) => (
-                        <div key={review} className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
+                        <div
+                          key={review}
+                          className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl"
+                        >
                           <div className="flex items-center gap-3 mb-3">
                             <Image
                               src="/logo.png"
@@ -277,16 +334,22 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                               className="rounded-full"
                             />
                             <div>
-                              <div className="font-semibold text-gray-900">Student Name</div>
+                              <div className="font-semibold text-gray-900">
+                                Student Name
+                              </div>
                               <div className="flex items-center gap-1">
                                 {[1, 2, 3, 4, 5].map((star) => (
-                                  <Star key={star} className="w-4 h-4 text-yellow-500 fill-current" />
+                                  <Star
+                                    key={star}
+                                    className="w-4 h-4 text-yellow-500 fill-current"
+                                  />
                                 ))}
                               </div>
                             </div>
                           </div>
                           <p className="text-gray-700">
-                            Great course! The instructor explains everything clearly and the content is very practical.
+                            Great course! The instructor explains everything
+                            clearly and the content is very practical.
                           </p>
                         </div>
                       ))}
@@ -297,7 +360,9 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
 
               {/* Related Courses */}
               <div className="space-y-6">
-                <h3 className="text-3xl font-bold text-gray-900">Students Also Bought</h3>
+                <h3 className="text-3xl font-bold text-gray-900">
+                  Students Also Bought
+                </h3>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {relatedCourses.length === 0 ? (
                     <div className="col-span-full text-center py-12 text-gray-500">
@@ -305,7 +370,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                       <p className="text-lg">No related courses found.</p>
                     </div>
                   ) : (
-                    relatedCourses.map(rc => (
+                    relatedCourses.map((rc) => (
                       <CourseCard
                         key={rc.courseId}
                         course={convertToCourseCardData(rc)}
@@ -354,15 +419,18 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                   </div>
 
                   {/* Action Button */}
-                  <div className="mb-6">
-                    {renderActionButton()}
-                  </div>
+                  <div className="mb-6">{renderActionButton()}</div>
 
                   {/* Course Features */}
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-900 mb-4">This course includes:</h4>
+                    <h4 className="font-semibold text-gray-900 mb-4">
+                      This course includes:
+                    </h4>
                     {courseFeatures.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3 text-gray-700">
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 text-gray-700"
+                      >
                         <div className="text-green-600">{feature.icon}</div>
                         <span className="text-sm">{feature.text}</span>
                       </div>

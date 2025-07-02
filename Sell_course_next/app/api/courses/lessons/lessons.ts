@@ -2,7 +2,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  console.log('🌐 Making API call to:', url);
+  console.log("🌐 Making API call to:", url);
 
   const response = await fetch(url, {
     headers: {
@@ -12,7 +12,7 @@ async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+    throw new Error(`No Lesson In Course`);
   }
 
   return response.json();
@@ -23,11 +23,11 @@ export const courseApi = {
   getCourseById: async (courseId: string) => {
     return apiCall(`/api/courses/getByCourse/${courseId}`);
   },
-  
+
   getLessonsByCourseId: async (courseId: string) => {
     return apiCall(`/api/lesson/view_lesson/${courseId}`);
   },
-  
+
   getContentsByLessonId: async (courseId: string, lessonId: string) => {
     return apiCall(`/api/courses/${courseId}/lessons/${lessonId}/contents`);
   },
@@ -38,13 +38,19 @@ export const contentApi = {
   getVideoContent: async (contentId: string) => {
     return apiCall(`/api/video/view_video_content/${contentId}`);
   },
-  
+
   getDocumentContent: async (contentId: string) => {
     return apiCall(`/api/docs/view_doc/${contentId}`);
   },
-  
-  getQuizContent: async (courseId: string, lessonId: string, contentId: string) => {
-    return apiCall(`/api/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/random`);
+
+  getQuizContent: async (
+    courseId: string,
+    lessonId: string,
+    contentId: string
+  ) => {
+    return apiCall(
+      `/api/courses/${courseId}/lessons/${lessonId}/contents/${contentId}/quizzes/random`
+    );
   },
 };
 
@@ -53,10 +59,14 @@ export const examApi = {
   getExamQuestions: async (examId: number) => {
     return apiCall(`/api/exam/${examId}/questions`);
   },
-  
-  submitExamAnswer: async (examId: number, questionId: string, answer: string) => {
+
+  submitExamAnswer: async (
+    examId: number,
+    questionId: string,
+    answer: string
+  ) => {
     return apiCall(`/api/exam/${examId}/submit`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ questionId, answer }),
     });
   },

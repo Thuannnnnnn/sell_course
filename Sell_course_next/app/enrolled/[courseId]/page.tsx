@@ -13,10 +13,7 @@ import { Button } from "../../../components/ui/button";
 import { Progress } from "../../../components/ui/progress";
 import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import {
-  courseApi,
-  contentApi,
-} from "../../api/courses/lessons/lessons";
+import { courseApi, contentApi } from "../../api/courses/lessons/lessons";
 import { examApi } from "../../api/courses/exam/exam";
 import { resultExamApi } from "../../api/courses/exam/result-exam";
 import {
@@ -28,7 +25,7 @@ import {
   DocumentResponse,
   QuizResponse,
 } from "../../types/Course/Lesson/Lessons";
-import { ExamQuestion } from '../../types/Course/exam/result-exam';
+import { ExamQuestion } from "../../types/Course/exam/result-exam";
 import { Exam } from "../../types/Course/exam/exam";
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
 import {
@@ -104,7 +101,8 @@ export default function CourseLearnPage() {
 
   // Exam State
   const [examData, setExamData] = useState<ExamData | null>(null);
-  const [userExamResults, setUserExamResults] = useState<UserExamResults | null>(null);
+  const [userExamResults, setUserExamResults] =
+    useState<UserExamResults | null>(null);
 
   // Load all progress data for the course
   const loadProgressData = async () => {
@@ -217,14 +215,17 @@ export default function CourseLearnPage() {
 
       // Check if exam exists for this course
       const examExists = await examApi.checkExamExists(courseId);
-      
+
       if (examExists) {
-        const exam = await examApi.getExamById(courseId) as Exam;
-        
+        const exam = (await examApi.getExamById(courseId)) as Exam;
+
         // Check if user has taken the exam
         if (session?.accessToken) {
           try {
-            const results = await resultExamApi.getUserExamResults(courseId, session.accessToken);
+            const results = await resultExamApi.getUserExamResults(
+              courseId,
+              session.accessToken
+            );
             setUserExamResults(results);
           } catch {
             // User hasn't taken the exam yet
@@ -235,18 +236,18 @@ export default function CourseLearnPage() {
         const examInfo: ExamData = {
           examId: exam.examId,
           courseId: exam.courseId,
-          title: 'Final Certification Exam',
-          questions: exam.questions.map(q => ({
+          title: "Final Certification Exam",
+          questions: exam.questions.map((q) => ({
             ...q,
             examId: exam.examId,
             createdAt: new Date().toISOString(),
-            answers: q.answers.map(a => ({
+            answers: q.answers.map((a) => ({
               ...a,
               createdAt: new Date().toISOString(),
             })),
           })),
           totalQuestions: exam.questions.length,
-          isLocked: !session // Lock if user not authenticated
+          isLocked: !session, // Lock if user not authenticated
         };
 
         setExamData(examInfo);
@@ -551,17 +552,23 @@ export default function CourseLearnPage() {
 
   // Handle content completion
   const handleContentComplete = async (contentId: string) => {
-    console.log("🚀 CourseLearnPage - handleContentComplete called:", contentId);
+    console.log(
+      "🚀 CourseLearnPage - handleContentComplete called:",
+      contentId
+    );
     console.log("🚀 CourseLearnPage - currentLesson:", currentLesson?.lessonId);
     console.log("🚀 CourseLearnPage - userId:", userId);
-    
+
     if (!currentLesson || !userId) {
       console.log("❌ CourseLearnPage - Missing currentLesson or userId");
       return;
     }
 
     try {
-      console.log("✅ CourseLearnPage - Marking content as completed:", contentId);
+      console.log(
+        "✅ CourseLearnPage - Marking content as completed:",
+        contentId
+      );
 
       // Mark content as completed via API
       await markContentAsCompleted(userId, contentId, currentLesson.lessonId);
@@ -572,9 +579,14 @@ export default function CourseLearnPage() {
       // Refresh progress data to get updated counts and completion status
       await loadProgressData();
 
-      console.log("✅ CourseLearnPage - Content marked as completed successfully");
+      console.log(
+        "✅ CourseLearnPage - Content marked as completed successfully"
+      );
     } catch (error) {
-      console.error("❌ CourseLearnPage - Failed to mark content as completed:", error);
+      console.error(
+        "❌ CourseLearnPage - Failed to mark content as completed:",
+        error
+      );
       setError("Failed to save progress. Please try again.");
 
       // Still update local state for better UX even if API fails
@@ -585,15 +597,19 @@ export default function CourseLearnPage() {
   // Handle exam completion
   const handleExamComplete = (score: number) => {
     console.log("🎓 Exam completed with score:", score);
-    
+
     // Update user exam results
     setUserExamResults({ score });
-    
+
     // Optionally update course progress
-    setCourseData(prev => prev ? { 
-      ...prev, 
-      progress: Math.min(prev.progress + 10, 100) // Add 10% progress for completing exam
-    } : prev);
+    setCourseData((prev) =>
+      prev
+        ? {
+            ...prev,
+            progress: Math.min(prev.progress + 10, 100), // Add 10% progress for completing exam
+          }
+        : prev
+    );
 
     // Refresh progress data
     if (userId) {
@@ -616,8 +632,10 @@ export default function CourseLearnPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-destructive mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
+          <p className="mb-4">{error}</p>
+          <Button asChild>
+            <a href="/">Go Home</a>
+          </Button>
         </div>
       </div>
     );
@@ -700,10 +718,7 @@ export default function CourseLearnPage() {
                   <BookOpen className="h-4 w-4" />
                   Lesson Content
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="exams" 
-                  className="flex items-center gap-2"
-                >
+                <TabsTrigger value="exams" className="flex items-center gap-2">
                   <GraduationCap className="h-4 w-4" />
                   Exams & Assessments
                 </TabsTrigger>
@@ -728,15 +743,17 @@ export default function CourseLearnPage() {
                   {!examData ? (
                     <div className="text-center py-8">
                       <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No Exam Available</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        No Exam Available
+                      </h3>
                       <p className="text-muted-foreground">
                         This course does not have an exam configured yet.
                       </p>
-                      </div>
+                    </div>
                   ) : (
-                    <ExamComponent 
-                      exam={examData} 
-                      userExamResults={userExamResults} 
+                    <ExamComponent
+                      exam={examData}
+                      userExamResults={userExamResults}
                       onExamComplete={handleExamComplete}
                     />
                   )}
