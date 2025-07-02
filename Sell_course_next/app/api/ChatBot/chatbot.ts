@@ -1,7 +1,8 @@
 import axios from "axios";
 
 export const getChatSuggestions = async (docUrl: string): Promise<string[]> => {
-  const API_ENDPOINTSuggest = "http://localhost:5678/webhook/suggest-question";
+  const API_ENDPOINTSuggest =
+    process.env.NEXT_PUBLIC_N8N_URL + "/suggest-question";
 
   try {
     const response = await axios.post<string[]>(API_ENDPOINTSuggest, {
@@ -18,7 +19,7 @@ export const sendChatMessage = async (
   docUrl: string,
   question: string
 ): Promise<string> => {
-  const API_ENDPOINTChat = "http://localhost:5678/webhook/chat";
+  const API_ENDPOINTChat = process.env.NEXT_PUBLIC_N8N_URL + "/chat";
 
   try {
     const response = await axios.post<string>(API_ENDPOINTChat, {
