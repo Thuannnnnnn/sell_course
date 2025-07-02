@@ -12,15 +12,13 @@ import {
 import { Button } from "../../../components/ui/button";
 import { Progress } from "../../../components/ui/progress";
 import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
-import { Label } from "../../../components/ui/label";
-import { CheckCircle, AlertCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import {
   courseApi,
   contentApi,
-  examApi,
 } from "../../api/courses/lessons/lessons";
+import { examApi } from "../../api/courses/exam/exam";
+import { resultExamApi } from "../../api/courses/exam/result-exam";
 import {
   CourseData,
   LessonWithContent,
@@ -29,8 +27,9 @@ import {
   CourseResponse,
   DocumentResponse,
   QuizResponse,
-  ExamQuestion,
 } from "../../types/Course/Lesson/Lessons";
+import { ExamQuestion } from '../../types/Course/exam/result-exam';
+import { Exam } from "../../types/Course/exam/exam";
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
 import {
   markContentAsCompleted,
@@ -57,6 +56,22 @@ interface LessonWithProgress extends LessonResponse {
 
 interface ContentWithProgress extends ContentResponse {
   isCompleted: boolean;
+}
+
+// Real exam data interface
+interface ExamData {
+  examId: string;
+  courseId: string;
+  title: string;
+  questions: ExamQuestion[];
+  totalQuestions: number;
+  isLocked: boolean;
+}
+
+// User exam results interface
+interface UserExamResults {
+  score: number;
+  // Add other fields as needed based on your API response
 }
 
 export default function CourseLearnPage() {
@@ -87,14 +102,9 @@ export default function CourseLearnPage() {
     new Set()
   );
 
-  // Exam state
-  const [activeExamId, setActiveExamId] = useState<number | null>(null);
-  const [examQuestionIdx, setExamQuestionIdx] = useState(0);
-  const [examSelected, setExamSelected] = useState<string | null>(null);
-  const [examSubmitted, setExamSubmitted] = useState(false);
-  const [examScore, setExamScore] = useState(0);
-  const [examCompleted, setExamCompleted] = useState(false);
-  const [examQuestions, setExamQuestions] = useState<ExamQuestion[]>([]);
+  // Exam State
+  const [examData, setExamData] = useState<ExamData | null>(null);
+  const [userExamResults, setUserExamResults] = useState<UserExamResults | null>(null);
 
   // Load all progress data for the course
   const loadProgressData = async () => {
@@ -195,6 +205,59 @@ export default function CourseLearnPage() {
       console.log("✅ Progress data loaded successfully");
     } catch (error) {
       console.error("❌ Failed to load progress data:", error);
+    }
+  };
+
+  // Load exam data
+  const loadExamData = async () => {
+    if (!courseId) return;
+
+    try {
+      console.log("🎓 Loading exam data for course:", courseId);
+
+      // Check if exam exists for this course
+      const examExists = await examApi.checkExamExists(courseId);
+      
+      if (examExists) {
+        const exam = await examApi.getExamById(courseId) as Exam;
+        
+        // Check if user has taken the exam
+        if (session?.accessToken) {
+          try {
+            const results = await resultExamApi.getUserExamResults(courseId, session.accessToken);
+            setUserExamResults(results);
+          } catch {
+            // User hasn't taken the exam yet
+            console.log("User hasn't taken the exam yet");
+          }
+        }
+
+        const examInfo: ExamData = {
+          examId: exam.examId,
+          courseId: exam.courseId,
+          title: 'Final Certification Exam',
+          questions: exam.questions.map(q => ({
+            ...q,
+            examId: exam.examId,
+            createdAt: new Date().toISOString(),
+            answers: q.answers.map(a => ({
+              ...a,
+              createdAt: new Date().toISOString(),
+            })),
+          })),
+          totalQuestions: exam.questions.length,
+          isLocked: !session // Lock if user not authenticated
+        };
+
+        setExamData(examInfo);
+        console.log("✅ Exam data loaded successfully");
+      } else {
+        console.log("No exam found for this course");
+        setExamData(null);
+      }
+    } catch (error) {
+      console.error("❌ Failed to load exam data:", error);
+      setExamData(null);
     }
   };
 
@@ -330,7 +393,7 @@ export default function CourseLearnPage() {
         );
 
         // Create course data
-        const courseData: CourseData = {
+        const courseDataResult: CourseData = {
           id: course.courseId,
           title: course.title,
           instructor: course.instructorName || "Unknown Instructor",
@@ -342,25 +405,10 @@ export default function CourseLearnPage() {
               lessons: lessonsWithContent,
             },
           ],
-          exams: [
-            {
-              id: 1,
-              title: "Mid-course Assessment",
-              questions: 25,
-              duration: "45 mins",
-              isLocked: false,
-            },
-            {
-              id: 2,
-              title: "Final Certification Exam",
-              questions: 50,
-              duration: "90 mins",
-              isLocked: true,
-            },
-          ],
+          exams: [], // Provide empty array if required by CourseData type
         };
 
-        setCourseData(courseData);
+        setCourseData(courseDataResult);
 
         // Set initial lesson and content
         if (initialLessons.length > 0) {
@@ -369,6 +417,9 @@ export default function CourseLearnPage() {
             setCurrentContent(lessonsWithContent[0]);
           }
         }
+
+        // Load exam data
+        await loadExamData();
 
         console.log("✅ Course data loaded successfully");
       } catch (err) {
@@ -531,68 +582,23 @@ export default function CourseLearnPage() {
     }
   };
 
-  // Exam logic with API calls
-  const handleStartExam = async (examId: number) => {
-    setActiveExamId(examId);
-    setExamQuestionIdx(0);
-    setExamSelected(null);
-    setExamSubmitted(false);
-    setExamScore(0);
-    setExamCompleted(false);
+  // Handle exam completion
+  const handleExamComplete = (score: number) => {
+    console.log("🎓 Exam completed with score:", score);
+    
+    // Update user exam results
+    setUserExamResults({ score });
+    
+    // Optionally update course progress
+    setCourseData(prev => prev ? { 
+      ...prev, 
+      progress: Math.min(prev.progress + 10, 100) // Add 10% progress for completing exam
+    } : prev);
 
-    try {
-      // Fetch exam questions from API
-      const questions = (await examApi.getExamQuestions(
-        examId
-      )) as ExamQuestion[];
-      setExamQuestions(questions);
-    } catch {
-      setError("Failed to load exam questions");
+    // Refresh progress data
+    if (userId) {
+      loadProgressData();
     }
-  };
-
-  const handleExamSubmit = async () => {
-    if (!examSelected || !activeExamId) return;
-
-    setExamSubmitted(true);
-
-    try {
-      // Submit answer to API
-      const result = (await examApi.submitExamAnswer(
-        activeExamId,
-        examQuestions[examQuestionIdx].id,
-        examSelected
-      )) as { correct: boolean };
-
-      if (result.correct) {
-        setExamScore((prev) => prev + 1);
-      }
-    } catch {
-      // Fallback to local checking if API fails
-      if (examSelected === examQuestions[examQuestionIdx].correctAnswer) {
-        setExamScore((prev) => prev + 1);
-      }
-    }
-  };
-
-  const handleExamNext = () => {
-    if (examQuestionIdx < examQuestions.length - 1) {
-      setExamQuestionIdx((idx) => idx + 1);
-      setExamSelected(null);
-      setExamSubmitted(false);
-    } else {
-      setExamCompleted(true);
-    }
-  };
-
-  const handleExamRetry = () => {
-    setExamQuestionIdx(0);
-    setExamSelected(null);
-    setExamSubmitted(false);
-    setExamScore(0);
-    setExamCompleted(false);
-    setActiveExamId(null);
-    setExamQuestions([]);
   };
 
   if (loading) {
@@ -694,7 +700,10 @@ export default function CourseLearnPage() {
                   <BookOpen className="h-4 w-4" />
                   Lesson Content
                 </TabsTrigger>
-                <TabsTrigger value="exams" className="flex items-center gap-2">
+                <TabsTrigger 
+                  value="exams" 
+                  className="flex items-center gap-2"
+                >
                   <GraduationCap className="h-4 w-4" />
                   Exams & Assessments
                 </TabsTrigger>
@@ -715,164 +724,21 @@ export default function CourseLearnPage() {
               </TabsContent>
 
               <TabsContent value="exams" className="mt-0">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {activeExamId === null ? (
-                    courseData.exams.map((exam) => (
-                      <div
-                        key={exam.id}
-                        className="bg-white dark:bg-card rounded-xl shadow-lg p-6 flex flex-col gap-4"
-                      >
-                        <ExamComponent exam={exam} />
-                        <Button
-                          className="mt-2"
-                          onClick={() => handleStartExam(exam.id)}
-                          disabled={exam.isLocked || courseProgress < 100}
-                        >
-                          Start Exam
-                        </Button>
+                <div className="grid md:grid-cols-1 gap-6">
+                  {!examData ? (
+                    <div className="text-center py-8">
+                      <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Exam Available</h3>
+                      <p className="text-muted-foreground">
+                        This course does not have an exam configured yet.
+                      </p>
                       </div>
-                    ))
                   ) : (
-                    <div className="col-span-2">
-                      {/* Exam in-progress UI */}
-                      {!examCompleted ? (
-                        <div className="max-w-xl mx-auto bg-white dark:bg-card rounded-xl shadow-lg p-8">
-                          <div className="flex justify-between items-center mb-4">
-                            <div className="text-sm font-medium">
-                              Question {examQuestionIdx + 1} of{" "}
-                              {examQuestions.length}
-                            </div>
-                            <div className="text-sm font-medium">
-                              Score: {examScore}/{examQuestionIdx}
-                            </div>
-                          </div>
-                          <Progress
-                            value={
-                              ((examQuestionIdx + 1) / examQuestions.length) *
-                              100
-                            }
-                            className="mb-8"
-                          />
-                          <div className="mb-6 text-lg font-semibold">
-                            {examQuestions[examQuestionIdx].question}
-                          </div>
-                          <RadioGroup
-                            value={examSelected || ""}
-                            onValueChange={setExamSelected}
-                            disabled={examSubmitted}
-                          >
-                            {examQuestions[examQuestionIdx].options.map(
-                              (option: string, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className={`flex items-center space-x-2 border p-4 rounded-md mb-2 ${
-                                    examSubmitted
-                                      ? option ===
-                                        examQuestions[examQuestionIdx]
-                                          .correctAnswer
-                                        ? "border-green-500 bg-green-50 dark:bg-green-950/20"
-                                        : examSelected === option
-                                        ? "border-red-500 bg-red-50 dark:bg-red-950/20"
-                                        : ""
-                                      : "hover:bg-accent"
-                                  }`}
-                                >
-                                  <RadioGroupItem
-                                    value={option}
-                                    id={`exam-option-${idx}`}
-                                    className="border-primary"
-                                  />
-                                  <Label
-                                    htmlFor={`exam-option-${idx}`}
-                                    className="flex-1 cursor-pointer py-2"
-                                  >
-                                    {option}
-                                  </Label>
-                                  {examSubmitted &&
-                                    option ===
-                                      examQuestions[examQuestionIdx]
-                                        .correctAnswer && (
-                                      <CheckCircle className="h-5 w-5 text-green-500" />
-                                    )}
-                                  {examSubmitted &&
-                                    examSelected === option &&
-                                    option !==
-                                      examQuestions[examQuestionIdx]
-                                        .correctAnswer && (
-                                      <AlertCircle className="h-5 w-5 text-red-500" />
-                                    )}
-                                </div>
-                              )
-                            )}
-                          </RadioGroup>
-                          <div className="flex justify-between mt-4">
-                            <Button variant="outline" onClick={handleExamRetry}>
-                              Cancel
-                            </Button>
-                            {examSubmitted ? (
-                              <Button onClick={handleExamNext}>
-                                {examQuestionIdx < examQuestions.length - 1
-                                  ? "Next Question"
-                                  : "Finish Exam"}
-                              </Button>
-                            ) : (
-                              <Button
-                                onClick={handleExamSubmit}
-                                disabled={!examSelected}
-                              >
-                                Submit Answer
-                              </Button>
-                            )}
-                          </div>
-                          {examSubmitted && (
-                            <div
-                              className={`mt-3 text-sm ${
-                                examSelected ===
-                                examQuestions[examQuestionIdx].correctAnswer
-                                  ? "text-green-500"
-                                  : "text-red-500"
-                              }`}
-                            >
-                              {examSelected ===
-                              examQuestions[examQuestionIdx].correctAnswer
-                                ? "Correct! Good job."
-                                : `Incorrect. The correct answer is: ${examQuestions[examQuestionIdx].correctAnswer}`}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="max-w-xl mx-auto bg-white dark:bg-card rounded-xl shadow-lg p-8 text-center">
-                          <div className="text-2xl font-bold mb-4">
-                            Exam Completed!
-                          </div>
-                          <div className="flex justify-center mb-6">
-                            <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-4xl font-bold">
-                                {Math.round(
-                                  (examScore / examQuestions.length) * 100
-                                )}
-                                %
-                              </span>
-                            </div>
-                          </div>
-                          <div className="text-xl mb-2">
-                            You scored {examScore} out of {examQuestions.length}
-                          </div>
-                          {examScore === examQuestions.length ? (
-                            <div className="flex items-center justify-center gap-2 text-green-500 mb-4">
-                              <CheckCircle />
-                              <span>Perfect score! Great job!</span>
-                            </div>
-                          ) : (
-                            <div className="text-muted-foreground mb-4">
-                              Review the material and try again to improve your
-                              score.
-                            </div>
-                          )}
-                          <Button onClick={handleExamRetry}>Retry Exam</Button>
-                        </div>
-                      )}
-                    </div>
+                    <ExamComponent 
+                      exam={examData} 
+                      userExamResults={userExamResults} 
+                      onExamComplete={handleExamComplete}
+                    />
                   )}
                 </div>
               </TabsContent>

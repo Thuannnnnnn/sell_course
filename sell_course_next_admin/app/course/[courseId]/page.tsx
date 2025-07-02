@@ -6,7 +6,7 @@ import { fetchLessons, deleteLesson, createLesson, updateLesson } from "../../ap
 import { Lesson } from "../../types/lesson";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { Edit, Trash2, Plus, BookOpen, FileText, ArrowLeft } from "lucide-react";
+import { Edit, Trash2, Plus, BookOpen, FileText, ArrowLeft, GraduationCap } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../../components/ui/card";
 import { toast } from "sonner";
 
@@ -272,23 +272,33 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
           </Button>
           <h2 className="text-3xl font-bold tracking-tight">Lessons of this Course</h2>
         </div>
-        <Button
-          className="flex items-center gap-2"
-          onClick={() => setShowAddModal(true)}
-          style={{
-            backgroundColor: '#513deb',
-            color: 'white',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#4f46e5';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#513deb';
-          }}
-        >
-          <Plus className="h-5 w-5" />
-          Add Lesson
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => setShowAddModal(true)}
+            style={{
+              backgroundColor: '#513deb',
+              color: 'white',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4f46e5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#513deb';
+            }}
+          >
+            <Plus className="h-5 w-5" />
+            Add Lesson
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => router.push(`/course/${courseId}/exam`)}
+            title="Go to Exam Page"
+          >
+            <GraduationCap className="h-5 w-5 text-primary" />
+          </Button>
+        </div>
       </div>
       <div className="mb-4">
         <Input
