@@ -1,52 +1,41 @@
-/*
- * import {
- *   IsArray,
- *   IsNotEmpty,
- *   IsString,
- *   ValidateNested,
- *   IsUUID,
- * } from 'class-validator';
- * import { Type } from 'class-transformer';
- * import { UpdateAnswerDto } from './updateAnswerData.dto';
- */
-
-/*
- * export class UpdateQuestionDto {
- *   @IsUUID()
- *   @IsNotEmpty({ message: 'Question ID is required' })
- *   questionId: string;
- */
-
-/*
- *   @IsString()
- *   @IsNotEmpty({ message: 'Question text is required' })
- *   question: string;
- */
-
-/*
- *   @IsArray()
- *   @ValidateNested({ each: true })
- *   @Type(() => UpdateAnswerDto)
- *   answers: UpdateAnswerDto[];
- * }
- */
-
-import { IsString, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  ValidateNested,
+  IsOptional,
+  IsEnum,
+  IsInt,
+  IsBoolean,
+  IsUUID,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class UpdateAnswerDto {
-  @IsString()
-  answerId: string;
+  @IsOptional()
+  @IsUUID()
+  answerId?: string;
 
   @IsString()
+  @IsNotEmpty()
   answer: string;
 
+  @IsBoolean()
   isCorrect: boolean;
 }
 
 export class UpdateQuestionDto {
   @IsString()
+  @IsNotEmpty()
   question: string;
+
+  @IsOptional()
+  @IsEnum(['easy', 'medium', 'hard'])
+  difficulty?: 'easy' | 'medium' | 'hard';
+
+  @IsOptional()
+  @IsInt()
+  weight?: number;
 
   @IsArray()
   @ValidateNested({ each: true })
