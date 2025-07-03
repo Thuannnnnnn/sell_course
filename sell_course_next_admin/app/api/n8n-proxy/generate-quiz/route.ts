@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const N8N_WEBHOOK_URL = 'https://n8n.coursemaster.io.vn/webhook-test/generate-quiz';
+const N8N_WEBHOOK_URL = 'https://n8n.coursemaster.io.vn/webhook/generate-quiz';
 
 export async function POST(request: NextRequest) {
   try {
