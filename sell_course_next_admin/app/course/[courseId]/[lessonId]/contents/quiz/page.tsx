@@ -22,9 +22,10 @@ import { Label } from '../../../../../../components/ui/label'
 import { QuizFormData } from '../../../../../types/quiz'
 import { useQuiz } from '../../../../../../hooks/useQuiz'
 import { quizApi } from '../../../../../api/quiz/quiz'
+import { generateAIQuiz, validateQuizRequest, N8nQuizRequest } from '../../../../../../lib/n8n-api'
 import Link from 'next/link'
 
-// AI Quiz Response interfaces
+// AI Quiz Response interfaces (legacy - now using n8n-api types)
 interface AIQuizQuestion {
   id: string
   question: string
@@ -234,34 +235,31 @@ function QuizPageContent({ params }: QuizPageProps) {
       return
     }
 
+    // Prepare request for n8n
+    const quizRequest: N8nQuizRequest = {
+      urls: lessonUrls,
+      quiz_count: aiQuizCount,
+      difficulty: "medium"
+    }
+
+    // Validate request
+    const validationError = validateQuizRequest(quizRequest)
+    if (validationError) {
+      alert(validationError)
+      return
+    }
+
     setAiGenerating(true)
 
     try {
-      const response = await fetch('http://localhost:8000/generate-quiz', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          urls: lessonUrls,
-          quiz_count: aiQuizCount,
-          difficulty: "medium"
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate AI quiz')
-      }
-
-      const result: AIQuizResponse = await response.json()
-
+      console.log('🚀 Generating AI quiz with n8n:', quizRequest)
       
-      if (!result.success) {
-        throw new Error(result.error || 'AI quiz generation failed')
-      }
+      const result = await generateAIQuiz(quizRequest)
+      
+      console.log('✅ AI quiz generated successfully:', result)
 
       // Add all AI questions to current quiz
-      result.quizzes.forEach((question: AIQuizQuestion) => {
+      result.quizzes.forEach((question) => {
         const formattedQuestion: QuizFormData = {
           id: question.id,
           question: question.question,
@@ -273,8 +271,12 @@ function QuizPageContent({ params }: QuizPageProps) {
         addQuestion(formattedQuestion)
       })
       
-      // Show success message (generic for security)
-      alert(`✅ Successfully generated ${result.quizzes.length} quiz questions from lesson content!`);
+      // Show success message with source info
+      const sourceInfo = result.source_files.length > 0 
+        ? ` from ${result.source_files.length} source file(s)`
+        : ' from lesson content'
+      
+      alert(`✅ Successfully generated ${result.quizzes.length} quiz questions${sourceInfo}!`);
       
       // Close dialog and reset form
       setAiDialogOpen(false)
@@ -282,7 +284,20 @@ function QuizPageContent({ params }: QuizPageProps) {
       
     } catch (err) {
       const error = err as Error
-      alert(`AI Generation failed: ${error.message}`)
+      console.error('❌ AI Quiz Generation Error:', error)
+      
+      let errorMessage = 'AI Generation failed'
+      if (error.message.includes('timeout')) {
+        errorMessage = 'AI service is taking too long to respond. Please try again with fewer questions or check your internet connection.'
+      } else if (error.message.includes('n8n webhook failed')) {
+        errorMessage = 'AI service is currently unavailable. Please try again later.'
+      } else if (error.message.includes('content_urls')) {
+        errorMessage = 'No valid content found to generate quiz from. Please ensure your lesson has documents or videos.'
+      } else {
+        errorMessage = `AI Generation failed: ${error.message}`
+      }
+      
+      alert(errorMessage)
     } finally {
       setAiGenerating(false)
     }
@@ -471,7 +486,7 @@ function QuizPageContent({ params }: QuizPageProps) {
                   <div className="space-y-6 py-4">
                     <div className="text-center space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        AI will automatically read content documents and video scripts to generate quiz questions
+                        AI will analyze your lesson documents and video transcripts to generate relevant quiz questions automatically
                       </p>
                       
                       {/* Content URLs Status */}
@@ -493,6 +508,16 @@ function QuizPageContent({ params }: QuizPageProps) {
                               <p className="text-xs text-orange-600 mt-1">
                                 No documents or videos found in this lesson
                               </p>
+                            )}
+                            {process.env.NODE_ENV === 'development' && lessonUrls.length > 0 && (
+                              <details className="text-xs text-gray-500 mt-2">
+                                <summary className="cursor-pointer">Debug: Content URLs</summary>
+                                <div className="mt-1 p-2 bg-gray-100 rounded text-xs font-mono">
+                                  {lessonUrls.map((url, index) => (
+                                    <div key={index} className="truncate">{index + 1}. {url}</div>
+                                  ))}
+                                </div>
+                              </details>
                             )}
                           </div>
                         )}
@@ -581,7 +606,7 @@ function QuizPageContent({ params }: QuizPageProps) {
                       {aiGenerating ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          AI is generating questions...
+                          AI is analyzing content and generating questions...
                         </>
                       ) : questions.length >= MAX_QUESTIONS ? (
                         <>
