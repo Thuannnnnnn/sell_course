@@ -16,6 +16,12 @@ export class Promotion {
   @Column()
   code: string;
 
+  @Column({ type: 'timestamp', nullable: true })
+  startDate: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  endDate: Date;
+
   @ManyToOne(() => Course, (course) => course.promotions)
   course: Course;
 }
