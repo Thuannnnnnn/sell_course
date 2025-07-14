@@ -1,7 +1,7 @@
 "use client";
 import localFont from "next/font/local";
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
+// import { SessionProvider } from "next-auth/react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { Header } from "../components/dashboard/Header";
 import React, { useState } from "react";
@@ -35,7 +35,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider refetchOnWindowFocus={false}>
+        {/* <SessionProvider refetchOnWindowFocus={false}> */}
           <Toaster position="top-right" />
           
           {isAuthPage ? (
@@ -61,7 +61,7 @@ export default function RootLayout({
               </div>
             </div>
           )}
-        </SessionProvider>
+        {/* </SessionProvider> */}
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+// import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 
@@ -10,7 +10,9 @@ export default function LogoutButton() {
   const handleLogout = async () => {
     setIsLoading(true);
     try {
-      await signOut({ callbackUrl: "/" });
+      // await signOut({ callbackUrl: "/" });
+      console.log("Logout clicked (disabled for development)");
+      setIsLoading(false);
     } catch (error) {
       console.error("Logout error:", error);
       setIsLoading(false);

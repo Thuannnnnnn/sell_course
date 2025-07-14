@@ -1,13 +1,14 @@
 "use client";
 import React from "react";
 import { Menu, Search, Bell, ChevronDown } from "lucide-react";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import LogoutButton from "../ui/LogoutButton";
 interface HeaderProps {
   onMenuClick: () => void;
 }
 export function Header({ onMenuClick }: HeaderProps) {
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
+  const session = { user: { name: "Admin User" } }; // Mock session for development
   return (
     <header className="sticky top-0 z-10 bg-background border-b border-border">
       <div className="flex items-center justify-between h-16 px-4">
