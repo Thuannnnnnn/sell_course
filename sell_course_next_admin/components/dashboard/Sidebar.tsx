@@ -11,6 +11,7 @@ import {
   X,
   NotebookText,
   Tag,
+  MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
 import logo from "../../public/logo.png"; // Adjust the path to your logo image
@@ -38,6 +39,11 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
       name: "Categories",
       href: "/categories",
       icon: NotebookText,
+    },
+    {
+      name: "Chat Support",
+      href: "/chat-support",
+      icon: MessageCircle,
     },
     {
       name: "Promotions",
