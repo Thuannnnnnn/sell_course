@@ -12,50 +12,52 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { useRevenueAnalytics, useEnrollmentTrends } from "../../hooks/useDashboard";
+
 export function Analytics() {
-  const revenueData = [
-    {
-      month: "Jan",
-      revenue: 4000,
-    },
-    {
-      month: "Feb",
-      revenue: 3000,
-    },
-    {
-      month: "Mar",
-      revenue: 5000,
-    },
-    {
-      month: "Apr",
-      revenue: 4500,
-    },
-    {
-      month: "May",
-      revenue: 6000,
-    },
-    {
-      month: "Jun",
-      revenue: 5500,
-    },
-  ];
-  const completionData = [
-    {
-      name: "Completed",
-      value: 65,
-      color: "#3b82f6",
-    },
-    {
-      name: "In Progress",
-      value: 25,
-      color: "#f59e0b",
-    },
-    {
-      name: "Not Started",
-      value: 10,
-      color: "#e5e7eb",
-    },
-  ];
+  const { data: revenueData, loading: revenueLoading, error: revenueError } = useRevenueAnalytics();
+  const { data: enrollmentData, loading: enrollmentLoading, error: enrollmentError } = useEnrollmentTrends();
+
+  if (revenueLoading || enrollmentLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
+          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+          <div className="h-64 bg-gray-100 rounded animate-pulse"></div>
+        </div>
+        <div className="bg-card rounded-lg shadow-sm border border-border p-4">
+          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+          <div className="h-64 bg-gray-100 rounded animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (revenueError || enrollmentError) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600 text-sm">
+            {revenueError || enrollmentError || "Failed to load analytics data"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform revenue data for chart
+  const chartRevenueData = revenueData?.monthlyRevenue?.map(item => ({
+    month: item.month.substring(0, 3), // Get first 3 letters of month
+    revenue: item.revenue,
+  })) || [];
+
+  // Transform enrollment status data for pie chart
+  const completionData = enrollmentData?.statusDistribution?.map(item => ({
+    name: item.status,
+    value: item.percentage,
+    color: item.status === 'COMPLETED' ? '#3b82f6' : 
+           item.status === 'ACTIVE' ? '#f59e0b' : '#e5e7eb',
+  })) || [];
   return (
     <div className="space-y-6">
       <div className="bg-card rounded-lg shadow-sm border border-border p-4">
@@ -63,7 +65,7 @@ export function Analytics() {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={revenueData}
+              data={chartRevenueData}
               margin={{
                 top: 5,
                 right: 20,
@@ -87,7 +89,7 @@ export function Analytics() {
         </div>
       </div>
       <div className="bg-card rounded-lg shadow-sm border border-border p-4">
-        <h2 className="text-lg font-semibold mb-4">Course Completion Rate</h2>
+        <h2 className="text-lg font-semibold mb-4">Enrollment Status Distribution</h2>
         <div className="h-64 flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
