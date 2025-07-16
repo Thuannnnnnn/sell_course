@@ -31,16 +31,118 @@ import { toast } from "sonner";
 interface AddPromotionModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => Promise<void>;
   courses: Course[];
+  promotions: Promotion[];
 }
 
 interface EditPromotionModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => Promise<void>;
   promotion: Promotion | null;
   courses: Course[];
+  promotions: Promotion[];
+}
+
+function toDatetimeLocal(dt: string | undefined) {
+  if (!dt) return "";
+  const date = new Date(dt);
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function isDuplicateCode(code: string, courseId: string, promotions: Promotion[], excludeId?: string) {
+  if (!code || !courseId) return false;
+  return promotions.some(
+    (p) =>
+      p.id !== excludeId &&
+      p.code.trim().toLowerCase() === code.trim().toLowerCase() &&
+      // So sánh cả p.courseId và p.course?.courseId để chắc chắn
+      (p.courseId === courseId || p.course?.courseId === courseId)
+  );
+}
+
+function getAddPromotionError({ name, discount, code, courseId, startDate, endDate, promotions }: {
+  name: string;
+  discount: string;
+  code: string;
+  courseId: string;
+  startDate: string;
+  endDate: string;
+  promotions: Promotion[];
+}) {
+  if (!name.trim() || !discount.trim() || !code.trim() || !courseId) {
+    return "All fields are required.";
+  }
+  const discountNum = parseFloat(discount);
+  if (isNaN(discountNum) || discountNum <= 0 || discountNum > 100) {
+    return "Discount must be a number between 1 and 100.";
+  }
+  if (!startDate) {
+    return "Start date is required.";
+  }
+  if (!endDate) {
+    return "End date is required.";
+  }
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = new Date();
+  if (start >= end) {
+    return "End date must be after start date.";
+  }
+  if (end <= now) {
+    return "End date must be in the future.";
+  }
+  if (start < now) {
+    return "Start date cannot be in the past.";
+  }
+  if (isDuplicateCode(code, courseId, promotions)) {
+    return "This code already exists for the selected course.";
+  }
+  return "";
+}
+
+function getEditPromotionError({ name, discount, code, courseId, startDate, endDate, promotions, promotion }: {
+  name: string;
+  discount: string;
+  code: string;
+  courseId: string;
+  startDate: string;
+  endDate: string;
+  promotions: Promotion[];
+  promotion: Promotion | null;
+}) {
+  if (!name.trim() || !discount.trim() || !code.trim() || !courseId) {
+    return "All fields are required.";
+  }
+  const discountNum = parseFloat(discount);
+  if (isNaN(discountNum) || discountNum <= 0 || discountNum > 100) {
+    return "Discount must be a number between 1 and 100.";
+  }
+  if (!startDate) {
+    return "Start date is required.";
+  }
+  if (!endDate) {
+    return "End date is required.";
+  }
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = new Date();
+  if (start >= end) {
+    return "End date must be after start date.";
+  }
+  if (end <= now) {
+    return "End date must be in the future.";
+  }
+  if (!promotion?.isPending && start < now) {
+    return "Start date cannot be in the past for active or expired promotions.";
+  }
+  if (isDuplicateCode(code, courseId, promotions, promotion?.id)) {
+    return "This code already exists for the selected course.";
+  }
+  return "";
 }
 
 function EditPromotionModal({
@@ -49,6 +151,7 @@ function EditPromotionModal({
   onSuccess,
   promotion,
   courses,
+  promotions,
 }: EditPromotionModalProps) {
   const { data: session } = useSession();
   const [name, setName] = useState("");
@@ -65,28 +168,9 @@ function EditPromotionModal({
       setName(promotion.name || "");
       setDiscount(promotion.discount ? promotion.discount.toString() : "");
       setCode(promotion.code || "");
-      const currentCourseId = promotion.course?.courseId || promotion.courseId || "";
-
-      setCourseId(currentCourseId);
-      // Format startDate for datetime-local input
-      if (promotion.startDate) {
-        const d = new Date(promotion.startDate);
-        // Adjust for timezone offset
-        const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-        setStartDate(localDate.toISOString().slice(0, 16));
-      } else {
-        setStartDate("");
-      }
-      // Format endDate for datetime-local input
-      if (promotion.endDate) {
-        const d = new Date(promotion.endDate);
-        // Adjust for timezone offset
-        const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-        setEndDate(localDate.toISOString().slice(0, 16));
-      } else {
-        setEndDate("");
-      }
-
+      setCourseId(promotion.course?.courseId || promotion.courseId || "");
+      setStartDate(toDatetimeLocal(promotion.startDate));
+      setEndDate(toDatetimeLocal(promotion.endDate));
       setError("");
     } else if (!open) {
       setName("");
@@ -97,49 +181,74 @@ function EditPromotionModal({
       setEndDate("");
       setError("");
     }
-  }, [promotion, open, courses, startDate, endDate]);
+  }, [promotion, open]);
+
+  // Listen for code or courseId changes to check duplicate (exclude current promotion id)
+  useEffect(() => {
+    if (code && courseId && isDuplicateCode(code, courseId, promotions, promotion?.id)) {
+      setError("This code already exists for the selected course.");
+    } else if (error === "This code already exists for the selected course.") {
+      setError("");
+    }
+  }, [code, courseId, promotions, promotion?.id, error]);
+
+  useEffect(() => {
+    const err = getEditPromotionError({ name, discount, code, courseId, startDate, endDate, promotions, promotion });
+    setError(err);
+  }, [name, discount, code, courseId, startDate, endDate, promotions, promotion]);
+
+  useEffect(() => {
+  }, [name, discount, code, courseId, startDate, endDate, error]);
 
   const validateForm = () => {
-    if (!name.trim() || !discount.trim() || !code.trim() || !courseId) {
-      setError("All fields are required.");
-      return false;
+    return !error;
+  };
+
+  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCode = e.target.value;
+    setCode(newCode);
+    if (newCode && courseId && isDuplicateCode(newCode, courseId, promotions, promotion?.id)) {
+      setError("This code already exists for the selected course.");
+    } else if (error) {
+      setError("");
     }
-    const discountNum = parseFloat(discount);
-    if (isNaN(discountNum) || discountNum <= 0 || discountNum > 100) {
-      setError("Discount must be a number between 1 and 100.");
-      return false;
+  };
+
+  const handleCourseChange = (value: string) => {
+    setCourseId(value);
+    if (code && value && isDuplicateCode(code, value, promotions, promotion?.id)) {
+      setError("This code already exists for the selected course.");
+    } else if (error) {
+      setError("");
     }
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      if (start >= end) {
-        setError("End date must be after start date.");
-        return false;
-      }
-    }
-    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!session?.accessToken || !promotion) return;
+    if (promotion.isExpired) {
+      setError("Cannot update an expired promotion.");
+      toast.error("Cannot update an expired promotion.");
+      return;
+    }
     if (!validateForm()) return;
     setLoading(true);
     setError("");
     try {
-      await updatePromotion(promotion.id, {
+      const payload = {
         name: name.trim(),
         discount: parseFloat(discount),
         code: code.trim(),
         courseId,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-      }, session.accessToken);
+        startDate: startDate ? new Date(startDate).toISOString() : undefined,
+        endDate: endDate ? new Date(endDate).toISOString() : undefined,
+      };
+      await updatePromotion(promotion.id, payload, session.accessToken);
       toast.success("Promotion updated successfully!");
-      onSuccess();
+      await onSuccess();
       onClose();
     } catch (err: unknown) {
-      const msg = (err && typeof err === "object" && "message" in err)
+      const msg = err && typeof err === "object" && "message" in err
         ? (err as { message?: string }).message || "Failed to update promotion."
         : "Failed to update promotion.";
       setError(msg);
@@ -177,6 +286,7 @@ function EditPromotionModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  disabled={promotion.isExpired}
                 />
               </div>
               <div>
@@ -189,6 +299,7 @@ function EditPromotionModal({
                   value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
                   required
+                  disabled={promotion.isExpired}
                 />
               </div>
               <div>
@@ -196,8 +307,9 @@ function EditPromotionModal({
                 <Input
                   id="edit-code"
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={handleCodeChange}
                   required
+                  disabled={promotion.isExpired}
                 />
               </div>
               <div>
@@ -208,14 +320,14 @@ function EditPromotionModal({
                   <Select
                     key={`edit-course-${promotion?.id}-${courseId}`}
                     value={courseId}
-                    onValueChange={setCourseId}
+                    onValueChange={handleCourseChange}
+                    disabled={promotion.isExpired}
                   >
                     <SelectTrigger id="edit-courseId">
                       <SelectValue placeholder="Select course">
                         {courseId && courses.find(c => c.courseId === courseId)?.title}
                       </SelectValue>
                     </SelectTrigger>
-
                     <SelectContent>
                       {courses.map((course) => (
                         <SelectItem key={course.courseId} value={course.courseId}>
@@ -236,6 +348,8 @@ function EditPromotionModal({
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="pl-10"
+                    disabled={promotion.isExpired}
+                    min={promotion.isPending ? undefined : new Date().toISOString().slice(0, 16)}
                   />
                 </div>
               </div>
@@ -249,6 +363,8 @@ function EditPromotionModal({
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="pl-10"
+                    disabled={promotion.isExpired}
+                    min={new Date().toISOString().slice(0, 16)}
                   />
                 </div>
               </div>
@@ -270,12 +386,12 @@ function EditPromotionModal({
                     color: 'white',
                   }}
                   onMouseEnter={(e) => {
-                    if (!loading) {
+                    if (!loading && !promotion.isExpired && !error) {
                       e.currentTarget.style.backgroundColor = '#4f46e5';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) {
+                    if (!loading && !promotion.isExpired && !error) {
                       e.currentTarget.style.backgroundColor = '#513deb';
                     }
                   }}
@@ -296,6 +412,7 @@ function AddPromotionModal({
   onClose,
   onSuccess,
   courses,
+  promotions,
 }: AddPromotionModalProps) {
   const { data: session } = useSession();
   const [name, setName] = useState("");
@@ -319,30 +436,47 @@ function AddPromotionModal({
     }
   }, [open]);
 
+  // Listen for code or courseId changes to check duplicate
+  useEffect(() => {
+    if (code && courseId) {
+      const isDup = isDuplicateCode(code, courseId, promotions);
+      if (isDup) {
+        setError("This code already exists for the selected course.");
+      } else if (error === "This code already exists for the selected course.") {
+        setError("");
+      }
+    }
+  }, [code, courseId, promotions, error]);
+
+  useEffect(() => {
+    const err = getAddPromotionError({ name, discount, code, courseId, startDate, endDate, promotions });
+    setError(err);
+  }, [name, discount, code, courseId, startDate, endDate, promotions]);
+
+  useEffect(() => {
+  }, [name, discount, code, courseId, startDate, endDate, error]);
+
   const validateForm = () => {
-    if (!name.trim() || !discount.trim() || !code.trim() || !courseId) {
-      setError("All fields are required.");
-      return false;
+    return !error;
+  };
+
+  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCode = e.target.value;
+    setCode(newCode);
+    if (newCode && courseId && isDuplicateCode(newCode, courseId, promotions)) {
+      setError("This code already exists for the selected course.");
+    } else if (error) {
+      setError("");
     }
-    const discountNum = parseFloat(discount);
-    if (isNaN(discountNum) || discountNum <= 0 || discountNum > 100) {
-      setError("Discount must be a number between 1 and 100.");
-      return false;
+  };
+
+  const handleCourseChange = (value: string) => {
+    setCourseId(value);
+    if (code && value && isDuplicateCode(code, value, promotions)) {
+      setError("This code already exists for the selected course.");
+    } else if (error) {
+      setError("");
     }
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const now = new Date();
-      if (start >= end) {
-        setError("End date must be after start date.");
-        return false;
-      }
-      if (start < now) {
-        setError("Start date cannot be in the past.");
-        return false;
-      }
-    }
-    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -352,19 +486,20 @@ function AddPromotionModal({
     setLoading(true);
     setError("");
     try {
-      await createPromotion({
+      const payload = {
         name: name.trim(),
         discount: parseFloat(discount),
         code: code.trim(),
         courseId,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-      }, session.accessToken);
+        startDate: startDate ? new Date(startDate).toISOString() : undefined,
+        endDate: endDate ? new Date(endDate).toISOString() : undefined,
+      };
+      await createPromotion(payload, session.accessToken);
       toast.success("Promotion created successfully!");
-      onSuccess();
+      await onSuccess(); // Ensure promotions are refreshed before closing
       onClose();
     } catch (err: unknown) {
-      const msg = (err && typeof err === "object" && "message" in err)
+      const msg = err && typeof err === "object" && "message" in err
         ? (err as { message?: string }).message || "Failed to create promotion."
         : "Failed to create promotion.";
       setError(msg);
@@ -411,7 +546,7 @@ function AddPromotionModal({
                 <Input
                   id="add-code"
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={handleCodeChange}
                   required
                 />
               </div>
@@ -423,7 +558,7 @@ function AddPromotionModal({
                   <Select
                     value={courseId}
                     defaultValue={courseId}
-                    onValueChange={setCourseId}
+                    onValueChange={handleCourseChange}
                   >
                     <SelectTrigger id="add-courseId">
                       {courseId ? (
@@ -452,6 +587,7 @@ function AddPromotionModal({
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="pl-10"
+                    min={new Date().toISOString().slice(0, 16)}
                   />
                 </div>
               </div>
@@ -465,6 +601,7 @@ function AddPromotionModal({
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="pl-10"
+                    min={new Date().toISOString().slice(0, 16)}
                   />
                 </div>
               </div>
@@ -474,24 +611,24 @@ function AddPromotionModal({
                   type="button"
                   variant="outline"
                   onClick={onClose}
-                  disabled={loading}
+                  disabled={loading || !!error}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={loading}
                   style={{
-                    backgroundColor: '#513deb',
+                    backgroundColor:  '#513deb',
                     color: 'white',
                   }}
+                  disabled={loading || !!error}
                   onMouseEnter={(e) => {
-                    if (!loading) {
+                    if (!loading && !error) {
                       e.currentTarget.style.backgroundColor = '#4f46e5';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) {
+                    if (!loading && !error) {
                       e.currentTarget.style.backgroundColor = '#513deb';
                     }
                   }}
@@ -569,16 +706,13 @@ export default function PromotionManagementPage() {
     }
   };
 
-  const refreshPromotions = async () => {
+  const refreshPromotions = useCallback(async () => {
     await loadPromotions();
-  };
+  }, [loadPromotions]);
 
   const handleEdit = (promotion: Promotion) => {
-    if (courses.length === 0) {
-      toast.error("Courses are still loading. Please try again.");
-      return;
-    }
-    setEditingPromotion(promotion);
+    const latest = promotions.find(p => p.id === promotion.id) || promotion;
+    setEditingPromotion(latest);
   };
 
   const filteredPromotions = promotions.filter((promotion) => {
@@ -821,6 +955,7 @@ export default function PromotionManagementPage() {
         onClose={() => setShowAddModal(false)}
         onSuccess={refreshPromotions}
         courses={courses}
+        promotions={promotions}
       />
 
       <EditPromotionModal
@@ -829,6 +964,7 @@ export default function PromotionManagementPage() {
         onSuccess={refreshPromotions}
         promotion={editingPromotion}
         courses={courses}
+        promotions={promotions}
       />
     </div>
   );
