@@ -101,9 +101,7 @@ import { PlanConstraint } from './modules/plan-constraint/plan-constraint.entity
 import { PlanPreference } from './modules/plan-preference/plan-preference.entity';
 import { LearningPlan } from './modules/learning-plan/learning-plan.entity';
 import { ScheduleItem } from './modules/schedule_item/entities/schedule_item.entity';
-import { SurveyAnswer } from './modules/survey-answer/survey-answer.entity';
 import { SurveyResponse } from './modules/survey-response/survey-response.entity';
-import { SurveyAnswerModule } from './modules/survey-answer/survey-answer.module';
 import { ScheduleItemtModule } from './modules/schedule_item/schedule_item.module';
 import { PlanConstraintModule } from './modules/plan-constraint/plan-constraint.module';
 import { PlanPreferenceModule } from './modules/plan-preference/plan-preference.module';
@@ -139,7 +137,6 @@ import { SurveyResponseModule } from './modules/survey-response/survey-response.
         PlanPreference,
         LearningPlan,
         ScheduleItem,
-        SurveyAnswer,
         SurveyResponse,
         LogoSetting,
         VersionSetting,
@@ -191,12 +188,10 @@ import { SurveyResponseModule } from './modules/survey-response/survey-response.
       synchronize: true,
     }),
     TypeOrmModule.forFeature([User, Permission]),
-    SurveyAnswerModule,
     ScheduleItemtModule,
     PlanConstraintModule,
     PlanPreferenceModule,
     LearningPlanModule,
-    SurveyAnswerModule,
     SurveyResponseModule,
     LogoSettingModule,
     VersionSettingModule,

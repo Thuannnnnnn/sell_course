@@ -1,6 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-
-import { SurveyAnswer } from '../survey-answer/survey-answer.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class SurveyResponse {
@@ -12,7 +10,4 @@ export class SurveyResponse {
 
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   submittedAt: Date;
-
-  @OneToMany(() => SurveyAnswer, (answer) => answer.response)
-  answers: SurveyAnswer[];
 }
