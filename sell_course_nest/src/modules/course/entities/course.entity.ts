@@ -16,6 +16,8 @@ import {
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Enrollment } from '../../enrollment/entities/enrollment.entity';
+import { SurveyAnswer } from 'src/modules/survey-answer/survey-answer.entity';
+import { LearningPlan } from 'src/modules/learning-plan/learning-plan.entity';
 
 @Entity('course')
 export class Course {
@@ -83,6 +85,12 @@ export class Course {
 
   @OneToMany(() => Certificate, (certificate) => certificate.course)
   certificates: Certificate[];
+
+  @OneToMany(() => SurveyAnswer, (Sanswer) => Sanswer.course)
+  surveyAnswers: SurveyAnswer[];
+
+  @OneToMany(() => LearningPlan, (learningPlan) => learningPlan.course)
+  learningPlan: LearningPlan[];
 
   @BeforeInsert()
   prePersist() {

@@ -97,6 +97,18 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
  */
 import * as redisStore from 'cache-manager-ioredis';
 import { CacheModule } from '@nestjs/cache-manager';
+import { PlanConstraint } from './modules/plan-constraint/plan-constraint.entity';
+import { PlanPreference } from './modules/plan-preference/plan-preference.entity';
+import { LearningPlan } from './modules/learning-plan/learning-plan.entity';
+import { ScheduleItem } from './modules/schedule_item/entities/schedule_item.entity';
+import { SurveyAnswer } from './modules/survey-answer/survey-answer.entity';
+import { SurveyResponse } from './modules/survey-response/survey-response.entity';
+import { SurveyAnswerModule } from './modules/survey-answer/survey-answer.module';
+import { ScheduleItemtModule } from './modules/schedule_item/schedule_item.module';
+import { PlanConstraintModule } from './modules/plan-constraint/plan-constraint.module';
+import { PlanPreferenceModule } from './modules/plan-preference/plan-preference.module';
+import { LearningPlanModule } from './modules/learning-plan/learning-plan.module';
+import { SurveyResponseModule } from './modules/survey-response/survey-response.module';
 @Module({
   imports: [
     VideoModule,
@@ -123,6 +135,12 @@ import { CacheModule } from '@nestjs/cache-manager';
       //   rejectUnauthorized: false,
       // },
       entities: [
+        PlanConstraint,
+        PlanPreference,
+        LearningPlan,
+        ScheduleItem,
+        SurveyAnswer,
+        SurveyResponse,
         LogoSetting,
         VersionSetting,
         Interaction,
@@ -173,6 +191,13 @@ import { CacheModule } from '@nestjs/cache-manager';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([User, Permission]),
+    SurveyAnswerModule,
+    ScheduleItemtModule,
+    PlanConstraintModule,
+    PlanPreferenceModule,
+    LearningPlanModule,
+    SurveyAnswerModule,
+    SurveyResponseModule,
     LogoSettingModule,
     VersionSettingModule,
     QuestionHabitModule,
