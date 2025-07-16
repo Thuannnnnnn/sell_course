@@ -25,7 +25,9 @@ export class PromotionService {
     return false;
   }
 
-  private getPromotionStatus(promotion: Promotion): 'active' | 'expired' | 'pending' {
+  private getPromotionStatus(
+    promotion: Promotion,
+  ): 'active' | 'expired' | 'pending' {
     const now = new Date();
 
     // Check if promotion has end date and it's passed
@@ -45,7 +47,6 @@ export class PromotionService {
     const status = this.getPromotionStatus(promotion);
     const isExpired = status === 'expired';
     const isPending = status === 'pending';
-    
     return {
       ...promotion,
       status,
@@ -79,7 +80,7 @@ export class PromotionService {
     // Return with course relation loaded
     return this.promotionRepository.findOne({
       where: { id: savedPromotion.id },
-      relations: ['course']
+      relations: ['course'],
     });
   }
 
@@ -125,8 +126,14 @@ export class PromotionService {
     }
 
     // Check if promotion is for specific course
-    if (courseId && promotion.course && promotion.course.courseId !== courseId) {
-      throw new NotFoundException('Promotion code is not valid for this course');
+    if (
+      courseId &&
+      promotion.course &&
+      promotion.course.courseId !== courseId
+    ) {
+      throw new NotFoundException(
+        'Promotion code is not valid for this course',
+      );
     }
 
     return {
@@ -166,10 +173,19 @@ export class PromotionService {
 
     // Update other fields
     if (updatePromotionDto.name) promotion.name = updatePromotionDto.name;
-    if (updatePromotionDto.discount) promotion.discount = updatePromotionDto.discount;
+    if (updatePromotionDto.discount)
+      promotion.discount = updatePromotionDto.discount;
     if (updatePromotionDto.code) promotion.code = updatePromotionDto.code;
-    if (updatePromotionDto.startDate) promotion.startDate = new Date(updatePromotionDto.startDate);
-    if (updatePromotionDto.endDate) promotion.endDate = new Date(updatePromotionDto.endDate);
+    if ('startDate' in updatePromotionDto) {
+      promotion.startDate = updatePromotionDto.startDate
+        ? new Date(updatePromotionDto.startDate)
+        : null;
+    }
+    if ('endDate' in updatePromotionDto) {
+      promotion.endDate = updatePromotionDto.endDate
+        ? new Date(updatePromotionDto.endDate)
+        : null;
+    }
     const savedPromotion = await this.promotionRepository.save(promotion);
     // Return with course relation loaded
     const updatedPromotion = await this.promotionRepository.findOne({
