@@ -15,10 +15,10 @@ interface CreateExamFromQuizzesFormProps {
   loading?: boolean
 }
 
-export function CreateExamFromQuizzesForm({ 
-  availableQuizzes, 
-  onSubmit, 
-  loading 
+export function CreateExamFromQuizzesForm({
+  availableQuizzes,
+  onSubmit,
+  loading
 }: CreateExamFromQuizzesFormProps) {
   const [config, setConfig] = useState<ExamCreationConfig>({
     questionsPerQuiz: 5,
