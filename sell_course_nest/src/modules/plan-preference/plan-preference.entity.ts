@@ -6,7 +6,9 @@ export class PlanPreference {
   @PrimaryGeneratedColumn('uuid')
   preferenceId: string;
 
-  @ManyToOne(() => LearningPlan, (plan) => plan.preferences)
+  @ManyToOne(() => LearningPlan, (plan) => plan.preferences, {
+    onDelete: 'CASCADE',
+  })
   plan: LearningPlan;
 
   @Column()

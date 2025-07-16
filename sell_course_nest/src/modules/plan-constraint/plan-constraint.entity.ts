@@ -6,7 +6,9 @@ export class PlanConstraint {
   @PrimaryGeneratedColumn('uuid')
   constraintId: string;
 
-  @ManyToOne(() => LearningPlan, (plan) => plan.constraints)
+  @ManyToOne(() => LearningPlan, (plan) => plan.constraints, {
+    onDelete: 'CASCADE',
+  })
   plan: LearningPlan;
 
   @Column()

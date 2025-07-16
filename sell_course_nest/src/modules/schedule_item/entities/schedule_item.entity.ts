@@ -7,7 +7,9 @@ export class ScheduleItem {
   @PrimaryGeneratedColumn('uuid')
   itemId: string;
 
-  @ManyToOne(() => LearningPlan, (plan) => plan.scheduleItems)
+  @ManyToOne(() => LearningPlan, (plan) => plan.scheduleItems, {
+    onDelete: 'CASCADE',
+  })
   plan: LearningPlan;
 
   @ManyToOne(() => Course, (course) => course.courseId)

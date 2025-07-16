@@ -32,12 +32,24 @@ export class LearningPlan {
   @ManyToOne(() => Course, { nullable: false })
   course: Course;
 
-  @OneToMany(() => ScheduleItem, (item) => item.plan)
+  @OneToMany(() => ScheduleItem, (item) => item.plan, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   scheduleItems: ScheduleItem[];
 
-  @OneToMany(() => PlanConstraint, (pc) => pc.plan)
+  @OneToMany(() => PlanConstraint, (pc) => pc.plan, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   constraints: PlanConstraint[];
 
-  @OneToMany(() => PlanPreference, (pp) => pp.plan)
+  @OneToMany(() => PlanPreference, (pp) => pp.plan, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   preferences: PlanPreference[];
+  // ✅ Add narrativeTemplates JSON field
+  @Column({ type: 'jsonb', nullable: true })
+  narrativeTemplates: any;
 }

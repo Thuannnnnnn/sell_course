@@ -6,7 +6,10 @@ import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { PlanConstraint } from '../plan-constraint/plan-constraint.entity';
 import { PlanPreference } from '../plan-preference/plan-preference.entity';
-import { CreateLearningPlanDto } from './create-learning-plan.dto';
+import {
+  CreateLearningPlanDto,
+  UpdateLearningPlanDto,
+} from './create-learning-plan.dto';
 
 @Injectable()
 export class LearningPlanService {
@@ -40,6 +43,7 @@ export class LearningPlanService {
       course,
       studyGoal: createDto.studyGoal,
       totalWeeks: createDto.totalWeeks,
+      narrativeTemplates: createDto.narrativeTemplates || null,
     });
     const savedPlan = await this.planRepo.save(plan);
 
@@ -80,5 +84,42 @@ export class LearningPlanService {
       ],
       order: { createdAt: 'DESC' },
     });
+  }
+  async update(planId: string, updateDto: UpdateLearningPlanDto) {
+    const plan = await this.planRepo.findOneByOrFail({ planId });
+
+    // Update primitive fields
+    Object.assign(plan, {
+      studyGoal: updateDto.studyGoal ?? plan.studyGoal,
+      totalWeeks: updateDto.totalWeeks ?? plan.totalWeeks,
+      narrativeTemplates:
+        updateDto.narrativeTemplates ?? plan.narrativeTemplates,
+    });
+
+    await this.planRepo.save(plan);
+
+    // Cập nhật constraint nếu được gửi
+    if (updateDto.constraints) {
+      await this.constraintRepo.delete({ plan: { planId } });
+      const newConstraints = updateDto.constraints.map((c) =>
+        this.constraintRepo.create({ plan, ...c }),
+      );
+      await this.constraintRepo.save(newConstraints);
+    }
+
+    // Cập nhật preference nếu được gửi
+    if (updateDto.preferences) {
+      await this.preferenceRepo.delete({ plan: { planId } });
+      const newPreferences = updateDto.preferences.map((p) =>
+        this.preferenceRepo.create({ plan, ...p }),
+      );
+      await this.preferenceRepo.save(newPreferences);
+    }
+
+    return this.findOne(planId);
+  }
+
+  async remove(planId: string) {
+    return this.planRepo.delete({ planId });
   }
 }

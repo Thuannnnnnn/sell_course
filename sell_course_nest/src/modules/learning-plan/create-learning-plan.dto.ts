@@ -4,6 +4,7 @@ import {
   IsUUID,
   ValidateNested,
   IsArray,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -51,4 +52,32 @@ export class CreateLearningPlanDto {
   @ValidateNested({ each: true })
   @Type(() => PreferenceDto)
   preferences: PreferenceDto[];
+
+  @IsOptional()
+  narrativeTemplates?: any;
+}
+
+export class UpdateLearningPlanDto {
+  @IsOptional()
+  @IsString()
+  studyGoal?: string;
+
+  @IsOptional()
+  @IsInt()
+  totalWeeks?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ConstraintDto)
+  constraints?: ConstraintDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PreferenceDto)
+  preferences?: PreferenceDto[];
+
+  @IsOptional()
+  narrativeTemplates?: any;
 }
