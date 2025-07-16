@@ -198,7 +198,6 @@ function EditPromotionModal({
   }, [name, discount, code, courseId, startDate, endDate, promotions, promotion]);
 
   useEffect(() => {
-    console.log('[EditPromotionModal] Form state:', { name, discount, code, courseId, startDate, endDate, error });
   }, [name, discount, code, courseId, startDate, endDate, error]);
 
   const validateForm = () => {
@@ -207,7 +206,6 @@ function EditPromotionModal({
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newCode = e.target.value;
-    console.log('[EditPromotionModal] Code change:', newCode);
     setCode(newCode);
     if (newCode && courseId && isDuplicateCode(newCode, courseId, promotions, promotion?.id)) {
       setError("This code already exists for the selected course.");
@@ -245,13 +243,11 @@ function EditPromotionModal({
         startDate: startDate ? new Date(startDate).toISOString() : undefined,
         endDate: endDate ? new Date(endDate).toISOString() : undefined,
       };
-      console.log("Updating promotion with payload:", payload);
       await updatePromotion(promotion.id, payload, session.accessToken);
       toast.success("Promotion updated successfully!");
       await onSuccess();
       onClose();
     } catch (err: unknown) {
-      console.error("Update error:", err);
       const msg = err && typeof err === "object" && "message" in err
         ? (err as { message?: string }).message || "Failed to update promotion."
         : "Failed to update promotion.";
@@ -442,10 +438,8 @@ function AddPromotionModal({
 
   // Listen for code or courseId changes to check duplicate
   useEffect(() => {
-    console.log('[AddPromotionModal] Check duplicate:', { code, courseId, promotions });
     if (code && courseId) {
       const isDup = isDuplicateCode(code, courseId, promotions);
-      console.log('isDuplicateCode:', isDup);
       if (isDup) {
         setError("This code already exists for the selected course.");
       } else if (error === "This code already exists for the selected course.") {
@@ -460,7 +454,6 @@ function AddPromotionModal({
   }, [name, discount, code, courseId, startDate, endDate, promotions]);
 
   useEffect(() => {
-    console.log('[AddPromotionModal] Form state:', { name, discount, code, courseId, startDate, endDate, error });
   }, [name, discount, code, courseId, startDate, endDate, error]);
 
   const validateForm = () => {
@@ -501,13 +494,11 @@ function AddPromotionModal({
         startDate: startDate ? new Date(startDate).toISOString() : undefined,
         endDate: endDate ? new Date(endDate).toISOString() : undefined,
       };
-      console.log("Creating promotion with payload:", payload);
       await createPromotion(payload, session.accessToken);
       toast.success("Promotion created successfully!");
       await onSuccess(); // Ensure promotions are refreshed before closing
       onClose();
     } catch (err: unknown) {
-      console.error("Create error:", err);
       const msg = err && typeof err === "object" && "message" in err
         ? (err as { message?: string }).message || "Failed to create promotion."
         : "Failed to create promotion.";
