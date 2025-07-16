@@ -24,7 +24,6 @@ import { ChatSession } from '../../support_chat/entities/chat-session.entity';
 import { Message } from '../../support_chat/entities/message.entity';
 import { Enrollment } from '../../enrollment/entities/enrollment.entity';
 import { LearningPlan } from 'src/modules/learning-plan/learning-plan.entity';
-import { SurveyAnswer } from 'src/modules/survey-answer/survey-answer.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -107,7 +106,4 @@ export class User {
 
   @OneToMany(() => LearningPlan, (plan) => plan.user)
   plans: LearningPlan[];
-
-  @OneToMany(() => SurveyAnswer, (answer) => answer.user)
-  surveyAnswers: SurveyAnswer[];
 }
