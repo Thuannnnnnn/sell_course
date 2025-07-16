@@ -106,6 +106,7 @@ import { CacheModule } from '@nestjs/cache-manager';
       isGlobal: true,
       store: redisStore,
       host: process.env.REDIS_HOST,
+      password: process.env.REDIS_PASSWORD,
       port: 6379,
       ttl: 300,
     }),
