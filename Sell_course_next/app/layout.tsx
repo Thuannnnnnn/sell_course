@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/toast";
+import ChatSupportWindow from "../components/course/ChatSupportWindow";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Footer />
+            <ChatSupportWindow />
           </div>
           </ToastProvider>
         </SessionProvider>
