@@ -4,8 +4,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
+import { CourseDetailResponse } from './dto/courseDetailResponse.dto';
 import { User } from '../user/entities/user.entity';
 import { Category } from '../category/entities/category.entity';
+import { Lesson } from '../lesson/entities/lesson.entity';
+import { Contents } from '../contents/entities/contents.entity';
+import { Video } from '../video/entities/video.entity';
+import { Docs } from '../docs/entities/docs.entity';
+import { Quizz } from '../quizz/entities/quizz.entity';
+import { Exam } from '../exam/entities/exam.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { azureUpload } from 'src/utilities/azure.service';
@@ -19,6 +26,18 @@ export class CourseService {
     private userRepository: Repository<User>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(Lesson)
+    private lessonRepository: Repository<Lesson>,
+    @InjectRepository(Contents)
+    private contentsRepository: Repository<Contents>,
+    @InjectRepository(Video)
+    private videoRepository: Repository<Video>,
+    @InjectRepository(Docs)
+    private docsRepository: Repository<Docs>,
+    @InjectRepository(Quizz)
+    private quizzRepository: Repository<Quizz>,
+    @InjectRepository(Exam)
+    private examRepository: Repository<Exam>,
   ) {}
 
   async getAllCourses(): Promise<CourseResponseDTO[]> {
@@ -290,5 +309,176 @@ export class CourseService {
       relations: ['category'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async getCourseWithLessonsAndContents(
+    courseId: string,
+  ): Promise<CourseDetailResponse> {
+    // Lấy thông tin khóa học
+    const course = await this.CourseRepository.findOne({
+      where: { courseId },
+      relations: ['instructor', 'category'],
+    });
+
+    if (!course) {
+      throw new HttpException(
+        `Course with ID ${courseId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Lấy tất cả lessons của khóa học
+    const lessons = await this.lessonRepository.find({
+      where: { course: { courseId } },
+      order: { order: 'ASC' },
+    });
+
+    // Lấy tất cả contents, video, doc, quiz cho từng lesson
+    const lessonsWithContents = await Promise.all(
+      lessons.map(async (lesson) => {
+        const contents = await this.contentsRepository.find({
+          where: { lesson: { lessonId: lesson.lessonId } },
+          order: { order: 'ASC' },
+        });
+
+        const contentsWithDetails = await Promise.all(
+          contents.map(async (content) => {
+            const contentData: any = {
+              contentId: content.contentId,
+              contentName: content.contentName,
+              contentType: content.contentType,
+              order: content.order,
+              createdAt: content.createdAt,
+              updatedAt: content.updatedAt,
+            };
+
+            // Lấy chi tiết theo từng loại content
+            if (content.contentType === 'video') {
+              const video = await this.videoRepository.findOne({
+                where: { contents: { contentId: content.contentId } },
+              });
+              if (video) {
+                contentData.video = {
+                  videoId: video.videoId,
+                  title: video.title,
+                  description: video.description,
+                  url: video.url,
+                  urlScript: video.urlScript,
+                  createdAt: video.createdAt,
+                };
+              }
+            }
+
+            if (content.contentType === 'doc') {
+              const doc = await this.docsRepository.findOne({
+                where: { contents: { contentId: content.contentId } },
+              });
+              if (doc) {
+                contentData.doc = {
+                  docsId: doc.docsId,
+                  title: doc.title,
+                  url: doc.url,
+                  createdAt: doc.createdAt,
+                };
+              }
+            }
+
+            if (content.contentType === 'quizz') {
+              const quiz = await this.quizzRepository.findOne({
+                where: { contentId: content.contentId },
+                relations: ['questions', 'questions.answers'],
+              });
+              if (quiz) {
+                contentData.quiz = {
+                  quizzId: quiz.quizzId,
+                  createdAt: quiz.createdAt,
+                  questions: quiz.questions.map((question) => ({
+                    questionId: question.questionId,
+                    question: question.question,
+                    difficulty: question.difficulty,
+                    weight: question.weight,
+                    answers: question.answers.map((answer) => ({
+                      answerId: answer.answerId,
+                      answer: answer.answer,
+                      isCorrect: answer.isCorrect,
+                    })),
+                  })),
+                };
+              }
+            }
+
+            return contentData;
+          }),
+        );
+
+        return {
+          lessonId: lesson.lessonId,
+          lessonName: lesson.lessonName,
+          order: lesson.order,
+          createdAt: lesson.createdAt,
+          updatedAt: lesson.updatedAt,
+          contents: contentsWithDetails,
+        };
+      }),
+    );
+
+    // Lấy thông tin exam của khóa học
+    const exam = await this.examRepository.findOne({
+      where: { course: { courseId } },
+      relations: ['questions', 'questions.answers'],
+    });
+
+    let examData = null;
+    if (exam) {
+      examData = {
+        examId: exam.examId,
+        createdAt: exam.createdAt,
+        questions: exam.questions.map((question) => ({
+          questionId: question.questionId,
+          question: question.question,
+          difficulty: question.difficulty,
+          weight: question.weight,
+          answers: question.answers.map((answer) => ({
+            answerId: answer.answerId,
+            answer: answer.answer,
+            isCorrect: answer.isCorrect,
+          })),
+        })),
+      };
+    }
+
+    return {
+      courseId: course.courseId,
+      title: course.title,
+      description: course.description,
+      short_description: course.short_description,
+      duration: course.duration,
+      price: course.price,
+      videoIntro: course.videoIntro,
+      thumbnail: course.thumbnail,
+      rating: course.rating,
+      skill: course.skill,
+      level: course.level,
+      status: course.status,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt,
+      instructor: {
+        userId: course.instructor.user_id,
+        username: course.instructor.username,
+        email: course.instructor.email,
+        avatarImg: course.instructor.avatarImg,
+      },
+      category: {
+        categoryId: course.category.categoryId,
+        name: course.category.name,
+      },
+      lessons: lessonsWithContents,
+      exam: examData,
+      totalLessons: lessons.length,
+      totalContents: lessonsWithContents.reduce(
+        (total, lesson) => total + lesson.contents.length,
+        0,
+      ),
+    };
   }
 }

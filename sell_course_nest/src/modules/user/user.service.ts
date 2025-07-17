@@ -31,7 +31,10 @@ export class UserService {
       return null;
     }
 
-    return new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() });
+    return new UserDTO({
+      ...user,
+      phoneNumber: user.phoneNumber?.toString() || null,
+    });
   }
   async findAll(): Promise<UserDTO[] | null> {
     const users = await this.userRepository.find({
@@ -159,7 +162,10 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    return new UserDTO({ ...user, phoneNumber: user.phoneNumber.toString() });
+    return new UserDTO({
+      ...user,
+      phoneNumber: user.phoneNumber?.toString() || null,
+    });
   }
 
   async updateUserById(

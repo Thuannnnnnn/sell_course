@@ -24,6 +24,7 @@ export class ChatService {
     return this.chatSessionRepository.find({
       where: { isActive: true },
       order: { startTime: 'DESC' },
+      relations: ['user'], // Thêm dòng này để trả về cả user
     });
   }
   async getChatHistory(
@@ -81,5 +82,12 @@ export class ChatService {
         await this.deleteChatSession(session.id);
       }
     }
+  }
+
+  async deactivateSession(sessionId: string): Promise<void> {
+    await this.chatSessionRepository.update(
+      { id: sessionId },
+      { isActive: false },
+    );
   }
 }
