@@ -1,4 +1,4 @@
-import { UserProfile } from './../../../../Sell_course_next/app/types/profile/editProfile';
+import { UserProfile } from '../../types/editProfile';
 import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -19,3 +19,4 @@ export const getUserById = async (token: string): Promise<UserProfile> => {
 };
 
 // Update user profile
+

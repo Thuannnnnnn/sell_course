@@ -116,4 +116,10 @@ export class ChatController {
     await this.chatService.deleteOldSessionsOfUser(userId, sessionId);
     return { success: true };
   }
+
+  @Post('deactivate/:sessionId')
+  async deactivateSession(@Param('sessionId') sessionId: string) {
+    await this.chatService.deactivateSession(sessionId);
+    return { success: true };
+  }
 }
