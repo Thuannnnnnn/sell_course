@@ -52,7 +52,7 @@ jobs:
             folder: ./sell_course_next_admin
             image: thuannnnn/sell_course_next-admin
             container: sell-course-next-admin
-            port: 3001:3000
+            port: 5000:5000
             env: ''
 
     steps:
