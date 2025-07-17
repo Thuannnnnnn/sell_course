@@ -41,7 +41,6 @@ export function CreateExamFromQuizzesForm({
     (sum, quiz) => sum + quiz.questionCount, 0
   )
 
-  // Calculate maximum questions per quiz based on current selection
   const maxQuestionsPerQuiz = config.includeAllQuizzes 
     ? Math.max(...availableQuizzes.map(quiz => quiz.questionCount), 0)
     : selectedQuizzesData.length > 0 
