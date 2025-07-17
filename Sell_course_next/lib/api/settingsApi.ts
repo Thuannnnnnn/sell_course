@@ -113,7 +113,7 @@ export const settingsApi = {
 
   async getActiveVersion(): Promise<VersionSetting> {
     try {
-      const response = await api.get("/version-settings/active");
+      const response = await api.get(`${API_BASE_URL}/version-settings/active`);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -127,13 +127,15 @@ export const settingsApi = {
   async getLogoByVersionId(versionId: string): Promise<LogoSetting[]> {
     try {
       const response = await api.get(`/logo-settings/by-version/${versionId}`);
-      return response.data;
+      console.log("getLogoByVersionId", response.data);
+      return response.data
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
         throw new Error(error.response.data.message);
       }
       throw new Error("Failed to fetch logo settings.");
     }
+    
   },
 
   async updateLogo(versionId: string, file: File, logoId: string): Promise<LogoSetting> {

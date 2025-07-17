@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -24,10 +24,31 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { settingsApi } from "../../lib/api/settingsApi";
+
 
 export function Navbar() {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    async function fetchActiveLogo() {
+      try {
+        const version = await settingsApi.getActiveVersion();
+        if (!version?.versionSettingId) {
+          setLogoUrl(undefined);
+          return;
+        }
+        const logos = await settingsApi.getLogoByVersionId(version.versionSettingId);
+        setLogoUrl(logos[0]?.logo);
+      } catch (error) {
+        setLogoUrl(undefined);
+        console.error("Failed to fetch active version or logo:", error);
+      }
+    }
+    fetchActiveLogo();
+  }, []);
 
   useEffect(() => {
     if (session?.expires) {
@@ -48,7 +69,7 @@ export function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-center">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Image src={logo} alt={"logo"} width={80} height={80} />
+          <Image className="w-12 h-12 rounded-full overflow-hidden" src={logoUrl || logo} alt={"logo"} width={80} height={80} />
           <span className="font-bold text-xl">Course Master</span>
         </Link>
         <NavigationMenu className="hidden md:flex">

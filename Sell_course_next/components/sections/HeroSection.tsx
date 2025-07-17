@@ -1,9 +1,30 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { AspectRatio } from "../ui/aspect-ratio";
 import Image from "next/image";
+import { settingsApi } from "../../lib/api/settingsApi";
+
 export function HeroSection() {
+  const [bannerUrl, setBannerUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    async function fetchBanner() {
+      try {
+        // 1. Lấy version active
+        const version = await settingsApi.getActiveVersion();
+        if (!version?.versionSettingId) return;
+        // 2. Lấy banner theo versionId
+        const banner = await settingsApi.getBannerByVersionId(version.versionSettingId);
+        // banner là object, không phải mảng!
+        setBannerUrl(banner?.carousel);
+      } catch {
+        setBannerUrl(undefined);
+      }
+    }
+    fetchBanner();
+  }, []);
+
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-background flex items-center justify-center">
       <div className="container px-4 md:px-6">
@@ -33,8 +54,11 @@ export function HeroSection() {
               className="bg-muted overflow-hidden rounded-xl"
             >
               <Image
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80"
-                alt="Students collaborating on a project"
+                src={
+                  bannerUrl ||
+                  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80"
+                }
+                alt="Banner"
                 className="object-cover w-full h-full"
                 width={600}
                 height={280}
