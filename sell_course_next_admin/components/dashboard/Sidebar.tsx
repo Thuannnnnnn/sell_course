@@ -14,15 +14,40 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
-import logo from "../../public/logo.png"; // Adjust the path to your logo image
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { settingsApi } from "../../app/api/settings/settings";
+
+
 interface SidebarProps {
   open: boolean;
   setOpen: (open: boolean) => void;
+  logoUrl?: string; // thêm prop này
+  versionId?: string; // Thêm prop này để nhận versionId
 }
 
-export function Sidebar({ open, setOpen }: SidebarProps) {
+export function Sidebar({ open, setOpen, versionId, logoUrl }: SidebarProps) {
   const pathname = usePathname();
+  const [defaultLogo, setDefaultLogo] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    async function fetchLogo() {
+      if (!versionId) {
+        console.log("Sidebar: versionId is undefined");
+        return;
+      }
+      console.log("Sidebar: Fetching logo for versionId:", versionId);
+      const logos = await settingsApi.getLogoByVersionId(versionId);
+      console.log("Sidebar: API logos result:", logos);
+      setDefaultLogo(logos[0]?.logo);
+    }
+    fetchLogo();
+  }, [versionId]);
+
+  // Debug log các giá trị quan trọng
+  console.log("Sidebar: versionId prop:", versionId);
+  console.log("Sidebar: defaultLogo state:", defaultLogo);
+  console.log("Sidebar: logoUrl prop:", logoUrl);
 
   const navigation = [
     {
@@ -93,7 +118,15 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
       >
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <div className="flex items-center">
-            <Image src={logo} alt="Logo" width={40} height={40} />
+          <div className="w-10 h-10 rounded-full overflow-hidden">
+            <Image
+              src={logoUrl || defaultLogo || "/logo.png"}
+              alt="Logo"
+              width={40}
+              height={40}
+              className="object-cover w-full h-full"
+            />
+          </div>
             <span className="ml-2 font-semibold text-lg">Course Master</span>
           </div>
           <button className="md:hidden" onClick={() => setOpen(false)}>
@@ -124,7 +157,15 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
         <div className="flex-1 flex flex-col border-r border-border bg-background">
           <div className="flex items-center h-16 px-4 border-b border-border">
-            <Image src={logo} alt="Logo" width={40} height={40} />
+          <div className="w-10 h-10 rounded-full overflow-hidden">
+            <Image
+              src={logoUrl || defaultLogo || "/logo.png"}
+              alt="Logo"
+              width={45}
+              height={45}
+              className="object-cover w-full h-full"
+            />
+          </div>
             <span className="ml-2 font-semibold text-lg">Course Master</span>
           </div>
           <nav className="flex-1 px-2 py-4 space-y-1">

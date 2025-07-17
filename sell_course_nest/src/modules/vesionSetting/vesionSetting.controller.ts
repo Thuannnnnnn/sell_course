@@ -23,6 +23,10 @@ export class VersionSettingController {
     return this.versionSettingService.findAll();
   }
 
+  @Get('active')
+  getActiveVersion(): Promise<VersionSetting> {
+    return this.versionSettingService.getActiveVersion();
+  }
   /** Lấy thông tin một VersionSetting theo ID */
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -51,8 +55,5 @@ export class VersionSettingController {
     return this.versionSettingService.remove(id);
   }
 
-  @Get('active')
-  getActiveVersion(): Promise<VersionSetting> {
-    return this.versionSettingService.getActiveVersion();
-  }
+  
 }
