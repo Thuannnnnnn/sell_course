@@ -1,0 +1,92 @@
+name: CI/CD Deploy Multi-Service App to VPS
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service:
+          # Cấu hình cho Backend (NestJS) với đầy đủ ENV
+          - name: nest-app
+            folder: ./sell_course_nest
+            image: thuannnnn/sell_course_nest-app
+            container: sell-course-nest-app
+            port: 8080:8080
+            env: |
+              -e DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+              -e DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+              -e DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
+              -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+              -e DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+              -e PORT=${{ secrets.PORT }}
+              -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+              -e JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
+              -e AZURE_STORAGE_CONTAINER_NAME=${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+              -e AZURE_STORAGE_CONNECTION_STRING='${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}'
+              -e PAYOS_CLIENT_ID=${{ secrets.PAYOS_CLIENT_ID }}
+              -e PAYOS_API_KEY=${{ secrets.PAYOS_API_KEY }}
+              -e PAYOS_CHECKSUM_KEY=${{ secrets.PAYOS_CHECKSUM_KEY }}
+              -e URL_FE=${{ secrets.URL_FE }}
+              -e URL_PYTHON=${{ secrets.URL_PYTHON }}
+              -e FASTAPI_URL=${{ secrets.FASTAPI_URL }}
+              -e USE_REDIS=${{ secrets.USE_REDIS }}
+              -e REDIS_HOST=${{ secrets.REDIS_HOST }}
+              -e URL_n8n=${{ secrets.URL_n8n }}
+              -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+
+          # Cấu hình cho Frontend User (Next.js)
+          - name: next-user
+            folder: ./Sell_course_next
+            image: thuannnnn/sell_course_next-user
+            container: sell-course-next-user
+            port: 3000:3000
+            env: ''
+
+          # Cấu hình cho Frontend Admin (Next.js)
+          - name: next-admin
+            folder: ./sell_course_next_admin
+            image: thuannnnn/sell_course_next-admin
+            container: sell-course-next-admin
+            port: 3001:3000
+            env: ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image for ${{ matrix.service.name }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.folder }}
+          push: true
+          tags: ${{ matrix.service.image }}:latest
+
+      - name: Deploy ${{ matrix.service.name }} to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            docker network create coursemaster-net || true
+            docker pull ${{ matrix.service.image }}:latest
+            docker stop ${{ matrix.service.container }} || true
+            docker rm ${{ matrix.service.container }} || true
+            docker run -d \
+              --name ${{ matrix.service.container }} \
+              --restart always \
+              -p ${{ matrix.service.port }} \
+              --network coursemaster-net \
+              ${{ matrix.service.env }} \
+              ${{ matrix.service.image }}:latest
