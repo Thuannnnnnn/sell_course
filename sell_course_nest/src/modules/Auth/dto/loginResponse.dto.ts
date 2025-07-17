@@ -4,14 +4,22 @@ export class LoginResponseDto {
   @IsString()
   token: string;
 
-  // @IsString()
-  // refreshToken: string;
+  /*
+   * @IsString()
+   * refreshToken: string;
+   */
+
+  @IsString()
+  user_id: string;
 
   @IsString()
   email: string;
 
   @IsString()
   username: string;
+
+  @IsString()
+  avatarImg: string;
 
   @IsString()
   gender: string;

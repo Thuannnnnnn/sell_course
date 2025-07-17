@@ -1,4 +1,4 @@
-import { Course } from 'src/modules/course/entities/course.entity';
+import { Course } from '../../course/entities/course.entity';
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity('category')

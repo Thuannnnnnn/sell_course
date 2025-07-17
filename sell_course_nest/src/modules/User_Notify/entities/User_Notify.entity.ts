@@ -1,5 +1,5 @@
-import { Notify } from 'src/modules/notify/entities/notify.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { Notify } from '../../notify/entities/notify.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   Entity,
@@ -8,25 +8,31 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('User_Notify ')
+@Entity('user_notify')
 export class UserNotify {
-  @PrimaryGeneratedColumn({ name: 'userNotify_id' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'userNotify_id' })
+  id: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.userNotifies, {
+    onDelete: 'CASCADE',
+    eager: true,
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Notify)
+  @ManyToOne(() => Notify, (notify) => notify.userNotifies, {
+    onDelete: 'CASCADE',
+    eager: true,
+  })
   @JoinColumn({ name: 'notify_id' })
   notify: Notify;
 
-  @Column()
-  is_read: string;
+  @Column({ type: 'boolean', default: false })
+  is_read: boolean;
 
-  @Column()
-  is_sent: string;
+  @Column({ type: 'boolean', default: false })
+  is_sent: boolean;
 
-  @Column()
-  read_at: string;
+  @Column({ type: 'timestamp', nullable: true })
+  read_at: Date;
 }

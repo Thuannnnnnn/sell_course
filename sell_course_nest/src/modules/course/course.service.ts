@@ -8,6 +8,7 @@ import { User } from '../user/entities/user.entity';
 import { Category } from '../category/entities/category.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { azureUpload } from 'src/utilities/azure.service';
 
 @Injectable()
 export class CourseService {
@@ -22,9 +23,8 @@ export class CourseService {
 
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     const courses = await this.CourseRepository.find({
-      relations: ['user', 'category'],
+      relations: ['instructor', 'category'],
     });
-
     if (courses.length === 0) {
       throw new HttpException('No courses found.', HttpStatus.NOT_FOUND);
     }
@@ -32,23 +32,31 @@ export class CourseService {
       return new CourseResponseDTO(
         course.courseId,
         course.title,
-        course.price,
+        course.short_description,
         course.description,
-        course.videoInfo,
-        course.imageInfo,
+        course.duration,
+        course.price,
+        course.videoIntro,
+        course.thumbnail,
+        course.rating,
+        course.skill,
+        course.level,
+        course.status,
         course.createdAt,
         course.updatedAt,
-        course.user.user_id,
+        course.instructor.user_id,
+        course.instructor.username,
+        course.instructor.avatarImg,
         course.category.categoryId,
+        course.category.name,
       );
     });
-
     return courseResponseDTOs;
   }
 
   async getCourseById(courseId: string): Promise<CourseResponseDTO> {
     const course = await this.CourseRepository.findOne({
-      relations: ['user', 'category'],
+      relations: ['instructor', 'category'],
       where: { courseId },
     });
 
@@ -61,29 +69,46 @@ export class CourseService {
     const courseResponseDTO = new CourseResponseDTO(
       course.courseId,
       course.title,
-      course.price,
+      course.short_description,
       course.description,
-      course.videoInfo,
-      course.imageInfo,
+      course.duration,
+      course.price,
+      course.videoIntro,
+      course.thumbnail,
+      course.rating,
+      course.skill,
+      course.level,
+      course.status,
       course.createdAt,
       course.updatedAt,
-      course.user.user_id,
+      course.instructor.user_id,
+      course.instructor.username,
+      course.instructor.avatarImg,
       course.category.categoryId,
+      course.category.name,
     );
     return courseResponseDTO;
   }
-  async createCourse(course: CourseRequestDTO): Promise<CourseResponseDTO> {
-    const { userId, categoryId, title } = course;
+
+  async createCourse(
+    course: CourseRequestDTO,
+    files?: {
+      videoIntro?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File[];
+    },
+  ): Promise<CourseResponseDTO> {
+    const { instructorId, categoryId, title } = course;
 
     const userData = await this.userRepository.findOne({
-      where: { user_id: userId },
+      where: { user_id: instructorId },
     });
     if (!userData) {
       throw new HttpException(
-        `User with ID ${userId} not found.`,
+        `User with ID ${instructorId} not found.`,
         HttpStatus.NOT_FOUND,
       );
     }
+
     const categoryData = await this.categoryRepository.findOne({
       where: { categoryId },
     });
@@ -94,6 +119,7 @@ export class CourseService {
       );
     }
 
+    // Kiểm tra khóa học trùng lặp
     const courseData = await this.CourseRepository.findOne({
       where: { title },
     });
@@ -104,30 +130,72 @@ export class CourseService {
       );
     }
 
-    await this.CourseRepository.save({
+    // Xử lý file upload (nếu có)
+    let videoUrl = '';
+    let imageUrl = '';
+    if (files?.videoIntro?.[0]) {
+      videoUrl = await azureUpload(files.videoIntro[0]);
+    }
+    if (files?.thumbnail?.[0]) {
+      imageUrl = await azureUpload(files.thumbnail[0]);
+    }
+
+    const newCourse = await this.CourseRepository.save({
       courseId: uuidv4(),
       title: course.title,
       description: course.description,
       category: categoryData,
-      imageInfo: course.imageInfo,
+      thumbnail: imageUrl,
       price: course.price,
-      videoInfo: course.videoInfo,
-      user: userData,
+      videoIntro: videoUrl || null,
+      instructor: userData,
       createdAt: new Date(),
       updatedAt: new Date(),
+      short_description: course.short_description,
+      duration: course.duration,
+      rating: 0,
+      skill: course.skill,
+      level: course.level,
+      status: course.status ?? false,
     });
-    throw new HttpException('Created', HttpStatus.OK);
+
+    return {
+      ...newCourse,
+      instructorId: userData.user_id,
+      instructorName: userData.email,
+      instructorAvatar: userData.avatarImg,
+      categoryId: categoryData.categoryId,
+      categoryName: categoryData.name,
+      status: newCourse.status,
+      courseId: newCourse.courseId,
+      title: newCourse.title,
+      price: newCourse.price,
+      description: newCourse.description,
+      videoIntro: newCourse.videoIntro,
+      thumbnail: newCourse.thumbnail,
+      short_description: newCourse.short_description,
+      duration: newCourse.duration,
+      rating: newCourse.rating,
+      skill: newCourse.skill,
+      level: newCourse.level,
+      createdAt: newCourse.createdAt,
+      updatedAt: newCourse.updatedAt,
+    };
   }
 
   async updateCourse(
     courseId: string,
-    updateData: Partial<Course>,
+    updateData: Partial<CourseRequestDTO>,
+    files?: {
+      videoIntro?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File[];
+    },
   ): Promise<CourseResponseDTO> {
+    // Lấy thông tin khóa học hiện tại
     const course = await this.CourseRepository.findOne({
       where: { courseId },
-      relations: ['user', 'category'],
+      relations: ['instructor', 'category'],
     });
-
     if (!course) {
       throw new HttpException(
         `Course with ID ${courseId} not found`,
@@ -135,9 +203,69 @@ export class CourseService {
       );
     }
 
+    // Cập nhật user nếu có
+    if (updateData.instructorId) {
+      const userData = await this.userRepository.findOne({
+        where: { user_id: updateData.instructorId },
+      });
+      if (!userData) {
+        throw new HttpException(
+          `User with ID ${updateData.instructorId} not found.`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      course.instructor = userData;
+    }
+
+    // Cập nhật category nếu có
+    if (updateData.categoryId) {
+      const categoryData = await this.categoryRepository.findOne({
+        where: { categoryId: updateData.categoryId },
+      });
+      if (!categoryData) {
+        throw new HttpException(
+          `Category with ID ${updateData.categoryId} not found.`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      course.category = categoryData;
+    }
+
+    // Xử lý tải file nếu có
+    if (files?.videoIntro?.[0])
+      course.videoIntro = await azureUpload(files.videoIntro[0]);
+    if (files?.thumbnail?.[0])
+      course.thumbnail = await azureUpload(files.thumbnail[0]);
+
+    // Cập nhật các trường khác từ updateData
     Object.assign(course, updateData);
-    await this.CourseRepository.save(course);
-    throw new HttpException('Updated', HttpStatus.OK);
+
+    // Cập nhật thời gian và lưu khóa học
+    course.updatedAt = new Date();
+    const updatedCourse = await this.CourseRepository.save(course);
+
+    // Trả về response
+    return new CourseResponseDTO(
+      updatedCourse.courseId,
+      updatedCourse.title,
+      updatedCourse.short_description,
+      updatedCourse.description,
+      updatedCourse.duration,
+      updatedCourse.price,
+      updatedCourse.videoIntro,
+      updatedCourse.thumbnail,
+      updatedCourse.rating,
+      updatedCourse.skill,
+      updatedCourse.level,
+      updatedCourse.status,
+      updatedCourse.createdAt,
+      updatedCourse.updatedAt,
+      updatedCourse.instructor.user_id,
+      updatedCourse.instructor.username,
+      updatedCourse.instructor.avatarImg,
+      updatedCourse.category.categoryId,
+      updatedCourse.category.name,
+    );
   }
 
   async deleteCourse(courseId: string): Promise<void> {
@@ -154,5 +282,13 @@ export class CourseService {
 
     await this.CourseRepository.remove(course);
     throw new HttpException('Removed', HttpStatus.OK);
+  }
+
+  async getCoursesByCategory(categoryId: string): Promise<Course[]> {
+    return this.CourseRepository.find({
+      where: { category: { categoryId } },
+      relations: ['category'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }

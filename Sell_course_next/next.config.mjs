@@ -1,8 +1,8 @@
-import createNextIntlPlugin from 'next-intl/plugin';
- 
-const withNextIntl = createNextIntlPlugin();
- 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
- 
-export default withNextIntl(nextConfig);
+const nextConfig = {
+  images: {
+    domains: ["images.unsplash.com","example.com", "sdnmma.blob.core.windows.net" ],
+  },
+};
+
+export default nextConfig;
