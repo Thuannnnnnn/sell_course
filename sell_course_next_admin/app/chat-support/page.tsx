@@ -2,83 +2,28 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { io, Socket } from "socket.io-client";
-import { getChatActiveSessions } from "../api/chat/active-sessions/active-session";
-import { GetSessionChatHistory } from "app/api/chat/chat";
-import { DeleteOldSessionsOfUser } from "app/api/chat/chat";
 
-// 1. Định nghĩa lại các type cho đồng bộ với phía user
-export interface UserProfile {
-  user_id: string;
-  email: string;
-  username: string;
-  password?: string | null;
-  avatarImg?: string | null;
-  gender?: string | null;
-  birthDay?: string | null;
-  phoneNumber?: string | null;
-  role: string;
-  isOAuth: boolean;
-  createdAt: string;
-  updatedAt: string;
-  isBan: boolean;
-}
 
-export interface Message {
+interface Message {
   id: string;
+  sessionId: string;
   messageText: string;
   timestamp: string;
-  sender?: UserProfile;
-  sessionId?: string;
+  senderId: string;
 }
 
-export interface ChatSession {
+interface ChatSession {
   id: string;
   startTime: string;
   isActive: boolean;
   endTime?: string | null;
-  user: UserProfile;
-  messages: Message[];
-}
-
-const SOCKET_SERVER = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-// 2. Sửa lại normalizeMessage cho đúng type mới
-const normalizeMessage = (msg: {
-  id: string;
-  messageText: string;
-  timestamp: string;
-  sender?: UserProfile | string;
-  sessionId?: string;
-}): Message => {
-  if (msg.sender && typeof msg.sender === 'object') {
-    return msg as Message;
-  }
-  // Nếu sender là string (user_id), chỉ gán vào user_id
-  if (typeof msg.sender === 'string') {
-    return {
-      ...msg,
-      sender: { user_id: msg.sender } as UserProfile,
-    };
-  }
-  // Nếu không có sender, chỉ lấy các trường cơ bản
-  return {
-    id: msg.id,
-    messageText: msg.messageText,
-    timestamp: msg.timestamp,
+  user: {
+    user_id: string;
+    username?: string;
   };
-};
-
-function filterLatestSessionsByUser(sessions: ChatSession[]): ChatSession[] {
-  const map = new Map<string, ChatSession>();
-  for (const session of sessions) {
-    const userId = session.user?.user_id;
-    if (!userId) continue;
-    if (!map.has(userId) || new Date(session.startTime) > new Date(map.get(userId)!.startTime)) {
-      map.set(userId, session);
-    }
-  }
-  return Array.from(map.values()).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 }
+
+const SOCKET_SERVER = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function SupportPage() {
   const { data: session, status } = useSession();
@@ -88,123 +33,115 @@ export default function SupportPage() {
   const [input, setInput] = useState("");
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const selectedSessionIdRef = useRef<string | null>(null);
+  const PAGE_SIZE = 3;
+  const [page, setPage] = useState(1);
 
-  // Fetch active sessions (no changes)
+  // Main socket connection for sessions and chat
   useEffect(() => {
     if (status !== "authenticated" || !session?.user?.id) return;
-    const fetchActiveSessions = async () => {
-      try {
-        const data = await getChatActiveSessions();
-        // Lọc session: chỉ giữ session chưa kết thúc
-        const filtered = data.filter(
-          (s: ChatSession) => s.isActive || !s.endTime
-        );
-        setActiveSessions(filtered);
-      } catch (err) {
-        console.error("Error fetching active sessions:", err);
-        // setError("Failed to load support sessions"); // removed unused
-      } finally {
-        // setLoading(false); // removed unused
-      }
-    };
-    fetchActiveSessions();
-  }, [session?.user?.id, status]);
-
-  // Connect to socket and manage chat state
-  useEffect(() => {
-    if (!selectedSessionId || !session?.user?.id || !session?.accessToken) return;
-
-    setMessages([]);
-    // setError(null); // removed unused
-
-    const fetchChatHistory = async () => {
-      if (typeof selectedSessionId !== 'string' || typeof session?.accessToken !== 'string') return;
-      try {
-        const history = await GetSessionChatHistory(selectedSessionId, session.accessToken);
-        const rawMessages = history?.messages || [];
-        const normalizedMessages = rawMessages.map(normalizeMessage);
-        setMessages(normalizedMessages);
-      } catch (err) {
-        console.error("Error fetching chat history:", err);
-        // setError("Failed to load chat history"); // removed unused
-      }
-    };
-    fetchChatHistory();
-
+    
     const socket = io(SOCKET_SERVER, {
-      query: { sessionId: selectedSessionId },
       transports: ["websocket"],
-      auth: { token: session.accessToken, userId: session.user.id },
+      auth: { token: session?.accessToken, userId: session?.user?.id },
     });
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("Connected to socket for session:", selectedSessionId);
-      // BẮT BUỘC: join room
-      socket.emit("join", { sessionId: selectedSessionId });
+      socket.emit("getAllSessions")
     });
-    socket.on("message", (newMessage: { id: string; messageText: string; timestamp: string; sender?: string | UserProfile; sessionId?: string }) => {
-      const normalizedNewMessage = normalizeMessage(newMessage);
-      // Debug log chi tiết như bên user
-      console.log("[ADMIN] Received raw message:", newMessage);
-      console.log("[ADMIN] Normalized message:", normalizedNewMessage);
-      if (normalizedNewMessage) {
-        console.log("[ADMIN] Message id:", normalizedNewMessage.id);
-        console.log("[ADMIN] Message sender:", normalizedNewMessage.sender);
-        console.log("[ADMIN] Message sessionId:", normalizedNewMessage.sender?.user_id);
-        console.log("[ADMIN] Message text:", normalizedNewMessage.messageText);
-        console.log("[ADMIN] Message timestamp:", normalizedNewMessage.timestamp);
-      }
-      setMessages((prev) => {
-        // Nếu đã có message với id này, bỏ qua
-        if (prev.find((m) => m.id === normalizedNewMessage.id)) return prev;
 
-        // Nếu có message optimistic (id là tempId) với cùng nội dung, sender, timestamp, thì replace
-        const optimisticIdx = prev.findIndex(
-          (m) =>
-            m.sender?.user_id === normalizedNewMessage.sender?.user_id &&
-            m.messageText === normalizedNewMessage.messageText &&
-            Math.abs(new Date(m.timestamp).getTime() - new Date(normalizedNewMessage.timestamp).getTime()) < 2000 // cho phép lệch 2s
-        );
-        if (optimisticIdx !== -1) {
-          const newMessages = [...prev];
-          newMessages[optimisticIdx] = normalizedNewMessage;
-          return newMessages;
-        }
-        return [...prev, normalizedNewMessage];
+    socket.on("disconnect", () => {
+      // Handle disconnect
+    });
+
+    socket.on("error", () => {
+      // Handle error
+    });
+
+    socket.on("sessionsList", (sessions: ChatSession[]) => {
+      setActiveSessions(sessions || []);
+    });
+
+    socket.on('newSession', (newSession: ChatSession) => {
+      setActiveSessions(prev => {
+        const exists = prev.find(s => s.id === newSession.id);
+        if (exists) return prev;
+        return [...prev, newSession];
       });
     });
 
-    socket.on("newSession", async (newSession) => {
-      console.log("[SupportPage] Received newSession:", newSession.id);
-      setActiveSessions((prev) => filterLatestSessionsByUser([newSession, ...prev]));
-      // XÓA SESSION CŨ của user này, chỉ giữ lại session mới nhất
-      if (newSession.user?.user_id && newSession.id && session?.accessToken) {
-        await DeleteOldSessionsOfUser(newSession.user.user_id, newSession.id, session.accessToken);
+    socket.on('sessionUpdated', (updatedSession: ChatSession) => {
+      setActiveSessions(prev => 
+        prev.map(s => s.id === updatedSession.id ? updatedSession : s)
+      );
+    });
+
+    socket.on('sessionEnded', (sessionId: string) => {
+      setActiveSessions(prev => prev.filter(s => s.id !== sessionId));
+      if (selectedSessionIdRef.current === sessionId) {
+        setSelectedSessionId(null);
+        setMessages([]);
       }
     });
 
-    socket.on("sessionEnded", async (endedSessionId: string) => {
-      setActiveSessions((prev) => {
-        const updatedSessions = prev.filter(s => s.id !== endedSessionId);
-        // Xóa session đã kết thúc khỏi database
-        // deleteChatSession(endedSessionId); // This line was removed from the original file
-        return updatedSessions;
-      });
+    socket.on("message", (msg: Message) => {
+      if (msg.sessionId === selectedSessionIdRef.current) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          // Handle optimistic updates
+          const optimisticIdx = prev.findIndex(
+            (m) =>
+              m.id.startsWith('temp-') &&
+              m.senderId === msg.senderId &&
+              m.messageText === msg.messageText &&
+              Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 2000
+          );
+          if (optimisticIdx !== -1) {
+            const newMessages = [...prev];
+            newMessages[optimisticIdx] = msg;
+            return newMessages;
+          }
+          return [...prev, msg];
+        });
+      }
+    });
+
+    socket.on("history", (msgs: Message[]) => {
+      setMessages(msgs || []);
     });
 
     return () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [selectedSessionId, session?.user?.id, session?.accessToken]);
+  }, [status, session?.user?.id, session?.accessToken]);
 
-  // Auto-scroll to bottom
+  // Handle session selection
+  useEffect(() => {
+    selectedSessionIdRef.current = selectedSessionId;
+    
+    if (!selectedSessionId || !socketRef.current) {
+      return;
+    }
+    setMessages([]);
+    // Join the selected session and get history
+    socketRef.current.emit("join", { sessionId: selectedSessionId });
+    socketRef.current.emit("getHistory", selectedSessionId);
+    
+    return () => {
+      // Leave the session when switching or unmounting
+      if (socketRef.current && selectedSessionId) {
+        socketRef.current.emit("leave", { sessionId: selectedSessionId });
+      }
+    };
+  }, [selectedSessionId]);
+
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 3. Khi gửi message, chỉ gửi sessionId, messageText (không gửi object sender)
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!input.trim() || !socketRef.current || !selectedSessionId || !session?.user?.id) return;
@@ -213,41 +150,45 @@ export default function SupportPage() {
     const now = new Date().toISOString();
     const messageData = {
       sessionId: selectedSessionId,
-      message: input.trim(), // <-- must be 'message' for backend
+      message: input.trim(),
       sender: session.user.id,
       timestamp: now,
       id: tempId,
     };
-
     socketRef.current.emit('sendMessage', messageData);
     setMessages((prev) => [
       ...prev,
       {
         id: tempId,
         sessionId: selectedSessionId,
-        sender: {
-          user_id: session.user.id,
-          email: session.user.email || '',
-          username: session.user.name || '',
-          password: '',
-          avatarImg: session.user.avatarImg || null,
-          gender: session.user.gender || null,
-          birthDay: session.user.birthDay || null,
-          phoneNumber: session.user.phoneNumber || null,
-          role: session.user.role || '',
-          isOAuth: false,
-          createdAt: '',
-          updatedAt: '',
-          isBan: false,
-        },
+        senderId: session.user.id,
         messageText: input.trim(),
         timestamp: now,
       },
     ]);
     setInput('');
   };
-
   const selectedSession = activeSessions.find((s) => s.id === selectedSessionId);
+  const renderSender = (msg: Message) => {
+    if (msg.senderId === session?.user?.id) {
+      return session?.user?.name || "Admin";
+    }
+    const customer = selectedSession?.user;
+    if (customer && msg.senderId === customer.user_id) {
+      return customer.username || `Guest ${customer.user_id?.slice(-4) || selectedSession?.id?.slice(-4)}`;
+    }
+    const senderSession = activeSessions.find(s => s.user.user_id === msg.senderId);
+    if (senderSession?.user?.username) {
+      return senderSession.user.username;
+    }
+    if (senderSession?.user?.user_id) {
+      return `Guest ${senderSession.user.user_id.slice(-4)}`;
+    }
+    return `Guest ${msg.senderId?.slice(-4) || 'Unknown'}`;
+  };
+
+  const totalPages = Math.ceil(activeSessions.length / PAGE_SIZE);
+  const paginatedSessions = activeSessions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -285,7 +226,7 @@ export default function SupportPage() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {activeSessions.length === 0 ? (
+                {paginatedSessions.length === 0 ? (
                   <div className="text-center py-12">
                     <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -294,7 +235,7 @@ export default function SupportPage() {
                     <p className="text-gray-400 text-sm mt-1">Waiting for customers to reach out</p>
                   </div>
                 ) : (
-                  activeSessions.map((chatSession) => (
+                  paginatedSessions.map((chatSession) => (
                     <div
                       key={chatSession.id}
                       className={`relative group transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
@@ -302,10 +243,7 @@ export default function SupportPage() {
                           ? "ring-2 ring-blue-500 ring-opacity-50" 
                           : ""
                       }`}
-                      onClick={() => {
-                        console.log("[SupportPage] Admin selecting sessionId:", chatSession.id);
-                        setSelectedSessionId(chatSession.id);
-                      }}
+                      onClick={() => setSelectedSessionId(chatSession.id)}
                     >
                       <div className={`p-4 rounded-xl border-2 transition-all duration-300 ${
                         selectedSessionId === chatSession.id
@@ -327,15 +265,12 @@ export default function SupportPage() {
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold text-sm">
-                              {chatSession.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                              {chatSession.user?.username?.charAt(0)?.toUpperCase() || 'G'}
                             </span>
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">
-                              {chatSession.user?.username || 'Anonymous User'}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              ID: {chatSession.user?.user_id?.slice(-8) || 'Unknown'}
+                              {chatSession.user?.username || `Guest ${chatSession.user?.user_id?.slice(-4) || chatSession.id.slice(-4)}`}
                             </p>
                           </div>
                         </div>
@@ -360,6 +295,29 @@ export default function SupportPage() {
                   ))
                 )}
               </div>
+
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-4">
+                  <button
+                    className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    &lt;
+                  </button>
+                  <span className="text-sm text-gray-700">
+                    Page {page} / {totalPages}
+                  </span>
+                  <button
+                    className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                  >
+                    &gt;
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -374,16 +332,13 @@ export default function SupportPage() {
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-lg">
-                            {selectedSession.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                            {selectedSession.user?.username?.charAt(0)?.toUpperCase() || 'G'}
                           </span>
                         </div>
                         <div>
                           <h2 className="text-xl font-semibold text-white">
-                            {selectedSession.user?.username || 'Anonymous User'}
+                            {selectedSession.user?.username || `Guest ${selectedSession.user?.user_id?.slice(-4) || selectedSession.id.slice(-4)}`}
                           </h2>
-                          <p className="text-indigo-100 text-sm">
-                            User ID: {selectedSession.user?.user_id || 'Unknown'}
-                          </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -405,12 +360,11 @@ export default function SupportPage() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {messages.map((msg) => {
-                          const senderId = msg.sender?.user_id || '';
-                          const isCurrentUser = senderId === session?.user?.id;
+                        {messages.map((msg, idx) => {
+                          const isCurrentUser = msg.senderId === session?.user?.id;
                           return (
                             <div
-                              key={msg.id}
+                              key={msg.id || idx}
                               className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                             >
                               <div className={`max-w-[70%] ${isCurrentUser ? 'order-2' : 'order-1'}`}>
@@ -420,7 +374,7 @@ export default function SupportPage() {
                                       ? 'bg-blue-600 text-white' 
                                       : 'bg-gray-600 text-white'
                                   }`}>
-                                    {isCurrentUser ? 'A' : (msg.sender?.username?.charAt(0)?.toUpperCase() || 'U')}
+                                    {isCurrentUser ? (session?.user?.name?.charAt(0)?.toUpperCase() || 'A') : (selectedSession.user?.username?.charAt(0)?.toUpperCase() || 'G')}
                                   </div>
                                   <div
                                     className={`px-4 py-3 rounded-2xl shadow-sm ${
@@ -430,7 +384,7 @@ export default function SupportPage() {
                                     }`}
                                   >
                                     <div className={`text-xs mb-1 ${isCurrentUser ? 'text-blue-100' : 'text-gray-500'}`}>
-                                      {isCurrentUser ? 'You' : msg.sender?.username || `User ${senderId.slice(-8)}`}
+                                      {renderSender(msg)}
                                     </div>
                                     <div className="text-sm leading-relaxed">{msg.messageText}</div>
                                     <div className={`text-xs mt-1 ${isCurrentUser ? 'text-blue-100' : 'text-gray-400'}`}>
@@ -490,4 +444,3 @@ export default function SupportPage() {
     </div>
   );
 }
-
