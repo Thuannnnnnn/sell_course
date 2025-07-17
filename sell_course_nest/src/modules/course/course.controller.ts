@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
+import { CourseDetailResponse } from './dto/courseDetailResponse.dto';
 import { CourseService } from './course.service';
 import {
   ApiBearerAuth,
@@ -166,6 +167,23 @@ export class CourseController {
   })
   async deleteCourse(@Param('id') courseId: string): Promise<void> {
     await this.courseService.deleteCourse(courseId);
+  }
+
+  @Get('courses/details/:id')
+  @ApiOperation({ summary: 'Get course details with lessons and contents' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Successfully retrieved course details with lessons and contents.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Course not found with the given ID.',
+  })
+  async getCourseDetails(
+    @Param('id') courseId: string,
+  ): Promise<CourseDetailResponse> {
+    return this.courseService.getCourseWithLessonsAndContents(courseId);
   }
 
   @Get('getByCategory/:category_id')

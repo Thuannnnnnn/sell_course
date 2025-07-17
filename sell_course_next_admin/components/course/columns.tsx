@@ -21,7 +21,7 @@ import {
 } from "../ui/table";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Eye } from "lucide-react";
 import { Input } from "../ui/input";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -179,6 +179,14 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         const course = row.original;
         return (
           <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/course/review/${course.courseId}`)}
+            >
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">Preview</span>
+            </Button>
             <Button
               variant="ghost"
               size="icon"
