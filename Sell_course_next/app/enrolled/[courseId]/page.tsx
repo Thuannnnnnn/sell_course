@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { CourseSidebar } from "../../../components/course/CourseSidebar";
 import { LessonContent } from "../../../components/course/LessonContent";
 import { ExamComponent } from "../../../components/course/ExamComponent";
@@ -207,7 +207,7 @@ export default function CourseLearnPage() {
   };
 
   // Load exam data
-  const loadExamData = async () => {
+  const loadExamData = useCallback(async () => {
     if (!courseId) return;
 
     try {
@@ -260,7 +260,7 @@ export default function CourseLearnPage() {
       console.error("❌ Failed to load exam data:", error);
       setExamData(null);
     }
-  };
+  }, [courseId, session]);
 
   // Fetch course data from API
   useEffect(() => {
@@ -434,7 +434,7 @@ export default function CourseLearnPage() {
     };
 
     fetchCourseData();
-  }, [courseId, userId]);
+  }, [courseId, userId, loadExamData]);
 
   // Load progress data after lessons are loaded
   useEffect(() => {

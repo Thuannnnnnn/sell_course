@@ -17,6 +17,7 @@ import logo from "../../public/logo.png";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import LogoutButton from "../ui/LogoutButton";
+import { NotificationBell } from "../notifications";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -151,21 +152,25 @@ export function Navbar() {
         </NavigationMenu>
         <div className="flex items-center gap-2">
           {isLoggedIn ? (
-            <div className="relative">
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-10 w-10 rounded-full p-0"
-                  >
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={session?.user?.avatarImg} alt="@user" />
-                      <AvatarFallback>
-                        {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
+            <>
+              {/* Notification Bell */}
+              <NotificationBell userId={session?.user?.id || ''} />
+              
+              <div className="relative">
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full p-0"
+                    >
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={session?.user?.avatarImg} alt="@user" />
+                        <AvatarFallback>
+                          {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className="w-56 mr-4"
                   align="end"
@@ -194,8 +199,9 @@ export function Navbar() {
                     <LogoutButton />
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                </DropdownMenu>
+              </div>
+            </>
           ) : (
             <>
               <Link href="/auth/login">

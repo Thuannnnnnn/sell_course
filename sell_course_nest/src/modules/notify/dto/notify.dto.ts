@@ -7,6 +7,19 @@ import {
   IsUUID,
 } from 'class-validator';
 
+export enum NotificationType {
+  USER = 'USER',
+  COURSE = 'COURSE',
+  GLOBAL = 'GLOBAL',
+  ADMIN = 'ADMIN',
+  INSTRUCTOR = 'INSTRUCTOR',
+  COURSEREVIEWER = 'COURSEREVIEWER',
+  SUPPORT = 'SUPPORT',
+  CONTENTMANAGER = 'CONTENTMANAGER',
+  MARKETINGMANAGER = 'MARKETINGMANAGER',
+  ALL_STAFF = 'ALL_STAFF',
+}
+
 export class CreateNotifyDto {
   @ApiProperty({
     example: 'New Course Available',
@@ -25,12 +38,12 @@ export class CreateNotifyDto {
   message: string;
 
   @ApiProperty({
-    example: 'USER',
+    example: NotificationType.USER,
     description: 'Type of notification',
-    enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
+    enum: NotificationType,
   })
-  @IsEnum(['USER', 'COURSE', 'GLOBAL', 'ADMIN'])
-  type: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
+  @IsEnum(NotificationType)
+  type: NotificationType;
 
   @ApiProperty({
     example: false,
@@ -61,7 +74,7 @@ export class CreateNotifyDto {
 export class UpdateNotifyDto {
   title?: string;
   message?: string;
-  type?: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
+  type?: NotificationType;
   courseIds?: string[];
   userIds?: string[];
 }

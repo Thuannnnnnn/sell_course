@@ -8,6 +8,7 @@ import {
   Put,
   UploadedFiles,
   UseInterceptors,
+  Req,
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
@@ -36,6 +37,17 @@ export class CourseController {
   })
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     return await this.courseService.getAllCourses();
+  }
+
+  @Get('admin/courses/search')
+  @ApiOperation({ summary: 'Search courses for admin' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved courses.',
+  })
+  async searchCourses(@Req() req): Promise<any> {
+    const { query = '', page = 1, limit = 10 } = req.query;
+    return await this.courseService.searchCourses(query, parseInt(page), parseInt(limit));
   }
 
   @Get('instructor/courses/view_course')

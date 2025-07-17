@@ -14,6 +14,7 @@ export class UserDTO {
   user_id: string;
   email: string;
   username: string;
+  name: string; // Add name field
   avatarImg: string | null;
   gender: string;
   birthDay: string | null;
@@ -26,6 +27,7 @@ export class UserDTO {
     user_id: string;
     email: string;
     username: string;
+    name?: string; // Optional name field
     avatarImg: string | null;
     gender: string;
     birthDay: string | null;
@@ -41,14 +43,15 @@ export class UserDTO {
     this.user_id = user.user_id;
     this.email = user.email;
     this.username = user.username;
+    this.name = user.name || user.username; // Use name or fallback to username
     this.avatarImg = user.avatarImg;
     this.gender = user.gender;
     this.birthDay = user.birthDay;
     this.phoneNumber = user.phoneNumber;
     this.role = user.role;
     this.isBan = user.isBan;
-    this.permissions = user.permissions.map(
+    this.permissions = user.permissions?.map(
       (permission) => new PermissionDTO(permission),
-    );
+    ) || [];
   }
 }

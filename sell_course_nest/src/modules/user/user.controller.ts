@@ -29,6 +29,12 @@ export class UserController {
   async getAllUsers() {
     return this.userService.findAll();
   }
+
+  @Get('/admin/user/search')
+  async searchUsers(@Req() req) {
+    const { query = '', page = 1, limit = 10 } = req.query;
+    return this.userService.searchUsers(query, parseInt(page), parseInt(limit));
+  }
   /*
    * @UseGuards(JwtAuthGuard)
    * @Get('/users/:id')

@@ -291,4 +291,118 @@ export class CourseService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  async searchCourses(query: string, page: number = 1, limit: number = 0): Promise<{
+    courses: CourseResponseDTO[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    console.log('🔍 SearchCourses called with:', { query, page, limit });
+    
+    // No pagination - load all courses
+    const skip = 0;
+    
+    try {
+      const queryBuilder = this.CourseRepository.createQueryBuilder('course')
+        .leftJoinAndSelect('course.instructor', 'instructor')
+        .leftJoinAndSelect('course.category', 'category')
+        .orderBy('course.createdAt', 'DESC'); // Order by newest first - NO LIMIT
+
+      if (query && query.trim() !== '') {
+        queryBuilder.where(
+          '(LOWER(course.title) LIKE LOWER(:query) OR LOWER(course.description) LIKE LOWER(:query) OR LOWER(instructor.username) LIKE LOWER(:query))',
+          { query: `%${query.trim()}%` }
+        );
+      }
+
+      console.log('📡 Generated SQL:', queryBuilder.getSql());
+      console.log('📡 Parameters:', queryBuilder.getParameters());
+
+      const [courses, total] = await queryBuilder.getManyAndCount();
+      
+      console.log('✅ Query successful, found courses:', courses.length);
+      
+      const courseResponseDTOs = courses.map((course) => {
+        return new CourseResponseDTO(
+          course.courseId,
+          course.title,
+          course.short_description,
+          course.description,
+          course.duration,
+          course.price,
+          course.videoIntro,
+          course.thumbnail || null, // Ensure null instead of undefined
+          course.rating,
+          course.skill,
+          course.level,
+          course.status,
+          course.createdAt,
+          course.updatedAt,
+          course.instructor.user_id,
+          course.instructor.username,
+          course.instructor.avatarImg,
+          course.category.categoryId,
+          course.category.name,
+        );
+      });
+
+      return {
+        courses: courseResponseDTOs,
+        total,
+        page: 1, // Always page 1 since no pagination
+        limit: total, // Limit equals total (all items)
+        totalPages: 1 // Always 1 page since no pagination
+      };
+    } catch (error) {
+      console.error('❌ SearchCourses error:', error);
+      
+      // Fallback to simple query - NO LIMIT
+      try {
+        console.log('🔄 Trying fallback method...');
+        const courses = await this.CourseRepository.find({
+          relations: ['instructor', 'category'],
+          order: { createdAt: 'DESC' }
+        });
+        
+        const total = courses.length;
+        
+        const courseResponseDTOs = courses.map((course) => {
+          return new CourseResponseDTO(
+            course.courseId,
+            course.title,
+            course.short_description,
+            course.description,
+            course.duration,
+            course.price,
+            course.videoIntro,
+            course.thumbnail || null, // Ensure null instead of undefined
+            course.rating,
+            course.skill,
+            course.level,
+            course.status,
+            course.createdAt,
+            course.updatedAt,
+            course.instructor.user_id,
+            course.instructor.username,
+            course.instructor.avatarImg,
+            course.category.categoryId,
+            course.category.name,
+          );
+        });
+
+        return {
+          courses: courseResponseDTOs,
+          total,
+          page: 1,
+          limit: total,
+          totalPages: 1
+        };
+      } catch (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError);
+        throw fallbackError;
+      }
+    }
+  }
 }

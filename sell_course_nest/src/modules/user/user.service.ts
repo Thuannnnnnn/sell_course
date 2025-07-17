@@ -48,6 +48,103 @@ export class UserService {
         )
       : null;
   }
+
+  async searchUsers(query: string, page: number = 1, limit: number = 0): Promise<{
+    users: UserDTO[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    console.log('🔍 SearchUsers called with:', { query, page, limit });
+    
+    // No pagination - load all users
+    const skip = 0;
+    
+    try {
+      // Query with permissions relation - NO LIMIT
+      const queryBuilder = this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.permissions', 'permissions')
+        .orderBy('user.createdAt', 'DESC'); // Order by newest first
+
+      if (query && query.trim() !== '') {
+        queryBuilder.where(
+          '(LOWER(user.email) LIKE LOWER(:query) OR LOWER(user.username) LIKE LOWER(:query))',
+          { query: `%${query.trim()}%` }
+        );
+      }
+
+      // Log the generated SQL
+      console.log('📡 Generated SQL:', queryBuilder.getSql());
+      console.log('📡 Parameters:', queryBuilder.getParameters());
+
+      const [users, total] = await queryBuilder.getManyAndCount();
+      
+      console.log('✅ Query successful, found users:', users.length);
+      
+      return {
+        users: users.map(user => new UserDTO({
+          ...user,
+          phoneNumber: user.phoneNumber?.toString() ?? null,
+        })),
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      };
+    } catch (error) {
+      console.error('❌ SearchUsers error:', error);
+      
+      // Fallback to simple query without QueryBuilder
+      try {
+        console.log('🔄 Trying fallback method...');
+        const users = await this.userRepository.find({
+          skip,
+          take: limit,
+          order: { createdAt: 'DESC' }
+        });
+        
+        const total = await this.userRepository.count();
+        
+        return {
+          users: users.map(user => {
+            try {
+              return new UserDTO({
+                ...user,
+                phoneNumber: user.phoneNumber?.toString() ?? null,
+                permissions: user.permissions || [] // Ensure permissions is always an array
+              });
+            } catch (dtoError) {
+              console.error('❌ UserDTO creation error for user:', user.user_id, dtoError);
+              // Return a minimal user object if DTO fails
+              return {
+                user_id: user.user_id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                isBan: user.isBan,
+                permissions: [],
+                avatarImg: user.avatarImg,
+                name: user.username, // Use username as name fallback
+                gender: user.gender,
+                birthDay: user.birthDay,
+                phoneNumber: user.phoneNumber?.toString() ?? null,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+              };
+            }
+          }),
+          total,
+          page: 1, // Always page 1 since no pagination
+          limit: total, // Limit equals total (all items)
+          totalPages: 1 // Always 1 page since no pagination
+        };
+      } catch (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError);
+        throw fallbackError;
+      }
+    }
+  }
   async findById(userId: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { user_id: userId },
