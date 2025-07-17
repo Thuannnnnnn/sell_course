@@ -160,7 +160,7 @@ export default function CheckoutPage() {
                 ]}
               />
             )}
-            <DiscountCode onApplyDiscount={handleApplyDiscount} />
+            <DiscountCode onApplyDiscount={handleApplyDiscount} courseId={courseId as string} />
           </div>
           <div className="space-y-6">
             {course && (

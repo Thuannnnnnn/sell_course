@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/toast";
+import ChatSupportWindow from "../components/course/ChatSupportWindow";
 import { useEffect, useState } from "react";
 
 
@@ -57,6 +58,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Footer />
+            <ChatSupportWindow />
           </div>
           </ToastProvider>
         </SessionProvider>

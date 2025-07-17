@@ -7,7 +7,7 @@ import {
   QuizResult
 } from '../../app/types/Course/Lesson/content/quizz';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 class QuizAPI {
   private getAuthHeaders(token?: string) {

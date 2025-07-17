@@ -10,6 +10,8 @@ import {
   Settings,
   X,
   NotebookText,
+  Tag,
+  MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -62,6 +64,16 @@ export function Sidebar({ open, setOpen, versionId, logoUrl }: SidebarProps) {
       name: "Categories",
       href: "/categories",
       icon: NotebookText,
+    },
+    {
+      name: "Chat Support",
+      href: "/chat-support",
+      icon: MessageCircle,
+    },
+    {
+      name: "Promotions",
+      href: "/promotion",
+      icon: Tag,
     },
     {
       name: "Orders",

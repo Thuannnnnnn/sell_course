@@ -1,5 +1,6 @@
 import { PaymentModule } from './modules/payment/payment.module';
 import { MeetingModule } from './modules/meeting/meeting.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 // app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -116,6 +117,7 @@ import { SurveyResponseModule } from './modules/survey-response/survey-response.
       isGlobal: true,
       store: redisStore,
       host: process.env.REDIS_HOST,
+      password: process.env.REDIS_PASSWORD,
       port: 6379,
       ttl: 300,
     }),
@@ -233,6 +235,7 @@ import { SurveyResponseModule } from './modules/survey-response/survey-response.
     MeetingModule,
     OtpModule,
     EnrollmentModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

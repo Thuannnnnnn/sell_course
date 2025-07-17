@@ -1,6 +1,12 @@
 // promotion.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsNotEmpty,
+  IsOptional,
+  IsDateString,
+} from 'class-validator';
 
 export class CreatePromotionDto {
   @ApiProperty({ description: 'Promotion name' })
@@ -22,6 +28,16 @@ export class CreatePromotionDto {
   @IsString()
   @IsNotEmpty()
   courseId: string;
+
+  @ApiProperty({ description: 'Start date', required: false })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiProperty({ description: 'End date', required: false })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
 }
 
 export class UpdatePromotionDto {
@@ -36,4 +52,18 @@ export class UpdatePromotionDto {
   @ApiProperty({ description: 'Promotion code', required: false })
   @IsString()
   code?: string;
+
+  @ApiProperty({ description: 'Course ID', required: false })
+  @IsString()
+  courseId?: string;
+
+  @ApiProperty({ description: 'Start date', required: false })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiProperty({ description: 'End date', required: false })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
 }
