@@ -61,6 +61,7 @@ export default function CourseDetailPage({
           setIsCheckingEnrollment(true);
           const response = await checkEnrollmentServer(params.courseId);
           setIsEnrolled(response.enrolled);
+          console.log("Enrollment check response:", response);
         } catch (error) {
           console.error("Error checking enrollment:", error);
         } finally {
@@ -410,10 +411,12 @@ export default function CourseDetailPage({
                     )}
                   </div>
 
-                  {/* Price */}
+                  {/* Price */} 
                   <div className="text-center mb-6">
                     <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                      {course.price} VND
+                      {isEnrolled && (
+                        <p className="text-lg">{course.price} VND</p>
+                      )}
                     </div>
                     <p className="text-gray-600">{course.short_description}</p>
                   </div>
