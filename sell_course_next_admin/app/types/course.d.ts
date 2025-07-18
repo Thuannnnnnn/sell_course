@@ -1,3 +1,11 @@
+export enum CourseStatus {
+  DRAFT = 'DRAFT',
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  PUBLISHED = 'PUBLISHED',
+  ARCHIVED = 'ARCHIVED',
+  REJECTED = 'REJECTED'
+}
+
 export interface Course {
   courseId: string;
   title: string;
@@ -6,7 +14,7 @@ export interface Course {
   short_description: string;
   description: string;
   price: number;
-  status: "Published" | "Draft" | "Pending" | "Processing" | "Rejected";
+  status: CourseStatus;
   updatedAt: string;
   duration: number;
   skill: "Beginner" | "Intermediate" | "Advanced";

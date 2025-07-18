@@ -52,6 +52,7 @@ const formSchema = z.object({
   thumbnail: isBrowser ? z.instanceof(FileList).optional() : z.any().optional(),
   skill: z.string(),
   level: z.string(),
+  status: z.string(),
   instructorId: z.string(),
   categoryId: z.string(),
 });
@@ -74,6 +75,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
       price: 0,
       skill: "",
       level: "",
+      status:"",
       instructorId: session?.user?.id || "",
       categoryId: "",
     },
@@ -95,6 +97,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
           price: course.price || 0,
           skill: course.skill || "Beginner",
           level: course.level?.toString() || "",
+          status: course.status?.toString() || "",
           instructorId: course.instructorId || session?.user?.id || "",
           categoryId: course.categoryId?.toString() || "",
         });
@@ -117,7 +120,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
     formData.append("price", data.price.toString());
     formData.append("skill", data.skill);
     formData.append("level", data.level);
-    formData.append("status", "true");
+    formData.append("status", data.status);
     formData.append("instructorId", data.instructorId);
     formData.append("categoryId", data.categoryId);
     if (data.thumbnail?.[0]) formData.append("thumbnail", data.thumbnail[0]);

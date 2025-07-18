@@ -1,3 +1,5 @@
+import { CourseStatus } from '../enums/course-status.enum';
+
 export interface CourseContentResponse {
   contentId: string;
   contentName: string;
@@ -73,7 +75,7 @@ export interface CourseDetailResponse {
   rating: number;
   skill: string;
   level: string;
-  status: boolean;
+  status: CourseStatus;
   createdAt: Date;
   updatedAt: Date;
   instructor: {

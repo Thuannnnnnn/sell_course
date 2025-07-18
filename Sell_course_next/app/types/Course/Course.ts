@@ -1,3 +1,11 @@
+export enum CourseStatus {
+  DRAFT = 'DRAFT',
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  PUBLISHED = 'PUBLISHED',
+  ARCHIVED = 'ARCHIVED',
+  REJECTED = 'REJECTED'
+}
+
 export interface Course {
   courseId: string;
   title: string;
@@ -10,7 +18,7 @@ export interface Course {
   rating: number;
   skill: string;
   level: string;
-  status: boolean;
+  status: CourseStatus;
   createdAt: string;
   updatedAt: string;
   instructorId: string;
@@ -30,7 +38,7 @@ export interface CourseRequestDTO {
   price: number;
   skill: string;
   level: string;
-  status?: boolean;
+  status?: CourseStatus;
 }
 
 export interface CourseResponseDTO {
@@ -45,7 +53,7 @@ export interface CourseResponseDTO {
   rating: number;
   skill: string;
   level: string;
-  status: boolean;
+  status: CourseStatus;
   createdAt: string;
   updatedAt: string;
   instructorId: string;

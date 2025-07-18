@@ -5,6 +5,8 @@ import { Injectable } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseDetailResponse } from './dto/courseDetailResponse.dto';
+import { UpdateCourseStatusDto, ReviewCourseStatusDto } from './dto/update-course-status.dto';
+import { CourseStatus } from './enums/course-status.enum';
 import { User } from '../user/entities/user.entity';
 import { Category } from '../category/entities/category.entity';
 import { Lesson } from '../lesson/entities/lesson.entity';
@@ -175,7 +177,7 @@ export class CourseService {
       rating: 0,
       skill: course.skill,
       level: course.level,
-      status: course.status ?? false,
+      status: course.status ?? CourseStatus.DRAFT,
     });
 
     return {
@@ -480,5 +482,121 @@ export class CourseService {
         0,
       ),
     };
+  }
+
+  // Update course status by course creator (only DRAFT <-> PENDING_REVIEW)
+  async updateCourseStatus(
+    courseId: string,
+    updateStatusDto: UpdateCourseStatusDto,
+    instructorId: string,
+  ): Promise<{ message: string }> {
+    const course = await this.CourseRepository.findOne({
+      where: { courseId },
+      relations: ['instructor'],
+    });
+
+    if (!course) {
+      throw new HttpException('Course not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Verify the instructor owns this course
+    if (course.instructor.user_id !== instructorId) {
+      throw new HttpException(
+        'You can only update status of your own courses',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // Check if current status allows this transition
+    const allowedTransitions = {
+      [CourseStatus.DRAFT]: [CourseStatus.PENDING_REVIEW],
+      [CourseStatus.PENDING_REVIEW]: [CourseStatus.DRAFT],
+      [CourseStatus.REJECTED]: [CourseStatus.PENDING_REVIEW], // Allow resubmission after rejection
+    };
+
+    if (!allowedTransitions[course.status]?.includes(updateStatusDto.status)) {
+      throw new HttpException(
+        `Cannot change status from ${course.status} to ${updateStatusDto.status}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    course.status = updateStatusDto.status;
+    await this.CourseRepository.save(course);
+
+    return {
+      message: `Course status updated to ${updateStatusDto.status}`,
+    };
+  }
+
+  // Review course status by admin (PUBLISHED or REJECTED)
+  async reviewCourseStatus(
+    courseId: string,
+    reviewStatusDto: ReviewCourseStatusDto,
+  ): Promise<{ message: string }> {
+    const course = await this.CourseRepository.findOne({
+      where: { courseId },
+    });
+
+    if (!course) {
+      throw new HttpException('Course not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Only courses in PENDING_REVIEW can be reviewed
+    if (course.status !== CourseStatus.PENDING_REVIEW) {
+      throw new HttpException(
+        'Only courses in PENDING_REVIEW status can be reviewed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    course.status = reviewStatusDto.status;
+    
+    // You can add rejection reason to course entity if needed
+    // For now, we'll just update the status
+    
+    await this.CourseRepository.save(course);
+
+    const action =
+      reviewStatusDto.status === CourseStatus.PUBLISHED
+        ? 'approved'
+        : 'rejected';
+    return {
+      message: `Course ${action} successfully`,
+    };
+  }
+
+  // Get courses by status for admin review
+  async getCoursesByStatus(status: CourseStatus): Promise<CourseResponseDTO[]> {
+    const courses = await this.CourseRepository.find({
+      where: { status },
+      relations: ['instructor', 'category'],
+    });
+
+    return courses.map((course) => this.mapCourseToResponseDTO(course));
+  }
+
+  private mapCourseToResponseDTO(course: Course): CourseResponseDTO {
+    return new CourseResponseDTO(
+      course.courseId,
+      course.title,
+      course.short_description,
+      course.description,
+      course.duration,
+      course.price,
+      course.videoIntro,
+      course.thumbnail,
+      course.rating,
+      course.skill,
+      course.level,
+      course.status,
+      course.createdAt,
+      course.updatedAt,
+      course.instructor.user_id,
+      course.instructor.username,
+      course.instructor.avatarImg,
+      course.category.categoryId,
+      course.category.name,
+    );
   }
 }
