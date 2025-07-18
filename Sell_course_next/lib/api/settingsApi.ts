@@ -1,11 +1,11 @@
-import { ApiResponse } from "app/types/api-response";
+import { ApiResponse } from "../../app/types/setting";
 import {
   BannerSetting,
   CreateVersionSettingDto,
   LogoSetting,
   UpdateVersionSettingDto,
   VersionSetting,
-} from "app/types/setting";
+} from "../../app/types/setting";
 import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";

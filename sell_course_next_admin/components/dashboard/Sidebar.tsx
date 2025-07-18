@@ -91,8 +91,8 @@ export function Sidebar({ open, setOpen, versionId, logoUrl }: SidebarProps) {
       icon: FilePlus,
     },
     {
-      name: "Students",
-      href: "/students",
+      name: "User",
+      href: "/users",
       icon: Users,
     },
     {
