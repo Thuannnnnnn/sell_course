@@ -26,6 +26,7 @@ import Image from "next/image";
 import { ScheduleItem } from "@/app/types/learningPath/learningPath";
 import improvedLearningPathApi from "@/app/api/learningPath/learningPathAPI";
 import UserScheduleDisplay from "../UserScheduleDisplay";
+import GoogleCalendarIntegration from "../GoogleCalendarIntegration";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -36,7 +37,15 @@ export function ProfileInfo() {
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
+  const [selectedWeekItems, setSelectedWeekItems] = useState<ScheduleItem[]>(
+    []
+  );
+  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number | null>(
+    null
+  );
+  const [calendarMode, setCalendarMode] = useState<"single" | "week">("single");
   const coverImage =
     "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?q=80&w=1470&auto=format&fit=crop";
 
@@ -103,6 +112,29 @@ export function ProfileInfo() {
 
     fetchUserProfile();
   }, [session, sessionStatus]);
+  const handleAddToCalendar = (item: ScheduleItem) => {
+    setSelectedItem(item);
+    setSelectedWeekItems([]);
+    setSelectedWeekNumber(null);
+    setCalendarMode("single");
+    setShowCalendarModal(true);
+  };
+  const handleAddWeekToCalendar = (
+    weekNumber: number,
+    items: ScheduleItem[]
+  ) => {
+    setSelectedItem(null);
+    setSelectedWeekItems(items);
+    setSelectedWeekNumber(weekNumber);
+    setCalendarMode("week");
+    setShowCalendarModal(true);
+  };
+  const closeCalendarModal = () => {
+    setShowCalendarModal(false);
+    setSelectedItem(null);
+    setSelectedWeekItems([]);
+    setSelectedWeekNumber(null);
+  };
 
   if (sessionStatus === "loading" || loading) {
     return (
@@ -189,8 +221,32 @@ export function ProfileInfo() {
           showHeader={true}
           showFilters={true}
           isLoading={isLoading}
+          onAddToCalendar={handleAddToCalendar}
+          onAddWeekToCalendar={handleAddWeekToCalendar}
           className="bg-white rounded-lg shadow-lg p-6"
-        />  
+        />
+        {showCalendarModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <GoogleCalendarIntegration
+                  scheduleItem={
+                    calendarMode === "single"
+                      ? selectedItem !== null
+                        ? selectedItem
+                        : undefined
+                      : undefined
+                  }
+                  scheduleItems={
+                    calendarMode === "week" ? selectedWeekItems : []
+                  }
+                  weekNumber={selectedWeekNumber || undefined}
+                  onClose={closeCalendarModal}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </section>
       {/* Main Profile Card */}
       <div className="grid lg:grid-cols-3 gap-8">
@@ -292,7 +348,6 @@ export function ProfileInfo() {
                 </div>
               </CardContent>
             </Card>
-
 
             <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-green-100 hover:shadow-2xl transition-all duration-300 group">
               <CardContent className="p-6">
