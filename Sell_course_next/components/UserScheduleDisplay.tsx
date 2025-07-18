@@ -11,14 +11,14 @@ import {
   Target,
   AlertCircle,
   CheckCircle2,
-  Play,
-  Plus,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
   CalendarPlus,
   TrendingUp,
   Award,
+  Hourglass,
+  Plus,
 } from "lucide-react";
 import {
   ScheduleItem,
@@ -49,7 +49,6 @@ interface ScheduleFilter {
   dayOfWeek?: number;
   courseId?: string;
   searchTerm?: string;
-  completionStatus?: "all" | "completed" | "incomplete" | "in-progress";
 }
 
 interface WeekInfo {
@@ -218,30 +217,6 @@ export default function EnhancedUserScheduleDisplay({
       return false;
     if (filter.courseId && item.courseId !== filter.courseId) return false;
 
-    if (filter.completionStatus && filter.completionStatus !== "all") {
-      const completedContents = item.contentIds.filter((contentId) => {
-        const content = contentProgress.get(contentId);
-        return content?.isCompleted || false;
-      }).length;
-
-      const completionRate =
-        item.contentIds.length > 0
-          ? (completedContents / item.contentIds.length) * 100
-          : 0;
-
-      switch (filter.completionStatus) {
-        case "completed":
-          if (completionRate < 100) return false;
-          break;
-        case "incomplete":
-          if (completionRate > 0) return false;
-          break;
-        case "in-progress":
-          if (completionRate === 0 || completionRate === 100) return false;
-          break;
-      }
-    }
-
     if (filter.searchTerm) {
       const searchLower = filter.searchTerm.toLowerCase();
       const contentNames = item.contentIds
@@ -299,7 +274,6 @@ export default function EnhancedUserScheduleDisplay({
   };
 
   const getScheduleStatus = (item: ScheduleItem) => {
-    const now = new Date();
     const scheduleDate = new Date(item.scheduledDate);
     const [hours, minutes] = item.startTime.split(":").map(Number);
     const scheduleDateTime = new Date(scheduleDate);
@@ -308,10 +282,8 @@ export default function EnhancedUserScheduleDisplay({
     const endDateTime = new Date(scheduleDateTime);
     endDateTime.setMinutes(endDateTime.getMinutes() + item.durationMin);
 
-    if (now < scheduleDateTime) {
-      return { status: "upcoming", icon: Clock, color: "text-blue-500" };
-    } else if (now >= scheduleDateTime && now <= endDateTime) {
-      return { status: "ongoing", icon: Play, color: "text-green-500" };
+    if (contentProgress.values().some((c) => c.isCompleted == false)) {
+      return { status: "Uncompleted", icon: Hourglass, color: "text-blue-500" };
     } else {
       return {
         status: "completed",
@@ -659,21 +631,6 @@ export default function EnhancedUserScheduleDisplay({
           </select>
 
           {/* Completion Status Filter */}
-          <select
-            value={filter.completionStatus || "all"}
-            onChange={(e) =>
-              setFilter({
-                ...filter,
-                completionStatus: e.target.value as ScheduleFilter["completionStatus"],
-              })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="completed">Đã hoàn thành</option>
-            <option value="in-progress">Đang học</option>
-            <option value="incomplete">Chưa bắt đầu</option>
-          </select>
 
           {/* Course Filter (if multiple courses) */}
           {availableCourses.length > 1 && (
@@ -698,8 +655,7 @@ export default function EnhancedUserScheduleDisplay({
         {(filter.searchTerm ||
           filter.weekNumber ||
           filter.dayOfWeek !== undefined ||
-          filter.courseId ||
-          (filter.completionStatus && filter.completionStatus !== "all")) && (
+          filter.courseId) && (
           <div className="mt-3 flex justify-end">
             <button
               onClick={() => setFilter({})}

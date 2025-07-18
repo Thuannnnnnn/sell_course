@@ -1,4 +1,7 @@
-import { ContentData, ContentResponse } from "@/app/types/Course/Lesson/Lessons";
+import {
+  ContentData,
+  ContentResponse,
+} from "@/app/types/Course/Lesson/Lessons";
 import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -45,7 +48,7 @@ export const fetchContentsByIds = async (
 ): Promise<ContentResponse[]> => {
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/contents/view_content`,
+      `${API_BASE_URL}/api/admin/contents/view_content`,
       contentIds,
       {
         headers: {
