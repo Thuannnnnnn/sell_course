@@ -300,11 +300,7 @@ export function ExamComponent({
                   </li>
                   <li className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                    You need 70% or higher to pass and earn certification
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                    You can retake the exam multiple times if needed
+                    You need 80% or higher to pass and earn certification
                   </li>
                 </ul>
               </div>
