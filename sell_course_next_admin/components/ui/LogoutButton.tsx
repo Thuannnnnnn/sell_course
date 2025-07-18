@@ -3,6 +3,7 @@
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LogoutButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +14,7 @@ export default function LogoutButton() {
       await signOut({ callbackUrl: "/" });
     } catch (error) {
       console.error("Logout error:", error);
+      toast.error("Failed to logout. Please try again.");
       setIsLoading(false);
     }
   };

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { quizApi } from '../app/api/quiz/quiz';
 import { QuizFormData, CreateQuizDto } from '../app/types/quiz';
 import { convertQuizFormToDto, convertQuizToFormDataArray, validateQuizFormDataArray } from '../lib/quiz-utils';
+import { toast } from 'sonner';
 
 export interface UseQuizOptions {
   courseId?: string;
@@ -164,6 +165,7 @@ export const useQuiz = (options: UseQuizOptions): UseQuizReturn => {
         const newQuiz = await quizApi.createQuiz(courseId, lessonId, contentId, quizData);
         setSuccess('Quiz created successfully!');
         setNewQuizId(newQuiz.quizzId);
+        toast.success('Quiz created successfully!');
 
       }
       
@@ -172,6 +174,7 @@ export const useQuiz = (options: UseQuizOptions): UseQuizReturn => {
       const error = err as Error & { response?: { data?: { message?: string } } };
       console.error('Save quiz error:', error);
       setError(error.response?.data?.message || error.message || 'Failed to save quiz');
+      toast.error(error.response?.data?.message || error.message || 'Failed to save quiz');
     } finally {
       setSaving(false);
     }

@@ -35,7 +35,7 @@ export function FeaturedCoursesSection() {
         
         // Transform the data and take only the first 4 courses for featured section
         const transformedCourses = coursesData
-          .filter(course => course.status === true) // Only show active courses
+          .filter(course => course.status === 'PUBLISHED') // Only show published courses
           .slice(0, 4) // Limit to 4 courses for featured section
           .map(transformCourseData);
         

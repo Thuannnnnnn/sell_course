@@ -15,7 +15,6 @@ const TestDashboardApi: React.FC = () => {
   const testEndpoint = async (name: string, apiCall: () => Promise<unknown>) => {
     setLoading(prev => ({ ...prev, [name]: true }));
     setErrors(prev => ({ ...prev, [name]: '' }));
-    
     try {
       const result = await apiCall();
       setResults(prev => ({ ...prev, [name]: result }));
