@@ -23,6 +23,9 @@ import { useRouter } from "next/navigation";
 import { EditProfileModal } from "./EditProfileModal";
 import { UserProfile } from "@/app/types/profile/editProfile";
 import Image from "next/image";
+import { ScheduleItem } from "@/app/types/learningPath/learningPath";
+import improvedLearningPathApi from "@/app/api/learningPath/learningPathAPI";
+import UserScheduleDisplay from "../UserScheduleDisplay";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -31,6 +34,8 @@ export function ProfileInfo() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const coverImage =
     "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?q=80&w=1470&auto=format&fit=crop";
@@ -38,6 +43,33 @@ export function ProfileInfo() {
   const coursesEnrolled = 0;
   const wishlistedCourses = 0;
   const completedCourses = 0;
+
+  useEffect(() => {
+    // Simulate loading data
+    const loadScheduleData = async () => {
+      try {
+        setIsLoading(true);
+
+        // In real app, you would fetch from API:
+        const response = await improvedLearningPathApi.getLearningPlansByUserId(
+          session?.user?.id || ""
+        );
+        if (response.success && response.data) {
+          const allScheduleItems = response.data.flatMap(
+            (plan) => plan.scheduleItems.scheduleData
+          );
+          setScheduleItems(allScheduleItems);
+        }
+      } catch (err) {
+        setError("Failed to load schedule data");
+        console.error("Error loading schedule:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadScheduleData();
+  }, [session?.user?.id]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -145,10 +177,21 @@ export function ProfileInfo() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-6 left-6 text-white">
           <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-          <p className="text-lg opacity-90">Manage your account settings and preferences</p>
+          <p className="text-lg opacity-90">
+            Manage your account settings and preferences
+          </p>
         </div>
       </div>
-
+      <section>
+        <UserScheduleDisplay
+          scheduleItems={scheduleItems}
+          userId="a517dfd7-1e59-4177-b4de-f4ba549e46b8"
+          showHeader={true}
+          showFilters={true}
+          isLoading={isLoading}
+          className="bg-white rounded-lg shadow-lg p-6"
+        />  
+      </section>
       {/* Main Profile Card */}
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Left Column - Profile Info */}
@@ -191,12 +234,12 @@ export function ProfileInfo() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-center gap-2 text-gray-600">
                     <Mail className="h-4 w-4" />
                     <span className="text-sm">{userProfile?.email}</span>
                   </div>
-                  
+
                   {userProfile?.createdAt && (
                     <div className="flex items-center justify-center gap-2 text-gray-500">
                       <Clock className="h-4 w-4" />
@@ -250,6 +293,7 @@ export function ProfileInfo() {
               </CardContent>
             </Card>
 
+
             <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-green-100 hover:shadow-2xl transition-all duration-300 group">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -295,8 +339,8 @@ export function ProfileInfo() {
                   <User className="h-5 w-5 text-blue-500" />
                   Personal Information
                 </h3>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   onClick={() => setShowEditModal(true)}
                   className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
@@ -305,7 +349,7 @@ export function ProfileInfo() {
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
-              
+
               <div className="grid gap-6">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200">
                   <div className="flex items-center gap-3">
@@ -314,7 +358,9 @@ export function ProfileInfo() {
                     </div>
                     <div>
                       <p className="font-medium text-gray-800">Gender</p>
-                      <p className="text-sm text-gray-500">Your gender identity</p>
+                      <p className="text-sm text-gray-500">
+                        Your gender identity
+                      </p>
                     </div>
                   </div>
                   <span className="text-gray-700 font-medium">
@@ -366,9 +412,7 @@ export function ProfileInfo() {
           onClose={() => setShowEditModal(false)}
           user={userProfile}
           token={session?.accessToken || ""}
-          onProfileUpdated={(updatedProfile) =>
-            setUserProfile(updatedProfile)
-          }
+          onProfileUpdated={(updatedProfile) => setUserProfile(updatedProfile)}
         />
       )}
     </div>

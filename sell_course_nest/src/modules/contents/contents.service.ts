@@ -75,6 +75,14 @@ export class ContentService {
     });
   }
 
+  async getContentsByContentIds(contentIds: string[]) {
+    return await this.contentRepository.find({
+      where: {
+        contentId: In(contentIds),
+      },
+    });
+  }
+
   async deleteContent(contentId: string) {
     // First, check if content exists
     const content = await this.contentRepository.findOne({
@@ -91,28 +99,27 @@ export class ContentService {
       relations: ['questions', 'questions.answers'],
     });
 
-
-
     // Count and delete in correct order: quizz_store -> answers -> questions -> quizzes -> content
     let deletedQuizzStoreCount = 0;
-    
+
     for (const quiz of quizzes) {
-      
       // First, count and delete all quiz store records for this quiz
-      const quizzStoreCount = await this.quizzStoreRepository.count({ 
-        where: { quizz: { quizzId: quiz.quizzId } } 
+      const quizzStoreCount = await this.quizzStoreRepository.count({
+        where: { quizz: { quizzId: quiz.quizzId } },
       });
       deletedQuizzStoreCount += quizzStoreCount;
-      
-      await this.quizzStoreRepository.delete({ quizz: { quizzId: quiz.quizzId } });
-      
+
+      await this.quizzStoreRepository.delete({
+        quizz: { quizzId: quiz.quizzId },
+      });
+
       // Delete all answers for this quiz's questions
       for (const question of quiz.questions || []) {
         if (question.answers && question.answers.length > 0) {
           await this.answerRepository.remove(question.answers);
         }
       }
-      
+
       // Delete all questions for this quiz
       if (quiz.questions && quiz.questions.length > 0) {
         await this.questionRepository.remove(quiz.questions);
@@ -127,12 +134,12 @@ export class ContentService {
     // Finally delete the content
 
     const result = await this.contentRepository.delete(contentId);
-    
+
     if (result.affected === 0) {
       throw new HttpException('Content not found', HttpStatus.NOT_FOUND);
     }
 
-    return { 
+    return {
       message: 'Content deleted successfully',
       deletedQuizzes: quizzes.length,
       deletedQuizzStoreRecords: deletedQuizzStoreCount,
