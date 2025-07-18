@@ -11,7 +11,14 @@ import {
 } from "../../../components/ui/tabs";
 import { Button } from "../../../components/ui/button";
 import { Progress } from "../../../components/ui/progress";
-import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpen,
+  Brain,
+  Eye,
+  GraduationCap,
+  Loader2,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { courseApi, contentApi } from "../../api/courses/lessons/lessons";
 import { examApi } from "../../api/courses/exam/exam";
@@ -42,6 +49,23 @@ import {
   CompletedCountResponse,
 } from "@/app/types/Progress/progress";
 import { useSession } from "next-auth/react";
+import LearningPathModal, {
+  LearningPathInput,
+} from "@/components/course/LearningPathModal";
+import improvedLearningPathApi from "@/app/api/learningPath/learningPathAPI";
+import {
+  isLearningPathData,
+  isLearningPlan,
+  LearningPathData,
+} from "@/app/types/learningPath/learningPath";
+import UpdatedLearningPathDisplay from "@/components/course/LearningPathDisplay";
+
+interface LearningPathState {
+  data: LearningPathData | null;
+  planId: string | null;
+  isExisting: boolean;
+  isLoading: boolean;
+}
 
 // Enhanced types for progress tracking
 interface LessonWithProgress extends LessonResponse {
@@ -99,11 +123,64 @@ export default function CourseLearnPage() {
     new Set()
   );
 
+  // Learning Path states
+  const [showLearningPathModal, setShowLearningPathModal] = useState(false);
+  const [showLearningPathDisplay, setShowLearningPathDisplay] = useState(false);
+  const [learningPathState, setLearningPathState] = useState<LearningPathState>(
+    {
+      data: null,
+      planId: null,
+      isExisting: false,
+      isLoading: false,
+    }
+  );
+  const [isCreatingLearningPath, setIsCreatingLearningPath] = useState(false);
+  const [currentLearningPathInput, setCurrentLearningPathInput] =
+    useState<LearningPathInput | null>(null);
+  const [hasExistingPlan, setHasExistingPlan] = useState<boolean | null>(null);
+  const [isCheckingPlan, setIsCheckingPlan] = useState(false);
+
   // Exam State
   const [examData, setExamData] = useState<ExamData | null>(null);
   const [userExamResults, setUserExamResults] =
     useState<UserExamResults | null>(null);
 
+  // Check for existing learning plan
+  useEffect(() => {
+    const checkExistingPlan = async () => {
+      if (!userId || !userId) {
+        setHasExistingPlan(false);
+        return;
+      }
+
+      try {
+        setIsCheckingPlan(true);
+        if (!userId) {
+          setHasExistingPlan(false);
+          setIsCheckingPlan(false);
+          return;
+        }
+        const response = await improvedLearningPathApi.hasLearningPlanForCourse(
+          userId,
+          courseId
+        );
+
+        if (response.success) {
+          setHasExistingPlan(response.data || false);
+        } else {
+          console.error("Error checking existing plan:", response.error);
+          setHasExistingPlan(false);
+        }
+      } catch (error) {
+        console.error("Error checking existing plan:", error);
+        setHasExistingPlan(false);
+      } finally {
+        setIsCheckingPlan(false);
+      }
+    };
+
+    checkExistingPlan();
+  }, [userId, courseId]);
   // Load all progress data for the course
   const loadProgressData = async () => {
     if (!userId || lessons.length === 0) return;
@@ -206,6 +283,147 @@ export default function CourseLearnPage() {
     }
   };
 
+  // Learning Path handlers
+  const handleCreateLearningPath = () => {
+    if (!session) {
+      alert("Vui lòng đăng nhập để tạo Learning Path");
+      return;
+    }
+    setShowLearningPathModal(true);
+  };
+
+  const handleViewLearningPath = async () => {
+    if (!session?.user?.id) {
+      alert("Vui lòng đăng nhập để xem Learning Path");
+      return;
+    }
+
+    try {
+      setLearningPathState((prev) => ({ ...prev, isLoading: true }));
+
+      const response =
+        await improvedLearningPathApi.getLatestLearningPathForCourse(
+          session.user.id,
+          courseId
+        );
+
+      if (response.success && response.data) {
+        // Get plan ID
+        const planResponse =
+          await improvedLearningPathApi.getLatestLearningPlanForCourse(
+            session.user.id,
+            courseId
+          );
+
+        setLearningPathState({
+          data: response.data,
+          planId: planResponse.data?.planId || null,
+          isExisting: true,
+          isLoading: false,
+        });
+        setShowLearningPathDisplay(true);
+      } else {
+        alert(response.error || "Không tìm thấy Learning Path");
+        setLearningPathState((prev) => ({ ...prev, isLoading: false }));
+      }
+    } catch (error) {
+      console.error("Error viewing learning path:", error);
+      alert("Có lỗi xảy ra khi tải Learning Path");
+      setLearningPathState((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const handleLearningPathSubmit = async (
+    learningPathInput: LearningPathInput
+  ) => {
+    setIsCreatingLearningPath(true);
+    try {
+      // Store input for later use when saving
+      setCurrentLearningPathInput(learningPathInput);
+
+      // Call API to generate learning path
+      const response = await improvedLearningPathApi.generateLearningPath(
+        learningPathInput
+      );
+
+      if (response.success && response.data) {
+        if (!isLearningPathData(response.data)) {
+          throw new Error("Invalid learning path data format");
+        }
+
+        setLearningPathState({
+          data: response.data,
+          planId: null,
+          isExisting: false,
+          isLoading: false,
+        });
+        setShowLearningPathModal(false);
+        setShowLearningPathDisplay(true);
+      } else {
+        alert(response.error || "Có lỗi xảy ra khi tạo Learning Path");
+      }
+    } catch (error) {
+      console.error("Error creating learning path:", error);
+      alert("Có lỗi xảy ra khi tạo Learning Path");
+    } finally {
+      setIsCreatingLearningPath(false);
+    }
+  };
+
+  const handleSaveLearningPath = async (
+    data: LearningPathData
+  ): Promise<void> => {
+    if (!session?.user?.id || !currentLearningPathInput) {
+      throw new Error("Không thể lưu Learning Path. Vui lòng thử lại.");
+    }
+
+    if (!isLearningPathData(data)) {
+      throw new Error("Invalid learning path data format");
+    }
+
+    try {
+      let response;
+
+      if (learningPathState.planId) {
+        // Update existing learning path
+        response = await improvedLearningPathApi.updateLearningPath(
+          learningPathState.planId,
+          data
+        );
+      } else {
+        // Save new learning path
+        response = await improvedLearningPathApi.saveLearningPath(
+          session.user.id,
+          courseId,
+          data,
+          currentLearningPathInput
+        );
+      }
+
+      if (response.success && response.data) {
+        if (!isLearningPlan(response.data)) {
+          throw new Error("Invalid learning plan response format");
+        }
+
+        setLearningPathState((prev) => ({
+          ...prev,
+          data: data,
+          planId: response.data!.planId,
+          isExisting: true,
+        }));
+
+        // Update hasExistingPlan state
+        setHasExistingPlan(true);
+
+        alert("Learning Path đã được lưu thành công!");
+      } else {
+        throw new Error(response.error || "Failed to save learning path");
+      }
+    } catch (error) {
+      console.error("Error saving learning path:", error);
+      throw error;
+    }
+  };
   // Load exam data
   const loadExamData = async () => {
     if (!courseId) return;
@@ -434,6 +652,7 @@ export default function CourseLearnPage() {
     };
 
     fetchCourseData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, userId]);
 
   // Load progress data after lessons are loaded
@@ -659,6 +878,64 @@ export default function CourseLearnPage() {
     );
   }
 
+  const renderLearningPathButton = () => {
+    if (!session) return null;
+
+    if (isCheckingPlan) {
+      return (
+        <Button
+          disabled
+          className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg mt-3"
+        >
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          Đang kiểm tra...
+        </Button>
+      );
+    }
+
+    if (hasExistingPlan) {
+      return (
+        <Button
+          onClick={handleViewLearningPath}
+          disabled={learningPathState.isLoading}
+          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-2xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 mt-3"
+        >
+          {learningPathState.isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              Đang tải...
+            </>
+          ) : (
+            <>
+              <Eye className="w-5 h-5 mr-2" />
+              Xem Learning Path
+            </>
+          )}
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        onClick={handleCreateLearningPath}
+        disabled={isCreatingLearningPath}
+        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-2xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 mt-3"
+      >
+        {isCreatingLearningPath ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            Đang tạo...
+          </>
+        ) : (
+          <>
+            <Brain className="w-5 h-5 mr-2" />
+            Tạo Learning Path
+          </>
+        )}
+      </Button>
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
@@ -683,7 +960,9 @@ export default function CourseLearnPage() {
               </div>
               <Progress value={courseProgress} className="h-2" />
             </div>
-            <Button>Continue Learning</Button>
+            {/* Action Buttons */}
+            <div className="mb-6 space-y-3">{renderLearningPathButton()}</div>
+
           </div>
         </div>
       </header>
@@ -764,6 +1043,28 @@ export default function CourseLearnPage() {
         </main>
       </div>
       <div className="fixed bottom-6 right-6 z-50"></div>
+      {/* Learning Path Modal */}
+      <LearningPathModal
+        isOpen={showLearningPathModal}
+        onClose={() => setShowLearningPathModal(false)}
+        onSubmit={handleLearningPathSubmit}
+        courseId={courseId}
+        userId={session?.user?.id || ""}
+        userName={session?.user?.name || "Nguyễn Văn A"}
+      />
+
+      {/* Learning Path Display */}
+      {learningPathState.data && (
+        <UpdatedLearningPathDisplay
+          isOpen={showLearningPathDisplay}
+          onClose={() => setShowLearningPathDisplay(false)}
+          onSave={handleSaveLearningPath}
+          data={learningPathState.data}
+          isEditable={true}
+          planId={learningPathState.planId}
+          isExisting={learningPathState.isExisting}
+        />
+      )}
     </div>
   );
 }

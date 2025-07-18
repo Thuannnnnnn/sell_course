@@ -1,401 +1,756 @@
+import axios, { AxiosResponse, AxiosError } from "axios";
 import {
   ApiResponse,
-  LearningPathAnswers,
+  LearningPlan,
+  CreateLearningPlanRequest,
+  UpdateLearningPlanRequest,
+  DeleteResult,
+  LearningPathInput,
   LearningPathData,
-} from "@/app/types/learningPath/learningPath";
-import axios from "axios";
+  N8nPayload,
+  transformLearningPathInputToCreateRequest,
+  transformLearningPlanToLearningPathData,
+  transformLearningPathDataToUpdateRequest,
+  transformToN8nFormat,
+  transformFromN8nResponse,
+  validateLearningPathInput,
+  validateCreateLearningPlanRequest,
+  isLearningPlan,
+  isLearningPathData,
+} from "./../../types/learningPath/learningPath";
 
-class LearningPathApi {
-  private baseURL: string;
-  private n8nWebhookURL: string;
+interface LearningPathApiConfig {
+  baseURL: string;
+  apiPath: string;
+  n8nWebhookURL: string;
+}
+
+class ImprovedLearningPathApi {
+  private config: LearningPathApiConfig;
 
   constructor() {
-    // Thay đổi URL này theo API backend của bạn
-    this.baseURL =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+    this.config = {
+      baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+      apiPath: "/learningPath",
+      n8nWebhookURL:
+        process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL ||
+        "https://n8n.coursemaster.io.vn/webhook/generate-learning-path",
+    };
+  }
 
-    // n8n webhook URL for learning path generation
-    this.n8nWebhookURL =
-      "https://n8n.coursemaster.io.vn/webhook/generate-learning-path";
+  private getFullUrl(endpoint: string = ""): string {
+    return `${this.config.baseURL}${this.config.apiPath}${endpoint}`;
+  }
+
+  private async handleRequest<T>(
+    requestPromise: Promise<AxiosResponse<T>>
+  ): Promise<ApiResponse<T>> {
+    try {
+      const response = await requestPromise;
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error("API Error:", error);
+
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+
+        let errorMessage = "Có lỗi xảy ra khi gọi API";
+
+        if (axiosError.code === "ECONNABORTED") {
+          errorMessage = "Timeout khi gọi API. Vui lòng thử lại.";
+        } else if (axiosError.response?.status === 404) {
+          errorMessage = "Không tìm thấy tài nguyên yêu cầu.";
+        } else if (axiosError.response?.status === 401) {
+          errorMessage = "Không có quyền truy cập. Vui lòng đăng nhập lại.";
+        } else if (axiosError.response?.status === 403) {
+          errorMessage = "Không có quyền thực hiện thao tác này.";
+        } else if (
+          axiosError.response?.status &&
+          axiosError.response.status >= 500
+        ) {
+          errorMessage = "Lỗi server. Vui lòng thử lại sau.";
+        } else if (axiosError.response?.data) {
+          const responseData = axiosError.response.data as Record<
+            string,
+            unknown
+          >;
+          errorMessage =
+            (responseData.message as string) ||
+            (responseData.error as string) ||
+            errorMessage;
+        }
+
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Có lỗi không xác định xảy ra",
+      };
+    }
+  }
+
+  // ===== CORE CRUD OPERATIONS =====
+
+  /**
+   * Tạo learning plan mới
+   * POST /learningPath
+   */
+  async createLearningPlan(
+    planData: CreateLearningPlanRequest
+  ): Promise<ApiResponse<LearningPlan>> {
+    // Validate input
+    const validationErrors = validateCreateLearningPlanRequest(planData);
+    if (validationErrors.length > 0) {
+      return {
+        success: false,
+        error: `Validation errors: ${validationErrors.join(", ")}`,
+      };
+    }
+
+    const request = axios.post<LearningPlan>(this.getFullUrl(), planData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return this.handleRequest(request);
   }
 
   /**
-   * Tạo learning path dựa trên câu trả lời của người dùng thông qua n8n webhook
+   * Lấy tất cả learning plans
+   * GET /learningPath/getAll
    */
-  async createLearningPath(
-    answers: LearningPathAnswers
-  ): Promise<ApiResponse<LearningPathData>> {
-    try {
-      // Transform answers to the new format expected by n8n
-      const n8nPayload = this.transformToN8nFormat(answers);
+  async getAllLearningPlans(): Promise<ApiResponse<LearningPlan[]>> {
+    const request = axios.get<LearningPlan[]>(this.getFullUrl("/getAll"));
 
-      const response = await axios.post(this.n8nWebhookURL, n8nPayload, {
+    return this.handleRequest(request);
+  }
+
+  /**
+   * Lấy learning plan theo ID
+   * GET /learningPath/getById/:id
+   */
+  async getLearningPlanById(id: string): Promise<ApiResponse<LearningPlan>> {
+    if (!id || typeof id !== "string") {
+      return {
+        success: false,
+        error: "Learning plan ID is required and must be a string",
+      };
+    }
+
+    const request = axios.get<LearningPlan>(
+      this.getFullUrl(`/getById/${encodeURIComponent(id)}`)
+    );
+
+    return this.handleRequest(request);
+  }
+
+  /**
+   * Lấy learning plans theo user ID
+   * GET /learningPath/user/:userId
+   */
+  async getLearningPlansByUserId(
+    userId: string
+  ): Promise<ApiResponse<LearningPlan[]>> {
+    if (!userId || typeof userId !== "string") {
+      return {
+        success: false,
+        error: "User ID is required and must be a string",
+      };
+    }
+
+    const request = axios.get<LearningPlan[]>(
+      this.getFullUrl(`/user/${encodeURIComponent(userId)}`)
+    );
+
+    return this.handleRequest(request);
+  }
+
+  /**
+   * Cập nhật learning plan
+   * PUT /learningPath/update/:id
+   */
+  async updateLearningPlan(
+    id: string,
+    updateData: UpdateLearningPlanRequest
+  ): Promise<ApiResponse<LearningPlan>> {
+    if (!id || typeof id !== "string") {
+      return {
+        success: false,
+        error: "Learning plan ID is required and must be a string",
+      };
+    }
+
+    const request = axios.put<LearningPlan>(
+      this.getFullUrl(`/update/${encodeURIComponent(id)}`),
+      updateData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return this.handleRequest(request);
+  }
+
+  /**
+   * Xóa learning plan
+   * DELETE /learningPath/delete/:id
+   */
+  async deleteLearningPlan(id: string): Promise<ApiResponse<DeleteResult>> {
+    if (!id || typeof id !== "string") {
+      return {
+        success: false,
+        error: "Learning plan ID is required and must be a string",
+      };
+    }
+
+    const request = axios.delete<DeleteResult>(
+      this.getFullUrl(`/delete/${encodeURIComponent(id)}`)
+    );
+
+    return this.handleRequest(request);
+  }
+
+  // ===== ENHANCED OPERATIONS =====
+
+  /**
+   * Tạo learning path thông qua n8n webhook (improved version)
+   */
+  async generateLearningPath(
+    learningPathInput: LearningPathInput
+  ): Promise<ApiResponse<LearningPathData>> {
+    // Validate input
+    const validationErrors = validateLearningPathInput(learningPathInput);
+    if (validationErrors.length > 0) {
+      return {
+        success: false,
+        error: `Validation errors: ${validationErrors.join(", ")}`,
+      };
+    }
+
+    try {
+      // Transform input to n8n format
+      const n8nPayload: N8nPayload = transformToN8nFormat(learningPathInput);
+
+      console.log("Sending to n8n:", JSON.stringify(n8nPayload, null, 2));
+
+      const response = await axios.post(this.config.n8nWebhookURL, n8nPayload, {
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      const transformedData = this.transformFromN8nResponse(response.data);
+      console.log("Response from n8n:", JSON.stringify(response.data, null, 2));
+
+      const transformedData = transformFromN8nResponse(response.data);
+
+      if (!isLearningPathData(transformedData)) {
+        return {
+          success: false,
+          error: "Invalid response format from n8n service",
+        };
+      }
 
       return {
         success: true,
         data: transformedData,
       };
     } catch (error) {
-      console.error("Error creating learning path via n8n:", error);
+      console.error("Error generating learning path via n8n:", error);
+
+      let errorMessage = "Không thể tạo learning path. Vui lòng thử lại.";
+
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+
+        if (axiosError.code === "ECONNABORTED") {
+          errorMessage = "Timeout khi tạo learning path. Vui lòng thử lại.";
+        } else if (axiosError.response?.status === 404) {
+          errorMessage = "Không tìm thấy service tạo learning path.";
+        } else if (
+          axiosError.response?.status &&
+          axiosError.response.status >= 500
+        ) {
+          errorMessage = "Lỗi server khi tạo learning path.";
+        }
+      }
+
       return {
         success: false,
+        error: errorMessage,
       };
     }
   }
 
   /**
-   * Transform frontend answers to n8n expected format
-   */
-  private transformToN8nFormat(answers: LearningPathAnswers) {
-    const timeMap: Record<
-      LearningPathAnswers["answers"]["time_availability"],
-      number
-    > = {
-      "Dưới 30 phút": 0.5,
-      "30-60 phút": 1,
-      "1-2 giờ": 1.5,
-      "2-3 giờ": 2.5,
-      "Trên 3 giờ": 4,
-    };
-
-    const dayMap: Record<string, number> = {
-      "Chủ nhật": 0,
-      "Thứ 2": 1,
-      "Thứ 3": 2,
-      "Thứ 4": 3,
-      "Thứ 5": 4,
-      "Thứ 6": 5,
-      "Thứ 7": 6,
-    };
-
-    const timeSlotMap: Record<
-      LearningPathAnswers["answers"]["preferred_time"],
-      string
-    > = {
-      "Sáng sớm (6:00-9:00)": "07:00",
-      "Buổi sáng (9:00-12:00)": "09:00",
-      "Buổi chiều (12:00-17:00)": "14:00",
-      "Buổi tối (17:00-21:00)": "18:00",
-      "Tối muộn (21:00-24:00)": "21:00",
-    };
-
-    const dailyHours = timeMap[answers.answers.time_availability];
-    const preferredDays = answers.answers.preferred_days || [
-      "Thứ 2",
-      "Thứ 4",
-      "Thứ 6",
-    ];
-    const studyHoursPerWeek = dailyHours * preferredDays.length;
-    const startTime = timeSlotMap[answers.answers.preferred_time];
-
-    const availableSlots = preferredDays.map((day) => ({
-      day_of_week: dayMap[day] ?? 1,
-      start_time: startTime,
-      duration: Math.round(dailyHours * 60),
-    }));
-
-    const allDays = [0, 1, 2, 3, 4, 5, 6];
-    const preferredDayNumbers = preferredDays.map((day) => dayMap[day]);
-    const noStudyDays = allDays.filter(
-      (day) => !preferredDayNumbers.includes(day)
-    );
-
-    return {
-      userId: "temp-user-id",
-      name: answers.answers.name,
-      level: answers.answers.difficulty_preference,
-      study_goal: answers.answers.learning_goal,
-      study_hours_per_week: studyHoursPerWeek,
-      total_weeks: 4,
-      max_minutes_per_day: Math.round(dailyHours * 60),
-      no_study_days: noStudyDays,
-      experience: answers.answers.special_requirements,
-      available_slots: availableSlots,
-      course_ids: answers.courseId,
-      start_date: new Date().toISOString().split("T")[0],
-    };
-  }
-
- 
-  private transformFromN8nResponse(n8nData: LearningPathData): LearningPathData {
-    // Assuming n8n returns data in a specific format
-    // You may need to adjust this based on actual n8n response structure
-    return {
-      scheduleItems: {
-        scheduleData: n8nData.scheduleItems?.scheduleData || [],
-        narrativeText: n8nData.scheduleItems?.narrativeText || [],
-      },
-    };
-  }
-
-  /**
-   * Lưu learning path đã chỉnh sửa vào backend
+   * Lưu learning path đã được generate vào backend
    */
   async saveLearningPath(
     userId: string,
     courseId: string,
     data: LearningPathData,
-    answers: LearningPathAnswers
-  ): Promise<ApiResponse<any>> {
-    try {
-      // Transform LearningPathData to match backend DTO structure
-      const createLearningPlanDto = this.transformToBackendDto(
-        userId,
-        courseId,
-        data,
-        answers
-      );
-
-      const response = await axios.post(
-        `${this.baseURL}/learningPath`,
-        createLearningPlanDto,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+    input: LearningPathInput
+  ): Promise<ApiResponse<LearningPlan>> {
+    if (!userId || typeof userId !== "string") {
       return {
-        success: true,
-        data: response.data,
+        success: false,
+        error: "User ID is required and must be a string",
       };
+    }
+
+    if (!courseId || typeof courseId !== "string") {
+      return {
+        success: false,
+        error: "Course ID is required and must be a string",
+      };
+    }
+
+    if (!isLearningPathData(data)) {
+      return {
+        success: false,
+        error: "Invalid learning path data format",
+      };
+    }
+
+    try {
+      // Transform to backend DTO format
+      const createRequest = transformLearningPathInputToCreateRequest(
+        input,
+        courseId
+      );
+
+      // Add generated data
+      createRequest.narrativeTemplates = data.scheduleItems.narrativeText;
+      createRequest.scheduleItems = data.scheduleItems.scheduleData;
+
+      console.log("Saving to backend:", JSON.stringify(createRequest, null, 2));
+
+      const response = await this.createLearningPlan(createRequest);
+
+      if (!response.success || !response.data) {
+        return {
+          success: false,
+          error: response.error || "Failed to save learning path",
+        };
+      }
+
+      if (!isLearningPlan(response.data)) {
+        return {
+          success: false,
+          error: "Invalid response format from backend",
+        };
+      }
+
+      return response;
     } catch (error) {
       console.error("Error saving learning path:", error);
       return {
         success: false,
-      }
+        error: "Có lỗi xảy ra khi lưu learning path",
+      };
     }
   }
 
   /**
-   * Transform LearningPathData to backend DTO format
-   */
-  private transformToBackendDto(
-    userId: string,
-    courseId: string,
-    data: LearningPathData,
-    answers: LearningPathAnswers
-  ) {
-    // Extract constraints from answers
-    const constraints = [];
-
-    // Add time availability constraint
-    if (answers.answers.time_availability) {
-      constraints.push({
-        type: "time_availability",
-        key: "daily_hours",
-        value: answers.answers.time_availability,
-      });
-    }
-
-    // Add preferred days constraint
-    if (answers.answers.preferred_days) {
-      answers.answers.preferred_days.forEach((day: string, index: number) => {
-        constraints.push({
-          type: "preferred_days",
-          key: index.toString(),
-          value: day,
-        });
-      });
-    }
-
-    // Add preferred time constraint
-    if (answers.answers.preferred_time) {
-      constraints.push({
-        type: "preferred_time",
-        key: "time_slot",
-        value: answers.answers.preferred_time,
-      });
-    }
-
-    // Extract preferences from answers
-    const preferences = [];
-
-    if (answers.answers.learning_style) {
-      preferences.push({
-        type: "learning_style",
-        key: "style",
-        value: answers.answers.learning_style,
-      });
-    }
-
-    if (answers.answers.difficulty_preference) {
-      preferences.push({
-        type: "difficulty_preference",
-        key: "level",
-        value: answers.answers.difficulty_preference,
-      });
-    }
-
-    if (answers.answers.special_requirements) {
-      preferences.push({
-        type: "special_requirements",
-        key: "requirements",
-        value: answers.answers.special_requirements,
-      });
-    }
-
-    // Calculate total weeks from schedule data
-    const totalWeeks = Math.max(
-      ...data.scheduleItems.scheduleData.map((item) => item.weekNumber),
-      1
-    );
-
-    return {
-      userId,
-      courseId,
-      studyGoal: answers.answers.learning_goal || "Học tập hiệu quả",
-      totalWeeks,
-      constraints,
-      preferences,
-      narrativeTemplates: data.scheduleItems.narrativeText,
-      scheduleItems: data.scheduleItems.scheduleData,
-    };
-  }
-
-  /**
-   * Lấy learning path theo ID
+   * Lấy learning path theo ID và transform sang format hiển thị
    */
   async getLearningPath(
     learningPathId: string
   ): Promise<ApiResponse<LearningPathData>> {
     try {
-      const response = await axios.get(
-        `${this.baseURL}/learningPath/getById/${learningPathId}`
-      );
+      const response = await this.getLearningPlanById(learningPathId);
 
-      // Transform backend response to frontend format
-      const transformedData = this.transformFromBackendResponse(response.data);
+      if (!response.success || !response.data) {
+        return {
+          success: false,
+          error: response.error || "Không tìm thấy learning path",
+        };
+      }
+
+      if (!isLearningPlan(response.data)) {
+        return {
+          success: false,
+          error: "Invalid learning plan format",
+        };
+      }
+
+      const transformedData = transformLearningPlanToLearningPathData(
+        response.data
+      );
 
       return {
         success: true,
         data: transformedData,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching learning path:", error);
       return {
         success: false,
-        error:
-          error.response?.data?.message ||
-          "Có lỗi xảy ra khi tải learning path",
+        error: "Có lỗi xảy ra khi tải learning path",
       };
     }
   }
 
   /**
-   * Lấy danh sách learning path của người dùng cho khóa học cụ thể
+   * Lấy learning paths của user cho course cụ thể
    */
   async getUserLearningPathsForCourse(
     userId: string,
     courseId: string
-  ): Promise<ApiResponse<any[]>> {
-    try {
-      const response = await axios.get(
-        `${this.baseURL}/learningPath/user/${userId}`
-      );
+  ): Promise<ApiResponse<LearningPlan[]>> {
+    if (!userId || typeof userId !== "string") {
+      return {
+        success: false,
+        error: "User ID is required and must be a string",
+      };
+    }
 
-      // Filter by course ID
-      const coursePaths = response.data.filter(
-        (plan: any) =>
-          plan.courseId === courseId || plan.course?.courseId === courseId
+    if (!courseId || typeof courseId !== "string") {
+      return {
+        success: false,
+        error: "Course ID is required and must be a string",
+      };
+    }
+
+    try {
+      const response = await this.getLearningPlansByUserId(userId);
+
+      if (!response.success || !response.data) {
+        return response;
+      }
+
+      const filteredPlans = response.data.filter(
+        (plan) => plan.courseId === courseId
       );
 
       return {
         success: true,
-        data: coursePaths,
+        data: filteredPlans,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching user learning paths:", error);
       return {
         success: false,
-        error:
-          error.response?.data?.message ||
-          "Có lỗi xảy ra khi tải danh sách learning path",
+        error: "Có lỗi xảy ra khi tải danh sách learning path",
       };
     }
   }
 
   /**
-   * Transform backend response to frontend LearningPathData format
-   */
-  private transformFromBackendResponse(backendData: any): LearningPathData {
-    return {
-      scheduleItems: {
-        scheduleData: backendData.scheduleItems?.scheduleData || [],
-        narrativeText:
-          backendData.scheduleItems?.narrativeText ||
-          backendData.narrativeTemplates ||
-          [],
-      },
-    };
-  }
-
-  /**
-   * Cập nhật learning path đã chỉnh sửa
+   * Cập nhật learning path với data mới
    */
   async updateLearningPath(
     learningPathId: string,
     data: LearningPathData
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<LearningPlan>> {
+    if (!learningPathId || typeof learningPathId !== "string") {
+      return {
+        success: false,
+        error: "Learning path ID is required and must be a string",
+      };
+    }
+
+    if (!isLearningPathData(data)) {
+      return {
+        success: false,
+        error: "Invalid learning path data format",
+      };
+    }
+
     try {
-      const response = await axios.put(
-        `${this.baseURL}/learningPath/update/${learningPathId}`,
-        {
-          narrativeTemplates: data.scheduleItems.narrativeText,
-          scheduleItems: data.scheduleItems.scheduleData,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const updateRequest = transformLearningPathDataToUpdateRequest(data);
+      const response = await this.updateLearningPlan(
+        learningPathId,
+        updateRequest
       );
 
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error: any) {
+      if (!response.success || !response.data) {
+        return {
+          success: false,
+          error: response.error || "Failed to update learning path",
+        };
+      }
+
+      if (!isLearningPlan(response.data)) {
+        return {
+          success: false,
+          error: "Invalid response format from backend",
+        };
+      }
+
+      return response;
+    } catch (error) {
       console.error("Error updating learning path:", error);
       return {
         success: false,
-        error:
-          error.response?.data?.message ||
-          "Có lỗi xảy ra khi cập nhật learning path",
+        error: "Có lỗi xảy ra khi cập nhật learning path",
+      };
+    }
+  }
+
+  // ===== UTILITY METHODS =====
+
+  /**
+   * Kiểm tra xem user đã có learning plan cho course chưa
+   */
+  async hasLearningPlanForCourse(
+    userId: string,
+    courseId: string
+  ): Promise<ApiResponse<boolean>> {
+    try {
+      const response = await this.getUserLearningPathsForCourse(
+        userId,
+        courseId
+      );
+
+      if (!response.success) {
+        return {
+          success: false,
+          error: response.error,
+        };
+      }
+
+      const hasPlans = response.data && response.data.length > 0;
+
+      return {
+        success: true,
+        data: hasPlans,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Có lỗi xảy ra khi kiểm tra learning plan" + error,
       };
     }
   }
 
   /**
-   * Xóa learning path
+   * Lấy learning plan mới nhất của user cho course
    */
-  async deleteLearningPath(learningPathId: string): Promise<ApiResponse<void>> {
+  async getLatestLearningPlanForCourse(
+    userId: string,
+    courseId: string
+  ): Promise<ApiResponse<LearningPlan | null>> {
     try {
-      await axios.delete(
-        `${this.baseURL}/learningPath/delete/${learningPathId}`
+      const response = await this.getUserLearningPathsForCourse(
+        userId,
+        courseId
+      );
+
+      if (!response.success || !response.data) {
+        return {
+          success: response.success,
+          error: response.error,
+          data: null,
+        };
+      }
+
+      if (response.data.length === 0) {
+        return {
+          success: true,
+          data: null,
+        };
+      }
+
+      // Sắp xếp theo thời gian tạo và lấy cái mới nhất
+      const latestPlan = response.data.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+
+      if (!isLearningPlan(latestPlan)) {
+        return {
+          success: false,
+          error: "Invalid learning plan format",
+          data: null,
+        };
+      }
+
+      return {
+        success: true,
+        data: latestPlan,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Có lỗi xảy ra khi lấy learning plan mới nhất" + error,
+        data: null,
+      };
+    }
+  }
+
+  /**
+   * Lấy learning path mới nhất của user cho course (format hiển thị)
+   */
+  async getLatestLearningPathForCourse(
+    userId: string,
+    courseId: string
+  ): Promise<ApiResponse<LearningPathData | null>> {
+    try {
+      const response = await this.getLatestLearningPlanForCourse(
+        userId,
+        courseId
+      );
+
+      if (!response.success || !response.data) {
+        return {
+          success: response.success,
+          error: response.error,
+          data: null,
+        };
+      }
+
+      const transformedData = transformLearningPlanToLearningPathData(
+        response.data
       );
 
       return {
         success: true,
+        data: transformedData,
       };
-    } catch (error: any) {
-      console.error("Error deleting learning path:", error);
+    } catch (error) {
       return {
         success: false,
-        error:
-          error.response?.data?.message ||
-          "Có lỗi xảy ra khi xóa learning path",
+        error: "Có lỗi xảy ra khi lấy learning path mới nhất" + error,
+        data: null,
+      };
+    }
+  }
+
+  /**
+   * Kiểm tra và lấy learning path hiện có hoặc tạo mới
+   */
+  async getOrCreateLearningPath(
+    userId: string,
+    courseId: string,
+    input?: LearningPathInput
+  ): Promise<
+    ApiResponse<{
+      data: LearningPathData;
+      planId: string | null;
+      isExisting: boolean;
+    }>
+  > {
+    try {
+      // Kiểm tra xem đã có learning path chưa
+      const existingResponse = await this.getLatestLearningPathForCourse(
+        userId,
+        courseId
+      );
+
+      if (existingResponse.success && existingResponse.data) {
+        const latestPlanResponse = await this.getLatestLearningPlanForCourse(
+          userId,
+          courseId
+        );
+
+        return {
+          success: true,
+          data: {
+            data: existingResponse.data,
+            planId: latestPlanResponse.data?.planId || null,
+            isExisting: true,
+          },
+        };
+      }
+
+      // Nếu chưa có và có input, tạo mới
+      if (input) {
+        const generateResponse = await this.generateLearningPath(input);
+
+        if (!generateResponse.success || !generateResponse.data) {
+          return {
+            success: false,
+            error: generateResponse.error || "Failed to generate learning path",
+          };
+        }
+
+        return {
+          success: true,
+          data: {
+            data: generateResponse.data,
+            planId: null,
+            isExisting: false,
+          },
+        };
+      }
+
+      // Nếu chưa có và không có input
+      return {
+        success: true,
+        data: {
+          data: {
+            scheduleItems: {
+              scheduleData: [],
+              narrativeText: [],
+            },
+          },
+          planId: null,
+          isExisting: false,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Có lỗi xảy ra khi kiểm tra hoặc tạo learning path" + error,
+      };
+    }
+  }
+
+  // ===== CONFIGURATION METHODS =====
+
+  /**
+   * Cập nhật cấu hình API
+   */
+  updateConfig(newConfig: Partial<LearningPathApiConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+  }
+
+  /**
+   * Lấy cấu hình hiện tại
+   */
+  getConfig(): LearningPathApiConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Kiểm tra kết nối API
+   */
+  async checkConnection(): Promise<ApiResponse<boolean>> {
+    try {
+      const response = await axios.get(this.getFullUrl("/getAll"), {
+        timeout: 5000,
+      });
+
+      return {
+        success: true,
+        data: response.status === 200,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Không thể kết nối đến API server" + error,
+        data: false,
       };
     }
   }
 }
 
-const learningPathApi = new LearningPathApi();
-export default learningPathApi;
+// Export singleton instance
+const improvedLearningPathApi = new ImprovedLearningPathApi();
+export default improvedLearningPathApi;
+
+// Export class for custom instances if needed
+export { ImprovedLearningPathApi };

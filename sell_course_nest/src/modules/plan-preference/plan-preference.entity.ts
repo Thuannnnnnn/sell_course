@@ -20,3 +20,4 @@ export class PlanPreference {
   @Column()
   weight: number;
 }
+

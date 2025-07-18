@@ -4,14 +4,14 @@ import React, { useEffect, useState } from "react";
 import { X, ChevronRight, ChevronLeft, BookOpen, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
-
-interface QuestionOption {
-  optionId: string;
-  text: string;
+import { RawQuestion } from "@/app/types/learningPath/learningPath";
+export interface AvailableSlot {
+  day_of_week: number;
+  start_time: string;
+  duration: number;
 }
 
-// Định nghĩa interface cho JSON output
-interface LearningPathOutput {
+export interface LearningPathInput {
   userId: string;
   name: string;
   level: "beginner" | "intermediate" | "advanced" | "expert";
@@ -21,64 +21,39 @@ interface LearningPathOutput {
   max_minutes_per_day: number;
   no_study_days: number[];
   experience: string;
-  available_slots: {
-    day_of_week: number;
-    start_time: string;
-    duration: number;
-  }[];
+  available_slots: AvailableSlot[];
   course_ids: string;
   start_date: string;
-}
-
-// Cập nhật LearningPathAnswers để khớp với LearningPathOutput
-export interface LearningPathAnswers extends LearningPathOutput {
-  // Các trường từ câu hỏi khảo sát gốc nếu cần giữ lại để xử lý nội bộ
-  // Ví dụ: nếu bạn muốn giữ lại các giá trị thô từ form trước khi chuyển đổi
-  // difficulty_preference: "beginner" | "intermediate" | "advanced";
-  // time_availability: string;
-  // preferred_days: string[];
-  // preferred_time: string;
-  // special_requirements: string;
-  timestamp: string;
-}
-
-interface RawQuestion {
-  id: keyof LearningPathAnswers;
-  questionText: string;
-  type: "single" | "multiple" | "text";
-  required: boolean;
-  options: QuestionOption[];
-}
-
-interface Question {
-  id: keyof LearningPathAnswers;
-  question: string;
-  type: "single" | "multiple" | "text";
-  options?: string[];
-  required?: boolean;
 }
 
 interface LearningPathModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (answers: LearningPathAnswers) => void;
+  onSubmit: (answers: LearningPathInput) => void;
   courseId: string;
+  userId: string;
+  userName: string;
 }
 
-const defaultAnswers: LearningPathAnswers = {
-  userId: "",
-  name: "",
-  level: "beginner",
-  study_goal: "",
-  study_hours_per_week: 0,
-  total_weeks: 0,
-  max_minutes_per_day: 0,
-  no_study_days: [],
-  experience: "",
-  available_slots: [],
-  course_ids: "",
-  start_date: "",
-  timestamp: new Date().toISOString(),
+// Survey answers state
+interface SurveyAnswers {
+  learning_goal: string;
+  time_availability: string;
+  preferred_days: string[];
+  preferred_time: string;
+  learning_style: string;
+  difficulty_level: string;
+  special_requirements: string;
+}
+
+const defaultSurveyAnswers: SurveyAnswers = {
+  learning_goal: "",
+  time_availability: "",
+  preferred_days: [],
+  preferred_time: "",
+  learning_style: "",
+  difficulty_level: "",
+  special_requirements: "",
 };
 
 export default function LearningPathModal({
@@ -86,10 +61,12 @@ export default function LearningPathModal({
   onClose,
   onSubmit,
   courseId,
+  userId,
+  userName,
 }: LearningPathModalProps) {
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<RawQuestion[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<LearningPathAnswers>(defaultAnswers);
+  const [answers, setAnswers] = useState<SurveyAnswers>(defaultSurveyAnswers);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -99,14 +76,7 @@ export default function LearningPathModal({
         const res = await axios.get<RawQuestion[]>(
           `${process.env.NEXT_PUBLIC_API_URL}/survey-questions`
         );
-        const parsed: Question[] = res.data.map((q) => ({
-          id: q.id,
-          question: q.questionText,
-          type: q.type,
-          required: q.required,
-          options: q.options?.map((opt) => opt.text) ?? [],
-        }));
-        setQuestions(parsed);
+        setQuestions(res.data);
       } catch (error) {
         console.error("Failed to fetch questions:", error);
       } finally {
@@ -116,17 +86,43 @@ export default function LearningPathModal({
     if (isOpen) fetchQuestions();
   }, [isOpen]);
 
-  cocurrentQuestion = questions[currentStep];
+  const currentQuestion = questions[currentStep];
   const isLastStep = currentStep === questions.length - 1;
+
+  // Map question IDs to answer keys
+  const getAnswerKey = (questionId: string): keyof SurveyAnswers => {
+    switch (questionId) {
+      case "a6f51238-237c-4d43-95ad-bb8db6dc7e3a":
+        return "learning_goal";
+      case "2de3fe94-04cb-40cb-9f13-2d950fa525cf":
+        return "time_availability";
+      case "bf5fb3cb-a993-448a-80ab-613ea9f3715a":
+        return "preferred_days";
+      case "0e5d3d82-c201-4eef-86f1-fc1b92f97bb7":
+        return "preferred_time";
+      case "f1a8f0ea-6bd7-4a66-a36e-1f087a121073":
+        return "learning_style";
+      case "adb34cf4-fc42-47a2-9559-4a343cb40636":
+        return "difficulty_level";
+      case "9d68bf30-bb4a-470a-9aea-c9352d1c7d04":
+        return "special_requirements";
+      default:
+        return "learning_goal";
+    }
+  };
+
+  const currentAnswerKey = currentQuestion
+    ? getAnswerKey(currentQuestion.id)
+    : "learning_goal";
   const canProceed =
     currentQuestion &&
-    (!currentQuestion.required || answers[currentQuestion.id]);
+    (!currentQuestion.required ||
+      (currentQuestion.type === "multiple"
+        ? (answers[currentAnswerKey] as string[])?.length > 0
+        : answers[currentAnswerKey]));
 
-  const handleAnswer = (
-    questionId: keyof LearningPathAnswers,
-    answer: string | string[]
-  ) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  const handleAnswer = (answer: string | string[]) => {
+    setAnswers((prev) => ({ ...prev, [currentAnswerKey]: answer }));
   };
 
   const handleNext = () => {
@@ -137,11 +133,10 @@ export default function LearningPathModal({
     if (currentStep > 0) setCurrentStep((prev) => prev - 1);
   };
 
-   const convertToLearningPathInput = (
-    surveyAnswers: LearningPathSurveyAnswers,
-    newInput: any // This will be the new input structure provided by the user
+  const convertToLearningPathInput = (
+    surveyAnswers: SurveyAnswers
   ): LearningPathInput => {
-    // Map level from survey answers
+    // Level mapping
     const levelMapping: Record<
       string,
       "beginner" | "intermediate" | "advanced" | "expert"
@@ -152,7 +147,7 @@ export default function LearningPathModal({
       "Chuyên sâu - Muốn nâng cao kỹ năng chuyên môn": "expert",
     };
 
-    // Map thời gian học thành phút
+    // Time mapping (in minutes)
     const timeMapping: Record<string, number> = {
       "Dưới 30 phút": 25,
       "30-60 phút": 45,
@@ -161,7 +156,7 @@ export default function LearningPathModal({
       "Trên 3 giờ": 180,
     };
 
-    // Map thời gian trong ngày thành giờ bắt đầu
+    // Time slot mapping
     const timeSlotMapping: Record<string, string> = {
       "Sáng sớm (6:00-9:00)": "06:00",
       "Buổi sáng (9:00-12:00)": "09:00",
@@ -170,7 +165,7 @@ export default function LearningPathModal({
       "Tối muộn (21:00-24:00)": "21:00",
     };
 
-    // Map ngày trong tuần
+    // Day mapping
     const dayMapping: Record<string, number> = {
       "Thứ 2": 2,
       "Thứ 3": 3,
@@ -181,64 +176,36 @@ export default function LearningPathModal({
       "Chủ nhật": 1,
     };
 
-    // Determine max_minutes_per_day from survey answers if not provided in new input
-    const maxMinutesPerDay =
-      newInput.max_minutes_per_day ||
-      timeMapping[surveyAnswers.time_availability] ||
-      90;
+    const maxMinutesPerDay = timeMapping[surveyAnswers.time_availability] || 90;
+    const selectedDays = surveyAnswers.preferred_days
+      .map((day) => dayMapping[day])
+      .filter((day): day is number => day !== undefined);
 
-    // Determine no_study_days and available_slots from new input or survey answers
-    let noStudyDays: number[] = [];
-    let availableSlots: AvailableSlot[] = [];
+    const allDays = [1, 2, 3, 4, 5, 6, 7];
+    const noStudyDays = allDays.filter((day) => !selectedDays.includes(day));
 
-    if (newInput.available_slots && newInput.available_slots.length > 0) {
-      availableSlots = newInput.available_slots;
-      const allDays = [1, 2, 3, 4, 5, 6, 7];
-      const studyDays = new Set(availableSlots.map((slot) => slot.day_of_week));
-      noStudyDays = allDays.filter((day) => !studyDays.has(day));
-    } else if (surveyAnswers.preferred_days && surveyAnswers.preferred_time) {
-      const selectedDays = surveyAnswers.preferred_days
-        .map((day) => dayMapping[day])
-        .filter(Boolean);
-      const allDays = [1, 2, 3, 4, 5, 6, 7];
-      noStudyDays = allDays.filter((day) => !selectedDays.includes(day));
+    const availableSlots: AvailableSlot[] = selectedDays.map((dayOfWeek) => ({
+      day_of_week: dayOfWeek,
+      start_time: timeSlotMapping[surveyAnswers.preferred_time] || "09:00",
+      duration: maxMinutesPerDay,
+    }));
 
-      availableSlots = selectedDays.map((dayOfWeek) => ({
-        day_of_week: dayOfWeek,
-        start_time: timeSlotMapping[surveyAnswers.preferred_time] || "09:00",
-        duration: maxMinutesPerDay,
-      }));
-    } else {
-      // Fallback if neither new input nor survey answers provide enough info
-      // This should ideally not happen if survey is properly filled
-      noStudyDays = newInput.no_study_days || [];
-      availableSlots = newInput.available_slots || [];
-    }
-
-    // Calculate study_hours_per_week based on available_slots
     const studyHoursPerWeek =
       availableSlots.reduce((sum, slot) => sum + slot.duration, 0) / 60;
 
     return {
-      userId: newInput.userId || surveyAnswers.userId || "",
-      name: newInput.name || surveyAnswers.name || "",
-      level:
-        newInput.level ||
-        levelMapping[surveyAnswers.difficulty_preference] ||
-        "beginner",
-      study_goal: newInput.study_goal || surveyAnswers.learning_goal || "",
+      userId: userId, // This should be set from user context
+      name: userName, // This should be set from user context
+      level: levelMapping[surveyAnswers.difficulty_level] || "beginner",
+      study_goal: surveyAnswers.learning_goal || "",
       study_hours_per_week: parseFloat(studyHoursPerWeek.toFixed(1)),
-      total_weeks: newInput.total_weeks || surveyAnswers.total_weeks || 4,
+      total_weeks: 4, // Default or could be calculated based on goals
       max_minutes_per_day: maxMinutesPerDay,
       no_study_days: noStudyDays,
-      experience:
-        newInput.experience || surveyAnswers.special_requirements || "",
+      experience: surveyAnswers.special_requirements || "",
       available_slots: availableSlots,
-      course_ids: newInput.course_ids || surveyAnswers.courseId || "",
-      start_date:
-        newInput.start_date ||
-        surveyAnswers.start_date ||
-        new Date().toISOString().split("T")[0],
+      course_ids: courseId,
+      start_date: new Date().toISOString().split("T")[0],
     };
   };
 
@@ -246,17 +213,13 @@ export default function LearningPathModal({
     if (!canProceed) return;
     setIsSubmitting(true);
     try {
-      // Chuyển đổi dữ liệu sang format JSON mẫu
-      const learningPathOutput = convertToLearningPathOutput(answers, courseId);
-
-      // Log ra console để kiểm tra
+      const learningPathInput = convertToLearningPathInput(answers);
       console.log(
-        "Learning Path Output:",
-        JSON.stringify(learningPathOutput, null, 2)
+        "Learning Path Input:",
+        JSON.stringify(learningPathInput, null, 2)
       );
-
-      // Truyền learningPathOutput vào onSubmit
-      await onSubmit(learningPathOutput);
+      await onSubmit(learningPathInput);
+      onClose();
     } catch (error) {
       console.error("Error submitting learning path:", error);
     } finally {
@@ -268,6 +231,8 @@ export default function LearningPathModal({
     const question = currentQuestion;
     if (!question) return null;
 
+    const currentAnswer = answers[currentAnswerKey];
+
     switch (question.type) {
       case "single":
         return (
@@ -276,7 +241,7 @@ export default function LearningPathModal({
               <label
                 key={index}
                 className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                  answers[question.id] === option
+                  currentAnswer === option.text
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
@@ -284,23 +249,23 @@ export default function LearningPathModal({
                 <input
                   type="radio"
                   name={question.id}
-                  value={option}
-                  checked={answers[question.id] === option}
-                  onChange={(e) => handleAnswer(question.id, e.target.value)}
+                  value={option.text}
+                  checked={currentAnswer === option.text}
+                  onChange={(e) => handleAnswer(e.target.value)}
                   className="sr-only"
                 />
                 <div
                   className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                    answers[question.id] === option
+                    currentAnswer === option.text
                       ? "border-blue-500 bg-blue-500"
                       : "border-gray-300"
                   }`}
                 >
-                  {answers[question.id] === option && (
+                  {currentAnswer === option.text && (
                     <div className="w-2 h-2 rounded-full bg-white"></div>
                   )}
                 </div>
-                <span className="text-gray-700 font-medium">{option}</span>
+                <span className="text-gray-700 font-medium">{option.text}</span>
               </label>
             ))}
           </div>
@@ -313,9 +278,7 @@ export default function LearningPathModal({
               <label
                 key={index}
                 className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                  (answers[question.id] as string[] | undefined)?.includes(
-                    option
-                  )
+                  (currentAnswer as string[])?.includes(option.text)
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
@@ -323,19 +286,15 @@ export default function LearningPathModal({
                 <input
                   type="checkbox"
                   checked={
-                    (answers[question.id] as string[] | undefined)?.includes(
-                      option
-                    ) || false
+                    (currentAnswer as string[])?.includes(option.text) || false
                   }
                   onChange={(e) => {
-                    const currentAnswers =
-                      (answers[question.id] as string[]) || [];
+                    const currentAnswers = (currentAnswer as string[]) || [];
                     if (e.target.checked) {
-                      handleAnswer(question.id, [...currentAnswers, option]);
+                      handleAnswer([...currentAnswers, option.text]);
                     } else {
                       handleAnswer(
-                        question.id,
-                        currentAnswers.filter((a) => a !== option)
+                        currentAnswers.filter((a) => a !== option.text)
                       );
                     }
                   }}
@@ -343,16 +302,12 @@ export default function LearningPathModal({
                 />
                 <div
                   className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
-                    (answers[question.id] as string[] | undefined)?.includes(
-                      option
-                    )
+                    (currentAnswer as string[])?.includes(option.text)
                       ? "border-blue-500 bg-blue-500"
                       : "border-gray-300"
                   }`}
                 >
-                  {(answers[question.id] as string[] | undefined)?.includes(
-                    option
-                  ) && (
+                  {(currentAnswer as string[])?.includes(option.text) && (
                     <svg
                       className="w-3 h-3 text-white"
                       fill="currentColor"
@@ -366,7 +321,7 @@ export default function LearningPathModal({
                     </svg>
                   )}
                 </div>
-                <span className="text-gray-700 font-medium">{option}</span>
+                <span className="text-gray-700 font-medium">{option.text}</span>
               </label>
             ))}
           </div>
@@ -375,8 +330,8 @@ export default function LearningPathModal({
       case "text":
         return (
           <textarea
-            value={(answers[question.id] as string) || ""}
-            onChange={(e) => handleAnswer(question.id, e.target.value)}
+            value={(currentAnswer as string) || ""}
+            onChange={(e) => handleAnswer(e.target.value)}
             placeholder="Nhập câu trả lời của bạn..."
             className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none resize-none h-32"
           />
@@ -390,14 +345,18 @@ export default function LearningPathModal({
   if (loading)
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        Loading...
+        <div className="bg-white p-6 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span>Đang tải...</span>
+          </div>
+        </div>
       </div>
     );
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -431,11 +390,10 @@ export default function LearningPathModal({
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              {currentQuestion?.question}
+              {currentQuestion?.questionText}
             </h3>
             {currentQuestion?.required && (
               <p className="text-sm text-red-500 mb-4">* Câu hỏi bắt buộc</p>
@@ -444,7 +402,6 @@ export default function LearningPathModal({
           {renderQuestionInput()}
         </div>
 
-        {/* Footer */}
         <div className="bg-gray-50 p-6 flex items-center justify-between">
           <Button
             onClick={handlePrevious}

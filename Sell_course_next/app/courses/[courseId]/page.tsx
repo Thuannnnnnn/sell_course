@@ -19,22 +19,17 @@ import {
   User,
   Globe,
   Download,
-  Brain,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 
-import {
-  LearningPathAnswers,
-  LearningPathData,
-} from "@/app/types/learningPath/learningPath";
-import learningPathApi from "@/app/api/learningPath/learningPathAPI";
-import LearningPathModal from "@/components/course/LearningPathModal";
-import LearningPathDisplay from "@/components/course/LearningPathDisplay";
-
-export default function CourseDetailPage({
-  params,
-}: {
+interface CourseDetailPageProps {
   params: { courseId: string };
-}) {
+}
+
+export default function UpdatedCourseDetailPage({
+  params,
+}: CourseDetailPageProps) {
   const [course, setCourse] = useState<CourseResponseDTO | null>(null);
   const [relatedCourses, setRelatedCourses] = useState<CourseResponseDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,18 +37,6 @@ export default function CourseDetailPage({
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
-
-  // Learning Path states
-  const [showLearningPathModal, setShowLearningPathModal] = useState(false);
-  const [showLearningPathDisplay, setShowLearningPathDisplay] = useState(false);
-  const [learningPathData, setLearningPathData] =
-    useState<LearningPathData | null>(null);
-  const [isCreatingLearningPath, setIsCreatingLearningPath] = useState(false);
-  const [currentLearningPathAnswers, setCurrentLearningPathAnswers] =
-    useState<LearningPathAnswers | null>(null);
-  const [savedLearningPathId, setSavedLearningPathId] = useState<string | null>(
-    null
-  );
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -119,77 +102,6 @@ export default function CourseDetailPage({
     { icon: <Download className="w-5 h-5" />, text: "Access on mobile and TV" },
   ];
 
-  // Learning Path handlers
-  const handleCreateLearningPath = () => {
-    if (!session) {
-      alert("Vui lòng đăng nhập để tạo Learning Path");
-      return;
-    }
-    setShowLearningPathModal(true);
-  };
-
-  const handleLearningPathSubmit = async (answers: LearningPathAnswers) => {
-    setIsCreatingLearningPath(true);
-    try {
-      // Store answers for later use when saving
-      setCurrentLearningPathAnswers(answers);
-
-      // Call n8n webhook to generate learning path
-      const response = await learningPathApi.createLearningPath(answers);
-
-      if (response.success && response.data) {
-        setLearningPathData(response.data);
-        setShowLearningPathModal(false);
-        setShowLearningPathDisplay(true);
-      }
-    } catch (error) {
-      console.error("Error creating learning path:", error);
-      alert("Có lỗi xảy ra khi tạo Learning Path");
-    } finally {
-      setIsCreatingLearningPath(false);
-    }
-  };
-
-  const handleSaveLearningPath = async (data: LearningPathData) => {
-    if (!session?.user || !currentLearningPathAnswers) {
-      alert("Không thể lưu Learning Path. Vui lòng thử lại.");
-      return;
-    }
-
-    try {
-      let response;
-
-      if (savedLearningPathId) {
-        // Update existing learning path
-        response = await learningPathApi.updateLearningPath(
-          savedLearningPathId,
-          data
-        );
-      } else {
-        // Save new learning path
-        response = await learningPathApi.saveLearningPath(
-          session.user.id, // Assuming user ID is available in session
-          params.courseId,
-          data,
-          currentLearningPathAnswers
-        );
-      }
-
-      if (response.success) {
-        setLearningPathData(data);
-        if (response.data?.planId) {
-          setSavedLearningPathId(response.data.planId);
-        }
-        alert("Learning Path đã được lưu thành công!");
-      } else {
-        alert(response.error || "Có lỗi xảy ra khi lưu Learning Path");
-      }
-    } catch (error) {
-      console.error("Error saving learning path:", error);
-      alert("Có lỗi xảy ra khi lưu Learning Path");
-    }
-  };
-
   const renderActionButton = () => {
     if (status === "loading" || isCheckingEnrollment) {
       return (
@@ -198,7 +110,7 @@ export default function CourseDetailPage({
           className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
         >
           <div className="flex items-center justify-center gap-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            <Loader2 className="h-5 w-5 animate-spin" />
             Loading...
           </div>
         </Button>
@@ -218,10 +130,7 @@ export default function CourseDetailPage({
     if (isEnrolled || session.user.role === "ADMIN") {
       return (
         <Link href={`/enrolled/${params.courseId}`} className="block w-full">
-          <Button
-            disabled
-            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg"
-          >
+          <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg">
             <CheckCircle className="w-5 h-5 mr-2" />
             Enrolled
           </Button>
@@ -238,35 +147,11 @@ export default function CourseDetailPage({
     );
   };
 
-  const renderLearningPathButton = () => {
-    if (!session) return null;
-
-    return (
-      <Button
-        onClick={handleCreateLearningPath}
-        disabled={isCreatingLearningPath}
-        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-2xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 mt-3"
-      >
-        {isCreatingLearningPath ? (
-          <>
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-            Đang tạo...
-          </>
-        ) : (
-          <>
-            <Brain className="w-5 h-5 mr-2" />
-            Tạo Learning Path
-          </>
-        )}
-      </Button>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <Loader2 className="h-16 w-16 animate-spin text-blue-600 mx-auto mb-4" />
           <div className="text-xl font-semibold text-gray-700">
             Loading course...
           </div>
@@ -279,6 +164,7 @@ export default function CourseDetailPage({
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-3xl shadow-xl">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <div className="text-2xl font-bold text-red-600 mb-2">
             Course not found
           </div>
@@ -452,13 +338,10 @@ export default function CourseDetailPage({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mb-6 space-y-3">
-                      {renderActionButton()}
-                      {renderLearningPathButton()}
-                    </div>
+                    <div className="mb-6 space-y-3">{renderActionButton()}</div>
 
                     {/* Course Features */}
-                    <div className="space-y-3">
+                    <div className="space-y-3 mt-6">
                       <h4 className="font-semibold text-gray-900 mb-4">
                         This course includes:
                       </h4>
@@ -490,27 +373,6 @@ export default function CourseDetailPage({
           </div>
         </div>
       </div>
-
-      {/* Learning Path Modal */}
-      <LearningPathModal
-        isOpen={showLearningPathModal}
-        onClose={() => setShowLearningPathModal(false)}
-        onSubmit={handleLearningPathSubmit}
-        courseId={params.courseId}
-        userId={session?.user.id || ""}
-        userName={session?.user.name || "Nguyễn Văn A"}
-      />
-
-      {/* Learning Path Display */}
-      {learningPathData && (
-        <LearningPathDisplay
-          isOpen={showLearningPathDisplay}
-          onClose={() => setShowLearningPathDisplay(false)}
-          onSave={handleSaveLearningPath}
-          data={learningPathData}
-          isEditable={true}
-        />
-      )}
     </>
   );
 }
