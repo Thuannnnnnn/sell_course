@@ -7,6 +7,9 @@ import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/toast";
 import ChatSupportWindow from "../components/course/ChatSupportWindow";
+import { useEffect, useState } from "react";
+
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -23,6 +26,27 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [activeVersionId, setActiveVersionId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const updateVersionId = () => {
+      const storedVersionId = localStorage.getItem("activeVersionId");
+      setActiveVersionId(storedVersionId || undefined);
+    };
+
+    window.addEventListener("activeVersionIdChanged", updateVersionId);
+
+    // Lấy lần đầu khi mount
+    updateVersionId();
+
+    return () => {
+      window.removeEventListener("activeVersionIdChanged", updateVersionId);
+    };
+  }, []);
+
+  // Debug
+  console.log("activeVersionId:", activeVersionId);
+
   return (
     <html lang="en">
       <body

@@ -7,6 +7,7 @@ import { Header } from "../components/dashboard/Header";
 import React, { useState } from "react";
 import { Toaster } from "sonner";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,10 +26,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeVersionId, setActiveVersionId] = useState<string | undefined>(undefined);
   const pathname = usePathname();
   
   // Check if current page is auth page
   const isAuthPage = pathname?.startsWith('/auth');
+
+  useEffect(() => {
+    const updateVersionId = () => {
+      const storedVersionId = localStorage.getItem("activeVersionId");
+      setActiveVersionId(storedVersionId || undefined);
+    };
+
+    window.addEventListener("activeVersionIdChanged", updateVersionId);
+
+    // Lấy lần đầu khi mount
+    updateVersionId();
+
+    return () => {
+      window.removeEventListener("activeVersionIdChanged", updateVersionId);
+    };
+  }, []);
+
+  // Debug
+  console.log("activeVersionId:", activeVersionId);
 
   return (
     <html lang="en">
@@ -47,7 +68,11 @@ export default function RootLayout({
             // Regular pages - with sidebar and header
             <div className="flex h-screen bg-background">
               {/* Sidebar */}
-              <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+              <Sidebar
+                open={sidebarOpen}
+                setOpen={setSidebarOpen}
+                versionId={activeVersionId}
+              />
 
               {/* Main Content */}
               <div className="flex-1 flex flex-col md:ml-64">
