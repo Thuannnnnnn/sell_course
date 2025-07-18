@@ -6,7 +6,9 @@ from typing import Tuple
 from docx import Document
 from urllib.parse import urlparse
 import asyncio
-
+import base64
+from io import BytesIO
+from docx import Document
 class FileProcessor:
     """Service to process files from URLs and extract text content"""
     
@@ -75,6 +77,21 @@ class FileProcessor:
         """Get file extension from filename"""
         return os.path.splitext(filename.lower())[1]
     
+    @staticmethod
+    def extract_docx_text_from_base64(base64_string: str) -> str:
+        """
+        Convert base64 .docx to plain text
+        """
+        try:
+            binary_data = base64.b64decode(base64_string)
+            file_like = BytesIO(binary_data)
+            document = Document(file_like)
+
+            text = "\n".join([para.text for para in document.paragraphs])
+            return text.strip()
+
+        except Exception as e:
+            raise ValueError(f"Failed to extract text: {str(e)}")
     async def _process_docx(self, file_content: bytes) -> str:
         """Extract text from DOCX file"""
         try:
