@@ -18,6 +18,7 @@ import {
 import { NotifyService } from './notify.service';
 import { CreateNotifyDto, UpdateNotifyDto } from './dto/notify.dto';
 import { Notify } from './entities/notify.entity';
+import { NotificationType } from './constants/notification.constants';
 
 @ApiTags('Notifications')
 @Controller('api/admin/notify/')
@@ -112,7 +113,7 @@ export class NotifyController {
       properties: {
         type: {
           type: 'string',
-          enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
+          enum: Object.values(NotificationType),
         },
         courseIds: {
           type: 'array',

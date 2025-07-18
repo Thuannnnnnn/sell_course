@@ -6,6 +6,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
+import { NotificationType } from '../constants/notification.constants';
 
 export class CreateNotifyDto {
   @ApiProperty({
@@ -27,10 +28,10 @@ export class CreateNotifyDto {
   @ApiProperty({
     example: 'USER',
     description: 'Type of notification',
-    enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
+    enum: NotificationType,
   })
-  @IsEnum(['USER', 'COURSE', 'GLOBAL', 'ADMIN'])
-  type: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
+  @IsEnum(NotificationType)
+  type: NotificationType;
 
   @ApiProperty({
     example: false,
@@ -61,7 +62,7 @@ export class CreateNotifyDto {
 export class UpdateNotifyDto {
   title?: string;
   message?: string;
-  type?: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
+  type?: NotificationType;
   courseIds?: string[];
   userIds?: string[];
 }

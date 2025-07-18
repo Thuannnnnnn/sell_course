@@ -9,6 +9,7 @@ import { Course } from '../course/entities/course.entity';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { WebSocketGateway } from '@nestjs/websockets';
 import { NotifyGateway } from './notify.gateway';
+import { NotificationType, ROLE_BASED_NOTIFICATION_TYPES } from './constants/notification.constants';
 
 @WebSocketGateway({ cors: true })
 @Injectable()
@@ -26,6 +27,52 @@ export class NotifyService {
     private enrollmentRepository: Repository<Enrollment>,
     private readonly notifyGateway: NotifyGateway,
   ) {}
+
+  // Helper method to get users by role
+  private async getUsersByRole(role: string): Promise<User[]> {
+    const users = await this.userRepository.find({
+      where: { role: role },
+    });
+    
+    if (users.length === 0) {
+      throw new Error(`Không tìm thấy người dùng nào có role ${role}`);
+    }
+    
+    return users;
+  }
+
+  // Helper method to get user IDs by notification type
+  private async getUserIdsByType(type: string, userIds?: string[], courseIds?: string[]): Promise<string[]> {
+    let targetUserIds: string[] = [];
+
+    if (type === NotificationType.USER && userIds && userIds.length > 0) {
+      const users = await this.userRepository.find({
+        where: { user_id: In(userIds) },
+      });
+      if (users.length === 0) throw new Error('Không tìm thấy người dùng nào');
+      targetUserIds = users.map((user) => user.user_id);
+    } else if (type === NotificationType.COURSE && courseIds && courseIds.length > 0) {
+      const users = await this.userRepository
+        .createQueryBuilder('user')
+        .innerJoin('user.enrollments', 'enrollment')
+        .innerJoin('enrollment.course', 'course')
+        .where('course.courseId IN (:...courseIds)', { courseIds })
+        .distinct(true)
+        .getMany();
+      if (users.length === 0)
+        throw new Error('Không tìm thấy người dùng nào liên quan đến khóa học');
+      targetUserIds = users.map((user) => user.user_id);
+    } else if (type === NotificationType.GLOBAL) {
+      const users = await this.userRepository.find();
+      if (users.length === 0) throw new Error('Không tìm thấy người dùng nào');
+      targetUserIds = users.map((user) => user.user_id);
+    } else if (ROLE_BASED_NOTIFICATION_TYPES.includes(type as NotificationType)) {
+      const users = await this.getUsersByRole(type);
+      targetUserIds = users.map((user) => user.user_id);
+    }
+
+    return targetUserIds;
+  }
 
   async getAll(): Promise<Notify[]> {
     return await this.notifyRepository.find({
@@ -53,45 +100,18 @@ export class NotifyService {
 
     let userNotifies = [];
 
-    if (type === 'USER' && userIds && userIds.length > 0) {
-      const users = await this.userRepository.find({
-        where: { user_id: In(userIds) },
-      });
-      if (users.length === 0) throw new Error('Không tìm thấy người dùng nào');
-      userNotifies = users.map((user) =>
-        this.userNotifyRepository.create({ user, notify }),
-      );
-    } else if (type === 'COURSE' && courseIds && courseIds.length > 0) {
-      const users = await this.userRepository
-        .createQueryBuilder('user')
-        .innerJoin('user.enrollments', 'enrollment')
-        .innerJoin('enrollment.course', 'course')
-        .where('course.courseId IN (:...courseIds)', { courseIds })
-        .distinct(true)
-        .getMany();
-      if (users.length === 0)
-        throw new Error('Không tìm thấy người dùng nào liên quan đến khóa học');
-      userNotifies = users.map((user) =>
-        this.userNotifyRepository.create({ user, notify }),
-      );
-    } else if (type === 'GLOBAL') {
-      const users = await this.userRepository.find();
-      if (users.length === 0) throw new Error('Không tìm thấy người dùng nào');
-      userNotifies = users.map((user) =>
-        this.userNotifyRepository.create({ user, notify }),
-      );
-    } else if (type === 'ADMIN') {
-      const adminUsers = await this.userRepository.find({
-        where: { role: 'ADMIN' },
-      });
-      if (adminUsers.length === 0)
-        throw new Error('Không tìm thấy người dùng ADMIN nào');
-      userNotifies = adminUsers.map((admin) =>
-        this.userNotifyRepository.create({ user: admin, notify }),
-      );
-    }
+    // Get target user IDs based on notification type
+    const targetUserIds = await this.getUserIdsByType(type, userIds, courseIds);
 
-    if (userNotifies.length > 0) {
+    if (targetUserIds.length > 0) {
+      const users = await this.userRepository.find({
+        where: { user_id: In(targetUserIds) },
+      });
+
+      userNotifies = users.map((user) =>
+        this.userNotifyRepository.create({ user, notify }),
+      );
+
       await this.userNotifyRepository.save(userNotifies);
       userNotifies.forEach((userNotify) =>
         this.notifyGateway.sendNotificationToUser(
@@ -117,45 +137,13 @@ export class NotifyService {
     }
 
     // Update notify basic info
-    const updatedNotify = await this.notifyRepository.save({
-      notifyId: id,
-      title,
-      message,
-      type,
-    });
-
-    let newUserIds: string[] = [];
+    existingNotify.title = title;
+    existingNotify.message = message;
+    existingNotify.type = type;
+    const updatedNotify = await this.notifyRepository.save(existingNotify);
 
     // Get list of users who should receive the notification
-    if (type === 'USER' && userIds && userIds.length > 0) {
-      const users = await this.userRepository.find({
-        where: { user_id: In(userIds) },
-      });
-      if (users.length === 0) throw new Error('Không tìm thấy người dùng nào');
-      newUserIds = users.map((user) => user.user_id);
-    } else if (type === 'COURSE' && courseIds && courseIds.length > 0) {
-      const users = await this.userRepository
-        .createQueryBuilder('user')
-        .innerJoin('user.enrollments', 'enrollment')
-        .innerJoin('enrollment.course', 'course')
-        .where('course.courseId IN (:...courseIds)', { courseIds })
-        .distinct(true)
-        .getMany();
-      if (users.length === 0)
-        throw new Error('Không tìm thấy người dùng nào liên quan đến khóa học');
-      newUserIds = users.map((user) => user.user_id);
-    } else if (type === 'GLOBAL') {
-      const users = await this.userRepository.find();
-      if (users.length === 0) throw new Error('Không tìm thấy người dùng nào');
-      newUserIds = users.map((user) => user.user_id);
-    } else if (type === 'ADMIN') {
-      const adminUsers = await this.userRepository.find({
-        where: { role: 'ADMIN' },
-      });
-      if (adminUsers.length === 0)
-        throw new Error('Không tìm thấy người dùng ADMIN nào');
-      newUserIds = adminUsers.map((admin) => admin.user_id);
-    }
+    const newUserIds = await this.getUserIdsByType(type, userIds, courseIds);
 
     // Get current user notifications
     const currentUserNotifies = await this.userNotifyRepository.find({

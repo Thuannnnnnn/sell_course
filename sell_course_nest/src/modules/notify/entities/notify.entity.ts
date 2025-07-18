@@ -1,5 +1,6 @@
 import { Course } from '../../course/entities/course.entity';
 import { UserNotify } from '../../User_Notify/entities/User_Notify.entity';
+import { NotificationType } from '../constants/notification.constants';
 
 import {
   Column,
@@ -24,10 +25,10 @@ export class Notify {
 
   @Column({
     type: 'enum',
-    enum: ['USER', 'COURSE', 'GLOBAL', 'ADMIN'],
-    default: 'GLOBAL',
+    enum: NotificationType,
+    default: NotificationType.GLOBAL,
   })
-  type: 'USER' | 'COURSE' | 'GLOBAL' | 'ADMIN';
+  type: NotificationType;
 
   @Column({ default: false })
   isGlobal: boolean;
