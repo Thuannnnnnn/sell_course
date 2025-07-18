@@ -8,6 +8,7 @@ import { Loader2, Upload, X } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Textarea } from "../../../components/ui/textarea";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -74,7 +75,7 @@ export default function AddCourseForm() {
       price: 0,
       skill: "",
       level: "",
-      instructorId: session?.user?.id || "",
+      instructorId: "",
       categoryId: "",
     },
   });
@@ -86,11 +87,18 @@ export default function AddCourseForm() {
         setCategories(res);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
+        toast.error("Failed to load categories. Please refresh the page.");
       }
     };
 
     fetchCategor();
   }, [session]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      form.setValue("instructorId", session.user.id);
+    }
+  }, [session?.user?.id, form]);
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     const formData = new FormData();
@@ -101,7 +109,7 @@ export default function AddCourseForm() {
     formData.append("price", data.price.toString());
     formData.append("skill", data.skill);
     formData.append("level", data.level);
-    formData.append("status", "true");
+    formData.append("status", "DRAFT");
     formData.append("instructorId", data.instructorId);
     formData.append("categoryId", data.categoryId);
     if (data.thumbnail?.[0]) formData.append("thumbnail", data.thumbnail[0]);
@@ -117,6 +125,7 @@ export default function AddCourseForm() {
       router.push("/course");
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Failed to create course. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

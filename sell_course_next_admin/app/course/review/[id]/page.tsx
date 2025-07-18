@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components
 import { Separator } from '../../../../components/ui/separator';
 import { ScrollArea } from '../../../../components/ui/scroll-area';
 import { Loading } from '../../../../components/ui/loading';
-import { Alert, AlertDescription } from '../../../../components/ui/alert';
+import { toast } from "sonner";
 import {
     Clock,
     User,
@@ -32,8 +32,7 @@ import {
 } from 'lucide-react';
 import {
     fetchCourseWithDetailsNew,
-    approveCourse,
-    rejectCourse,
+    reviewCourseStatus,
     CourseReviewData,
     LessonReviewData,
     ContentReviewData,
@@ -42,7 +41,8 @@ import {
     QuizReviewData,
     ExamReviewData
 } from '../../../api/courses/course';
-import { ContentModal } from '../../../../components/course/ContentModal';
+import { ContentModal, ExamModal } from '../../../../components/course/ContentModal';
+import { CourseStatus } from '../../../../app/types/course.d';
 
 export default function CourseReviewPage() {
     const params = useParams();
@@ -53,15 +53,6 @@ export default function CourseReviewPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
-    const [notification, setNotification] = useState<{
-        type: 'success' | 'error';
-        message: string;
-    } | null>(null);
-
-    const showNotification = (type: 'success' | 'error', message: string) => {
-        setNotification({ type, message });
-        setTimeout(() => setNotification(null), 5000);
-    };
 
     const handleBack = () => {
         router.back();
@@ -69,50 +60,33 @@ export default function CourseReviewPage() {
 
     const handleApprove = async () => {
         if (!session?.accessToken || !courseId) return;
-                try {
+        try {
             setActionLoading(true);
-            await approveCourse(session.accessToken, courseId, {
-                comments: 'Course approved after review',
-                checklist: {
-                    contentQuality: true,
-                    videoQuality: true,
-                    quizQuality: true,
-                    documentQuality: true,
-                    overallStructure: true,
-                }
-            });
+            await reviewCourseStatus(courseId, CourseStatus.PUBLISHED, session.accessToken);
             const updatedData = await fetchCourseWithDetailsNew(session.accessToken, courseId);
             setCourseData(updatedData);
-            showNotification('success', 'Course approved successfully!');
+            toast.success("Course approved and published successfully!");
         } catch (error) {
             console.error('Error approving course:', error);
-            showNotification('error', 'Failed to approve course. Please try again.');
+            toast.error("Failed to approve course. Please try again.");
         } finally {
             setActionLoading(false);
         }
     };
+
     const handleReject = async () => {
         if (!session?.accessToken || !courseId) return;
         const reason = prompt('Please provide a reason for rejection:');
         if (!reason) return;
         try {
             setActionLoading(true);
-            await rejectCourse(session.accessToken, courseId, {
-                comments: reason,
-                checklist: {
-                    contentQuality: false,
-                    videoQuality: false,
-                    quizQuality: false,
-                    documentQuality: false,
-                    overallStructure: false,
-                }
-            });
+            await reviewCourseStatus(courseId, CourseStatus.REJECTED, session.accessToken, reason);
             const updatedData = await fetchCourseWithDetailsNew(session.accessToken, courseId);
             setCourseData(updatedData);
-            showNotification('success', 'Course rejected successfully!');
+            toast.success("Course rejected successfully!");
         } catch (error) {
             console.error('Error rejecting course:', error);
-            showNotification('error', 'Failed to reject course. Please try again.');
+            toast.error("Failed to reject course. Please try again.");
         } finally {
             setActionLoading(false);
         }
@@ -128,12 +102,14 @@ export default function CourseReviewPage() {
             } catch (err) {
                 console.error('Error loading course data:', err);
                 setError('Failed to load course data');
+                toast.error('Failed to load course data. Please try again.');
             } finally {
                 setLoading(false);
             }
         };
         loadCourseData();
     }, [session, courseId]);
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -141,6 +117,7 @@ export default function CourseReviewPage() {
             </div>
         );
     }
+
     if (error || !courseData) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -151,14 +128,11 @@ export default function CourseReviewPage() {
             </div>
         );
     }
+
     const { course, lessons, exam } = courseData;
+
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-6">
-            {notification && (
-                <Alert variant={notification.type === 'success' ? 'default' : 'destructive'}>
-                    <AlertDescription>{notification.message}</AlertDescription>
-                </Alert>
-            )}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Button
@@ -179,7 +153,7 @@ export default function CourseReviewPage() {
                         variant="outline"
                         className="text-red-600 border-red-600 hover:bg-red-50"
                         onClick={handleReject}
-                        disabled={actionLoading || course.status === 'Published' || course.status === 'Rejected'}
+                        disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
                     >
                         {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
                         Reject
@@ -187,7 +161,7 @@ export default function CourseReviewPage() {
                     <Button
                         className="bg-green-600 hover:bg-green-700"
                         onClick={handleApprove}
-                        disabled={actionLoading || course.status === 'Published' || course.status === 'Rejected'}
+                        disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
                     >
                         {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                         Approve
@@ -403,9 +377,16 @@ function VideoContent({ video }: { video: VideoReviewData }) {
     return (
         <div className="bg-red-50 p-4 rounded-lg">
             <h5 className="font-medium mb-2">🎥 {video.title}</h5>
+            <p className="text-sm text-gray-600 mb-3">{video.description}</p>
             <div className="space-y-2">
-                <div>
+                <div className="flex items-center gap-2">
                 </div>
+                {video.urlScript && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium">Script:</span>
+                        <span className="text-xs text-green-600">Available</span>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -414,7 +395,7 @@ function DocContent({ doc }: { doc: DocReviewData }) {
     return (
         <div className="bg-blue-50 p-4 rounded-lg">
             <h5 className="font-medium mb-2">📄 {doc.title}</h5>
-            <div>
+            <div className="flex items-center gap-2">
             </div>
         </div>
     );
@@ -435,6 +416,7 @@ function ExamCard({ exam }: { exam: ExamReviewData }) {
                         <GraduationCap className="h-5 w-5" />
                         Final Exam ({exam.questions.length} questions)
                     </div>
+                    <ExamModal exam={exam} />
                 </CardTitle>
             </CardHeader>
             <CardContent>

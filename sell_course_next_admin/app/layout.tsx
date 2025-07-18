@@ -57,8 +57,27 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider refetchOnWindowFocus={false}>
-          <Toaster position="top-right" />
-          
+          <Toaster
+            position="top-right"
+            theme="light"
+            toastOptions={{
+              unstyled: false,
+              style: {
+                background: 'white',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                fontSize: '14px',
+                padding: '12px 16px',
+              },
+              classNames: {
+                toast: 'group toast group-[.toaster]:bg-white group-[.toaster]:text-slate-950 group-[.toaster]:border-slate-200 group-[.toaster]:shadow-lg',
+                success: 'group-[.toast]:bg-green-50 group-[.toast]:text-green-800 group-[.toast]:border-green-200',
+                error: 'group-[.toast]:bg-red-50 group-[.toast]:text-red-800 group-[.toast]:border-red-200',
+                warning: 'group-[.toast]:bg-yellow-50 group-[.toast]:text-yellow-800 group-[.toast]:border-yellow-200',
+                info: 'group-[.toast]:bg-blue-50 group-[.toast]:text-blue-800 group-[.toast]:border-blue-200',
+              },
+            }}
+          />
           {isAuthPage ? (
             // Auth pages - full page without sidebar and header
             <div className="min-h-screen">

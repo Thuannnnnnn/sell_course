@@ -17,6 +17,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { Enrollment } from '../../enrollment/entities/enrollment.entity';
 import { LearningPlan } from 'src/modules/learning-plan/learning-plan.entity';
+import { CourseStatus } from '../enums/course-status.enum';
 
 @Entity('course')
 export class Course {
@@ -61,8 +62,12 @@ export class Course {
   @Column({ type: 'varchar' })
   level: string;
 
-  @Column({ type: 'boolean' })
-  status: boolean;
+  @Column({
+    type: 'enum',
+    enum: CourseStatus,
+    default: CourseStatus.DRAFT,
+  })
+  status: CourseStatus;
 
   @Column({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

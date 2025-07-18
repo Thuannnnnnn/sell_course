@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { fetchContentsByLesson } from "../../../../../api/lessons/content";
 import { getDocumentById } from "../../../../../api/lessons/Doc/document";
 import { getVideoByContentId } from "../../../../../api/lessons/Video/video";
+import { toast } from "sonner";
 
 import QuestionForm from "../../../../../../components/quiz/QuestionForm";
 import QuestionList from "../../../../../../components/quiz/QuestionList";
@@ -167,6 +168,7 @@ function QuizPageContent({ params }: QuizPageProps) {
         router.replace(newUrl.pathname + newUrl.search);
       } catch (error) {
         console.error("Failed to parse AI questions:", error);
+        toast.error("Failed to parse AI questions. Please try again.");
       }
     }
   }, [aiQuestions, quizId, addQuestion, router]);
@@ -228,6 +230,7 @@ function QuizPageContent({ params }: QuizPageProps) {
       console.log("Loaded lesson URLs:", urls);
     } catch (error) {
       console.error("Failed to load lesson content:", error);
+      toast.error("Failed to load lesson content for AI generation.");
     } finally {
       setLoadingUrls(false);
     }
@@ -242,13 +245,13 @@ function QuizPageContent({ params }: QuizPageProps) {
 
   const handleGenerateAIQuiz = async () => {
     if (!contentId) {
-      alert("Content ID is required");
+      toast.error("Content ID is required");
       return;
     }
 
     // Check if we have URLs from lesson content
     if (lessonUrls.length === 0) {
-      alert(
+      toast.error(
         "No content URLs found in this lesson. Please add documents or videos first."
       );
       return;
@@ -259,12 +262,12 @@ function QuizPageContent({ params }: QuizPageProps) {
     const remainingSlots = MAX_QUESTIONS - currentQuestionCount;
 
     if (currentQuestionCount >= MAX_QUESTIONS) {
-      alert(`Maximum ${MAX_QUESTIONS} questions allowed per quiz.`);
+      toast.error(`Maximum ${MAX_QUESTIONS} questions allowed per quiz.`);
       return;
     }
 
     if (aiQuizCount > remainingSlots) {
-      alert(
+      toast.error(
         `Can only add ${remainingSlots} more question${
           remainingSlots !== 1 ? "s" : ""
         }. Current: ${currentQuestionCount}/${MAX_QUESTIONS}`
@@ -314,8 +317,8 @@ function QuizPageContent({ params }: QuizPageProps) {
       });
 
       // Show success message (generic for security)
-      alert(
-        `✅ Successfully generated ${result.quizzes.length} quiz questions from lesson content!`
+      toast.success(
+        `Successfully generated ${result.quizzes.length} quiz questions from lesson content!`
       );
 
       // Close dialog and reset form
@@ -323,7 +326,7 @@ function QuizPageContent({ params }: QuizPageProps) {
       setAiQuizCount(5);
     } catch (err) {
       const error = err as Error;
-      alert(`AI Generation failed: ${error.message}`);
+      toast.error(`AI Generation failed: ${error.message}`);
     } finally {
       setAiGenerating(false);
     }
@@ -354,7 +357,7 @@ function QuizPageContent({ params }: QuizPageProps) {
   const handleAddQuestion = (question: QuizFormData) => {
     // Check if adding would exceed the limit
     if (questions.length >= MAX_QUESTIONS) {
-      alert(
+      toast.error(
         `Maximum ${MAX_QUESTIONS} questions allowed per quiz. You currently have ${questions.length} questions.`
       );
       return;
@@ -387,7 +390,7 @@ function QuizPageContent({ params }: QuizPageProps) {
     }
 
     if (questions.length === 0) {
-      alert("No questions to delete.");
+      toast.error("No questions to delete.");
       return;
     }
 
@@ -411,18 +414,16 @@ function QuizPageContent({ params }: QuizPageProps) {
       // Reload the quiz to refresh the questions list
       await loadQuiz();
 
-      alert(`✅ Successfully deleted ${result.deletedCount} questions!`);
+      toast.success(`Successfully deleted ${result.deletedCount} questions!`);
     } catch (err) {
       console.error("❌ Error deleting all questions:", err);
       const error = err as Error & {
         response?: { data?: { message?: string } };
       };
-      alert(
-        `Error: ${
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to delete questions"
-        }`
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to delete questions"
       );
     } finally {
       setDeletingAllQuestions(false);

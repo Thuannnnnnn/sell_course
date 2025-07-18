@@ -1,4 +1,4 @@
-import { Course } from "app/types/course";
+import { Course, CourseStatus } from "app/types/course";
 import axios from "axios";
 
 export const createCourse = async (
@@ -250,7 +250,7 @@ export const fetchCourseWithDetailsNew = async (
       short_description: courseData.short_description,
       description: courseData.description,
       price: courseData.price,
-      status: courseData.status ? 'Published' : 'Draft',
+      status: courseData.status as CourseStatus,
       updatedAt: courseData.updatedAt,
       duration: courseData.duration,
       skill: courseData.skill,
@@ -705,3 +705,97 @@ export interface ExamAnswerReviewData {
   answer: string;
   isCorrect: boolean;
 }
+
+// Update course status (for instructors - DRAFT/PENDING_REVIEW only)
+export const updateCourseStatus = async (
+  courseId: string,
+  status: CourseStatus,
+  token: string
+): Promise<{ message: string }> => {
+  try {
+    const response = await axios.patch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/status`,
+      { status },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Axios error updating course status:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Unexpected error updating course status:", error);
+    }
+    throw error;
+  }
+};
+
+// Review course status (for admins - PUBLISHED/REJECTED only)
+export const reviewCourseStatus = async (
+  courseId: string,
+  status: CourseStatus,
+  token: string,
+  reason?: string
+): Promise<{ message: string }> => {
+  try {
+    const response = await axios.patch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/courses/${courseId}/review`,
+      { status, reason },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Axios error reviewing course:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Unexpected error reviewing course:", error);
+    }
+    throw error;
+  }
+};
+
+// Get courses by status (for admins)
+export const getCoursesByStatus = async (
+  status: CourseStatus,
+  token: string
+): Promise<Course[]> => {
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/courses/status/${status}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Axios error fetching courses by status:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Unexpected error fetching courses by status:", error);
+    }
+    throw error;
+  }
+};
