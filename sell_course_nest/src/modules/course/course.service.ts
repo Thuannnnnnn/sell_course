@@ -5,7 +5,10 @@ import { Injectable } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseDetailResponse } from './dto/courseDetailResponse.dto';
-import { UpdateCourseStatusDto, ReviewCourseStatusDto } from './dto/update-course-status.dto';
+import {
+  UpdateCourseStatusDto,
+  ReviewCourseStatusDto,
+} from './dto/update-course-status.dto';
 import { CourseStatus } from './enums/course-status.enum';
 import { User } from '../user/entities/user.entity';
 import { Category } from '../category/entities/category.entity';
@@ -257,6 +260,27 @@ export class CourseService {
       course.videoIntro = await azureUpload(files.videoIntro[0]);
     if (files?.thumbnail?.[0])
       course.thumbnail = await azureUpload(files.thumbnail[0]);
+
+    // Validate status transition if status is being updated
+    if (updateData.status && updateData.status !== course.status) {
+      const allowedTransitions = {
+        [CourseStatus.DRAFT]: [CourseStatus.PENDING_REVIEW],
+        [CourseStatus.PENDING_REVIEW]: [CourseStatus.DRAFT],
+        [CourseStatus.REJECTED]: [
+          CourseStatus.DRAFT,
+          CourseStatus.PENDING_REVIEW,
+        ],
+        [CourseStatus.PUBLISHED]: [], // Published courses cannot be changed via regular update
+        [CourseStatus.ARCHIVED]: [], // Archived courses cannot be changed via regular update
+      };
+
+      if (!allowedTransitions[course.status]?.includes(updateData.status)) {
+        throw new HttpException(
+          `Cannot change status from ${course.status} to ${updateData.status}. Use admin review process for published/archived courses.`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
 
     // Cập nhật các trường khác từ updateData
     Object.assign(course, updateData);
@@ -551,10 +575,10 @@ export class CourseService {
     }
 
     course.status = reviewStatusDto.status;
-    
+
     // You can add rejection reason to course entity if needed
     // For now, we'll just update the status
-    
+
     await this.CourseRepository.save(course);
 
     const action =

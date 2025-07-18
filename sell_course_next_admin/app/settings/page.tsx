@@ -10,6 +10,7 @@ import { Button } from "components/ui/button";
 import { Label } from "components/ui/label";
 import { Input } from "components/ui/input";
 import { Checkbox } from "@radix-ui/react-checkbox";
+import { toast } from 'sonner';
 
 // Extended version type to include logo and banner IDs
 interface ExtendedVersionSetting extends VersionSetting {
@@ -196,6 +197,7 @@ export default function SettingsPage() {
         }
       }
       await loadVersionDetails();
+      toast.success(`${type === "logo" ? "Logo" : "Banner"} ${Id || (type === "logo" ? selectedVersion.logoId : selectedVersion.bannerId) ? "updated" : "uploaded"} successfully!`);
     } catch (error) {
       console.error(
         `Failed to ${
@@ -203,7 +205,7 @@ export default function SettingsPage() {
         }:`,
         error
       );
-      alert(
+      toast.error(
         `Failed to ${
           type === "logo" ? "upload/update logo" : "upload/update banner"
         }. Please try again.`
@@ -264,7 +266,10 @@ export default function SettingsPage() {
       localStorage.setItem("activeVersionId", version.versionSettingId);
       window.dispatchEvent(new Event("activeVersionIdChanged"));
       console.log("activeVersionId", version.versionSettingId);
-    } catch {}
+      toast.success("Version activated successfully!");
+    } catch {
+      toast.error("Failed to activate version. Please try again.");
+    }
   };
 
   const handleUpdate = async () => {
@@ -286,8 +291,10 @@ export default function SettingsPage() {
       setShowModal(false);
       setSelectedFile(null);
       setPreviewUrl(null);
+      // Toast success is already handled in handleUploadOrUpdate
     } catch (error) {
       console.error("Update failed:", error);
+      // Toast error is already handled in handleUploadOrUpdate
     }
   };
 
@@ -320,7 +327,10 @@ export default function SettingsPage() {
       }
       setShowVersionModal(false);
       loadVersions();
-    } catch {}
+      toast.success(`Version ${editingVersion ? "updated" : "created"} successfully!`);
+    } catch {
+      toast.error(`Failed to ${editingVersion ? "update" : "create"} version. Please try again.`);
+    }
   };
 
   const handleDeleteVersion = async (versionId: string) => {

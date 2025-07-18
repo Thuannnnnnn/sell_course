@@ -8,6 +8,7 @@ import { Loader2, Upload, X } from "lucide-react";
 import { Input } from "../../../../components/ui/input";
 import { Button } from "../../../../components/ui/button";
 import { Textarea } from "../../../../components/ui/textarea";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -27,6 +28,7 @@ import {
 import { Card, CardContent } from "../../../../components/ui/card";
 import Image from "next/image";
 import { Category } from "app/types/category";
+import { CourseStatus } from "app/types/course.d";
 import { fetchCategories } from "app/api/categories/category";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -106,10 +108,12 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
         }
       } catch (error) {
         console.error("Failed to load course data:", error);
+        toast.error("Failed to load course data. Please refresh the page.");
       }
     };
     fetchInitialData();
   }, [session, params.id, form]);
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     const formData = new FormData();
@@ -127,11 +131,16 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
     if (data.videoIntro?.[0]) formData.append("videoIntro", data.videoIntro[0]);
 
     try {
-      if (!session?.accessToken) return;
+      if (!session?.accessToken) {
+        toast.error("Please log in to update the course");
+        return;
+      }
       await updateCourse(params.id, formData, session.accessToken);
+      toast.success("Course updated successfully!");
       router.push("/course");
     } catch (error) {
       console.error("Error updating course:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update course");
     } finally {
       setIsSubmitting(false);
     }
@@ -319,6 +328,66 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
                   )}
                 />
               </div>
+              
+              {/* Course Status Field */}
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course Status</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select course status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {form.getValues('status') === CourseStatus.REJECTED && (
+                          <>
+                            <SelectItem value={CourseStatus.DRAFT}>Draft</SelectItem>
+                            <SelectItem value={CourseStatus.PENDING_REVIEW}>Submit for Review</SelectItem>
+                          </>
+                        )}
+                        {(form.getValues('status') === CourseStatus.DRAFT || !form.getValues('status')) && (
+                          <>
+                            <SelectItem value={CourseStatus.DRAFT}>Draft</SelectItem>
+                            <SelectItem value={CourseStatus.PENDING_REVIEW}>Submit for Review</SelectItem>
+                          </>
+                        )}
+                        {form.getValues('status') === CourseStatus.PENDING_REVIEW && (
+                          <>
+                            <SelectItem value={CourseStatus.DRAFT}>Back to Draft</SelectItem>
+                            <SelectItem value={CourseStatus.PENDING_REVIEW}>Pending Review</SelectItem>
+                          </>
+                        )}
+                        {form.getValues('status') === CourseStatus.PUBLISHED && (
+                          <SelectItem value={CourseStatus.PUBLISHED} disabled>Published (Contact Admin to Modify)</SelectItem>
+                        )}
+                        {form.getValues('status') === CourseStatus.ARCHIVED && (
+                          <SelectItem value={CourseStatus.ARCHIVED} disabled>Archived (Contact Admin to Modify)</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {form.getValues('status') === CourseStatus.REJECTED && 
+                        "Your course was rejected. You can edit and resubmit for review."}
+                      {form.getValues('status') === CourseStatus.DRAFT && 
+                        "Course is in draft mode. Submit for review when ready."}
+                      {form.getValues('status') === CourseStatus.PENDING_REVIEW && 
+                        "Course is pending admin review."}
+                      {form.getValues('status') === CourseStatus.PUBLISHED && 
+                        "Course is live and available to students."}
+                      {form.getValues('status') === CourseStatus.ARCHIVED && 
+                        "Course is archived and not visible to students."}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             {/* Right Column */}
             <div className="space-y-6">

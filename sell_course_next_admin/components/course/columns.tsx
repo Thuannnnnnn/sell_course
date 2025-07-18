@@ -146,8 +146,27 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
       cell: ({ row }) => {
         const status = row.getValue("status") as boolean | string;
         return (
-          <Badge variant={status === true ? "default" : "secondary"}>
-            {status === true ? "Active" : "Inactive"}
+          <Badge 
+            variant={
+              status === "REJECTED" ? "destructive" :
+              status === "PUBLISHED" ? "default" :
+              status === "PENDING_REVIEW" ? "secondary" :
+              status === "DRAFT" ? "outline" :
+              status === "ARCHIVED" ? "destructive" : "default"
+            }
+            className={
+              status === "PUBLISHED" ? "bg-green-500 hover:bg-green-600" :
+              status === "PENDING_REVIEW" ? "bg-yellow-500 hover:bg-yellow-600" :
+              status === "DRAFT" ? "bg-gray-500 hover:bg-gray-600" :
+              status === "ARCHIVED" ? "bg-gray-400 hover:bg-gray-500" : ""
+            }
+          >
+            {status === "PUBLISHED" ? "PUBLISHED" :
+              status === "PENDING_REVIEW" ? "PENDING REVIEW" :
+              status === "DRAFT" ? "DRAFT" :
+              status === "ARCHIVED" ? "ARCHIVED" :
+              status === "REJECTED" ? "REJECTED" : ""
+            }
           </Badge>
         );
       },
@@ -179,14 +198,16 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         const course = row.original;
         return (
           <div className="flex justify-end gap-2">
-            <Button
+            {course.status === "PENDING_REVIEW" && (
+              <Button
               variant="ghost"
               size="icon"
               onClick={() => router.push(`/course/review/${course.courseId}`)}
-            >
+              >
               <Eye className="h-4 w-4" />
               <span className="sr-only">Preview</span>
-            </Button>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
