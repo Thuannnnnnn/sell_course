@@ -71,7 +71,7 @@ jobs:
                 -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
                 -e JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
                 -e AZURE_STORAGE_CONTAINER_NAME=${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-                -e AZURE_STORAGE_CONNECTION_STRING='${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}'
+                -e AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
                 -e PAYOS_CLIENT_ID=${{ secrets.PAYOS_CLIENT_ID }}
                 -e PAYOS_API_KEY=${{ secrets.PAYOS_API_KEY }}
                 -e PAYOS_CHECKSUM_KEY=${{ secrets.PAYOS_CHECKSUM_KEY }}
