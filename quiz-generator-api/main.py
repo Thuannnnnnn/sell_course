@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from app.services.file_processor import FileProcessor
 from app.services.quiz_generator import QuizGenerator
 
+from fastapi import APIRouter, HTTPException, Request
+
 # Load environment variables
 load_dotenv()
 
@@ -49,6 +51,18 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service": "Quiz Generator API"}
 
+@app.post("/extract-docx")
+async def extract_docx_base64(payload: dict):
+    base64_doc = payload.get("base64")
+    if not base64_doc:
+        raise HTTPException(status_code=400, detail="Missing base64")
+
+    try:
+        content = FileProcessor.extract_docx_text_from_base64(base64_doc)
+        return {"content": content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @app.post("/test-quiz", response_model=QuizResponse)
 async def test_quiz_generation():
     """

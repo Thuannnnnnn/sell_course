@@ -276,7 +276,7 @@ function QuizPageContent({ params }: QuizPageProps) {
 
     try {
       const response = await fetch(
-        "http://fastapi.coursemaster.io.vn/generate-quiz",
+        "http://localhost:8000/generate-quiz",
         {
           method: "POST",
           headers: {
