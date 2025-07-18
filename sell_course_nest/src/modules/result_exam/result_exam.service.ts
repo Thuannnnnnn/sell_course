@@ -5,7 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { ResultExam } from './entities/result_exam.entity';
 import { Exam } from '../exam/entities/exam.entity';
 import { User } from '../user/entities/user.entity';
+import { Certificate } from '../certificate/entities/certificate.entity';
 import { SubmitExamDto } from './dto/submit-exam.dto';
+import { CertificateService } from '../certificate/certificate.service';
+import { CreateCertificateDto } from '../certificate/dto/create-certificate.dto';
 
 @Injectable()
 export class ResultExamService {
@@ -16,6 +19,9 @@ export class ResultExamService {
     private examRepository: Repository<Exam>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Certificate)
+    private certificateRepository: Repository<Certificate>,
+    private certificateService: CertificateService,
   ) {}
 
   async submitExam(email: string, submitExamDto: SubmitExamDto) {
@@ -28,7 +34,7 @@ export class ResultExamService {
 
     const exam = await this.examRepository.findOne({
       where: { courseId: submitExamDto.courseId },
-      relations: ['questions', 'questions.answers'],
+      relations: ['questions', 'questions.answers', 'course'], // Thêm course relation
     });
     if (!exam) {
       throw new NotFoundException('Exam not found');
@@ -39,10 +45,10 @@ export class ResultExamService {
       exam.questions.flatMap((q) => q.answers.map((a) => [a.answerId, a])),
     );
 
-    // Check if the user has already submitted an exam for the given examId
+    // Check if the user has already submitted an exam for the given courseId
     const existingResult = await this.resultExamRepository.findOne({
       where: {
-        // user: { email },
+        user: { email },
         exam: { courseId: submitExamDto.courseId },
       },
     });
@@ -52,8 +58,6 @@ export class ResultExamService {
     }
 
     let score = 0;
-    score = parseFloat(score.toFixed(2));
-
     const answersResult = [];
 
     // Iterate over the answers submitted by the user
@@ -87,6 +91,7 @@ export class ResultExamService {
     let percentageScore = (score / totalQuestions) * 100;
     percentageScore = parseFloat(percentageScore.toFixed(2));
 
+    // Create and save exam result
     const resultExam = this.resultExamRepository.create({
       resultExamId: uuidv4(),
       user,
@@ -96,7 +101,49 @@ export class ResultExamService {
       answers: answersResult,
     });
 
-    return this.resultExamRepository.save(resultExam);
+    const savedResult = await this.resultExamRepository.save(resultExam);
+
+    // Auto-generate certificate if passing score (80% or higher)
+    const passingScore = 80;
+    if (percentageScore >= passingScore) {
+      await this.generateCertificateForUser(user, exam, percentageScore);
+    }
+
+    return savedResult;
+  }
+
+  private async generateCertificateForUser(user: User, exam: any, score: number) {
+    try {
+      // Check if certificate already exists for this user and course
+      const existingCertificate = await this.certificateRepository.findOne({
+        where: {
+          user: { user_id: user.user_id },
+          course: { courseId: exam.courseId },
+        },
+      });
+
+      if (existingCertificate) {
+        console.log(`Certificate already exists for user ${user.email} and course ${exam.courseId}`);
+        return existingCertificate;
+      }
+
+      // Create certificate DTO
+      const createCertificateDto: CreateCertificateDto = {
+        courseId: exam.courseId,
+        userId: user.user_id,
+        title: `Certificate of Completion - ${exam.course?.title || 'Course'}`,
+      };
+
+      // Use CertificateService to create certificate and send email
+      const certificate = await this.certificateService.create(createCertificateDto);
+      
+      console.log(`Certificate created successfully for user ${user.email} with score ${score}%`);
+      return certificate;
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      // Don't throw error to avoid breaking exam submission
+      // Just log the error and continue
+    }
   }
 
   async getUserExamResults(email: string, courseId: string) {
@@ -134,7 +181,7 @@ export class ResultExamService {
       where: { courseId },
       relations: ['questions', 'questions.answers'],
     });
-    console.log('Get exxam Id', courseId);
+    console.log('Get exam Id', courseId);
     if (!exam) {
       throw new NotFoundException('Exam not found');
     }
@@ -146,9 +193,9 @@ export class ResultExamService {
 
   async getAll(): Promise<ResultExam[]> {
     const results = await this.resultExamRepository.find({
-      relations: ['exam', 'user'], // Load thông tin liên quan
+      relations: ['exam', 'user'],
       order: {
-        createdAt: 'DESC', // Sắp xếp theo thời gian tạo, mới nhất trước
+        createdAt: 'DESC',
       },
     });
 
@@ -157,5 +204,17 @@ export class ResultExamService {
     }
 
     return results;
+  }
+
+  // New method to get user's certificates
+  async getUserCertificates(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.certificateService.findByUserId(user.user_id);
   }
 }

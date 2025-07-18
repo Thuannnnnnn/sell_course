@@ -65,6 +65,7 @@ export default function UpdatedCourseDetailPage({
           setIsCheckingEnrollment(true);
           const response = await checkEnrollmentServer(params.courseId);
           setIsEnrolled(response.enrolled);
+          console.log("Enrollment check response:", response);
         } catch (error) {
           console.error("Error checking enrollment:", error);
         } finally {
@@ -327,15 +328,15 @@ export default function UpdatedCourseDetailPage({
                       )}
                     </div>
 
-                    {/* Price */}
-                    <div className="text-center mb-6">
-                      <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                        {course.price} VND
-                      </div>
-                      <p className="text-gray-600">
-                        {course.short_description}
-                      </p>
+                  {/* Price */} 
+                  <div className="text-center mb-6">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                      {isEnrolled && (
+                        <p className="text-lg">{course.price} VND</p>
+                      )}
                     </div>
+                    <p className="text-gray-600">{course.short_description}</p>
+                  </div>
 
                     {/* Action Buttons */}
                     <div className="mb-6 space-y-3">{renderActionButton()}</div>

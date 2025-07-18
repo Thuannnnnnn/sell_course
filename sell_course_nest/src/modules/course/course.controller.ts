@@ -13,7 +13,10 @@ import {
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseDetailResponse } from './dto/courseDetailResponse.dto';
-import { UpdateCourseStatusDto, ReviewCourseStatusDto } from './dto/update-course-status.dto';
+import {
+  UpdateCourseStatusDto,
+  ReviewCourseStatusDto,
+} from './dto/update-course-status.dto';
 import { CourseStatus } from './enums/course-status.enum';
 import { CourseService } from './course.service';
 import {
@@ -196,7 +199,9 @@ export class CourseController {
 
   @Patch('courses/:courseId/status')
   @ApiBearerAuth('Authorization')
-  @ApiOperation({ summary: 'Update course status (instructor only - DRAFT/PENDING_REVIEW)' })
+  @ApiOperation({
+    summary: 'Update course status (instructor only - DRAFT/PENDING_REVIEW)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Course status updated successfully.',
@@ -221,12 +226,18 @@ export class CourseController {
   ): Promise<{ message: string }> {
     // This should be extracted from JWT token in real implementation
     const instructorId = 'temp-instructor-id'; // Replace with actual JWT extraction
-    return this.courseService.updateCourseStatus(courseId, updateStatusDto, instructorId);
+    return this.courseService.updateCourseStatus(
+      courseId,
+      updateStatusDto,
+      instructorId,
+    );
   }
 
   @Patch('admin/courses/:courseId/review')
   @ApiBearerAuth('Authorization')
-  @ApiOperation({ summary: 'Review course status (admin only - PUBLISHED/REJECTED)' })
+  @ApiOperation({
+    summary: 'Review course status (admin only - PUBLISHED/REJECTED)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Course reviewed successfully.',

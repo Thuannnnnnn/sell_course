@@ -8,6 +8,7 @@ import { Loader2, Upload, X } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Textarea } from "../../../components/ui/textarea";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -86,6 +87,7 @@ export default function AddCourseForm() {
         setCategories(res);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
+        toast.error("Failed to load categories. Please refresh the page.");
       }
     };
 
@@ -123,6 +125,7 @@ export default function AddCourseForm() {
       router.push("/course");
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Failed to create course. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../../../../../c
 import { Button } from '../../../../../../../components/ui/button';
 import { Badge } from '../../../../../../../components/ui/badge';
 import { Alert, AlertDescription } from '../../../../../../../components/ui/alert';
+import { toast } from 'sonner';
 
 import { 
   BookOpen, 
@@ -102,7 +103,7 @@ function QuizManagePageContent() {
     
     const quiz = quizzes.find(q => q.quizzId === quizId);
     if (!quiz || quiz.questions.length === 0) {
-      alert('No questions to delete in this quiz.');
+      toast.error('No questions to delete in this quiz.');
       return;
     }
 
@@ -123,7 +124,7 @@ function QuizManagePageContent() {
         )
       );
 
-      alert(`✅ Successfully deleted ${result.deletedCount} questions!`);
+      toast.success(`Successfully deleted ${result.deletedCount} questions!`);
     } catch (err) {
       const error = err as Error & { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || error.message || 'Failed to delete questions');
