@@ -7,7 +7,6 @@ import { BannerSetting, LogoSetting, VersionSetting } from "app/types/setting";
 import { settingsApi } from "app/api/settings/settings";
 import { Card, CardContent, CardHeader, CardTitle } from "components/ui/card";
 import { Button } from "components/ui/button";
-import { Switch } from "@radix-ui/react-switch";
 import { Label } from "components/ui/label";
 import { Input } from "components/ui/input";
 import { Checkbox } from "@radix-ui/react-checkbox";
@@ -165,18 +164,36 @@ export default function SettingsPage() {
     try {
       if (type === "logo") {
         setUploadingLogo(true);
-        await settingsApi.updateLogo(
-          selectedVersion.versionSettingId,
-          file,
-          Id || selectedVersion.logoId || ""
-        );
+        if (Id || selectedVersion.logoId) {
+          // Update
+          await settingsApi.updateLogo(
+            selectedVersion.versionSettingId,
+            file,
+            Id || selectedVersion.logoId || ""
+          );
+        } else {
+          // Create
+          await settingsApi.createLogo(
+            selectedVersion.versionSettingId,
+            file
+          );
+        }
       } else {
         setUploadingBanner(true);
-        await settingsApi.updateBanner(
-          selectedVersion.versionSettingId,
-          file,
-          Id || selectedVersion.bannerId || ""
-        );
+        if (Id || selectedVersion.bannerId) {
+          // Update
+          await settingsApi.updateBanner(
+            selectedVersion.versionSettingId,
+            file,
+            Id || selectedVersion.bannerId || ""
+          );
+        } else {
+          // Create
+          await settingsApi.createBanner(
+            selectedVersion.versionSettingId,
+            file
+          );
+        }
       }
       await loadVersionDetails();
     } catch (error) {
@@ -233,6 +250,7 @@ export default function SettingsPage() {
       );
 
       setVersions(versionsWithIds);
+      console.log("versionsWithIds", versionsWithIds);
 
       if (currentSelectedId) {
         const updatedSelectedVersion = versionsWithIds.find(
@@ -242,6 +260,10 @@ export default function SettingsPage() {
           setSelectedVersion(updatedSelectedVersion);
         }
       }
+
+      localStorage.setItem("activeVersionId", version.versionSettingId);
+      window.dispatchEvent(new Event("activeVersionIdChanged"));
+      console.log("activeVersionId", version.versionSettingId);
     } catch {}
   };
 
@@ -417,7 +439,6 @@ export default function SettingsPage() {
                               onClick={() =>
                                 !version.isActive && handleToggleActive(version)
                               }
-                              disabled={version.isActive}
                             >
                               <span
                                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${

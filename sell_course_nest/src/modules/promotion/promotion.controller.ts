@@ -7,6 +7,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -52,6 +53,24 @@ export class PromotionController {
   })
   findOne(@Param('code') code: string): Promise<Promotion> {
     return this.promotionService.findOne(code);
+  }
+
+  @Get('promotion/validate/:code')
+  @ApiOperation({ summary: 'Validate a promotion code' })
+  @ApiResponse({
+    status: 200,
+    description: 'Valid promotion code',
+    type: Promotion,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Invalid or expired promotion code',
+  })
+  validateCode(
+    @Param('code') code: string,
+    @Query('courseId') courseId?: string,
+  ): Promise<any> {
+    return this.promotionService.validatePromotionCode(code, courseId);
   }
 
   @Put('admin/promotion/update_promotion/:id')

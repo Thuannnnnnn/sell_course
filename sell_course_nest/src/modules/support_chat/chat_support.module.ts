@@ -6,10 +6,12 @@ import { ChatService } from './chat_support.service';
 import { ChatController } from './chat_support.controller';
 import { ChatGateway } from './chat_support.gateway';
 import { User } from '../user/entities/user.entity';
+import { UserService } from '../user/user.service';
+import { Permission } from '../permission/entities/permission.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ChatSession, Message, User])],
-  providers: [ChatService, ChatGateway],
+  imports: [TypeOrmModule.forFeature([ChatSession, Message, User, Permission])],
+  providers: [ChatService, ChatGateway, UserService],
   controllers: [ChatController],
 })
 export class SupportChatModule {}
