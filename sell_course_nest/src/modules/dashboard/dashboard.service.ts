@@ -5,6 +5,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
+import { CourseStatus } from '../course/enums/course-status.enum';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { Category } from '../category/entities/category.entity';
 import { ResultExam } from '../result_exam/entities/result_exam.entity';
@@ -12,11 +13,29 @@ import { ProgressTracking } from '../progress_tracking/entities/progress.entity'
 import { Forum } from '../forum/entities/forum.entity';
 import { QaStudy } from '../qa_study/entities/qa.entity';
 import { DashboardOverviewDto } from './dto/dashboard-overview.dto';
-import { RevenueAnalyticsDto, MonthlyRevenueDto } from './dto/revenue-analytics.dto';
-import { UserStatisticsDto, UserGrowthDto, UserRoleDistributionDto } from './dto/user-statistics.dto';
-import { CoursePerformanceDto, CoursePerformanceItemDto, CategoryPerformanceDto } from './dto/course-performance.dto';
-import { EnrollmentTrendsDto, MonthlyEnrollmentDto, EnrollmentStatusDto } from './dto/enrollment-trends.dto';
-import { RecentActivitiesDto, RecentActivityDto } from './dto/recent-activities.dto';
+import {
+  RevenueAnalyticsDto,
+  MonthlyRevenueDto,
+} from './dto/revenue-analytics.dto';
+import {
+  UserStatisticsDto,
+  UserGrowthDto,
+  UserRoleDistributionDto,
+} from './dto/user-statistics.dto';
+import {
+  CoursePerformanceDto,
+  CoursePerformanceItemDto,
+  CategoryPerformanceDto,
+} from './dto/course-performance.dto';
+import {
+  EnrollmentTrendsDto,
+  MonthlyEnrollmentDto,
+  EnrollmentStatusDto,
+} from './dto/enrollment-trends.dto';
+import {
+  RecentActivitiesDto,
+  RecentActivityDto,
+} from './dto/recent-activities.dto';
 
 @Injectable()
 export class DashboardService {
@@ -44,7 +63,7 @@ export class DashboardService {
   async getDashboardOverview(): Promise<DashboardOverviewDto> {
     const cacheKey = 'dashboard_overview';
     const cached = await this.cacheManager.get<DashboardOverviewDto>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -58,7 +77,9 @@ export class DashboardService {
     const totalUsers = await this.userRepository.count();
     const totalCourses = await this.courseRepository.count();
     const totalEnrollments = await this.enrollmentRepository.count();
-    const activeCourses = await this.courseRepository.count({ where: { status: true } });
+    const activeCourses = await this.courseRepository.count({
+      where: { status: CourseStatus.PUBLISHED },
+    });
 
     // Get monthly counts
     const newUsersThisMonth = await this.userRepository.count({
@@ -94,14 +115,16 @@ export class DashboardService {
     }, 0);
 
     const revenueThisMonth = paidEnrollments
-      .filter(enrollment => enrollment.enroll_at >= currentMonth)
+      .filter((enrollment) => enrollment.enroll_at >= currentMonth)
       .reduce((sum, enrollment) => {
         return sum + (enrollment.course?.price || 0);
       }, 0);
 
     const revenueLastMonth = paidEnrollments
-      .filter(enrollment => 
-        enrollment.enroll_at >= lastMonth && enrollment.enroll_at < currentMonth
+      .filter(
+        (enrollment) =>
+          enrollment.enroll_at >= lastMonth &&
+          enrollment.enroll_at < currentMonth,
       )
       .reduce((sum, enrollment) => {
         return sum + (enrollment.course?.price || 0);
@@ -112,20 +135,32 @@ export class DashboardService {
       where: { is_completed: true },
     });
     const totalProgress = await this.progressRepository.count();
-    const completionRate = totalProgress > 0 ? (completedProgress / totalProgress) * 100 : 0;
+    const completionRate =
+      totalProgress > 0 ? (completedProgress / totalProgress) * 100 : 0;
 
     // Calculate growth percentages
-    const userGrowthPercentage = newUsersLastMonth > 0 ? 
-      ((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100 : 0;
-    
-    const courseGrowthPercentage = newCoursesLastMonth > 0 ? 
-      ((newCoursesThisMonth - newCoursesLastMonth) / newCoursesLastMonth) * 100 : 0;
-    
-    const enrollmentGrowthPercentage = newEnrollmentsLastMonth > 0 ? 
-      ((newEnrollmentsThisMonth - newEnrollmentsLastMonth) / newEnrollmentsLastMonth) * 100 : 0;
-    
-    const revenueGrowthPercentage = revenueLastMonth > 0 ? 
-      ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100 : 0;
+    const userGrowthPercentage =
+      newUsersLastMonth > 0
+        ? ((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100
+        : 0;
+
+    const courseGrowthPercentage =
+      newCoursesLastMonth > 0
+        ? ((newCoursesThisMonth - newCoursesLastMonth) / newCoursesLastMonth) *
+          100
+        : 0;
+
+    const enrollmentGrowthPercentage =
+      newEnrollmentsLastMonth > 0
+        ? ((newEnrollmentsThisMonth - newEnrollmentsLastMonth) /
+            newEnrollmentsLastMonth) *
+          100
+        : 0;
+
+    const revenueGrowthPercentage =
+      revenueLastMonth > 0
+        ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100
+        : 0;
 
     const overview: DashboardOverviewDto = {
       totalUsers,
@@ -138,7 +173,8 @@ export class DashboardService {
       revenueThisMonth,
       userGrowthPercentage: Math.round(userGrowthPercentage * 100) / 100,
       courseGrowthPercentage: Math.round(courseGrowthPercentage * 100) / 100,
-      enrollmentGrowthPercentage: Math.round(enrollmentGrowthPercentage * 100) / 100,
+      enrollmentGrowthPercentage:
+        Math.round(enrollmentGrowthPercentage * 100) / 100,
       revenueGrowthPercentage: Math.round(revenueGrowthPercentage * 100) / 100,
       activeCourses,
       completionRate: Math.round(completionRate * 100) / 100,
@@ -151,7 +187,7 @@ export class DashboardService {
   async getRevenueAnalytics(): Promise<RevenueAnalyticsDto> {
     const cacheKey = 'revenue_analytics';
     const cached = await this.cacheManager.get<RevenueAnalyticsDto>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -164,14 +200,14 @@ export class DashboardService {
     for (let month = 0; month < 12; month++) {
       const monthStart = new Date(currentYear, month, 1);
       const monthEnd = new Date(currentYear, month + 1, 0);
-      
+
       const enrollments = await this.enrollmentRepository
         .createQueryBuilder('enrollment')
         .leftJoinAndSelect('enrollment.course', 'course')
         .where('enrollment.status = :status', { status: 'PAID' })
-        .andWhere('enrollment.enroll_at BETWEEN :start AND :end', { 
-          start: monthStart, 
-          end: monthEnd 
+        .andWhere('enrollment.enroll_at BETWEEN :start AND :end', {
+          start: monthStart,
+          end: monthEnd,
         })
         .getMany();
 
@@ -180,31 +216,40 @@ export class DashboardService {
       }, 0);
 
       monthlyRevenue.push({
-        month: new Date(currentYear, month, 1).toLocaleString('default', { month: 'long' }),
+        month: new Date(currentYear, month, 1).toLocaleString('default', {
+          month: 'long',
+        }),
         revenue,
         orders: enrollments.length,
         year: currentYear,
       });
     }
 
-    const totalRevenue = monthlyRevenue.reduce((sum, month) => sum + month.revenue, 0);
+    const totalRevenue = monthlyRevenue.reduce(
+      (sum, month) => sum + month.revenue,
+      0,
+    );
     const averageMonthlyRevenue = totalRevenue / 12;
-    
-    const sortedByRevenue = [...monthlyRevenue].sort((a, b) => b.revenue - a.revenue);
+
+    const sortedByRevenue = [...monthlyRevenue].sort(
+      (a, b) => b.revenue - a.revenue,
+    );
     const highestRevenueMonth = sortedByRevenue[0]?.month || 'N/A';
     const lowestRevenueMonth = sortedByRevenue[11]?.month || 'N/A';
 
     // Calculate growth from last year (simplified)
     const lastYearRevenue = totalRevenue * 0.85; // Mock calculation
-    const revenueGrowthPercentage = lastYearRevenue > 0 ? 
-      ((totalRevenue - lastYearRevenue) / lastYearRevenue) * 100 : 0;
+    const revenueGrowthPercentage =
+      lastYearRevenue > 0
+        ? ((totalRevenue - lastYearRevenue) / lastYearRevenue) * 100
+        : 0;
 
     const totalPaidEnrollments = await this.enrollmentRepository.count({
       where: { status: 'PAID' },
     });
 
-    const averageOrderValue = totalPaidEnrollments > 0 ? 
-      totalRevenue / totalPaidEnrollments : 0;
+    const averageOrderValue =
+      totalPaidEnrollments > 0 ? totalRevenue / totalPaidEnrollments : 0;
 
     const analytics: RevenueAnalyticsDto = {
       monthlyRevenue,
@@ -224,7 +269,7 @@ export class DashboardService {
   async getUserStatistics(): Promise<UserStatisticsDto> {
     const cacheKey = 'user_statistics';
     const cached = await this.cacheManager.get<UserStatisticsDto>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -237,7 +282,7 @@ export class DashboardService {
     for (let month = 0; month < 12; month++) {
       const monthStart = new Date(currentYear, month, 1);
       const monthEnd = new Date(currentYear, month + 1, 0);
-      
+
       const newUsers = await this.userRepository.count({
         where: { createdAt: Between(monthStart, monthEnd) },
       });
@@ -247,7 +292,9 @@ export class DashboardService {
       });
 
       userGrowth.push({
-        month: new Date(currentYear, month, 1).toLocaleString('default', { month: 'long' }),
+        month: new Date(currentYear, month, 1).toLocaleString('default', {
+          month: 'long',
+        }),
         newUsers,
         totalUsers,
         year: currentYear,
@@ -262,7 +309,7 @@ export class DashboardService {
     for (const role of roles) {
       const count = await this.userRepository.count({ where: { role } });
       const percentage = totalUsers > 0 ? (count / totalUsers) * 100 : 0;
-      
+
       roleDistribution.push({
         role,
         count,
@@ -289,10 +336,15 @@ export class DashboardService {
       where: { createdAt: Between(lastMonth, currentMonth) },
     });
 
-    const userGrowthPercentage = newUsersLastMonth > 0 ? 
-      ((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100 : 0;
+    const userGrowthPercentage =
+      newUsersLastMonth > 0
+        ? ((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100
+        : 0;
 
-    const totalNewUsers = userGrowth.reduce((sum, month) => sum + month.newUsers, 0);
+    const totalNewUsers = userGrowth.reduce(
+      (sum, month) => sum + month.newUsers,
+      0,
+    );
     const averageUsersPerMonth = totalNewUsers / 12;
 
     const statistics: UserStatisticsDto = {
@@ -313,7 +365,7 @@ export class DashboardService {
   async getCoursePerformance(): Promise<CoursePerformanceDto> {
     const cacheKey = 'course_performance';
     const cached = await this.cacheManager.get<CoursePerformanceDto>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -331,16 +383,16 @@ export class DashboardService {
       .getRawAndEntities();
 
     const topCourses: CoursePerformanceItemDto[] = [];
-    
+
     for (const course of topCoursesData.entities) {
       const enrollments = await this.enrollmentRepository.count({
         where: { course: { courseId: course.courseId } },
       });
 
       const paidEnrollments = await this.enrollmentRepository.count({
-        where: { 
+        where: {
           course: { courseId: course.courseId },
-          status: 'PAID'
+          status: 'PAID',
         },
       });
 
@@ -359,7 +411,8 @@ export class DashboardService {
         .where('course.courseId = :courseId', { courseId: course.courseId })
         .getCount();
 
-      const completionRate = totalProgress > 0 ? (completedProgress / totalProgress) * 100 : 0;
+      const completionRate =
+        totalProgress > 0 ? (completedProgress / totalProgress) * 100 : 0;
       const revenue = paidEnrollments * course.price;
 
       topCourses.push({
@@ -396,9 +449,9 @@ export class DashboardService {
         });
 
         const paidEnrollments = await this.enrollmentRepository.count({
-          where: { 
+          where: {
             course: { courseId: course.courseId },
-            status: 'PAID'
+            status: 'PAID',
           },
         });
 
@@ -407,7 +460,9 @@ export class DashboardService {
           .leftJoin('progress.lesson', 'lesson')
           .leftJoin('lesson.course', 'course')
           .where('course.courseId = :courseId', { courseId: course.courseId })
-          .andWhere('progress.is_completed = :isCompleted', { isCompleted: true })
+          .andWhere('progress.is_completed = :isCompleted', {
+            isCompleted: true,
+          })
           .getCount();
 
         const totalProgress = await this.progressRepository
@@ -417,14 +472,16 @@ export class DashboardService {
           .where('course.courseId = :courseId', { courseId: course.courseId })
           .getCount();
 
-        const completionRate = totalProgress > 0 ? (completedProgress / totalProgress) * 100 : 0;
-        
+        const completionRate =
+          totalProgress > 0 ? (completedProgress / totalProgress) * 100 : 0;
+
         totalEnrollments += enrollments;
         totalRevenue += paidEnrollments * course.price;
         totalCompletionRate += completionRate;
       }
 
-      const averageCompletionRate = courseCount > 0 ? totalCompletionRate / courseCount : 0;
+      const averageCompletionRate =
+        courseCount > 0 ? totalCompletionRate / courseCount : 0;
 
       categoryPerformance.push({
         categoryName: category.name,
@@ -436,23 +493,32 @@ export class DashboardService {
     }
 
     const totalCourses = await this.courseRepository.count();
-    const activeCourses = await this.courseRepository.count({ where: { status: true } });
-    
+    const activeCourses = await this.courseRepository.count({
+      where: { status: CourseStatus.PUBLISHED },
+    });
+
     const allCompletedProgress = await this.progressRepository.count({
       where: { is_completed: true },
     });
     const allTotalProgress = await this.progressRepository.count();
-    const averageCompletionRate = allTotalProgress > 0 ? 
-      (allCompletedProgress / allTotalProgress) * 100 : 0;
+    const averageCompletionRate =
+      allTotalProgress > 0
+        ? (allCompletedProgress / allTotalProgress) * 100
+        : 0;
 
-    const mostPopularCategory = categoryPerformance.length > 0 ? 
-      categoryPerformance.reduce((prev, current) => 
-        prev.totalEnrollments > current.totalEnrollments ? prev : current
-      ).categoryName : 'N/A';
+    const mostPopularCategory =
+      categoryPerformance.length > 0
+        ? categoryPerformance.reduce((prev, current) =>
+            prev.totalEnrollments > current.totalEnrollments ? prev : current,
+          ).categoryName
+        : 'N/A';
 
     const allCourses = await this.courseRepository.find();
-    const averageRating = allCourses.length > 0 ? 
-      allCourses.reduce((sum, course) => sum + course.rating, 0) / allCourses.length : 0;
+    const averageRating =
+      allCourses.length > 0
+        ? allCourses.reduce((sum, course) => sum + course.rating, 0) /
+          allCourses.length
+        : 0;
 
     const performance: CoursePerformanceDto = {
       topCourses,
@@ -471,7 +537,7 @@ export class DashboardService {
   async getEnrollmentTrends(): Promise<EnrollmentTrendsDto> {
     const cacheKey = 'enrollment_trends';
     const cached = await this.cacheManager.get<EnrollmentTrendsDto>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -484,15 +550,15 @@ export class DashboardService {
     for (let month = 0; month < 12; month++) {
       const monthStart = new Date(currentYear, month, 1);
       const monthEnd = new Date(currentYear, month + 1, 0);
-      
+
       const totalEnrollments = await this.enrollmentRepository.count({
         where: { enroll_at: Between(monthStart, monthEnd) },
       });
 
       const paidEnrollments = await this.enrollmentRepository.count({
-        where: { 
+        where: {
           enroll_at: Between(monthStart, monthEnd),
-          status: 'PAID'
+          status: 'PAID',
         },
       });
 
@@ -506,9 +572,9 @@ export class DashboardService {
         .leftJoin('lesson.course', 'course')
         .leftJoin('user.enrollments', 'enrollment')
         .where('enrollment.course = course.courseId')
-        .andWhere('enrollment.enroll_at BETWEEN :start AND :end', { 
-          start: monthStart, 
-          end: monthEnd 
+        .andWhere('enrollment.enroll_at BETWEEN :start AND :end', {
+          start: monthStart,
+          end: monthEnd,
         })
         .andWhere('progress.is_completed = true')
         .getCount();
@@ -520,17 +586,21 @@ export class DashboardService {
         .leftJoin('lesson.course', 'course')
         .leftJoin('user.enrollments', 'enrollment')
         .where('enrollment.course = course.courseId')
-        .andWhere('enrollment.enroll_at BETWEEN :start AND :end', { 
-          start: monthStart, 
-          end: monthEnd 
+        .andWhere('enrollment.enroll_at BETWEEN :start AND :end', {
+          start: monthStart,
+          end: monthEnd,
         })
         .getCount();
 
-      const completionRate = totalProgressInMonth > 0 ? 
-        (completedInMonth / totalProgressInMonth) * 100 : 0;
+      const completionRate =
+        totalProgressInMonth > 0
+          ? (completedInMonth / totalProgressInMonth) * 100
+          : 0;
 
       monthlyTrends.push({
-        month: new Date(currentYear, month, 1).toLocaleString('default', { month: 'long' }),
+        month: new Date(currentYear, month, 1).toLocaleString('default', {
+          month: 'long',
+        }),
         enrollments: totalEnrollments,
         paidEnrollments,
         freeEnrollments,
@@ -545,9 +615,12 @@ export class DashboardService {
     const totalEnrollments = await this.enrollmentRepository.count();
 
     for (const status of statuses) {
-      const count = await this.enrollmentRepository.count({ where: { status } });
-      const percentage = totalEnrollments > 0 ? (count / totalEnrollments) * 100 : 0;
-      
+      const count = await this.enrollmentRepository.count({
+        where: { status },
+      });
+      const percentage =
+        totalEnrollments > 0 ? (count / totalEnrollments) * 100 : 0;
+
       statusDistribution.push({
         status,
         count,
@@ -566,26 +639,35 @@ export class DashboardService {
       where: { enroll_at: Between(lastMonth, currentMonth) },
     });
 
-    const enrollmentGrowthPercentage = enrollmentsLastMonth > 0 ? 
-      ((enrollmentsThisMonth - enrollmentsLastMonth) / enrollmentsLastMonth) * 100 : 0;
+    const enrollmentGrowthPercentage =
+      enrollmentsLastMonth > 0
+        ? ((enrollmentsThisMonth - enrollmentsLastMonth) /
+            enrollmentsLastMonth) *
+          100
+        : 0;
 
-    const totalYearlyEnrollments = monthlyTrends.reduce((sum, month) => sum + month.enrollments, 0);
+    const totalYearlyEnrollments = monthlyTrends.reduce(
+      (sum, month) => sum + month.enrollments,
+      0,
+    );
     const averageEnrollmentsPerMonth = totalYearlyEnrollments / 12;
 
-    const peakEnrollmentMonth = monthlyTrends.reduce((prev, current) => 
-      prev.enrollments > current.enrollments ? prev : current
+    const peakEnrollmentMonth = monthlyTrends.reduce((prev, current) =>
+      prev.enrollments > current.enrollments ? prev : current,
     ).month;
 
     // Calculate conversion rate (paid vs total)
     const paidEnrollmentsThisMonth = await this.enrollmentRepository.count({
-      where: { 
+      where: {
         enroll_at: Between(currentMonth, now),
-        status: 'PAID'
+        status: 'PAID',
       },
     });
 
-    const conversionRate = enrollmentsThisMonth > 0 ? 
-      (paidEnrollmentsThisMonth / enrollmentsThisMonth) * 100 : 0;
+    const conversionRate =
+      enrollmentsThisMonth > 0
+        ? (paidEnrollmentsThisMonth / enrollmentsThisMonth) * 100
+        : 0;
 
     const trends: EnrollmentTrendsDto = {
       monthlyTrends,
@@ -593,8 +675,10 @@ export class DashboardService {
       totalEnrollments,
       enrollmentsThisMonth,
       enrollmentsLastMonth,
-      enrollmentGrowthPercentage: Math.round(enrollmentGrowthPercentage * 100) / 100,
-      averageEnrollmentsPerMonth: Math.round(averageEnrollmentsPerMonth * 100) / 100,
+      enrollmentGrowthPercentage:
+        Math.round(enrollmentGrowthPercentage * 100) / 100,
+      averageEnrollmentsPerMonth:
+        Math.round(averageEnrollmentsPerMonth * 100) / 100,
       peakEnrollmentMonth,
       conversionRate: Math.round(conversionRate * 100) / 100,
     };
@@ -606,7 +690,7 @@ export class DashboardService {
   async getRecentActivities(limit: number = 50): Promise<RecentActivitiesDto> {
     const cacheKey = `recent_activities_${limit}`;
     const cached = await this.cacheManager.get<RecentActivitiesDto>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -690,22 +774,25 @@ export class DashboardService {
     }
 
     // Sort activities by timestamp
-    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    activities.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
 
     // Limit results
     const limitedActivities = activities.slice(0, limit);
 
     const last24HoursCount = activities.filter(
-      activity => new Date(activity.timestamp) >= last24Hours
+      (activity) => new Date(activity.timestamp) >= last24Hours,
     ).length;
 
     const lastWeekCount = activities.filter(
-      activity => new Date(activity.timestamp) >= lastWeek
+      (activity) => new Date(activity.timestamp) >= lastWeek,
     ).length;
 
     // Calculate most active hour (simplified)
     const hourCounts = new Array(24).fill(0);
-    activities.forEach(activity => {
+    activities.forEach((activity) => {
       const hour = new Date(activity.timestamp).getHours();
       hourCounts[hour]++;
     });
@@ -719,8 +806,9 @@ export class DashboardService {
       return acc;
     }, {});
 
-    const mostFrequentActivityType = Object.entries(activityTypeCounts)
-      .reduce((a, b) => a[1] > b[1] ? a : b)[0];
+    const mostFrequentActivityType = Object.entries(activityTypeCounts).reduce(
+      (a, b) => (a[1] > b[1] ? a : b),
+    )[0];
 
     const recentActivities: RecentActivitiesDto = {
       activities: limitedActivities,

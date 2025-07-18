@@ -4,9 +4,10 @@ import {
   IsNumber,
   IsDateString,
   IsUUID,
-  IsBoolean,
+  IsEnum,
   IsInt,
 } from 'class-validator';
+import { CourseStatus } from '../enums/course-status.enum';
 
 export class CourseResponseDTO {
   constructor(
@@ -21,7 +22,7 @@ export class CourseResponseDTO {
     rating: number,
     skill: string,
     level: string,
-    status: boolean,
+    status: CourseStatus,
     createdAt: Date,
     updatedAt: Date,
     instructorId: string,
@@ -107,9 +108,13 @@ export class CourseResponseDTO {
   @IsString()
   level: string;
 
-  @ApiProperty({ description: 'Course public status', example: true })
-  @IsBoolean()
-  status: boolean;
+  @ApiProperty({
+    description: 'Course status',
+    example: CourseStatus.PUBLISHED,
+    enum: CourseStatus,
+  })
+  @IsEnum(CourseStatus)
+  status: CourseStatus;
 
   @ApiProperty({
     description: 'Creation date',

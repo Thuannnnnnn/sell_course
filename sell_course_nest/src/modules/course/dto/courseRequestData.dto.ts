@@ -4,10 +4,11 @@ import {
   IsNumber,
   IsUUID,
   IsOptional,
-  IsBoolean,
+  IsEnum,
   IsInt,
 } from 'class-validator';
 import { Express } from 'express';
+import { CourseStatus } from '../enums/course-status.enum';
 
 export class CourseRequestDTO {
   @ApiProperty({
@@ -63,9 +64,14 @@ export class CourseRequestDTO {
   @IsString()
   level: string;
 
-  @ApiProperty({ description: 'Course visibility status', example: true })
-  @IsBoolean()
-  status: boolean;
+  @ApiProperty({
+    description: 'Course status',
+    example: CourseStatus.DRAFT,
+    enum: CourseStatus,
+  })
+  @IsEnum(CourseStatus)
+  @IsOptional()
+  status?: CourseStatus;
 
   @ApiProperty({ description: 'Instructor ID', example: 'uuid-1234-5678' })
   @IsUUID()

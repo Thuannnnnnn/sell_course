@@ -42,7 +42,8 @@ import {
     QuizReviewData,
     ExamReviewData
 } from '../../../api/courses/course';
-import { ContentModal } from '../../../../components/course/ContentModal';
+import { ContentModal, ExamModal } from '../../../../components/course/ContentModal';
+import { CourseStatus } from '../../../../app/types/course.d';
 
 export default function CourseReviewPage() {
     const params = useParams();
@@ -179,7 +180,7 @@ export default function CourseReviewPage() {
                         variant="outline"
                         className="text-red-600 border-red-600 hover:bg-red-50"
                         onClick={handleReject}
-                        disabled={actionLoading || course.status === 'Published' || course.status === 'Rejected'}
+                        disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
                     >
                         {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
                         Reject
@@ -187,7 +188,7 @@ export default function CourseReviewPage() {
                     <Button
                         className="bg-green-600 hover:bg-green-700"
                         onClick={handleApprove}
-                        disabled={actionLoading || course.status === 'Published' || course.status === 'Rejected'}
+                        disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
                     >
                         {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                         Approve
@@ -403,9 +404,16 @@ function VideoContent({ video }: { video: VideoReviewData }) {
     return (
         <div className="bg-red-50 p-4 rounded-lg">
             <h5 className="font-medium mb-2">🎥 {video.title}</h5>
+            <p className="text-sm text-gray-600 mb-3">{video.description}</p>
             <div className="space-y-2">
-                <div>
+                <div className="flex items-center gap-2">
                 </div>
+                {video.urlScript && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium">Script:</span>
+                        <span className="text-xs text-green-600">Available</span>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -414,7 +422,7 @@ function DocContent({ doc }: { doc: DocReviewData }) {
     return (
         <div className="bg-blue-50 p-4 rounded-lg">
             <h5 className="font-medium mb-2">📄 {doc.title}</h5>
-            <div>
+            <div className="flex items-center gap-2">
             </div>
         </div>
     );
@@ -435,6 +443,7 @@ function ExamCard({ exam }: { exam: ExamReviewData }) {
                         <GraduationCap className="h-5 w-5" />
                         Final Exam ({exam.questions.length} questions)
                     </div>
+                    <ExamModal exam={exam} />
                 </CardTitle>
             </CardHeader>
             <CardContent>

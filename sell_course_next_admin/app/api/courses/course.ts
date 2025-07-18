@@ -1,4 +1,4 @@
-import { Course } from "app/types/course";
+import { Course, CourseStatus } from "app/types/course";
 import axios from "axios";
 
 export const createCourse = async (
@@ -250,7 +250,7 @@ export const fetchCourseWithDetailsNew = async (
       short_description: courseData.short_description,
       description: courseData.description,
       price: courseData.price,
-      status: courseData.status ? 'Published' : 'Draft',
+      status: courseData.status as CourseStatus,
       updatedAt: courseData.updatedAt,
       duration: courseData.duration,
       skill: courseData.skill,
