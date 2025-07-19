@@ -77,3 +77,15 @@ export interface RemovePermissionResponse {
   message: string;
   user: UserWithPermissions;
 }
+export interface CreateUserData {
+  email: string;
+  username: string;
+  password: string;
+  avatarImg?: string;
+  gender?: string;
+  birthDay?: string;
+  phoneNumber?: number;
+  role?: string;
+  isOAuth?: boolean;
+  isBan?: boolean;
+}

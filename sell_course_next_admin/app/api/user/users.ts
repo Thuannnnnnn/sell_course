@@ -9,8 +9,95 @@ import {
   UserProfileResponse,
   BanUserResponse,
   RemovePermissionResponse,
+  CreateUserData,
 } from "../../types/users";
 
+
+// Admin: Create new user
+export const createUser = async (
+  userData: CreateUserData,
+  token: string
+): Promise<User> => {
+  try {
+    const response = await axios.post<User>(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/create`,
+      userData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Axios error creating user:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Unexpected error creating user:", error);
+    }
+    throw error;
+  }
+};
+
+// Public: Register new user
+export const registerUser = async (
+  userData: CreateUserData
+): Promise<User> => {
+  try {
+    const response = await axios.post<User>(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/users/register`,
+      userData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Axios error registering user:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Unexpected error registering user:", error);
+    }
+    throw error;
+  }
+};
+
+// Admin: Delete user
+export const deleteUser = async (
+  userId: string,
+  token: string
+): Promise<{ message: string }> => {
+  try {
+    const response = await axios.delete<{ message: string }>(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/delete/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Axios error deleting user:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Unexpected error deleting user:", error);
+    }
+    throw error;
+  }
+};
 // Get all users (Admin only)
 export const fetchAllUsers = async (token: string): Promise<UserWithPermissions[]> => {
   try {
