@@ -5,15 +5,13 @@ import {
   fetchAllUsers,
   updateUserAdmin,
   banUser,
-  assignPermissionsToUser,
-  removePermissionFromUser,
   createUser,
   deleteUser,
 } from "../api/user/users";
-import { UserWithPermissions, UpdateUserData, BanUserData, Permission, CreateUserData } from "../types/users";
+import { UserWithPermissions, UpdateUserData, BanUserData, CreateUserData } from "../types/users";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Edit, Trash2, UserCheck, UserX, Search, Shield, Calendar, Phone, User as UserIcon } from "lucide-react";
+import { Edit, Trash2, UserCheck, UserX, Search, Calendar, Phone, User as UserIcon } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import {
   Table,
@@ -32,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { Checkbox } from "../../components/ui/checkbox";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 
@@ -44,13 +41,6 @@ interface EditUserModalProps {
   allRoles: string[];
 }
 
-interface ManagePermissionsModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  user: UserWithPermissions | null;
-  availablePermissions: Permission[];
-}
 // ADD THIS NEW INTERFACE
 interface CreateUserModalProps {
   open: boolean;
@@ -58,174 +48,25 @@ interface CreateUserModalProps {
   onSuccess: () => void;
   allRoles: string[];
 }
-
-// Available permissions (you might want to fetch these from an API)
-const AVAILABLE_PERMISSIONS: Permission[] = [
-  { id: 1, name: "Create Course", code: "CREATE_COURSE" },
-  { id: 2, name: "Edit Course", code: "EDIT_COURSE" },
-  { id: 3, name: "Delete Course", code: "DELETE_COURSE" },
-  { id: 4, name: "Manage Users", code: "MANAGE_USERS" },
-  { id: 5, name: "Manage Categories", code: "MANAGE_CATEGORIES" },
-  { id: 6, name: "View Reports", code: "VIEW_REPORTS" },
-  { id: 7, name: "System Settings", code: "SYSTEM_SETTINGS" },
-];
-
-function ManagePermissionsModal({
-  open,
-  onClose,
-  onSuccess,
-  user,
-  availablePermissions,
-}: ManagePermissionsModalProps) {
-  const { data: session } = useSession();
-  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (user && open) {
-      setSelectedPermissions(user.permissions.map(p => p.id));
-      setError("");
-    } else if (!open) {
-      setSelectedPermissions([]);
-      setError("");
-    }
-  }, [user, open]);
-
-  const handlePermissionToggle = (permissionId: number) => {
-    setSelectedPermissions(prev =>
-      prev.includes(permissionId)
-        ? prev.filter(id => id !== permissionId)
-        : [...prev, permissionId]
-    );
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!session?.accessToken || !user) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const currentPermissionIds = user.permissions.map(p => p.id);
-      const toAdd = selectedPermissions.filter(id => !currentPermissionIds.includes(id));
-      const toRemove = currentPermissionIds.filter(id => !selectedPermissions.includes(id));
-
-      // Add new permissions
-      if (toAdd.length > 0) {
-        await assignPermissionsToUser(user.user_id, { permissionIds: toAdd }, session.accessToken);
-      }
-
-      // Remove permissions
-      for (const permissionId of toRemove) {
-        await removePermissionFromUser(user.user_id, permissionId, session.accessToken);
-      }
-
-      toast.success("User permissions updated successfully!", {
-        style: {
-          background: '#10b981',
-          color: 'white',
-          border: '1px solid #059669',
-        },
-        icon: '✅',
-      });
-      onSuccess();
-      onClose();
-    } catch (err: unknown) {
-      const msg = (err && typeof err === "object" && "message" in err)
-        ? (err as { message?: string }).message || "Failed to update permissions."
-        : "Failed to update permissions.";
-      setError(msg);
-      toast.error(msg, {
-        style: {
-          background: '#ef4444',
-          color: 'white',
-          border: '1px solid #dc2626',
-        },
-        icon: '❌',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!open || !user) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage Permissions - {user.username}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-3">
-                <Label>Select Permissions</Label>
-                {availablePermissions.map((permission) => (
-                  <div key={permission.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`permission-${permission.id}`}
-                      checked={selectedPermissions.includes(permission.id)}
-                      onCheckedChange={() => handlePermissionToggle(permission.id)}
-                    />
-                    <Label htmlFor={`permission-${permission.id}`} className="text-sm">
-                      {permission.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              {error && <div className="text-red-500 text-sm">{error}</div>}
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    backgroundColor: '#513deb',
-                    color: 'white',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!loading) {
-                      e.currentTarget.style.backgroundColor = '#4f46e5';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!loading) {
-                      e.currentTarget.style.backgroundColor = '#513deb';
-                    }
-                  }}
-                >
-                  {loading ? "Updating..." : "Update Permissions"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
 interface CreateUserModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
   allRoles: string[];
 }
+const ALLOWED_CREATION_ROLES = [
+  "Admin",
+  "Instructor",
+  "Content Manager",
+  "Marketing Manager",
+  "Course Reviewer",
+  "Support"
+];
 
 function CreateUserModal({
   open,
   onClose,
   onSuccess,
-  allRoles,
 }: CreateUserModalProps) {
   const { data: session } = useSession();
   const [username, setUsername] = useState("");
@@ -381,9 +222,9 @@ function CreateUserModal({
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {allRoles.map((roleOption: string) => (
+                    {ALLOWED_CREATION_ROLES.map((roleOption: string) => (
                       <SelectItem key={roleOption} value={roleOption}>
-                        {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
+                        {roleOption}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -432,7 +273,6 @@ function EditUserModal({
   onClose,
   onSuccess,
   user,
-  allRoles,
 }: EditUserModalProps) {
   const { data: session } = useSession();
   const [username, setUsername] = useState("");
@@ -446,11 +286,11 @@ function EditUserModal({
 
   useEffect(() => {
     if (user && open) {
-      setUsername(user.username);
-      setEmail(user.email);
+      setUsername(user.username || "");
+      setEmail(user.email || "");
       setGender(user.gender || "");
       setBirthDay(user.birthDay || "");
-      setPhoneNumber(user.phoneNumber || "");
+      setPhoneNumber(user.phoneNumber ? String(user.phoneNumber) : "");
       setRole(user.role || "");
       setError("");
     } else if (!open) {
@@ -546,7 +386,17 @@ function EditUserModal({
                 <Label htmlFor="edit-gender">Gender</Label>
                 <Select value={gender} onValueChange={setGender}>
                   <SelectTrigger id="edit-gender">
-                    <SelectValue placeholder="Select gender" />
+                    <SelectValue placeholder="Select gender">
+                      {gender === "male"
+                        ? "Male"
+                        : gender === "female"
+                        ? "Female"
+                        : gender === "other"
+                        ? "Other"
+                        : gender === "not_specified"
+                        ? "Not specified"
+                        : gender === "" ? "" : gender}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="not_specified">Not specified</SelectItem>
@@ -576,20 +426,20 @@ function EditUserModal({
               </div>
               <div>
                 <Label htmlFor="edit-role">Role</Label>
-                <div className="flex items-center gap-2">
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger id="edit-role">
-                      <SelectValue placeholder={user?.role ? user.role : "Select role"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allRoles.map((roleOption: string) => (
-                        <SelectItem key={roleOption} value={roleOption}>
-                          {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger id="edit-role">
+                    <SelectValue placeholder="Select role">
+                      {role ? role : "Select role"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ALLOWED_CREATION_ROLES.map((roleOption: string) => (
+                      <SelectItem key={roleOption} value={roleOption}>
+                        {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               {error && <div className="text-red-500 text-sm">{error}</div>}
               <div className="flex justify-end gap-2">
@@ -639,7 +489,6 @@ export default function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPermissions | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   useEffect(() => {
@@ -748,11 +597,6 @@ export default function UserManagementPage() {
     setShowEditModal(true);
   };
 
-  const handleManagePermissions = (user: UserWithPermissions) => {
-    setSelectedUser(user);
-    setShowPermissionsModal(true);
-  };
-
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -847,8 +691,7 @@ export default function UserManagementPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Roles</SelectItem>
-                  {/* Lấy tất cả role duy nhất từ danh sách users */}
-                  {Array.from(new Set(users.map((u: UserWithPermissions) => u.role).filter((role: string) => role !== ""))).map((roleOption: string) => (
+                  {ALLOWED_CREATION_ROLES.map((roleOption: string) => (
                     <SelectItem key={roleOption} value={roleOption}>
                       {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
                     </SelectItem>
@@ -873,9 +716,7 @@ export default function UserManagementPage() {
                     <TableHead>User</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Permissions</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -932,24 +773,6 @@ export default function UserManagementPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {user.permissions.length > 0 ? (
-                              user.permissions.slice(0, 2).map((permission) => (
-                                <Badge key={permission.id} variant="secondary" className="text-xs">
-                                  {permission.name}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-muted-foreground text-sm">No permissions</span>
-                            )}
-                            {user.permissions.length > 2 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{user.permissions.length - 2} more
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
                           <Badge variant={user.isBan ? "destructive" : "default"}>
                             {user.isBan ? "Banned" : "Active"}
                           </Badge>
@@ -964,15 +787,6 @@ export default function UserManagementPage() {
                             >
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Edit</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleManagePermissions(user)}
-                              title="Manage permissions"
-                            >
-                              <Shield className="h-4 w-4" />
-                              <span className="sr-only">Manage permissions</span>
                             </Button>
                             {/* ADD THIS DELETE BUTTON HERE */}
                             <Button
@@ -1019,14 +833,6 @@ export default function UserManagementPage() {
         onSuccess={refreshUsers}
         user={selectedUser}
         allRoles={allRoles}
-      />
-
-      <ManagePermissionsModal
-        open={showPermissionsModal}
-        onClose={() => setShowPermissionsModal(false)}
-        onSuccess={refreshUsers}
-        user={selectedUser}
-        availablePermissions={AVAILABLE_PERMISSIONS}
       />
 
       <CreateUserModal

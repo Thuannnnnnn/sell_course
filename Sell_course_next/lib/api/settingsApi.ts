@@ -1,4 +1,4 @@
-import { ApiResponse } from "../../app/types/setting";
+import { ApiResponse } from "../../app/types/api-response";
 import {
   BannerSetting,
   CreateVersionSettingDto,
