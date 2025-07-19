@@ -6,6 +6,7 @@ import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { PlanConstraint } from '../plan-constraint/plan-constraint.entity';
 import { PlanPreference } from '../plan-preference/plan-preference.entity';
+import { ScheduleItem } from '../schedule_item/entities/schedule_item.entity';
 import {
   CreateLearningPlanDto,
   UpdateLearningPlanDto,
@@ -28,6 +29,9 @@ export class LearningPlanService {
 
     @InjectRepository(PlanPreference)
     private preferenceRepo: Repository<PlanPreference>,
+
+    @InjectRepository(ScheduleItem)
+    private scheduleItemRepo: Repository<ScheduleItem>,
   ) {}
 
   async create(createDto: CreateLearningPlanDto) {
@@ -47,15 +51,38 @@ export class LearningPlanService {
     });
     const savedPlan = await this.planRepo.save(plan);
 
-    const constraints = createDto.constraints.map((c) =>
-      this.constraintRepo.create({ plan: savedPlan, ...c }),
-    );
-    await this.constraintRepo.save(constraints);
+    // Save constraints
+    if (createDto.constraints && createDto.constraints.length > 0) {
+      const constraints = createDto.constraints.map((c) =>
+        this.constraintRepo.create({ plan: savedPlan, ...c }),
+      );
+      await this.constraintRepo.save(constraints);
+    }
 
-    const preferences = createDto.preferences.map((p) =>
-      this.preferenceRepo.create({ plan: savedPlan, ...p }),
-    );
-    await this.preferenceRepo.save(preferences);
+    // Save preferences
+    if (createDto.preferences && createDto.preferences.length > 0) {
+      const preferences = createDto.preferences.map((p) =>
+        this.preferenceRepo.create({ plan: savedPlan, ...p }),
+      );
+      await this.preferenceRepo.save(preferences);
+    }
+
+    // Save schedule items
+    if (createDto.scheduleItems && createDto.scheduleItems.length > 0) {
+      const scheduleItems = createDto.scheduleItems.map((item) =>
+        this.scheduleItemRepo.create({
+          plan: savedPlan,
+          dayOfWeek: item.dayOfWeek,
+          startTime: item.startTime,
+          durationMin: item.durationMin,
+          course: item.courseId ? { courseId: item.courseId } : undefined,
+          contentIds: item.contentIds,
+          weekNumber: item.weekNumber,
+          scheduledDate: item.scheduledDate,
+        }),
+      );
+      await this.scheduleItemRepo.save(scheduleItems);
+    }
 
     return this.findOne(savedPlan.planId);
   }
@@ -85,6 +112,21 @@ export class LearningPlanService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  async findByUserId(userId: string) {
+    return this.planRepo.find({
+      where: { user: { user_id: userId } },
+      relations: [
+        'user',
+        'course',
+        'constraints',
+        'preferences',
+        'scheduleItems',
+      ],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async update(planId: string, updateDto: UpdateLearningPlanDto) {
     const plan = await this.planRepo.findOneByOrFail({ planId });
 
@@ -98,22 +140,46 @@ export class LearningPlanService {
 
     await this.planRepo.save(plan);
 
-    // Cập nhật constraint nếu được gửi
+    // Update constraints if provided
     if (updateDto.constraints) {
       await this.constraintRepo.delete({ plan: { planId } });
-      const newConstraints = updateDto.constraints.map((c) =>
-        this.constraintRepo.create({ plan, ...c }),
-      );
-      await this.constraintRepo.save(newConstraints);
+      if (updateDto.constraints.length > 0) {
+        const newConstraints = updateDto.constraints.map((c) =>
+          this.constraintRepo.create({ plan, ...c }),
+        );
+        await this.constraintRepo.save(newConstraints);
+      }
     }
 
-    // Cập nhật preference nếu được gửi
+    // Update preferences if provided
     if (updateDto.preferences) {
       await this.preferenceRepo.delete({ plan: { planId } });
-      const newPreferences = updateDto.preferences.map((p) =>
-        this.preferenceRepo.create({ plan, ...p }),
-      );
-      await this.preferenceRepo.save(newPreferences);
+      if (updateDto.preferences.length > 0) {
+        const newPreferences = updateDto.preferences.map((p) =>
+          this.preferenceRepo.create({ plan, ...p }),
+        );
+        await this.preferenceRepo.save(newPreferences);
+      }
+    }
+
+    // Update schedule items if provided
+    if (updateDto.scheduleItems) {
+      await this.scheduleItemRepo.delete({ plan: { planId } });
+      if (updateDto.scheduleItems.length > 0) {
+        const newScheduleItems = updateDto.scheduleItems.map((item) =>
+          this.scheduleItemRepo.create({
+            plan: plan,
+            dayOfWeek: item.dayOfWeek,
+            startTime: item.startTime,
+            durationMin: item.durationMin,
+            course: item.courseId ? { courseId: item.courseId } : undefined,
+            contentIds: item.contentIds,
+            weekNumber: item.weekNumber,
+            scheduledDate: item.scheduledDate,
+          }),
+        );
+        await this.scheduleItemRepo.save(newScheduleItems);
+      }
     }
 
     return this.findOne(planId);
@@ -121,5 +187,34 @@ export class LearningPlanService {
 
   async remove(planId: string) {
     return this.planRepo.delete({ planId });
+  }
+
+  /**
+   * Transform learning plan to frontend format
+   */
+  transformToFrontendFormat(plan: LearningPlan) {
+    return {
+      planId: plan.planId,
+      userId: plan.user?.user_id,
+      courseId: plan.course?.courseId,
+      studyGoal: plan.studyGoal,
+      totalWeeks: plan.totalWeeks,
+      createdAt: plan.createdAt,
+      scheduleItems: {
+        scheduleData:
+          plan.scheduleItems?.map((item) => ({
+            dayOfWeek: item.dayOfWeek,
+            startTime: item.startTime,
+            durationMin: item.durationMin,
+            courseId: item.contentIds[0],
+            contentIds: item.contentIds,
+            weekNumber: item.weekNumber,
+            scheduledDate: item.scheduledDate,
+          })) || [],
+        narrativeText: plan.narrativeTemplates || [],
+      },
+      constraints: plan.constraints || [],
+      preferences: plan.preferences || [],
+    };
   }
 }

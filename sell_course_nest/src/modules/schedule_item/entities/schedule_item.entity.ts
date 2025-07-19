@@ -35,3 +35,4 @@ export class ScheduleItem {
   @Column({ type: 'uuid', array: true })
   contentIds: string[];
 }
+

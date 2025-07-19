@@ -6,12 +6,18 @@ import {
   Param,
   Post,
   Put,
+  Patch,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
 import { CourseDetailResponse } from './dto/courseDetailResponse.dto';
+import {
+  UpdateCourseStatusDto,
+  ReviewCourseStatusDto,
+} from './dto/update-course-status.dto';
+import { CourseStatus } from './enums/course-status.enum';
 import { CourseService } from './course.service';
 import {
   ApiBearerAuth,
@@ -189,5 +195,79 @@ export class CourseController {
   @Get('getByCategory/:category_id')
   async getByCategory(@Param('category_id') category_id: string) {
     return this.courseService.getCoursesByCategory(category_id);
+  }
+
+  @Patch('courses/:courseId/status')
+  @ApiBearerAuth('Authorization')
+  @ApiOperation({
+    summary: 'Update course status (instructor only - DRAFT/PENDING_REVIEW)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Course status updated successfully.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid status transition.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'You can only update status of your own courses.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Course not found.',
+  })
+  async updateCourseStatus(
+    @Param('courseId') courseId: string,
+    @Body() updateStatusDto: UpdateCourseStatusDto,
+    // TODO: Get instructorId from JWT token in authentication guard
+    // For now, you'll need to add authentication and extract from token
+  ): Promise<{ message: string }> {
+    // This should be extracted from JWT token in real implementation
+    const instructorId = 'temp-instructor-id'; // Replace with actual JWT extraction
+    return this.courseService.updateCourseStatus(
+      courseId,
+      updateStatusDto,
+      instructorId,
+    );
+  }
+
+  @Patch('admin/courses/:courseId/review')
+  @ApiBearerAuth('Authorization')
+  @ApiOperation({
+    summary: 'Review course status (admin only - PUBLISHED/REJECTED)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Course reviewed successfully.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Only courses in PENDING_REVIEW status can be reviewed.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Course not found.',
+  })
+  async reviewCourseStatus(
+    @Param('courseId') courseId: string,
+    @Body() reviewStatusDto: ReviewCourseStatusDto,
+  ): Promise<{ message: string }> {
+    return this.courseService.reviewCourseStatus(courseId, reviewStatusDto);
+  }
+
+  @Get('admin/courses/status/:status')
+  @ApiBearerAuth('Authorization')
+  @ApiOperation({ summary: 'Get courses by status (admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved courses by status.',
+    type: [CourseResponseDTO],
+  })
+  async getCoursesByStatus(
+    @Param('status') status: CourseStatus,
+  ): Promise<CourseResponseDTO[]> {
+    return this.courseService.getCoursesByStatus(status);
   }
 }

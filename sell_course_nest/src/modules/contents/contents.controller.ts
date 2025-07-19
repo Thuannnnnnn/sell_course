@@ -34,9 +34,14 @@ export class ContentController {
     }
   }
 
-  @Get('admin/content/view_content/:lessonId')
+  @Get('admin/content/view_contentOfLesson/:lessonId')
   async getContentsByLesson(@Param('lessonId') lessonId: string) {
     return await this.contentService.getContentsByLesson(lessonId);
+  }
+
+  @Post('admin/contents/view_content')
+  async getContentsByContent(@Body() contentIds: string[]) {
+    return await this.contentService.getContentsByContentIds(contentIds);
   }
 
   @Delete('admin/content/delete_content/:contentId')

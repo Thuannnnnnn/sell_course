@@ -102,12 +102,14 @@ import { PlanConstraint } from './modules/plan-constraint/plan-constraint.entity
 import { PlanPreference } from './modules/plan-preference/plan-preference.entity';
 import { LearningPlan } from './modules/learning-plan/learning-plan.entity';
 import { ScheduleItem } from './modules/schedule_item/entities/schedule_item.entity';
-import { SurveyResponse } from './modules/survey-response/survey-response.entity';
 import { ScheduleItemModule } from './modules/schedule_item/schedule_item.module';
 import { PlanConstraintModule } from './modules/plan-constraint/plan-constraint.module';
 import { PlanPreferenceModule } from './modules/plan-preference/plan-preference.module';
 import { LearningPlanModule } from './modules/learning-plan/learning-plan.module';
-import { SurveyResponseModule } from './modules/survey-response/survey-response.module';
+import { SurveyQuestionModule } from './modules/survey-response/survey-response.module';
+import { SurveyAnswerOption } from './modules/surveyAnswerOption/survey-answer-option.entity';
+import { SurveyAnswerOptionModule } from './modules/surveyAnswerOption/survey-answer-option.module';
+import { SurveyQuestion } from './modules/survey-response/survey-response.entity';
 @Module({
   imports: [
     VideoModule,
@@ -135,11 +137,12 @@ import { SurveyResponseModule } from './modules/survey-response/survey-response.
       //   rejectUnauthorized: false,
       // },
       entities: [
+        SurveyQuestion,
         PlanConstraint,
         PlanPreference,
         LearningPlan,
         ScheduleItem,
-        SurveyResponse,
+        SurveyAnswerOption,
         LogoSetting,
         VersionSetting,
         Interaction,
@@ -190,11 +193,12 @@ import { SurveyResponseModule } from './modules/survey-response/survey-response.
       synchronize: true,
     }),
     TypeOrmModule.forFeature([User, Permission]),
+    SurveyAnswerOptionModule,
     ScheduleItemModule,
     PlanConstraintModule,
     PlanPreferenceModule,
     LearningPlanModule,
-    SurveyResponseModule,
+    SurveyQuestionModule,
     LogoSettingModule,
     VersionSettingModule,
     QuestionHabitModule,

@@ -1,4 +1,8 @@
-import { ContentData } from "@/app/types/Course/Lesson/Lessons";
+import {
+  ContentData,
+  ContentResponse,
+} from "@/app/types/Course/Lesson/Lessons";
+import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -10,7 +14,7 @@ export async function fetchContentsByLesson(
   console.log("🌐 API: Fetching contents for lesson:", lessonId);
 
   const response = await fetch(
-    `${API_BASE_URL}/api/admin/content/view_content/${lessonId}`,
+    `${API_BASE_URL}/api/admin/content/view_contentOfLesson/${lessonId}`,
     {
       method: "GET",
       headers: {
@@ -38,3 +42,22 @@ export async function fetchContentsByLesson(
   });
   return result;
 }
+
+export const fetchContentsByIds = async (
+  contentIds: string[]
+): Promise<ContentResponse[]> => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/admin/contents/view_content`,
+      contentIds,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

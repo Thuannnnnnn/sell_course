@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CourseStatus } from '../../course/enums/course-status.enum';
 
 export class CoursePerformanceItemDto {
   @ApiProperty({
@@ -45,9 +46,10 @@ export class CoursePerformanceItemDto {
 
   @ApiProperty({
     description: 'Course status',
-    example: true,
+    example: CourseStatus.PUBLISHED,
+    enum: CourseStatus,
   })
-  isActive: boolean;
+  isActive: CourseStatus;
 
   @ApiProperty({
     description: 'Number of lessons',

@@ -282,13 +282,6 @@ export function ExamList({
       {/* Add Question Button */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Questions</h3>
-        <Button 
-          onClick={() => setShowAddForm(true)}
-          disabled={loading || showAddForm}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Question
-        </Button>
       </div>
 
       {/* Add Question Form */}

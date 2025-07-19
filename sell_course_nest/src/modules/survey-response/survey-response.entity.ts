@@ -1,13 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { SurveyAnswerOption } from '../surveyAnswerOption/survey-answer-option.entity';
 
 @Entity()
-export class SurveyResponse {
+export class SurveyQuestion {
   @PrimaryGeneratedColumn('uuid')
-  responseId: string;
+  id: string;
 
-  @Column({ type: 'text' })
-  responseText: string;
+  @Column()
+  questionText: string;
 
-  @Column({ default: () => 'CURRENT_TIMESTAMP' })
-  submittedAt: Date;
+  @Column()
+  type: 'single' | 'multiple' | 'text';
+
+  @Column({ default: true })
+  required: boolean;
+
+  @OneToMany(() => SurveyAnswerOption, (option) => option.question, {
+    cascade: true, // Nếu muốn tự động lưu options khi lưu question
+  })
+  options: SurveyAnswerOption[];
 }
