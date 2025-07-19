@@ -1,17 +1,19 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { 
-  fetchAllUsers, 
-  updateUserAdmin, 
-  banUser, 
-  assignPermissionsToUser, 
-  removePermissionFromUser 
+import {
+  fetchAllUsers,
+  updateUserAdmin,
+  banUser,
+  assignPermissionsToUser,
+  removePermissionFromUser,
+  createUser,
+  deleteUser,
 } from "../api/user/users";
-import { UserWithPermissions, UpdateUserData, BanUserData, Permission } from "../types/users";
+import { UserWithPermissions, UpdateUserData, BanUserData, Permission, CreateUserData } from "../types/users";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Edit, UserCheck, UserX, Search, Shield, Calendar, Phone, User as UserIcon } from "lucide-react";
+import { Edit, Trash2, UserCheck, UserX, Search, Shield, Calendar, Phone, User as UserIcon } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import {
   Table,
@@ -49,6 +51,13 @@ interface ManagePermissionsModalProps {
   user: UserWithPermissions | null;
   availablePermissions: Permission[];
 }
+// ADD THIS NEW INTERFACE
+interface CreateUserModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  allRoles: string[];
+}
 
 // Available permissions (you might want to fetch these from an API)
 const AVAILABLE_PERMISSIONS: Permission[] = [
@@ -84,7 +93,7 @@ function ManagePermissionsModal({
   }, [user, open]);
 
   const handlePermissionToggle = (permissionId: number) => {
-    setSelectedPermissions(prev => 
+    setSelectedPermissions(prev =>
       prev.includes(permissionId)
         ? prev.filter(id => id !== permissionId)
         : [...prev, permissionId]
@@ -205,7 +214,219 @@ function ManagePermissionsModal({
     </div>
   );
 }
+interface CreateUserModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  allRoles: string[];
+}
 
+function CreateUserModal({
+  open,
+  onClose,
+  onSuccess,
+  allRoles,
+}: CreateUserModalProps) {
+  const { data: session } = useSession();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [gender, setGender] = useState("");
+  const [birthDay, setBirthDay] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setGender("");
+      setBirthDay("");
+      setPhoneNumber("");
+      setRole("");
+      setError("");
+    }
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!session?.accessToken) return;
+    if (!username.trim() || !email.trim() || !password.trim()) {
+      setError("Username, email, and password are required.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const createData: CreateUserData = {
+        username: username.trim(),
+        email: email.trim(),
+        password: password.trim(),
+        gender: gender || undefined,
+        birthDay: birthDay || undefined,
+        phoneNumber: phoneNumber ? parseInt(phoneNumber) : undefined,
+        role: role || undefined,
+      };
+
+      await createUser(createData, session.accessToken);
+      toast.success("User created successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      const msg = (err && typeof err === "object" && "message" in err)
+        ? (err as { message?: string }).message || "Failed to create user."
+        : "Failed to create user.";
+      setError(msg);
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New User</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <Label htmlFor="create-username">Username *</Label>
+                <Input
+                  id="create-username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="create-email">Email *</Label>
+                <Input
+                  id="create-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="create-password">Password *</Label>
+                <Input
+                  id="create-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="create-gender">Gender</Label>
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger id="create-gender">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="not_specified">Not specified</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="create-birthDay">Birth Date</Label>
+                <Input
+                  id="create-birthDay"
+                  type="date"
+                  value={birthDay}
+                  onChange={(e) => setBirthDay(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="create-phoneNumber">Phone Number</Label>
+                <Input
+                  id="create-phoneNumber"
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="create-role">Role</Label>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger id="create-role">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allRoles.map((roleOption: string) => (
+                      <SelectItem key={roleOption} value={roleOption}>
+                        {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    backgroundColor: '#513deb',
+                    color: 'white',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = '#4f46e5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = '#513deb';
+                    }
+                  }}
+                >
+                  {loading ? "Creating..." : "Create User"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 function EditUserModal({
   open,
   onClose,
@@ -420,7 +641,7 @@ export default function UserManagementPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPermissions | null>(null);
-
+  const [showCreateModal, setShowCreateModal] = useState(false);
   useEffect(() => {
     const loadUsers = async () => {
       setLoading(true);
@@ -442,17 +663,51 @@ export default function UserManagementPage() {
     loadUsers();
   }, [session]);
 
+  const handleDelete = async (user: UserWithPermissions) => {
+    if (!session?.accessToken) return;
+
+    // Show confirmation dialog
+    if (!window.confirm(`Are you sure you want to permanently delete user "${user.username}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteUser(user.user_id, session.accessToken);
+
+      // Remove the deleted user from the local state
+      setUsers((prev) => prev.filter((u) => u.user_id !== user.user_id));
+
+      toast.success("User deleted successfully!", {
+        style: {
+          background: '#10b981',
+          color: 'white',
+          border: '1px solid #059669',
+        },
+        icon: '✅',
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Failed to delete user. Please try again.";
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626',
+        },
+        icon: '❌',
+      });
+    }
+  };
   const handleBanToggle = async (user: UserWithPermissions) => {
     if (!session?.accessToken) return;
     const action = user.isBan ? "unban" : "ban";
     if (!window.confirm(`Are you sure you want to ${action} this user?`)) return;
-    
+
     try {
       const banData: BanUserData = { isBan: !user.isBan };
       await banUser(user.user_id, banData, session.accessToken);
-      setUsers((prev) => 
-        prev.map((u) => 
-          u.user_id === user.user_id 
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.user_id === user.user_id
             ? { ...u, isBan: !u.isBan }
             : u
         )
@@ -499,13 +754,13 @@ export default function UserManagementPage() {
   };
 
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = 
+    const matchesSearch =
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
-    const matchesStatus = statusFilter === "all" || 
+    const matchesStatus = statusFilter === "all" ||
       (statusFilter === "active" && !user.isBan) ||
       (statusFilter === "banned" && user.isBan);
 
@@ -541,16 +796,34 @@ export default function UserManagementPage() {
               Manage your users and their permissions here.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-sm">
-              Total: {users.length}
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              Active: {users.filter(u => !u.isBan).length}
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              Banned: {users.filter(u => u.isBan).length}
-            </Badge>
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              style={{
+                backgroundColor: '#513deb',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#4f46e5';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#513deb';
+              }}
+            >
+              <UserIcon className="h-4 w-4 mr-2" />
+              Create User
+            </Button>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-sm">
+                Total: {users.length}
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                Active: {users.filter(u => !u.isBan).length}
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                Banned: {users.filter(u => u.isBan).length}
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -609,8 +882,8 @@ export default function UserManagementPage() {
                   {filteredUsers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                        {searchTerm || roleFilter !== "all" || statusFilter !== "all" 
-                          ? "No users found matching your filters." 
+                        {searchTerm || roleFilter !== "all" || statusFilter !== "all"
+                          ? "No users found matching your filters."
                           : "No users found."}
                       </TableCell>
                     </TableRow>
@@ -701,6 +974,18 @@ export default function UserManagementPage() {
                               <Shield className="h-4 w-4" />
                               <span className="sr-only">Manage permissions</span>
                             </Button>
+                            {/* ADD THIS DELETE BUTTON HERE */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(user)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              title="Delete user"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Delete</span>
+                            </Button>
+                            {/* END OF DELETE BUTTON */}
                             <Button
                               variant="ghost"
                               size="icon"
@@ -742,6 +1027,13 @@ export default function UserManagementPage() {
         onSuccess={refreshUsers}
         user={selectedUser}
         availablePermissions={AVAILABLE_PERMISSIONS}
+      />
+
+      <CreateUserModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={refreshUsers}
+        allRoles={allRoles}
       />
     </div>
   );

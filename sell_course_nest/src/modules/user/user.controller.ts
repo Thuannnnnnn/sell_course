@@ -19,12 +19,13 @@ import {
 import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ChangePasswordDto } from './dto/changePassword.dto';
+import { CreateUserDto } from './dto/createUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserDto } from './dto/updateProfile.dto';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 @Controller('api')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
   @Get('/admin/user/view_user')
   async getAllUsers() {
     return this.userService.findAll();
@@ -216,6 +217,63 @@ export class UserController {
       throw new HttpException(
         'Failed to get user profile',
         HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('/admin/users/create')
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
+    try {
+      const newUser = await this.userService.createUser(createUserDto);
+      return newUser;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to create user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('/users/register')
+  async registerUser(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
+    try {
+      // Set default role for public registration
+      const userData = {
+        ...createUserDto,
+        role: createUserDto.role || 'user',
+        isOAuth: false,
+        isBan: false,
+      };
+
+      const newUser = await this.userService.createUser(userData);
+      return newUser;
+    } catch (error) {
+      console.error('Error registering user:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to register user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Delete('/admin/users/delete/:id')
+  async deleteUser(@Param('id') userId: string) {
+    try {
+      await this.userService.deleteUser(userId);
+      return {
+        message: 'User deleted successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        'Failed to delete user',
+        HttpStatus.BAD_REQUEST,
       );
     }
   }

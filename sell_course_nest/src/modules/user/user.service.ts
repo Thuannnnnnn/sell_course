@@ -12,6 +12,7 @@ import { Permission } from '../permission/entities/permission.entity';
 import { azureUpload } from 'src/utilities/azure.service';
 import { UserDTO } from './dto/userData.dto';
 import { UserDto } from './dto/updateProfile.dto';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
 export class UserService {
@@ -43,12 +44,12 @@ export class UserService {
 
     return users.length
       ? users.map(
-          (user) =>
-            new UserDTO({
-              ...user,
-              phoneNumber: user.phoneNumber?.toString() ?? null,
-            }),
-        )
+        (user) =>
+          new UserDTO({
+            ...user,
+            phoneNumber: user.phoneNumber?.toString() ?? null,
+          }),
+      )
       : null;
   }
   async findById(userId: string): Promise<User> {
@@ -168,6 +169,76 @@ export class UserService {
     });
   }
 
+  async createUser(createUserDto: CreateUserDto): Promise<UserDto> {
+    // Check if email already exists
+    const existingUserByEmail = await this.userRepository.findOne({
+      where: { email: createUserDto.email },
+    });
+
+    if (existingUserByEmail) {
+      throw new BadRequestException('Email already exists');
+    }
+
+    // Check if username already exists
+    const existingUserByUsername = await this.userRepository.findOne({
+      where: { username: createUserDto.username },
+    });
+
+    if (existingUserByUsername) {
+      throw new BadRequestException('Username already exists');
+    }
+
+    try {
+      // Hash password
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+      // Create new user entity
+      const newUser = this.userRepository.create({
+        email: createUserDto.email,
+        username: createUserDto.username,
+        password: hashedPassword,
+        avatarImg: createUserDto.avatarImg || null,
+        gender: createUserDto.gender || null,
+        birthDay: createUserDto.birthDay || null,
+        phoneNumber: createUserDto.phoneNumber || null,
+        role: createUserDto.role || 'user',
+        isOAuth: createUserDto.isOAuth || false,
+        isBan: createUserDto.isBan || false,
+      });
+
+      // Save user to database
+      const savedUser = await this.userRepository.save(newUser);
+
+      // Return UserDto
+      return new UserDto(
+        savedUser.user_id,
+        savedUser.email,
+        savedUser.username,
+        savedUser.avatarImg,
+        savedUser.gender,
+        savedUser.birthDay,
+        savedUser.phoneNumber,
+        savedUser.isOAuth,
+        savedUser.role,
+        savedUser.isBan,
+        savedUser.createdAt,
+      );
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new BadRequestException('Failed to create user');
+    }
+  }
+  async deleteUser(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.userRepository.remove(user);
+  }
   async updateUserById(
     user_id: string,
     updateData: Partial<UserDto>,
