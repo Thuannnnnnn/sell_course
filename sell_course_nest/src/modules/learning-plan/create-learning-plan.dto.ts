@@ -174,4 +174,3 @@ export class UpdateLearningPlanDto {
   @Type(() => CreateScheduleItemDto)
   scheduleItems?: CreateScheduleItemDto[];
 }
-

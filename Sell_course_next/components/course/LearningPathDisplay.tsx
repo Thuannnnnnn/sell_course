@@ -27,9 +27,10 @@ import {
   validateScheduleItem,
   calculateEndTime,
   formatDate,
-  getDayName,
   isLearningPathData,
 } from "@/app/types/learningPath/learningPath";
+import { ContentResponse } from "@/app/types/Course/Lesson/Lessons";
+import { fetchContentsByIds } from "@/app/api/courses/lessons/content";
 
 interface LearningPathDisplayProps {
   isOpen: boolean;
@@ -40,16 +41,6 @@ interface LearningPathDisplayProps {
   planId?: string | null;
   isExisting?: boolean;
 }
-
-const DAY_NAMES = [
-  "Chủ nhật",
-  "Thứ 2",
-  "Thứ 3",
-  "Thứ 4",
-  "Thứ 5",
-  "Thứ 6",
-  "Thứ 7",
-];
 
 export default function UpdatedLearningPathDisplay({
   isOpen,
@@ -62,22 +53,91 @@ export default function UpdatedLearningPathDisplay({
 }: LearningPathDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<LearningPathData>(data);
+  // State mới: Lưu trữ toàn bộ contentId gốc của lộ trình học
+  const [allCourseContentIds, setAllCourseContentIds] = useState<string[]>([]);
+  // State mới: Lưu trữ các contentId chưa được gán vào buổi học nào
+  const [availableContentIds, setAvailableContentIds] = useState<string[]>([]);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<number, string[]>
   >({});
+  const [contentDetails, setContentDetails] = useState<
+    Record<string, ContentResponse>
+  >({});
+  const isSaveDisabled = isSaving || (!hasUnsavedChanges && !!planId);
 
+  useEffect(() => {
+    // Gom tất cả contentIds từ tất cả các buổi học vào một mảng duy nhất
+    const allContentIds = editedData.scheduleItems.scheduleData.flatMap(
+      (item) => item.contentIds
+    );
+
+    // Lọc ra những ID chưa có trong state contentDetails để tránh gọi API thừa
+    const uniqueNewIds = Array.from(new Set(allContentIds)).filter(
+      (id) => id && !contentDetails[id]
+    );
+
+    if (uniqueNewIds.length > 0) {
+      const fetchDetails = async () => {
+        try {
+          // Gọi API với các ID mới
+          const contents = await fetchContentsByIds(uniqueNewIds);
+
+          // Cập nhật state với dữ liệu mới nhận được
+          const newDetails: Record<string, ContentResponse> = {};
+          contents.forEach((content) => {
+            // Giả sử response.data trả về mảng object có id và name
+            newDetails[content.contentId] = {
+              contentId: content.contentId,
+              contentType: content.contentType,
+              description: content.description,
+              contentName: content.contentName,
+              createdAt: content.createdAt,
+              order: content.order,
+            };
+          });
+
+          setContentDetails((prevDetails) => ({
+            ...prevDetails,
+            ...newDetails,
+          }));
+        } catch (error) {
+          console.error("Failed to fetch content details:", error);
+          // Có thể thêm xử lý lỗi ở đây, ví dụ: hiển thị thông báo
+        }
+      };
+
+      fetchDetails();
+    }
+  }, [editedData.scheduleItems.scheduleData, contentDetails]);
   // Update edited data when prop data changes
   useEffect(() => {
     if (isLearningPathData(data)) {
+      const originalIds = data.scheduleItems.scheduleData.flatMap(
+        (item) => item.contentIds
+      );
+      const uniqueOriginalIds = Array.from(new Set(originalIds));
+      setAllCourseContentIds(uniqueOriginalIds);
       setEditedData(data);
       setHasUnsavedChanges(false);
       setValidationErrors({});
     }
   }, [data]);
 
+  useEffect(() => {
+    // 2. Lấy tất cả contentId hiện đang được sử dụng trong `editedData`
+    const currentlyAssignedIds = new Set(
+      editedData.scheduleItems.scheduleData.flatMap((item) => item.contentIds)
+    );
+
+    // 3. Tìm ra những ID có trong danh sách gốc nhưng chưa được gán
+    const availableIds = allCourseContentIds.filter(
+      (id) => !currentlyAssignedIds.has(id)
+    );
+    setAvailableContentIds(availableIds);
+  }, [editedData.scheduleItems.scheduleData, allCourseContentIds]);
   const validateAllScheduleItems = (): boolean => {
     const errors: Record<number, string[]> = {};
     let hasErrors = false;
@@ -172,13 +232,29 @@ export default function UpdatedLearningPathDisplay({
     setExpandedItems(newExpanded);
   };
 
-  const updateScheduleItem = (
+  const updateScheduleItem = <K extends keyof ScheduleItem>(
     index: number,
-    field: keyof ScheduleItem,
-    value: string | number | string[]
+    field: K,
+    value: ScheduleItem[K]
   ) => {
     const newScheduleData = [...editedData.scheduleItems.scheduleData];
     newScheduleData[index] = { ...newScheduleData[index], [field]: value };
+
+    const currentItem = { ...newScheduleData[index] };
+
+    // Cập nhật trường đang thay đổi
+    currentItem[field] = value;
+
+    // Nếu ngày cụ thể thay đổi, tự động cập nhật thứ trong tuần
+    if (field === "scheduledDate") {
+      // value ở đây được TypeScript hiểu là string, không cần ép kiểu
+      const date = new Date(value as string);
+      const timezoneOffset = date.getTimezoneOffset() * 60000;
+      const adjustedDate = new Date(date.getTime() + timezoneOffset);
+      currentItem.dayOfWeek = adjustedDate.getDay();
+    }
+
+    newScheduleData[index] = currentItem;
 
     setEditedData({
       ...editedData,
@@ -198,21 +274,44 @@ export default function UpdatedLearningPathDisplay({
   };
 
   const addScheduleItem = () => {
+    const schedule = editedData.scheduleItems.scheduleData;
+    const newScheduledDate = new Date();
+
+    if (schedule.length > 0) {
+      const lastItem = [...schedule].sort(
+        (a, b) =>
+          new Date(a.scheduledDate).getTime() -
+          new Date(b.scheduledDate).getTime()
+      )[schedule.length - 1];
+
+      const lastDate = new Date(lastItem.scheduledDate);
+
+      newScheduledDate.setDate(lastDate.getDate() + 1);
+    }
+
+    const formattedDate = newScheduledDate.toISOString().split("T")[0];
+
     const newItem: ScheduleItem = {
-      dayOfWeek: 1,
+      dayOfWeek: newScheduledDate.getDay(),
       startTime: "09:00",
       durationMin: 60,
       courseId: editedData.scheduleItems.scheduleData[0]?.courseId || "",
       contentIds: [],
       weekNumber: editedData.scheduleItems.scheduleData.length + 1,
-      scheduledDate: new Date().toISOString().split("T")[0],
+      scheduledDate: formattedDate,
     };
+
+    const newScheduleData = [...schedule, newItem].sort(
+      (a, b) =>
+        new Date(a.scheduledDate).getTime() -
+        new Date(b.scheduledDate).getTime()
+    );
 
     setEditedData({
       ...editedData,
       scheduleItems: {
         ...editedData.scheduleItems,
-        scheduleData: [...editedData.scheduleItems.scheduleData, newItem],
+        scheduleData: newScheduleData,
       },
     });
     setHasUnsavedChanges(true);
@@ -240,10 +339,12 @@ export default function UpdatedLearningPathDisplay({
     }
   };
 
-  const addContentId = (scheduleIndex: number) => {
-    const newContentId = `content-${Date.now()}`;
+  const addContentId = (scheduleIndex: number, contentIdToAdd: string) => {
+    // Chỉ thêm nếu contentIdToAdd thực sự tồn tại
+    if (!contentIdToAdd) return;
+
     const currentItem = editedData.scheduleItems.scheduleData[scheduleIndex];
-    const newContentIds = [...currentItem.contentIds, newContentId];
+    const newContentIds = [...currentItem.contentIds, contentIdToAdd];
 
     updateScheduleItem(scheduleIndex, "contentIds", newContentIds);
   };
@@ -253,18 +354,6 @@ export default function UpdatedLearningPathDisplay({
     const newContentIds = currentItem.contentIds.filter(
       (_, i) => i !== contentIndex
     );
-
-    updateScheduleItem(scheduleIndex, "contentIds", newContentIds);
-  };
-
-  const updateContentId = (
-    scheduleIndex: number,
-    contentIndex: number,
-    newValue: string
-  ) => {
-    const currentItem = editedData.scheduleItems.scheduleData[scheduleIndex];
-    const newContentIds = [...currentItem.contentIds];
-    newContentIds[contentIndex] = newValue;
 
     updateScheduleItem(scheduleIndex, "contentIds", newContentIds);
   };
@@ -378,7 +467,7 @@ export default function UpdatedLearningPathDisplay({
                 Tuần {item.weekNumber}
               </h4>
               <p className="text-sm text-gray-600">
-                {getDayName(item.dayOfWeek)} - {formatDate(item.scheduledDate)}
+                {formatDate(item.scheduledDate)}
               </p>
             </div>
           </div>
@@ -461,28 +550,6 @@ export default function UpdatedLearningPathDisplay({
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ngày trong tuần
-              </label>
-              <select
-                value={item.dayOfWeek}
-                onChange={(e) =>
-                  updateScheduleItem(
-                    index,
-                    "dayOfWeek",
-                    parseInt(e.target.value)
-                  )
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {DAY_NAMES.map((day, dayIndex) => (
-                  <option key={dayIndex} value={dayIndex}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Ngày học cụ thể
               </label>
               <input
@@ -502,45 +569,71 @@ export default function UpdatedLearningPathDisplay({
             <p className="text-sm text-gray-600">
               Nội dung học ({item.contentIds.length} nội dung):
             </p>
+            {/* THAY ĐỔI LOGIC NÚT THÊM NỘI DUNG */}
             {isEditing && (
-              <button
-                onClick={() => addContentId(index)}
-                className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1"
-              >
-                <Plus className="w-3 h-3" />
-                Thêm nội dung
-              </button>
+              <div className="flex items-center gap-2">
+                <select
+                  id={`add-content-select-${index}`}
+                  className="px-2 py-1 border border-gray-300 rounded text-sm"
+                  // Dùng giá trị rỗng để không có gì được chọn mặc định
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    -- Chọn nội dung --
+                  </option>
+                  {availableContentIds.map((id) => (
+                    <option key={id} value={id}>
+                      {contentDetails[id]?.contentName || id}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => {
+                    const select = document.getElementById(
+                      `add-content-select-${index}`
+                    ) as HTMLSelectElement;
+                    if (select.value) {
+                      addContentId(index, select.value);
+                      // Reset dropdown sau khi thêm
+                      select.value = "";
+                    }
+                  }}
+                  className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1"
+                  // Vô hiệu hóa nếu không còn nội dung nào để thêm
+                  disabled={availableContentIds.length === 0}
+                >
+                  <Plus className="w-3 h-3" />
+                  Thêm
+                </button>
+              </div>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {item.contentIds.map((contentId, contentIndex) => (
-              <div
-                key={contentIndex}
-                className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-              >
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={contentId}
-                    onChange={(e) =>
-                      updateContentId(index, contentIndex, e.target.value)
-                    }
-                    className="bg-transparent border-none outline-none text-blue-700 placeholder-blue-500 w-20"
-                    placeholder="Content ID"
-                  />
-                ) : (
-                  <span>Nội dung {contentIndex + 1}</span>
-                )}
-                {isEditing && (
-                  <button
-                    onClick={() => removeContentId(index, contentIndex)}
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            ))}
+            {item.contentIds.map((contentId, contentIndex) => {
+              const detail = contentDetails[contentId];
+              const displayName = detail
+                ? detail.contentName
+                : `ID: ${contentId}`;
+
+              return (
+                <div
+                  key={contentIndex}
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                >
+                  {/* BỎ Ô INPUT, CHỈ HIỂN THỊ TÊN */}
+                  <span>{displayName}</span>
+
+                  {isEditing && (
+                    <button
+                      onClick={() => removeContentId(index, contentIndex)}
+                      className="text-blue-500 hover:text-blue-700 ml-1"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
             {item.contentIds.length === 0 && (
               <span className="text-gray-400 text-sm italic">
                 Chưa có nội dung học nào
@@ -643,6 +736,7 @@ export default function UpdatedLearningPathDisplay({
                   ) : (
                     <Button
                       onClick={handleEdit}
+                      disabled={isSaveDisabled}
                       className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
                     >
                       <Edit3 className="w-4 h-4 mr-2" />

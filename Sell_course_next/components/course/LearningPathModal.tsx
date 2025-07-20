@@ -44,6 +44,8 @@ interface SurveyAnswers {
   learning_style: string;
   difficulty_level: string;
   special_requirements: string;
+  start_date: string;
+  other_values: Record<string, string>;
 }
 
 const defaultSurveyAnswers: SurveyAnswers = {
@@ -54,6 +56,8 @@ const defaultSurveyAnswers: SurveyAnswers = {
   learning_style: "",
   difficulty_level: "",
   special_requirements: "",
+  start_date: "",
+  other_values: {},
 };
 
 export default function LearningPathModal({
@@ -106,6 +110,8 @@ export default function LearningPathModal({
         return "difficulty_level";
       case "9d68bf30-bb4a-470a-9aea-c9352d1c7d04":
         return "special_requirements";
+      case "00d54cb6-2c4d-4da6-b409-2c8d908de27e":
+        return "start_date";
       default:
         return "learning_goal";
     }
@@ -175,7 +181,19 @@ export default function LearningPathModal({
       "Thứ 7": 7,
       "Chủ nhật": 1,
     };
+    const learningGoal = surveyAnswers.learning_goal;
+    const otherLearningGoal = surveyAnswers.other_values["learning_goal"];
+    const finalLearningGoal =
+      learningGoal.toLowerCase().includes("khác") && otherLearningGoal
+        ? otherLearningGoal
+        : learningGoal;
 
+    const learningStyle = surveyAnswers.learning_style;
+    const otherLearningStyle = surveyAnswers.other_values["learning_style"];
+    const finalLearningStyle =
+      learningStyle.toLowerCase().includes("khác") && otherLearningStyle
+        ? otherLearningStyle
+        : learningStyle;
     const maxMinutesPerDay = timeMapping[surveyAnswers.time_availability] || 90;
     const selectedDays = surveyAnswers.preferred_days
       .map((day) => dayMapping[day])
@@ -197,7 +215,10 @@ export default function LearningPathModal({
       userId: userId, // This should be set from user context
       name: userName, // This should be set from user context
       level: levelMapping[surveyAnswers.difficulty_level] || "beginner",
-      study_goal: surveyAnswers.learning_goal || "",
+      study_goal:
+        finalLearningGoal +
+        " and learning style: " +
+        (finalLearningStyle || ""),
       study_hours_per_week: parseFloat(studyHoursPerWeek.toFixed(1)),
       total_weeks: 4, // Default or could be calculated based on goals
       max_minutes_per_day: maxMinutesPerDay,
@@ -205,7 +226,8 @@ export default function LearningPathModal({
       experience: surveyAnswers.special_requirements || "",
       available_slots: availableSlots,
       course_ids: courseId,
-      start_date: new Date().toISOString().split("T")[0],
+      start_date:
+        surveyAnswers.start_date || new Date().toISOString().split("T")[0],
     };
   };
 
@@ -232,7 +254,33 @@ export default function LearningPathModal({
     if (!question) return null;
 
     const currentAnswer = answers[currentAnswerKey];
+    const answerKey = currentAnswerKey;
 
+    // Hàm kiểm tra xem lựa chọn "Khác" có được chọn không
+    const isOtherSelected = (
+      answer: string | string[] | undefined
+    ): boolean => {
+      if (!answer) return false;
+      const otherOptionText = question.options?.find((opt) =>
+        opt.text.toLowerCase().includes("khác")
+      )?.text;
+      if (!otherOptionText) return false;
+
+      if (Array.isArray(answer)) {
+        return answer.includes(otherOptionText);
+      }
+      return answer === otherOptionText;
+    };
+
+    const handleOtherInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAnswers((prev) => ({
+        ...prev,
+        other_values: {
+          ...prev.other_values,
+          [answerKey]: e.target.value,
+        },
+      }));
+    };
     switch (question.type) {
       case "single":
         return (
@@ -268,6 +316,20 @@ export default function LearningPathModal({
                 <span className="text-gray-700 font-medium">{option.text}</span>
               </label>
             ))}
+
+            {(typeof currentAnswer === "string" ||
+              Array.isArray(currentAnswer)) &&
+              isOtherSelected(currentAnswer) && (
+                <div className="pt-2 pl-4">
+                  <input
+                    type="text"
+                    placeholder="Vui lòng nhập lựa chọn của bạn..."
+                    value={answers.other_values[answerKey] || ""}
+                    onChange={handleOtherInputChange}
+                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              )}
           </div>
         );
 
@@ -324,6 +386,19 @@ export default function LearningPathModal({
                 <span className="text-gray-700 font-medium">{option.text}</span>
               </label>
             ))}
+            {(typeof currentAnswer === "string" ||
+              Array.isArray(currentAnswer)) &&
+              isOtherSelected(currentAnswer) && (
+                <div className="pt-2 pl-4">
+                  <input
+                    type="text"
+                    placeholder="Vui lòng nhập lựa chọn của bạn..."
+                    value={answers.other_values[answerKey] || ""}
+                    onChange={handleOtherInputChange}
+                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              )}
           </div>
         );
 
@@ -334,6 +409,17 @@ export default function LearningPathModal({
             onChange={(e) => handleAnswer(e.target.value)}
             placeholder="Nhập câu trả lời của bạn..."
             className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none resize-none h-32"
+          />
+        );
+
+      case "date":
+        return (
+          <input
+            type="date"
+            value={(currentAnswer as string) || ""}
+            onChange={(e) => handleAnswer(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
+            className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
           />
         );
       default:
@@ -376,14 +462,21 @@ export default function LearningPathModal({
                 Câu hỏi {currentStep + 1} / {questions.length}
               </span>
               <span>
-                {Math.round(((currentStep + 1) / questions.length) * 100)}%
+                {questions.length > 0
+                  ? Math.round(((currentStep + 1) / questions.length) * 100)
+                  : 0}
+                %
               </span>
             </div>
             <div className="w-full bg-white/20 rounded-full h-2">
               <div
                 className="bg-white rounded-full h-2 transition-all duration-300"
                 style={{
-                  width: `${((currentStep + 1) / questions.length) * 100}%`,
+                  width: `${
+                    questions.length > 0
+                      ? ((currentStep + 1) / questions.length) * 100
+                      : 0
+                  }%`,
                 }}
               />
             </div>
