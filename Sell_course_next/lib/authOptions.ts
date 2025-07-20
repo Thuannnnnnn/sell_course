@@ -40,7 +40,11 @@ export const authOptions: NextAuthOptions = {
           }
           return null;
         } catch (error) {
-          console.error("Error in authorize:", error);
+          // Nếu bị ban hoặc lỗi backend trả về message, truyền message lên FE
+          if (axios.isAxiosError(error) && error.response) {
+            const message = error.response.data?.message || 'Login failed';
+            throw new Error(message);
+          }
           return null;
         }
       },

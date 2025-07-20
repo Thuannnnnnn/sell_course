@@ -58,7 +58,7 @@ export function LoginPage() {
     });
     setIsLoading(false);
     if (result?.error) {
-      setError("Login failed. Please check your credentials.");
+      setError(result.error); // Hiển thị lỗi cụ thể từ backend (bao gồm cả bị ban)
     } else {
       setShowSuccess(true);
       setTimeout(() => {

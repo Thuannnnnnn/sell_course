@@ -2,6 +2,7 @@
 import React from "react";
 import { ProfileInfo } from "@/components/sections/ProfileInfo";
 import { WishlistSection } from "@/components/sections/WishlistSection";
+import { CertificateSection } from "@/components/sections/CertificateSection";
 export default function ProfilePage() {
   return (
     <div className="min-h-screen w-full bg-background">
@@ -9,6 +10,7 @@ export default function ProfilePage() {
         <div className="grid gap-8">
           <ProfileInfo />
           <WishlistSection />
+          <CertificateSection />
         </div>
       </div>
     </div>

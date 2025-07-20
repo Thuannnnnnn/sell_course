@@ -276,6 +276,9 @@ export class authService {
     if (!user) {
       throw new HttpException('Email not found', HttpStatus.UNAUTHORIZED);
     }
+    if (user.isBan) {
+      throw new HttpException('Tài khoản của bạn đã bị khóa (banned)', HttpStatus.FORBIDDEN);
+    }
     const passwordMatch = await bcrypt.compare(
       loginRequest.password,
       user.password,
@@ -316,6 +319,10 @@ export class authService {
     });
 
     if (existingUser) {
+      // Nếu user bị ban thì không cho đăng nhập
+      if (existingUser.isBan) {
+        throw new HttpException('Tài khoản của bạn đã bị khóa (banned)', HttpStatus.FORBIDDEN);
+      }
       // If user exists and was registered with password (not OAuth), prevent login
       if (existingUser.isOAuth === false) {
         throw new HttpException(
@@ -384,6 +391,9 @@ export class authService {
     });
     if (!user) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+    if (user.isBan) {
+      throw new HttpException('Tài khoản của bạn đã bị khóa (banned)', HttpStatus.FORBIDDEN);
     }
     console.log('Plain password:', pass);
     const hashedInputPassword = await bcrypt.hash(pass, 10);
