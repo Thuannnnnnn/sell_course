@@ -33,6 +33,7 @@ export function WishlistSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "price" | "rating">("date");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Auto sign-out on session expiry
   useEffect(() => {
@@ -48,7 +49,8 @@ export function WishlistSection() {
     }
   }, [session]);
 
-  const fetchWishlist = useCallback(async () => {
+  // Fetch wishlist function - removed automatic toast to prevent spam
+  const fetchWishlist = useCallback(async (showSuccessToast = false) => {
     if (!session?.user || !session?.accessToken) {
       setLoading(false);
       return;
@@ -56,6 +58,7 @@ export function WishlistSection() {
 
     try {
       setLoading(true);
+      setError(null);
 
       const wishlistData = await wishlistApi.getWishlist(session.user.id, session.accessToken);
       const transformedCourses = wishlistData
@@ -64,32 +67,41 @@ export function WishlistSection() {
 
       setWishlistCourses(transformedCourses);
 
-      toast({
-        title: "Wishlist updated",
-        description: "Your wishlist has been refreshed successfully.",
-        variant: "default",
-      });
+      // Only show success toast when explicitly requested (like manual refresh)
+      if (showSuccessToast) {
+        toast({
+          title: "Wishlist updated",
+          description: "Your wishlist has been refreshed successfully.",
+          variant: "default",
+        });
+      }
     } catch (err) {
       console.error("Error fetching wishlist:", err);
+      const errorMessage = err instanceof Error ? err.message : "Could not fetch wishlist. Please try again.";
+      setError(errorMessage);
+      
       toast({
         title: "Error",
-        description: "Could not fetch wishlist. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [session?.user, session?.accessToken, toast]);
+  }, [session?.user?.id, session?.accessToken, toast]);
 
+  // Initial fetch on mount - no success toast
   useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+    fetchWishlist(false);
+  }, [session?.user?.id, session?.accessToken]); // Remove fetchWishlist from dependencies to prevent loop
 
+  // Filter courses based on search query
   const filteredCourses = wishlistCourses.filter(course =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Sort courses based on selected criteria
   const sortedCourses = [...filteredCourses].sort((a, b) => {
     switch (sortBy) {
       case "price":
@@ -97,14 +109,16 @@ export function WishlistSection() {
       case "rating":
         return b.rating - a.rating;
       default:
-        return 0;
+        return 0; // For "date" sorting, keep original order since we don't have date info
     }
   });
 
+  // Manual refresh handler - shows success toast
   const handleRefresh = () => {
-    fetchWishlist();
+    fetchWishlist(true);
   };
 
+  // Loading state
   if (loading) {
     return (
       <Card>
@@ -120,13 +134,8 @@ export function WishlistSection() {
     );
   }
 
+  // Not signed in state
   if (!session?.user) {
-    toast({
-      title: "Not signed in",
-      description: "Please log in to view your wishlist.",
-      variant: "destructive",
-    });
-
     return (
       <Card>
         <CardHeader className="flex items-center gap-2">
@@ -144,6 +153,30 @@ export function WishlistSection() {
     );
   }
 
+  // Error state
+  if (error && !loading) {
+    return (
+      <Card>
+        <CardHeader className="flex items-center gap-2">
+          <BookmarkIcon className="h-5 w-5" />
+          <h2 className="text-2xl font-bold">My Wishlist</h2>
+        </CardHeader>
+        <div className="p-6 text-center py-12">
+          <div className="text-destructive mb-4">
+            <BookmarkIcon className="h-12 w-12 mx-auto mb-2" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Failed to load wishlist</h3>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={handleRefresh} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  // Main component render
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4">
@@ -155,8 +188,8 @@ export function WishlistSection() {
               ({wishlistCourses.length} courses)
             </span>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -172,12 +205,31 @@ export function WishlistSection() {
             />
           </div>
           <div className="flex gap-2">
-            <Button variant={sortBy === "date" ? "default" : "outline"} onClick={() => setSortBy("date")}>Latest</Button>
-            <Button variant={sortBy === "price" ? "default" : "outline"} onClick={() => setSortBy("price")}>Price</Button>
-            <Button variant={sortBy === "rating" ? "default" : "outline"} onClick={() => setSortBy("rating")}>Rating</Button>
+            <Button 
+              variant={sortBy === "date" ? "default" : "outline"} 
+              onClick={() => setSortBy("date")}
+              size="sm"
+            >
+              Latest
+            </Button>
+            <Button 
+              variant={sortBy === "price" ? "default" : "outline"} 
+              onClick={() => setSortBy("price")}
+              size="sm"
+            >
+              Price
+            </Button>
+            <Button 
+              variant={sortBy === "rating" ? "default" : "outline"} 
+              onClick={() => setSortBy("rating")}
+              size="sm"
+            >
+              Rating
+            </Button>
           </div>
         </div>
       </CardHeader>
+
       <div className="p-6">
         {sortedCourses.length === 0 ? (
           <div className="text-center py-12">
@@ -194,7 +246,11 @@ export function WishlistSection() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedCourses.map((course) => (
-              <CourseCard key={course.id} course={course} showWishlistButton />
+              <CourseCard 
+                key={course.id} 
+                course={course} 
+                showWishlistButton 
+              />
             ))}
           </div>
         )}
