@@ -64,4 +64,52 @@ export class UserNotifyService {
     await this.userNotifyRepository.save(notifications);
     this.notifyGateway.sendMarkAllAsSentToUser(user_id, notifications);
   }
+
+  async markNotificationAsRead(id: string): Promise<UserNotify> {
+    const userNotify = await this.userNotifyRepository.findOne({
+      where: { id },
+      relations: ['user', 'notify'],
+    });
+    
+    if (!userNotify) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    userNotify.is_read = true;
+    userNotify.read_at = new Date();
+    
+    const updatedNotify = await this.userNotifyRepository.save(userNotify);
+    
+    // Send update via WebSocket
+    this.notifyGateway.sendUpdateToUser(userNotify.user.user_id, updatedNotify);
+    
+    return updatedNotify;
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<UserNotify[]> {
+    const notifications = await this.userNotifyRepository.find({
+      where: { 
+        user: { user_id: userId },
+        is_read: false 
+      },
+      relations: ['user', 'notify'],
+    });
+
+    if (notifications.length === 0) {
+      return [];
+    }
+
+    // Mark all as read
+    for (const notification of notifications) {
+      notification.is_read = true;
+      notification.read_at = new Date();
+    }
+
+    const updatedNotifications = await this.userNotifyRepository.save(notifications);
+    
+    // Send update via WebSocket
+    this.notifyGateway.sendMarkAllAsSentToUser(userId, updatedNotifications);
+    
+    return updatedNotifications;
+  }
 }

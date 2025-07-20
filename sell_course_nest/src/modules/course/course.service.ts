@@ -16,6 +16,7 @@ import { Exam } from '../exam/entities/exam.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { azureUpload } from 'src/utilities/azure.service';
+import { AutomaticNotificationService } from '../notify/services/automatic-notification.service';
 
 @Injectable()
 export class CourseService {
@@ -38,6 +39,7 @@ export class CourseService {
     private quizzRepository: Repository<Quizz>,
     @InjectRepository(Exam)
     private examRepository: Repository<Exam>,
+    private readonly automaticNotificationService: AutomaticNotificationService,
   ) {}
 
   async getAllCourses(): Promise<CourseResponseDTO[]> {
@@ -178,6 +180,14 @@ export class CourseService {
       status: course.status ?? false,
     });
 
+    // 🚀 Gửi thông báo tự động khi tạo khóa học mới
+    try {
+      await this.automaticNotificationService.handleCourseCreated(newCourse.courseId);
+    } catch (error) {
+      console.error('Error sending automatic notifications for course creation:', error);
+      // Không throw error để không ảnh hưởng đến việc tạo khóa học
+    }
+
     return {
       ...newCourse,
       instructorId: userData.user_id,
@@ -262,6 +272,14 @@ export class CourseService {
     // Cập nhật thời gian và lưu khóa học
     course.updatedAt = new Date();
     const updatedCourse = await this.CourseRepository.save(course);
+
+    // 🚀 Gửi thông báo tự động khi cập nhật khóa học
+    try {
+      await this.automaticNotificationService.handleCourseUpdated(updatedCourse.courseId);
+    } catch (error) {
+      console.error('Error sending automatic notifications for course update:', error);
+      // Không throw error để không ảnh hưởng đến việc cập nhật khóa học
+    }
 
     // Trả về response
     return new CourseResponseDTO(

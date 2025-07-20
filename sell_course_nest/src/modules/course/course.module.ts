@@ -11,10 +11,13 @@ import { Video } from '../video/entities/video.entity';
 import { Docs } from '../docs/entities/docs.entity';
 import { Quizz } from '../quizz/entities/quizz.entity';
 import { Exam } from '../exam/entities/exam.entity';
+import { NotifyModule } from '../notify/notify.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Course, User, Category, Lesson, Contents, Video, Docs, Quizz, Exam])],
-
+  imports: [
+    TypeOrmModule.forFeature([Course, User, Category, Lesson, Contents, Video, Docs, Quizz, Exam]),
+    NotifyModule,
+  ],
   providers: [CourseService],
   controllers: [CourseController],
   exports: [CourseService],

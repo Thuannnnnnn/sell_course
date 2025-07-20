@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { Toaster } from "sonner";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { NotificationProvider } from "../components/notifications/NotificationProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -57,35 +58,37 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider refetchOnWindowFocus={false}>
-          <Toaster position="top-right" />
-          
-          {isAuthPage ? (
-            // Auth pages - full page without sidebar and header
-            <div className="min-h-screen">
-              {children}
-            </div>
-          ) : (
-            // Regular pages - with sidebar and header
-            <div className="flex h-screen bg-background">
-              {/* Sidebar */}
-              <Sidebar
-                open={sidebarOpen}
-                setOpen={setSidebarOpen}
-                versionId={activeVersionId}
-              />
-
-              {/* Main Content */}
-              <div className="flex-1 flex flex-col md:ml-64">
-                {/* Header */}
-                <Header onMenuClick={() => setSidebarOpen(true)} />
-
-                {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-6">
-                  {children}
-                </main>
+          <NotificationProvider>
+            <Toaster position="top-right" />
+            
+            {isAuthPage ? (
+              // Auth pages - full page without sidebar and header
+              <div className="min-h-screen">
+                {children}
               </div>
-            </div>
-          )}
+            ) : (
+              // Regular pages - with sidebar and header
+              <div className="flex h-screen bg-background">
+                {/* Sidebar */}
+                <Sidebar
+                  open={sidebarOpen}
+                  setOpen={setSidebarOpen}
+                  versionId={activeVersionId}
+                />
+
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col md:ml-64">
+                  {/* Header */}
+                  <Header onMenuClick={() => setSidebarOpen(true)} />
+
+                  {/* Page Content */}
+                  <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                    {children}
+                  </main>
+                </div>
+              </div>
+            )}
+          </NotificationProvider>
         </SessionProvider>
       </body>
     </html>

@@ -68,4 +68,48 @@ export class UserNotifyController {
   ): Promise<void> {
     await this.userNotifyService.markAllNotificationsAsSent(user_id);
   }
+
+  @ApiBearerAuth('Authorization')
+  @Post('mark-read/:id')
+  @ApiOperation({ summary: 'Mark a notification as read' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification marked as read successfully',
+    type: UserNotify,
+  })
+  @ApiResponse({ status: 404, description: 'Notification not found' })
+  async markNotificationAsRead(
+    @Param('id') id: string,
+  ): Promise<UserNotify> {
+    return await this.userNotifyService.markNotificationAsRead(id);
+  }
+
+  @ApiBearerAuth('Authorization')
+  @Post('mark-all-read/:userId')
+  @ApiOperation({ summary: 'Mark all notifications as read for a user' })
+  @ApiResponse({
+    status: 200,
+    description: 'All notifications marked as read successfully',
+    type: [UserNotify],
+  })
+  async markAllNotificationsAsRead(
+    @Param('userId') userId: string,
+  ): Promise<UserNotify[]> {
+    return await this.userNotifyService.markAllNotificationsAsRead(userId);
+  }
+
+  @ApiBearerAuth('Authorization')
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get user notifications by user ID (alternative endpoint)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User notifications',
+    type: [UserNotify],
+  })
+  @ApiResponse({ status: 404, description: 'User notifications not found' })
+  async getUserNotifications(
+    @Param('userId') userId: string,
+  ): Promise<UserNotify[]> {
+    return await this.userNotifyService.findUserNotifyById(userId);
+  }
 }
