@@ -103,7 +103,7 @@ export interface QuestionOption {
 export interface RawQuestion {
   id: string;
   questionText: string;
-  type: "single" | "multiple" | "text";
+  type: "single" | "multiple" | "text" | "date";
   required: boolean;
   options: QuestionOption[];
 }

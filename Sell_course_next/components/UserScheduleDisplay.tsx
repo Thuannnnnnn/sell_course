@@ -127,12 +127,10 @@ export default function EnhancedUserScheduleDisplay({
         // Fetch content details in batch
         const contents = await fetchContentsByIds(uniqueContentIds);
 
-        // Fetch progress status in parallel
         const progressResults = await Promise.all(
           uniqueContentIds.map((id) => getContentStatus(id, userId))
         );
 
-        // Combine both into Map<string, ContentWithProgress>
         const progressMap = new Map<string, ContentWithProgress>();
 
         contents.forEach((content) => {
@@ -200,7 +198,6 @@ export default function EnhancedUserScheduleDisplay({
     };
   };
 
-  // Get unique weeks and courses for filtering
   const availableWeeks = Array.from(
     new Set(scheduleItems.map((item) => item.weekNumber))
   ).sort();
