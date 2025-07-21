@@ -13,7 +13,6 @@ import { CarouselSettingService } from './setting.service';
 import { CreateCarouselSettingDto } from './dto/create-setting.dto';
 import { UpdateCarouselSettingDto } from './dto/update-setting.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-
 @Controller('carousel-settings')
 export class CarouselSettingController {
   constructor(

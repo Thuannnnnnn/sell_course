@@ -11,13 +11,19 @@ import { CategoryService } from './category.service';
 import { CategoryRequestDto } from './dto/categoryRequestData.dto';
 import { CategoryResponseDto } from './dto/categoryResponseData.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-
+import { UserRole } from '../Auth/user.enum';
+import { Roles } from '../Auth/roles.decorator';
+import { UseGuards } from '@nestjs/common';
+import { RolesGuard } from '../Auth/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
 @Controller('api/')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post('admin/categories/create_category')
   @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
     status: 201,
@@ -35,6 +41,8 @@ export class CategoryController {
   }
 
   @Get('admin/categories/view_category')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Get all categories (tree structure)' })
   @ApiResponse({
     status: 200,
@@ -68,6 +76,8 @@ export class CategoryController {
 
   @Put('admin/categories/update_category/:id')
   @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
     status: 200,
@@ -92,6 +102,8 @@ export class CategoryController {
   @Delete('admin/categories/delete_category/:id')
   @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiResponse({
     status: 200,
     description: 'The category has been successfully deleted.',
