@@ -4,9 +4,7 @@ import { Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { CategoryResponseDto } from './dto/categoryResponseData.dto';
 import { CategoryRequestDto } from './dto/categoryRequestData.dto';
-import { v4 as uuidv4 } from 'uuid';
-
-@Injectable()
+import { v4 as uuidv4 } from 'uuid';@Injectable()
 export class CategoryService {
   constructor(
     @InjectRepository(Category)
@@ -57,7 +55,6 @@ export class CategoryService {
     const allCategories = await this.categoryRepository.find();
     return this.toResponseDto(savedCategory, allCategories);
   }
-
   async getAllCategories(): Promise<CategoryResponseDto[]> {
     const categories = await this.categoryRepository.find();
     return categories;
