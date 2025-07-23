@@ -102,7 +102,7 @@ export class CategoryController {
   @Delete('admin/categories/delete_category/:id')
   @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiBearerAuth('Authorization')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.CONTENTMANAGER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiResponse({
     status: 200,
