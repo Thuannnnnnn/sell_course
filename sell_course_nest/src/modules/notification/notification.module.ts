@@ -3,15 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
 import { CourseNotificationService } from './course-notification.service';
-import { ChatNotificationService } from './chat-notification.service';
+import { PromotionNotificationService } from './promotion-notification.service';
 import { NotificationGateway } from './notification.gateway';
 import { Notification } from './entities/notification.entity';
 import { UserNotification } from './entities/user-notification.entity';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
-import { ChatSession } from '../support_chat/entities/chat-session.entity';
-import { Message } from '../support_chat/entities/message.entity';
+import { Promotion } from '../promotion/entities/promotion.entity';
 
 @Module({
   imports: [
@@ -21,21 +20,20 @@ import { Message } from '../support_chat/entities/message.entity';
       User,
       Course,
       Enrollment,
-      ChatSession,
-      Message,
+      Promotion,
     ]),
   ],
   controllers: [NotificationController],
   providers: [
     NotificationService,
     CourseNotificationService,
-    ChatNotificationService,
+    PromotionNotificationService,
     NotificationGateway,
   ],
   exports: [
     NotificationService,
     CourseNotificationService,
-    ChatNotificationService,
+    PromotionNotificationService,
     NotificationGateway,
   ],
 })
