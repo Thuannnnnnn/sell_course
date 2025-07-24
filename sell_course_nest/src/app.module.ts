@@ -110,8 +110,13 @@ import { SurveyQuestionModule } from './modules/survey-response/survey-response.
 import { SurveyAnswerOption } from './modules/surveyAnswerOption/survey-answer-option.entity';
 import { SurveyAnswerOptionModule } from './modules/surveyAnswerOption/survey-answer-option.module';
 import { SurveyQuestion } from './modules/survey-response/survey-response.entity';
+import { NotificationModule } from './modules/notification/notification.module';
+import { Notification } from './modules/notification/entities/notification.entity';
+import { UserNotification } from './modules/notification/entities/user-notification.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     VideoModule,
     ContentModule,
     PaymentModule,
@@ -153,6 +158,8 @@ import { SurveyQuestion } from './modules/survey-response/survey-response.entity
         UserAnswer,
         Notify,
         UserNotify,
+        Notification,
+        UserNotification,
         User,
         Cart,
         Certificate,
@@ -240,6 +247,7 @@ import { SurveyQuestion } from './modules/survey-response/survey-response.entity
     OtpModule,
     EnrollmentModule,
     DashboardModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

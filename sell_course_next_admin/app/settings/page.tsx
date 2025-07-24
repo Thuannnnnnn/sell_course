@@ -42,11 +42,9 @@ export default function SettingsPage() {
   const [versionTitle, setVersionTitle] = useState("");
   const [versionActive, setVersionActive] = useState(false);
 
-  useEffect(() => {
-    loadVersions();
-  }, []);
 
-  const loadVersions = async () => {
+
+  const loadVersions = useCallback(async () => {
     try {
       const data = await settingsApi.getVersionSettings();
       // Load logo and banner IDs for each version
@@ -83,7 +81,11 @@ export default function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedVersion]);
+
+  useEffect(() => {
+    loadVersions();
+  }, [loadVersions]);
 
   const loadVersionDetails = useCallback(async () => {
     if (!selectedVersion) return;

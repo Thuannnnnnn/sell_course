@@ -88,12 +88,12 @@ export function WishlistSection() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id, session?.accessToken, toast]);
+  }, [session?.user, session?.accessToken, toast]);
 
   // Initial fetch on mount - no success toast
   useEffect(() => {
     fetchWishlist(false);
-  }, [session?.user?.id, session?.accessToken]); // Remove fetchWishlist from dependencies to prevent loop
+  }, [fetchWishlist]);
 
   // Filter courses based on search query
   const filteredCourses = wishlistCourses.filter(course =>

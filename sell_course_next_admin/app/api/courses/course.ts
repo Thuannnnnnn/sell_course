@@ -748,7 +748,7 @@ export const reviewCourseStatus = async (
   try {
     const response = await axios.patch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/admin/courses/${courseId}/review`,
-      { status, reason },
+      { status, rejectionReason: reason },
       {
         headers: {
           "Content-Type": "application/json",
