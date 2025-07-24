@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 export async function fetchContentsByLesson(lessonId: string, accessToken: string): Promise<Content[]> {
   console.log('🌐 API: Fetching contents for lesson:', lessonId);
   
-  const response = await fetch(`${API_BASE_URL}/api/admin/content/view_content/${lessonId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/admin/content/view_contentOfLesson/${lessonId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
