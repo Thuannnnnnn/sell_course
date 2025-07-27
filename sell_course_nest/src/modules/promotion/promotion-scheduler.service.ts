@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan } from 'typeorm';
+import { Repository, LessThan, MoreThan, Between } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Promotion } from './entities/promotion.entity';
 import { PromotionNotificationService } from '../notification/promotion-notification.service';
@@ -28,8 +28,7 @@ export class PromotionSchedulerService {
       // Tìm promotions sắp hết hạn trong 3 ngày
       const promotionsExpiringSoon = await this.promotionRepository.find({
         where: {
-          endDate: LessThan(threeDaysFromNow),
-          endDate: MoreThan(now),
+          endDate: Between(now, threeDaysFromNow),
         },
         relations: ['course'],
       });
@@ -108,8 +107,7 @@ export class PromotionSchedulerService {
     const [expiringSoon, expired] = await Promise.all([
       this.promotionRepository.count({
         where: {
-          endDate: LessThan(threeDaysFromNow),
-          endDate: MoreThan(now),
+          endDate: Between(now, threeDaysFromNow),
         },
       }),
       this.promotionRepository.count({

@@ -2,6 +2,7 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
+import { NotificationRuleService } from './notification-rule.service';
 import { CourseNotificationService } from './course-notification.service';
 import { PromotionNotificationService } from './promotion-notification.service';
 import { NotificationGateway } from './notification.gateway';
@@ -26,12 +27,14 @@ import { Promotion } from '../promotion/entities/promotion.entity';
   controllers: [NotificationController],
   providers: [
     NotificationService,
+    NotificationRuleService,
     CourseNotificationService,
     PromotionNotificationService,
     NotificationGateway,
   ],
   exports: [
     NotificationService,
+    NotificationRuleService,
     CourseNotificationService,
     PromotionNotificationService,
     NotificationGateway,

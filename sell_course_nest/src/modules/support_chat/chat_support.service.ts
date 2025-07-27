@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatSession } from './entities/chat-session.entity';
 import { Message } from './entities/message.entity';
+import { NotificationService } from '../notification/notification.service';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class ChatService {
@@ -11,14 +13,36 @@ export class ChatService {
     private chatSessionRepository: Repository<ChatSession>,
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private notificationService: NotificationService,
   ) {}
 
   async createChatSession(userId: string): Promise<ChatSession> {
+    // Get user info for notification
+    const user = await this.userRepository.findOne({
+      where: { user_id: userId }
+    });
+    
     const session = this.chatSessionRepository.create({
       user: { user_id: userId },
       startTime: new Date(),
     });
-    return await this.chatSessionRepository.save(session);
+    
+    const savedSession = await this.chatSessionRepository.save(session);
+    
+    // Send chat session notification
+    try {
+      await this.notificationService.notifyChatSessionCreated(
+        userId,
+        user?.username || 'Unknown user',
+        savedSession.id
+      );
+    } catch (error) {
+      console.error('Failed to send chat session notification:', error);
+    }
+    
+    return savedSession;
   }
   async getActiveSessions(): Promise<ChatSession[]> {
     return this.chatSessionRepository.find({

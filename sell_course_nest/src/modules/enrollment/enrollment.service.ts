@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Enrollment } from './entities/enrollment.entity';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class EnrollmentService {
@@ -18,6 +19,7 @@ export class EnrollmentService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createEnrollment(
@@ -44,7 +46,21 @@ export class EnrollmentService {
       course,
       status,
     });
-    return this.enrollmentRepository.save(enrollment);
+    
+    const savedEnrollment = await this.enrollmentRepository.save(enrollment);
+    
+    // Send enrollment notification
+    try {
+      await this.notificationService.notifyUserEnrolled(
+        course.courseId,
+        userId,
+        user.username || 'Student'
+      );
+    } catch (error) {
+      console.error('Failed to send enrollment notification:', error);
+    }
+    
+    return savedEnrollment;
   }
 
   async checkEnrollment(userId: string, courseId: string): Promise<boolean> {

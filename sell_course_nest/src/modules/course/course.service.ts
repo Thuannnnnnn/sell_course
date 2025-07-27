@@ -22,6 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { azureUpload } from 'src/utilities/azure.service';
 import { CourseNotificationService } from '../notification/course-notification.service';
+import { NotificationService } from '../notification/notification.service';
 import { Notification } from '../notification/entities/notification.entity';
 
 @Injectable()
@@ -48,6 +49,7 @@ export class CourseService {
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
     private courseNotificationService: CourseNotificationService,
+    private notificationService: NotificationService,
   ) {}
 
   async getAllCourses(): Promise<CourseResponseDTO[]> {
@@ -601,6 +603,13 @@ export class CourseService {
     // Gửi thông báo khi status thay đổi thành PENDING_REVIEW
     if (oldStatus !== CourseStatus.PENDING_REVIEW && updateStatusDto.status === CourseStatus.PENDING_REVIEW) {
       try {
+        // Use new rule-based notification system
+        await this.notificationService.notifyCourseSubmittedForReview(
+          updatedCourse.courseId,
+          updatedCourse.instructor?.user_id || 'unknown'
+        );
+        
+        // Keep old notification for backward compatibility (optional)
         await this.courseNotificationService.notifyOnCourseCreated(updatedCourse);
       } catch (error) {
         console.error('Failed to send course review request notifications:', error);
@@ -616,6 +625,7 @@ export class CourseService {
   async reviewCourseStatus(
     courseId: string,
     reviewStatusDto: ReviewCourseStatusDto,
+    reviewerId: string = 'system',
   ): Promise<{ message: string }> {
     const course = await this.CourseRepository.findOne({
       where: { courseId },
@@ -640,9 +650,26 @@ export class CourseService {
     // Gửi thông báo dựa trên kết quả review
     try {
       if (reviewStatusDto.status === CourseStatus.PUBLISHED) {
+        // Use new rule-based notification system
+        await this.notificationService.notifyCoursePublished(
+          updatedCourse.courseId,
+          reviewerId
+        );
+        
+        // Keep old notification for backward compatibility (optional)
         await this.courseNotificationService.notifyOnCoursePublished(updatedCourse);
+        
       } else if (reviewStatusDto.status === CourseStatus.REJECTED) {
         const rejectionReason = reviewStatusDto.rejectionReason || reviewStatusDto.reason || 'Không đáp ứng yêu cầu chất lượng';
+        
+        // Use new rule-based notification system
+        await this.notificationService.notifyCourseRejected(
+          updatedCourse.courseId,
+          reviewerId,
+          rejectionReason
+        );
+        
+        // Keep old notification for backward compatibility (optional)
         await this.courseNotificationService.notifyOnCourseRejected(updatedCourse, rejectionReason);
       }
     } catch (error) {

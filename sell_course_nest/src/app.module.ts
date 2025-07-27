@@ -198,6 +198,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         Enrollment,
       ],
       synchronize: true,
+      // dropSchema: true, // TEMPORARY: Drop and recreate schema
     }),
     TypeOrmModule.forFeature([User, Permission]),
     SurveyAnswerOptionModule,

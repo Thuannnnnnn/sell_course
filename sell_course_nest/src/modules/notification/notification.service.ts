@@ -9,6 +9,8 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 import { NotificationResponseDto, NotificationListResponseDto } from './dto/notification-response.dto';
 import { MarkNotificationDto, MarkAllNotificationsDto } from './dto/mark-notification.dto';
 import { NotificationStatus } from './enums/notification-type.enum';
+import { NotificationRuleService, NotificationContext } from './notification-rule.service';
+import { NotificationEvent } from './constants/notification.constants';
 
 @Injectable()
 export class NotificationService {
@@ -23,6 +25,7 @@ export class NotificationService {
     private userRepository: Repository<User>,
     @InjectRepository(Course)
     private courseRepository: Repository<Course>,
+    private notificationRuleService: NotificationRuleService,
   ) {}
 
   // Method để set gateway (sẽ được gọi từ module)
@@ -279,5 +282,207 @@ export class NotificationService {
     await this.userNotificationRepository.save(userNotification);
 
     console.log(`✅ Notification archived: ${notificationId}`);
+  }
+
+  // ========== RULE-BASED NOTIFICATION METHODS ==========
+
+  /**
+   * Create notification using rule-based approach
+   * This is the new preferred method for creating notifications
+   */
+  async createRuleBasedNotification(
+    event: NotificationEvent,
+    context: NotificationContext,
+    skipUsers?: string[] // Users to exclude from notification
+  ): Promise<Notification> {
+    console.log(`🔔 Creating rule-based notification for event: ${event}`);
+
+    // Process event using rule service
+    const ruleResult = await this.notificationRuleService.processNotificationEvent(event, context);
+    
+    // Get recipient user IDs based on database roles
+    const recipientIds = await this.getUsersByDatabaseRoles(ruleResult.databaseRoles);
+    
+    // Filter out excluded users
+    const filteredRecipientIds = skipUsers 
+      ? recipientIds.filter(id => !skipUsers.includes(id))
+      : recipientIds;
+
+    if (filteredRecipientIds.length === 0) {
+      console.log(`⚠️ No recipients found for event: ${event}`);
+      return null;
+    }
+
+    // Create notification using existing method
+    const createNotificationDto: CreateNotificationDto = {
+      title: ruleResult.title,
+      message: ruleResult.message,
+      type: ruleResult.notificationType,
+      priority: ruleResult.priority,
+      recipientIds: filteredRecipientIds,
+      courseId: context.courseId,
+      createdBy: context.triggeredBy,
+      metadata: {
+        event,
+        context: {
+          courseId: context.courseId,
+          userId: context.userId,
+          chatSessionId: context.chatSessionId,
+        }
+      }
+    };
+
+    return await this.createNotification(createNotificationDto);
+  }
+
+  /**
+   * Helper: Get user IDs by their database role strings
+   */
+  private async getUsersByDatabaseRoles(databaseRoles: string[]): Promise<string[]> {
+    if (databaseRoles.length === 0) {
+      return [];
+    }
+
+    const users = await this.userRepository.find({
+      where: {
+        role: In(databaseRoles)
+      },
+      select: ['user_id']
+    });
+
+    return users.map(user => user.user_id);
+  }
+
+  // ========== CONVENIENCE METHODS FOR SPECIFIC EVENTS ==========
+
+  /**
+   * Flow 1: Course submitted for review
+   */
+  async notifyCourseSubmittedForReview(courseId: string, instructorId: string): Promise<Notification> {
+    const course = await this.courseRepository.findOne({ 
+      where: { courseId },
+      relations: ['instructor']
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    const context: NotificationContext = {
+      courseId,
+      courseTitle: course.title,
+      instructorId,
+      instructorName: course.instructor?.username || 'Unknown',
+      triggeredBy: instructorId
+    };
+
+    return await this.createRuleBasedNotification(
+      NotificationEvent.COURSE_SUBMITTED_FOR_REVIEW,
+      context,
+      [instructorId] // Don't notify the instructor who submitted
+    );
+  }
+
+  /**
+   * Flow 2: Course published (approved)
+   */
+  async notifyCoursePublished(courseId: string, reviewerId: string): Promise<Notification> {
+    const course = await this.courseRepository.findOne({ 
+      where: { courseId },
+      relations: ['instructor']
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    const context: NotificationContext = {
+      courseId,
+      courseTitle: course.title,
+      instructorId: course.instructor?.user_id,
+      instructorName: course.instructor?.username || 'Unknown',
+      triggeredBy: reviewerId
+    };
+
+    return await this.createRuleBasedNotification(
+      NotificationEvent.COURSE_PUBLISHED,
+      context,
+      [reviewerId] // Don't notify the reviewer who approved
+    );
+  }
+
+  /**
+   * Flow 3: Course rejected
+   */
+  async notifyCourseRejected(courseId: string, reviewerId: string, rejectionReason: string): Promise<Notification> {
+    const course = await this.courseRepository.findOne({
+      where: { courseId },
+      relations: ['instructor']
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    const context: NotificationContext = {
+      courseId,
+      courseTitle: course.title,
+      instructorId: course.instructor?.user_id,
+      rejectionReason,
+      triggeredBy: reviewerId
+    };
+
+    return await this.createRuleBasedNotification(
+      NotificationEvent.COURSE_REJECTED,
+      context,
+      [reviewerId] // Don't notify the reviewer who rejected
+    );
+  }
+
+  /**
+   * Flow 4: User enrolled in course
+   */
+  async notifyUserEnrolled(courseId: string, studentId: string, studentName: string): Promise<Notification> {
+    const course = await this.courseRepository.findOne({ 
+      where: { courseId },
+      relations: ['instructor']
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    const context: NotificationContext = {
+      courseId,
+      courseTitle: course.title,
+      instructorId: course.instructor?.user_id,
+      userId: studentId,
+      studentName,
+      triggeredBy: studentId
+    };
+
+    return await this.createRuleBasedNotification(
+      NotificationEvent.USER_ENROLLED,
+      context,
+      [studentId] // Don't notify the student who enrolled
+    );
+  }
+
+  /**
+   * Flow 5: Support chat session created
+   */
+  async notifyChatSessionCreated(userId: string, userName: string, chatSessionId?: string): Promise<Notification> {
+    const context: NotificationContext = {
+      userId,
+      userName,
+      chatSessionId,
+      triggeredBy: userId
+    };
+
+    return await this.createRuleBasedNotification(
+      NotificationEvent.CHAT_SESSION_CREATED,
+      context,
+      [userId] // Don't notify the user who created the chat
+    );
   }
 }
