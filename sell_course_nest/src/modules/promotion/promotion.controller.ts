@@ -12,7 +12,6 @@ import {
   ValidationPipe,
   UseGuards,
   Request,
-  UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PromotionService } from './promotion.service';
