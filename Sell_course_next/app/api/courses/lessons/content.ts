@@ -11,8 +11,6 @@ export async function fetchContentsByLesson(
   lessonId: string,
   accessToken: string
 ): Promise<ContentData[]> {
-  console.log("🌐 API: Fetching contents for lesson:", lessonId);
-
   const response = await fetch(
     `${API_BASE_URL}/api/admin/content/view_contentOfLesson/${lessonId}`,
     {
@@ -26,25 +24,20 @@ export async function fetchContentsByLesson(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    console.log("❌ API: Fetch contents failed:", {
-      status: response.status,
-      errorData,
-    });
+
     throw new Error(
       errorData.message || "Failed to fetch contents for this lesson"
     );
   }
 
   const result = await response.json();
-  console.log("✅ API: Contents fetched successfully:", {
-    count: result.length,
-    contents: result,
-  });
+
   return result;
 }
 
 export const fetchContentsByIds = async (
-  contentIds: string[]
+  contentIds: string[],
+  accessToken: string
 ): Promise<ContentResponse[]> => {
   try {
     const response = await axios.post(
@@ -53,6 +46,7 @@ export const fetchContentsByIds = async (
       {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );

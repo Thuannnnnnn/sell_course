@@ -9,6 +9,7 @@ import {
   Patch,
   UploadedFiles,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { CourseRequestDTO } from './dto/courseRequestData.dto';
 import { CourseResponseDTO } from './dto/courseResponseData.dto';
@@ -26,6 +27,10 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { Roles } from '../Auth/roles.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
+import { UserRole } from '../Auth/user.enum';
 @Controller('api')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
@@ -46,6 +51,8 @@ export class CourseController {
   }
 
   @Get('instructor/courses/view_course')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
@@ -61,7 +68,8 @@ export class CourseController {
     return await this.courseService.getAllCourses();
   }
 
-  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('instructor/courses/view_course/:id')
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get course by ID' })
@@ -74,6 +82,8 @@ export class CourseController {
     status: 404,
     description: 'Course not found with the given ID.',
   })
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async getCourseByIdAmin(
     @Param('id') courseId: string,
   ): Promise<CourseResponseDTO> {
@@ -98,6 +108,8 @@ export class CourseController {
   }
 
   @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('instructor/courses/create_course')
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -124,6 +136,8 @@ export class CourseController {
     return await this.courseService.createCourse(course, files ?? {});
   }
 
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('Authorization')
   @Put('/instructor/courses/update_course/:id')
   @UseInterceptors(
@@ -161,6 +175,8 @@ export class CourseController {
   }
 
   @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('instructor/courses/delete_course/:id')
   @ApiOperation({ summary: 'Delete a course by ID' })
   @ApiResponse({
@@ -176,6 +192,9 @@ export class CourseController {
   }
 
   @Get('courses/details/:id')
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Get course details with lessons and contents' })
   @ApiResponse({
     status: 200,
@@ -199,6 +218,8 @@ export class CourseController {
 
   @Patch('courses/:courseId/status')
   @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({
     summary: 'Update course status (instructor only - DRAFT/PENDING_REVIEW)',
   })
@@ -218,6 +239,9 @@ export class CourseController {
     status: 404,
     description: 'Course not found.',
   })
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async updateCourseStatus(
     @Param('courseId') courseId: string,
     @Body() updateStatusDto: UpdateCourseStatusDto,
@@ -235,6 +259,8 @@ export class CourseController {
 
   @Patch('admin/courses/:courseId/review')
   @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({
     summary: 'Review course status (admin only - PUBLISHED/REJECTED)',
   })
@@ -250,6 +276,9 @@ export class CourseController {
     status: 404,
     description: 'Course not found.',
   })
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async reviewCourseStatus(
     @Param('courseId') courseId: string,
     @Body() reviewStatusDto: ReviewCourseStatusDto,
@@ -260,6 +289,8 @@ export class CourseController {
     return this.courseService.reviewCourseStatus(courseId, reviewStatusDto, reviewerId);
   }
 
+  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('admin/courses/status/:status')
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get courses by status (admin only)' })

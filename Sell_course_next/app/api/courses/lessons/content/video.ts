@@ -1,14 +1,21 @@
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
 import axios from "axios";
 
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
-const API_BASE_URL =`${process.env.NEXT_PUBLIC_API_URL}/api`;
-
-
-export const getVideoById = async (videoId: string): Promise<VideoState> => {
+export const getVideoById = async (
+  videoId: string,
+  accessToken: string
+): Promise<VideoState> => {
   try {
     const response = await axios.get<VideoState>(
-      `${API_BASE_URL}/video/view_video/${videoId}`
+      `${API_BASE_URL}/video/view_video/${videoId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
     return response.data;
   } catch (error) {
@@ -20,10 +27,19 @@ export const getVideoById = async (videoId: string): Promise<VideoState> => {
   }
 };
 
-export const getVideoByContentId = async (contentId: string): Promise<VideoState> => {
+export const getVideoByContentId = async (
+  contentId: string,
+  accessToken: string
+): Promise<VideoState> => {
   try {
     const response = await axios.get<VideoState>(
-      `${API_BASE_URL}/video/view_video_content/${contentId}`
+      `${API_BASE_URL}/video/view_video_content/${contentId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
     return response.data;
   } catch (error) {
@@ -35,9 +51,17 @@ export const getVideoByContentId = async (contentId: string): Promise<VideoState
   }
 };
 
-export const getAllVideos = async (): Promise<VideoState[]> => {
+export const getAllVideos = async (
+  accessToken: string
+): Promise<VideoState[]> => {
   const response = await axios.get<VideoState[]>(
-    `${API_BASE_URL}/instructor/video/view_video_list`
+    `${API_BASE_URL}/instructor/video/view_video_list`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
   );
   return response.data;
 };

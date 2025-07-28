@@ -26,7 +26,10 @@ export class CertificateController {
     status: 201,
     description: 'Chứng chỉ đã được tạo thành công.',
   })
-  async create(@Body() createCertificateDto: CreateCertificateDto, @Res() res: Response) {
+  async create(
+    @Body() createCertificateDto: CreateCertificateDto,
+    @Res() res: Response,
+  ) {
     try {
       const result = await this.certificateService.create(createCertificateDto);
       return res.status(HttpStatus.CREATED).json({
@@ -35,7 +38,8 @@ export class CertificateController {
         data: result,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create certificate';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to create certificate';
       return res.status(HttpStatus.BAD_REQUEST).json({
         status: HttpStatus.BAD_REQUEST,
         message: errorMessage,
@@ -56,7 +60,8 @@ export class CertificateController {
         data: result,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch certificates';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to fetch certificates';
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         message: errorMessage,
@@ -80,7 +85,10 @@ export class CertificateController {
         data: result,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user certificates';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch user certificates';
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         message: errorMessage,
@@ -101,8 +109,11 @@ export class CertificateController {
         data: result,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch certificate';
-      const status = errorMessage.includes('not found') ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to fetch certificate';
+      const status = errorMessage.includes('not found')
+        ? HttpStatus.NOT_FOUND
+        : HttpStatus.INTERNAL_SERVER_ERROR;
       return res.status(status).json({
         status: status,
         message: errorMessage,
@@ -120,15 +131,21 @@ export class CertificateController {
     @Res() res: Response,
   ) {
     try {
-      const result = await this.certificateService.update(id, updateCertificateDto);
+      const result = await this.certificateService.update(
+        id,
+        updateCertificateDto,
+      );
       return res.status(HttpStatus.OK).json({
         status: HttpStatus.OK,
         message: 'Certificate updated successfully',
         data: result,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update certificate';
-      const status = errorMessage.includes('not found') ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to update certificate';
+      const status = errorMessage.includes('not found')
+        ? HttpStatus.NOT_FOUND
+        : HttpStatus.BAD_REQUEST;
       return res.status(status).json({
         status: status,
         message: errorMessage,
@@ -149,8 +166,11 @@ export class CertificateController {
         data: null,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete certificate';
-      const status = errorMessage.includes('not found') ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to delete certificate';
+      const status = errorMessage.includes('not found')
+        ? HttpStatus.NOT_FOUND
+        : HttpStatus.INTERNAL_SERVER_ERROR;
       return res.status(status).json({
         status: status,
         message: errorMessage,
@@ -191,7 +211,10 @@ export class CertificateController {
       });
       return res.send(xml);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate certificate XML';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate certificate XML';
       return res.status(HttpStatus.NOT_FOUND).json({
         status: HttpStatus.NOT_FOUND,
         message: errorMessage,
@@ -205,17 +228,21 @@ export class CertificateController {
   @ApiResponse({ status: 200, description: 'PDF chứng chỉ.' })
   async getCertificatePDF(@Param('id') id: string, @Res() res: Response) {
     try {
-      const pdfBuffer = await this.certificateService.generateCertificatePDF(id);
-      
+      const pdfBuffer =
+        await this.certificateService.generateCertificatePDF(id);
+
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="certificate-${id}.pdf"`,
         'Content-Length': pdfBuffer.length.toString(),
       });
-      
+
       return res.send(pdfBuffer);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate certificate PDF';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate certificate PDF';
       return res.status(HttpStatus.NOT_FOUND).json({
         status: HttpStatus.NOT_FOUND,
         message: errorMessage,

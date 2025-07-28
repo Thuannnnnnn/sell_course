@@ -59,6 +59,7 @@ import {
   LearningPathData,
 } from "@/app/types/learningPath/learningPath";
 import UpdatedLearningPathDisplay from "@/components/course/LearningPathDisplay";
+import { toast } from "sonner";
 
 interface LearningPathState {
   data: LearningPathData | null;
@@ -145,10 +146,11 @@ export default function CourseLearnPage() {
   const [userExamResults, setUserExamResults] =
     useState<UserExamResults | null>(null);
 
+  const token = session?.accessToken;
   // Check for existing learning plan
   useEffect(() => {
     const checkExistingPlan = async () => {
-      if (!userId || !userId) {
+      if (!userId || !userId || !token) {
         setHasExistingPlan(false);
         return;
       }
@@ -162,7 +164,8 @@ export default function CourseLearnPage() {
         }
         const response = await improvedLearningPathApi.hasLearningPlanForCourse(
           userId,
-          courseId
+          courseId,
+          token
         );
 
         if (response.success) {
@@ -183,34 +186,30 @@ export default function CourseLearnPage() {
   }, [userId, courseId]);
   // Load all progress data for the course
   const loadProgressData = async () => {
-    if (!userId || lessons.length === 0) return;
+    if (!userId || !token || lessons.length === 0) return;
 
     try {
-      console.log("📊 Loading progress data for course:", courseId);
-
-      // Get course progress
       const courseProgressData: CourseProgressResponse =
-        await getCourseProgress(courseId, userId);
+        await getCourseProgress(courseId, userId, token);
       setCourseProgress(courseProgressData.progress);
 
-      // Get progress for each lesson and its contents
       const lessonsWithProgress = await Promise.all(
         lessons.map(async (lesson) => {
           try {
             // Get lesson progress
             const lessonProgress: LessonProgressResponseDto =
-              await getLessonProgress(lesson.lessonId, userId);
+              await getLessonProgress(lesson.lessonId, userId, token);
 
             // Get completed contents count for this lesson
             const completedCount: CompletedCountResponse =
-              await getCompletedContentsCount(lesson.lessonId, userId);
+              await getCompletedContentsCount(lesson.lessonId, userId, token);
 
             // Get progress for each content in the lesson
             const contentsWithProgress = await Promise.all(
               lesson.contents.map(async (content) => {
                 try {
                   const contentStatus: ContentProgressStatus =
-                    await getContentStatus(content.contentId, userId);
+                    await getContentStatus(content.contentId, userId, token);
                   return {
                     ...content,
                     isCompleted: contentStatus.isCompleted,
@@ -286,15 +285,29 @@ export default function CourseLearnPage() {
   // Learning Path handlers
   const handleCreateLearningPath = () => {
     if (!session) {
-      alert("Vui lòng đăng nhập để tạo Learning Path");
+      toast.error("please login to view Learning Path", {
+        style: {
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
+        },
+        icon: "❌",
+      });
       return;
     }
     setShowLearningPathModal(true);
   };
 
   const handleViewLearningPath = async () => {
-    if (!session?.user?.id) {
-      alert("Vui lòng đăng nhập để xem Learning Path");
+    if (!session?.user?.id || !token) {
+      toast.error("please login to view Learning Path", {
+        style: {
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
+        },
+        icon: "❌",
+      });
       return;
     }
 
@@ -304,7 +317,8 @@ export default function CourseLearnPage() {
       const response =
         await improvedLearningPathApi.getLatestLearningPathForCourse(
           session.user.id,
-          courseId
+          courseId,
+          token
         );
 
       if (response.success && response.data) {
@@ -312,7 +326,8 @@ export default function CourseLearnPage() {
         const planResponse =
           await improvedLearningPathApi.getLatestLearningPlanForCourse(
             session.user.id,
-            courseId
+            courseId,
+            token
           );
 
         setLearningPathState({
@@ -323,12 +338,26 @@ export default function CourseLearnPage() {
         });
         setShowLearningPathDisplay(true);
       } else {
-        alert(response.error || "Không tìm thấy Learning Path");
+        toast.error("Error viewing learning path", {
+          style: {
+            background: "#ef4444",
+            color: "white",
+            border: "1px solid #dc2626",
+          },
+          icon: "❌",
+        });
         setLearningPathState((prev) => ({ ...prev, isLoading: false }));
       }
     } catch (error) {
       console.error("Error viewing learning path:", error);
-      alert("Có lỗi xảy ra khi tải Learning Path");
+      toast.error("have an error while viewing learning path", {
+        style: {
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
+        },
+        icon: "❌",
+      });
       setLearningPathState((prev) => ({ ...prev, isLoading: false }));
     }
   };
@@ -336,14 +365,27 @@ export default function CourseLearnPage() {
   const handleLearningPathSubmit = async (
     learningPathInput: LearningPathInput
   ) => {
+    if (!session?.user?.id || !token) {
+      toast.error("please login to create learning path", {
+        style: {
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
+        },
+        icon: "❌",
+      });
+      return;
+    }
     setIsCreatingLearningPath(true);
+
     try {
       // Store input for later use when saving
       setCurrentLearningPathInput(learningPathInput);
 
       // Call API to generate learning path
       const response = await improvedLearningPathApi.generateLearningPath(
-        learningPathInput
+        learningPathInput,
+        token
       );
 
       if (response.success && response.data) {
@@ -360,11 +402,25 @@ export default function CourseLearnPage() {
         setShowLearningPathModal(false);
         setShowLearningPathDisplay(true);
       } else {
-        alert(response.error || "Có lỗi xảy ra khi tạo Learning Path");
+        toast.error("have an error creating learning path", {
+          style: {
+            background: "#ef4444",
+            color: "white",
+            border: "1px solid #dc2626",
+          },
+          icon: "❌",
+        });
       }
     } catch (error) {
+      toast.error("have an error creating learning path", {
+        style: {
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
+        },
+        icon: "❌",
+      });
       console.error("Error creating learning path:", error);
-      alert("Có lỗi xảy ra khi tạo Learning Path");
     } finally {
       setIsCreatingLearningPath(false);
     }
@@ -373,8 +429,10 @@ export default function CourseLearnPage() {
   const handleSaveLearningPath = async (
     data: LearningPathData
   ): Promise<void> => {
-    if (!session?.user?.id || !currentLearningPathInput) {
-      throw new Error("Không thể lưu Learning Path. Vui lòng thử lại.");
+    if (!session?.user?.id || !currentLearningPathInput || !token) {
+      throw new Error(
+        "dont have user id or currentLearningPathInput or token "
+      );
     }
 
     if (!isLearningPathData(data)) {
@@ -388,7 +446,8 @@ export default function CourseLearnPage() {
         // Update existing learning path
         response = await improvedLearningPathApi.updateLearningPath(
           learningPathState.planId,
-          data
+          data,
+          token
         );
       } else {
         // Save new learning path
@@ -396,7 +455,8 @@ export default function CourseLearnPage() {
           session.user.id,
           courseId,
           data,
-          currentLearningPathInput
+          currentLearningPathInput,
+          token
         );
       }
 
@@ -414,8 +474,14 @@ export default function CourseLearnPage() {
 
         // Update hasExistingPlan state
         setHasExistingPlan(true);
-
-        alert("Learning Path đã được lưu thành công!");
+        toast.success("Learning Path saved successfully!", {
+          style: {
+            background: "#10b981",
+            color: "white",
+            border: "1px solid #059669",
+          },
+          icon: "✅",
+        });
       } else {
         throw new Error(response.error || "Failed to save learning path");
       }
@@ -426,23 +492,23 @@ export default function CourseLearnPage() {
   };
   // Load exam data
   const loadExamData = async () => {
-    if (!courseId) return;
+    if (!courseId || !token) return;
 
     try {
       console.log("🎓 Loading exam data for course:", courseId);
 
       // Check if exam exists for this course
-      const examExists = await examApi.checkExamExists(courseId);
+      const examExists = await examApi.checkExamExists(courseId, token);
 
       if (examExists) {
-        const exam = (await examApi.getExamById(courseId)) as Exam;
+        const exam = (await examApi.getExamById(courseId, token)) as Exam;
 
         // Check if user has taken the exam
-        if (session?.accessToken) {
+        if (token) {
           try {
             const results = await resultExamApi.getUserExamResults(
               courseId,
-              session.accessToken
+              token
             );
             setUserExamResults(results);
           } catch {
@@ -483,7 +549,7 @@ export default function CourseLearnPage() {
   // Fetch course data from API
   useEffect(() => {
     const fetchCourseData = async () => {
-      if (!courseId || !userId) return;
+      if (!courseId || !userId || !token) return;
 
       setLoading(true);
       setError(null);
@@ -493,12 +559,14 @@ export default function CourseLearnPage() {
 
         // Fetch course details
         const course = (await courseApi.getCourseById(
-          courseId
+          courseId,
+          token
         )) as CourseResponse;
 
         // Fetch lessons for this course
         const lessonsResponse = (await courseApi.getLessonsByCourseId(
-          courseId
+          courseId,
+          token
         )) as { lessons: LessonResponse[] };
         const rawLessons = lessonsResponse.lessons || [];
 
@@ -539,7 +607,8 @@ export default function CourseLearnPage() {
                     case "video":
                       lessonType = "video";
                       const videoContent = (await contentApi.getVideoContent(
-                        firstContent.contentId
+                        firstContent.contentId,
+                        token
                       )) as VideoState;
                       lessonContent = videoContent;
                       duration = "10:25";
@@ -547,7 +616,8 @@ export default function CourseLearnPage() {
                     case "doc":
                       lessonType = "text";
                       const docContent = (await contentApi.getDocumentContent(
-                        firstContent.contentId
+                        firstContent.contentId,
+                        token
                       )) as DocumentResponse;
                       lessonContent = { text: docContent.url } as {
                         text: string;
@@ -559,7 +629,8 @@ export default function CourseLearnPage() {
                       const quizContent = (await contentApi.getQuizContent(
                         courseId,
                         lesson.lessonId,
-                        firstContent.contentId
+                        firstContent.contentId,
+                        token
                       )) as QuizResponse;
                       lessonContent = quizContent;
                       duration = `${
@@ -652,7 +723,7 @@ export default function CourseLearnPage() {
     };
 
     fetchCourseData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, userId]);
 
   // Load progress data after lessons are loaded
@@ -771,14 +842,7 @@ export default function CourseLearnPage() {
 
   // Handle content completion
   const handleContentComplete = async (contentId: string) => {
-    console.log(
-      "🚀 CourseLearnPage - handleContentComplete called:",
-      contentId
-    );
-    console.log("🚀 CourseLearnPage - currentLesson:", currentLesson?.lessonId);
-    console.log("🚀 CourseLearnPage - userId:", userId);
-
-    if (!currentLesson || !userId) {
+    if (!currentLesson || !userId || !token) {
       console.log("❌ CourseLearnPage - Missing currentLesson or userId");
       return;
     }
@@ -790,7 +854,12 @@ export default function CourseLearnPage() {
       );
 
       // Mark content as completed via API
-      await markContentAsCompleted(userId, contentId, currentLesson.lessonId);
+      await markContentAsCompleted(
+        userId,
+        contentId,
+        currentLesson.lessonId,
+        token
+      );
 
       // Update local state immediately for better UX
       setCompletedContents((prev) => new Set([...Array.from(prev), contentId]));
@@ -903,12 +972,12 @@ export default function CourseLearnPage() {
           {learningPathState.isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              Đang tải...
+              Loading...
             </>
           ) : (
             <>
               <Eye className="w-5 h-5 mr-2" />
-              Xem Learning Path
+              View Learning Path
             </>
           )}
         </Button>
@@ -924,12 +993,12 @@ export default function CourseLearnPage() {
         {isCreatingLearningPath ? (
           <>
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            Đang tạo...
+            Created...
           </>
         ) : (
           <>
             <Brain className="w-5 h-5 mr-2" />
-            Tạo Learning Path
+            Create Learning Path
           </>
         )}
       </Button>
@@ -962,7 +1031,6 @@ export default function CourseLearnPage() {
             </div>
             {/* Action Buttons */}
             <div className="mb-6 space-y-3">{renderLearningPathButton()}</div>
-
           </div>
         </div>
       </header>
@@ -1013,6 +1081,7 @@ export default function CourseLearnPage() {
                     isContentCompleted={
                       selectedContent ? selectedContent.isCompleted : false
                     }
+                    token={token || ""}
                   />
                 )}
               </TabsContent>
@@ -1051,6 +1120,7 @@ export default function CourseLearnPage() {
         courseId={courseId}
         userId={session?.user?.id || ""}
         userName={session?.user?.name || "Nguyễn Văn A"}
+        token={token || ""}
       />
 
       {/* Learning Path Display */}
@@ -1063,6 +1133,7 @@ export default function CourseLearnPage() {
           isEditable={true}
           planId={learningPathState.planId}
           isExisting={learningPathState.isExisting}
+          token={token || ""}
         />
       )}
     </div>

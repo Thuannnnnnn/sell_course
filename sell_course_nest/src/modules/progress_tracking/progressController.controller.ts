@@ -1,13 +1,18 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
 import { ProgressTrackingService } from './progressService.service';
 import { MarkProgressDto } from './dto/progressRequestDto.dto';
 import { LessonProgressResponseDto } from './dto/progressReponseDto.dto';
 import { ProgressTracking } from './entities/progress.entity';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
 
 @Controller('progress')
 export class ProgressTrackingController {
   constructor(private readonly progressService: ProgressTrackingService) {}
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('complete')
   async markAsCompleted(
     @Body() markProgressDto: MarkProgressDto,
@@ -21,6 +26,8 @@ export class ProgressTrackingController {
     return progress;
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('lesson/:lessonId/user/:userId')
   async getLessonProgress(
     @Param('lessonId') lessonId: string,
@@ -33,6 +40,8 @@ export class ProgressTrackingController {
     return { lessonId, userId, isCompleted };
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('lesson/:lessonId/user/:userId/completed-contents-count')
   async getCompletedContentsCount(
     @Param('lessonId') lessonId: string,
@@ -49,6 +58,8 @@ export class ProgressTrackingController {
     return { lessonId, userId, completedContentsCount: count };
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('course/:courseId/user/:userId/progress')
   async getCourseProgress(
     @Param('courseId') courseId: string,
@@ -61,6 +72,8 @@ export class ProgressTrackingController {
     return { progress };
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('content/:contentId/user/:userId/status')
   async getContentStatus(
     @Param('contentId') contentId: string,
@@ -73,6 +86,8 @@ export class ProgressTrackingController {
     return { contentId, userId, isCompleted };
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('course/:courseId/user/:userId/completed-lessons-count')
   async getCompletedLessonsCountInCourse(
     @Param('courseId') courseId: string,
