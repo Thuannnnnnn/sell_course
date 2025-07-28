@@ -157,7 +157,7 @@ const token = session?.accessToken;
     if (userId && scheduleItems.length > 0) {
       loadContentProgress();
     }
-  }, [userId, scheduleItems]);
+  }, [userId, scheduleItems, token]);
 
   // Calculate week information
   const getWeekInfo = (weekNumber: number, items: ScheduleItem[]): WeekInfo => {
@@ -539,13 +539,13 @@ const token = session?.accessToken;
       <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
         <div className="flex items-center gap-4">
           <div className={`px-4 py-2 rounded-lg font-semibold ${weekColor}`}>
-            Tuần {weekNumber}
+            Week {weekNumber}
           </div>
           <div className="text-sm text-gray-600">
             📅 {formatWeekDateRange(weekInfo)}
           </div>
           <div className="text-sm text-gray-600">
-            📚 {items.length} buổi học
+            📚 {items.length} Lessons
           </div>
           <div className="flex items-center gap-1 text-sm">
             <TrendingUp className="w-4 h-4 text-green-600" />
@@ -899,7 +899,7 @@ const token = session?.accessToken;
             No schedule yet
           </h3>
           <p className="text-gray-600">
-            You don't have any classes planned yet. Create a learning path to get started!
+            You don&apos;t have any classes planned yet. Create a learning path to get started!
           </p>
         </div>
       </div>

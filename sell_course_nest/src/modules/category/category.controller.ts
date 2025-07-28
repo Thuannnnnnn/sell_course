@@ -13,6 +13,9 @@ import { CategoryResponseDto } from './dto/categoryResponseData.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { UserRole } from '../Auth/user.enum';
+import { Roles } from '../Auth/roles.decorator';
+import { RolesGuard } from '../Auth/roles.guard';
 @Controller('api/')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

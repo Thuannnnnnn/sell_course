@@ -17,6 +17,7 @@ export default function Home() {
           <FeaturesSection />
           <TestimonialsSection />
           <BlogSection />
+          
         </div>
       </main>
     </div>
