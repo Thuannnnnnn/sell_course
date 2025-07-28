@@ -33,6 +33,7 @@ interface LearningPathModalProps {
   courseId: string;
   userId: string;
   userName: string;
+  token: string;
 }
 
 // Survey answers state
@@ -67,6 +68,7 @@ export default function LearningPathModal({
   courseId,
   userId,
   userName,
+  token,
 }: LearningPathModalProps) {
   const [questions, setQuestions] = useState<RawQuestion[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -434,7 +436,7 @@ export default function LearningPathModal({
         <div className="bg-white p-6 rounded-lg">
           <div className="flex items-center gap-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span>Đang tải...</span>
+            <span>Loading...</span>
           </div>
         </div>
       </div>
@@ -447,7 +449,7 @@ export default function LearningPathModal({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <BookOpen className="w-6 h-6" />
-              <h2 className="text-2xl font-bold">Tạo Learning Path</h2>
+              <h2 className="text-2xl font-bold">Create Learning Path</h2>
             </div>
             <button
               onClick={onClose}
@@ -459,7 +461,7 @@ export default function LearningPathModal({
           <div className="mt-4">
             <div className="flex items-center justify-between text-sm mb-2">
               <span>
-                Câu hỏi {currentStep + 1} / {questions.length}
+                Question {currentStep + 1} / {questions.length}
               </span>
               <span>
                 {questions.length > 0
@@ -502,7 +504,7 @@ export default function LearningPathModal({
             variant="outline"
             className="flex items-center gap-2"
           >
-            <ChevronLeft className="w-4 h-4" /> Quay lại
+            <ChevronLeft className="w-4 h-4" /> Previous
           </Button>
           <div className="flex items-center gap-2">
             {questions.map((_, index) => (
@@ -523,11 +525,11 @@ export default function LearningPathModal({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Đang tạo...
+                  Creating...
                 </>
               ) : (
                 <>
-                  <Target className="w-4 h-4" /> Tạo Learning Path
+                  <Target className="w-4 h-4" /> Create Learning Path
                 </>
               )}
             </Button>
@@ -537,7 +539,7 @@ export default function LearningPathModal({
               disabled={!canProceed}
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center gap-2"
             >
-              Tiếp theo <ChevronRight className="w-4 h-4" />
+              Next <ChevronRight className="w-4 h-4" />
             </Button>
           )}
         </div>

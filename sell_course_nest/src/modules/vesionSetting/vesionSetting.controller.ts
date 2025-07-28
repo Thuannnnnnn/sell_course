@@ -23,22 +23,16 @@ import { RolesGuard } from '../Auth/roles.guard';
 export class VersionSettingController {
   constructor(private readonly versionSettingService: VersionSettingService) {}
 
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get()
   findAll() {
     return this.versionSettingService.findAll();
   }
 
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('active')
   getActiveVersion(): Promise<VersionSetting> {
     return this.versionSettingService.getActiveVersion();
   }
 
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.versionSettingService.findOne(id);

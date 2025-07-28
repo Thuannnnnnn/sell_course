@@ -88,6 +88,8 @@ export class ExamQuestionController {
   /**
    * 🔧 NEW: Get exam statistics
    */
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/admin/exam/stats/:courseId')
   async getExamStats(@Param('courseId', ParseUUIDPipe) courseId: string) {
     return this.examQuestionService.getExamStats(courseId);
@@ -96,6 +98,8 @@ export class ExamQuestionController {
   /**
    * 🔧 NEW: Check if exam exists
    */
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/admin/exam/exists/:courseId')
   async checkExamExists(@Param('courseId', ParseUUIDPipe) courseId: string) {
     const exists = await this.examQuestionService.checkExamExists(courseId);
@@ -105,6 +109,8 @@ export class ExamQuestionController {
   /**
    * 🔧 NEW: Get exam for student view (without correct answers)
    */
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/student/exam/:courseId')
   async getExamForStudent(@Param('courseId', ParseUUIDPipe) courseId: string) {
     return this.examQuestionService.getExamForStudent(courseId);
@@ -149,6 +155,8 @@ export class ExamQuestionController {
     return this.examQuestionService.deleteExam(examId);
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/admin/exam/view_question/:id')
   async getQuestionById(@Param('id', ParseUUIDPipe) questionId: string) {
     return this.examQuestionService.getQuestionById(questionId);

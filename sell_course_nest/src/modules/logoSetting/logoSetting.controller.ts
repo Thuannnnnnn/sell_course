@@ -36,22 +36,16 @@ export class LogoSettingController {
     return this.logoSettingService.create(createLogoSettingDto, file);
   }
 
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('by-version/:versionId')
   async getByVersionId(@Param('versionId') versionId: string) {
     return this.logoSettingService.getByVersionId(versionId);
   }
 
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get()
   findAll() {
     return this.logoSettingService.findAll();
   }
 
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.logoSettingService.findOne(id);

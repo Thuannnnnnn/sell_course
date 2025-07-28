@@ -52,16 +52,18 @@ export function ProfileInfo() {
   const coursesEnrolled = 0;
   const wishlistedCourses = 0;
   const completedCourses = 0;
-
+  const token = session?.accessToken;
   useEffect(() => {
     // Simulate loading data
     const loadScheduleData = async () => {
       try {
+        if(!token) return
         setIsLoading(true);
 
         // In real app, you would fetch from API:
         const response = await improvedLearningPathApi.getLearningPlansByUserId(
-          session?.user?.id || ""
+          session?.user?.id || "",
+          token
         );
         if (response.success && response.data) {
           const allScheduleItems = response.data.flatMap(

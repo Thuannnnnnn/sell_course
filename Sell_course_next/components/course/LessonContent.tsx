@@ -34,6 +34,7 @@ interface LessonContentProps {
   courseId: string;
   onContentComplete?: (contentId: string) => void;
   isContentCompleted?: boolean; // Additional prop to track completion status
+  token: string; // Additional prop to include token
 }
 
 export function LessonContent({
@@ -42,12 +43,12 @@ export function LessonContent({
   courseId,
   onContentComplete,
   isContentCompleted = false,
+  token,
 }: LessonContentProps) {
   const [contentData, setContentData] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [localCompleted, setLocalCompleted] = useState(false);
-
   // Update local completion state when prop changes
   useEffect(() => {
     setLocalCompleted(isContentCompleted);
@@ -66,16 +67,11 @@ export function LessonContent({
       setError(null);
 
       try {
-        console.log(
-          "🔍 LessonContent - Processing content:",
-          selected.contentType,
-          selected
-        );
-
         switch (selected.contentType.toLowerCase()) {
           case "video":
             const videoData = await apiCall<VideoState>(
-              `/api/video/view_video_content/${selected.contentId}`
+              `/api/video/view_video_content/${selected.contentId}`,
+              token
             );
             setContentData({ type: "video", data: videoData });
             setUrlBot(videoData.urlScript);
@@ -83,7 +79,8 @@ export function LessonContent({
 
           case "doc":
             const docData = await apiCall<DocumentResponse>(
-              `/api/docs/view_doc/${selected.contentId}`
+              `/api/docs/view_doc/${selected.contentId}`,
+              token
             );
             setContentData({ type: "doc", data: docData });
             setUrlBot(docData.url);
@@ -93,7 +90,8 @@ export function LessonContent({
           case "quizz":
             console.log("📝 LessonContent - Loading quiz content...");
             const quizData = await apiCall<QuizResponse>(
-              `/api/courses/${courseId}/lessons/${lesson.id}/contents/${selected.contentId}/quizzes/random`
+              `/api/courses/${courseId}/lessons/${lesson.id}/contents/${selected.contentId}/quizzes/random`,
+              token
             );
             console.log("✅ LessonContent - Quiz content loaded:", quizData);
             setContentData({ type: "quiz", data: quizData });
@@ -110,8 +108,7 @@ export function LessonContent({
             });
         }
       } catch (err) {
-        console.error("❌ LessonContent - Error loading content:", err);
-        setError(err instanceof Error ? err.message : "Failed to load content");
+        setError(err instanceof Error ? "Not have Content" : "Failed to load content");
         setContentData({
           type: "text",
           data: { text: "Error loading content" },
@@ -127,7 +124,10 @@ export function LessonContent({
   // Enhanced completion handler
   const handleContentComplete = async (contentId: string) => {
     console.log("📋 LessonContent - Handling content completion:", contentId);
-    console.log("📋 LessonContent - onContentComplete exists:", !!onContentComplete);
+    console.log(
+      "📋 LessonContent - onContentComplete exists:",
+      !!onContentComplete
+    );
 
     // Update local state immediately for better UX
     setLocalCompleted(true);
@@ -250,15 +250,25 @@ export function LessonContent({
             showResults={true}
             onComplete={(score, results) => {
               console.log("🎯 Quiz completed:", { score, results });
-              console.log("🎯 Score type:", typeof score, "Score value:", score);
-              console.log("🎯 Results type:", typeof results, "Results:", results);
+              console.log(
+                "🎯 Score type:",
+                typeof score,
+                "Score value:",
+                score
+              );
+              console.log(
+                "🎯 Results type:",
+                typeof results,
+                "Results:",
+                results
+              );
 
               if (currentContentId && score !== undefined) {
                 // Use the score directly from QuizTaking since it's already calculated
                 const finalScore = score;
                 console.log("🎯 Final score:", finalScore);
                 console.log("🎯 Content ID:", currentContentId);
-                
+
                 if (finalScore >= 50) {
                   console.log("✅ Score >= 50%, marking content as complete");
                   handleContentComplete(currentContentId);
@@ -266,7 +276,10 @@ export function LessonContent({
                   console.log("❌ Score < 50%, not marking as complete");
                 }
               } else {
-                console.log("❌ Missing contentId or score:", { currentContentId, score });
+                console.log("❌ Missing contentId or score:", {
+                  currentContentId,
+                  score,
+                });
               }
             }}
             isCompleted={localCompleted}

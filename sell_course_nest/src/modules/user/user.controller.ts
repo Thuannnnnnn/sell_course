@@ -48,7 +48,6 @@ export class UserController {
   @Get('/users/user')
   async findUserById(@Req() req): Promise<any> {
     const user_id = req.user.user_id;
-    console.log('Fetching user with ID:', user_id);
 
     const user = await this.userService.getUserById(user_id);
     if (!user) {

@@ -99,14 +99,9 @@ class ImprovedLearningPathApi {
     }
   }
 
-  // ===== CORE CRUD OPERATIONS =====
-
-  /**
-   * Tạo learning plan mới
-   * POST /learningPath
-   */
   async createLearningPlan(
-    planData: CreateLearningPlanRequest
+    planData: CreateLearningPlanRequest,
+    token: string
   ): Promise<ApiResponse<LearningPlan>> {
     // Validate input
     const validationErrors = validateCreateLearningPlanRequest(planData);
@@ -120,6 +115,7 @@ class ImprovedLearningPathApi {
     const request = axios.post<LearningPlan>(this.getFullUrl(), planData, {
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -130,8 +126,15 @@ class ImprovedLearningPathApi {
    * Lấy tất cả learning plans
    * GET /learningPath/getAll
    */
-  async getAllLearningPlans(): Promise<ApiResponse<LearningPlan[]>> {
-    const request = axios.get<LearningPlan[]>(this.getFullUrl("/getAll"));
+  async getAllLearningPlans(
+    token: string
+  ): Promise<ApiResponse<LearningPlan[]>> {
+    const request = axios.get<LearningPlan[]>(this.getFullUrl("/getAll"), {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return this.handleRequest(request);
   }
@@ -140,7 +143,10 @@ class ImprovedLearningPathApi {
    * Lấy learning plan theo ID
    * GET /learningPath/getById/:id
    */
-  async getLearningPlanById(id: string): Promise<ApiResponse<LearningPlan>> {
+  async getLearningPlanById(
+    id: string,
+    token: string
+  ): Promise<ApiResponse<LearningPlan>> {
     if (!id || typeof id !== "string") {
       return {
         success: false,
@@ -149,7 +155,13 @@ class ImprovedLearningPathApi {
     }
 
     const request = axios.get<LearningPlan>(
-      this.getFullUrl(`/getById/${encodeURIComponent(id)}`)
+      this.getFullUrl(`/getById/${encodeURIComponent(id)}`),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     return this.handleRequest(request);
@@ -160,7 +172,8 @@ class ImprovedLearningPathApi {
    * GET /learningPath/user/:userId
    */
   async getLearningPlansByUserId(
-    userId: string
+    userId: string,
+    token: string
   ): Promise<ApiResponse<LearningPlan[]>> {
     if (!userId || typeof userId !== "string") {
       return {
@@ -170,7 +183,13 @@ class ImprovedLearningPathApi {
     }
 
     const request = axios.get<LearningPlan[]>(
-      this.getFullUrl(`/user/${encodeURIComponent(userId)}`)
+      this.getFullUrl(`/user/${encodeURIComponent(userId)}`),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     return this.handleRequest(request);
@@ -182,7 +201,8 @@ class ImprovedLearningPathApi {
    */
   async updateLearningPlan(
     id: string,
-    updateData: UpdateLearningPlanRequest
+    updateData: UpdateLearningPlanRequest,
+    token: string
   ): Promise<ApiResponse<LearningPlan>> {
     if (!id || typeof id !== "string") {
       return {
@@ -197,6 +217,7 @@ class ImprovedLearningPathApi {
       {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       }
     );
@@ -208,7 +229,10 @@ class ImprovedLearningPathApi {
    * Xóa learning plan
    * DELETE /learningPath/delete/:id
    */
-  async deleteLearningPlan(id: string): Promise<ApiResponse<DeleteResult>> {
+  async deleteLearningPlan(
+    id: string,
+    token: string
+  ): Promise<ApiResponse<DeleteResult>> {
     if (!id || typeof id !== "string") {
       return {
         success: false,
@@ -217,7 +241,13 @@ class ImprovedLearningPathApi {
     }
 
     const request = axios.delete<DeleteResult>(
-      this.getFullUrl(`/delete/${encodeURIComponent(id)}`)
+      this.getFullUrl(`/delete/${encodeURIComponent(id)}`),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     return this.handleRequest(request);
@@ -229,7 +259,8 @@ class ImprovedLearningPathApi {
    * Tạo learning path thông qua n8n webhook (improved version)
    */
   async generateLearningPath(
-    learningPathInput: LearningPathInput
+    learningPathInput: LearningPathInput,
+    token: string
   ): Promise<ApiResponse<LearningPathData>> {
     // Validate input
     const validationErrors = validateLearningPathInput(learningPathInput);
@@ -249,6 +280,7 @@ class ImprovedLearningPathApi {
       const response = await axios.post(this.config.n8nWebhookURL, n8nPayload, {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -301,7 +333,8 @@ class ImprovedLearningPathApi {
     userId: string,
     courseId: string,
     data: LearningPathData,
-    input: LearningPathInput
+    input: LearningPathInput,
+    token: string
   ): Promise<ApiResponse<LearningPlan>> {
     if (!userId || typeof userId !== "string") {
       return {
@@ -335,9 +368,7 @@ class ImprovedLearningPathApi {
       createRequest.narrativeTemplates = data.scheduleItems.narrativeText;
       createRequest.scheduleItems = data.scheduleItems.scheduleData;
 
-      console.log("Saving to backend:", JSON.stringify(createRequest, null, 2));
-
-      const response = await this.createLearningPlan(createRequest);
+      const response = await this.createLearningPlan(createRequest, token);
 
       if (!response.success || !response.data) {
         return {
@@ -367,10 +398,11 @@ class ImprovedLearningPathApi {
    * Lấy learning path theo ID và transform sang format hiển thị
    */
   async getLearningPath(
-    learningPathId: string
+    learningPathId: string,
+    token: string
   ): Promise<ApiResponse<LearningPathData>> {
     try {
-      const response = await this.getLearningPlanById(learningPathId);
+      const response = await this.getLearningPlanById(learningPathId, token);
 
       if (!response.success || !response.data) {
         return {
@@ -408,7 +440,8 @@ class ImprovedLearningPathApi {
    */
   async getUserLearningPathsForCourse(
     userId: string,
-    courseId: string
+    courseId: string,
+    token: string
   ): Promise<ApiResponse<LearningPlan[]>> {
     if (!userId || typeof userId !== "string") {
       return {
@@ -425,7 +458,7 @@ class ImprovedLearningPathApi {
     }
 
     try {
-      const response = await this.getLearningPlansByUserId(userId);
+      const response = await this.getLearningPlansByUserId(userId, token);
 
       if (!response.success || !response.data) {
         return response;
@@ -453,7 +486,8 @@ class ImprovedLearningPathApi {
    */
   async updateLearningPath(
     learningPathId: string,
-    data: LearningPathData
+    data: LearningPathData,
+    token: string
   ): Promise<ApiResponse<LearningPlan>> {
     if (!learningPathId || typeof learningPathId !== "string") {
       return {
@@ -473,7 +507,8 @@ class ImprovedLearningPathApi {
       const updateRequest = transformLearningPathDataToUpdateRequest(data);
       const response = await this.updateLearningPlan(
         learningPathId,
-        updateRequest
+        updateRequest,
+        token
       );
 
       if (!response.success || !response.data) {
@@ -507,12 +542,14 @@ class ImprovedLearningPathApi {
    */
   async hasLearningPlanForCourse(
     userId: string,
-    courseId: string
+    courseId: string,
+    token: string
   ): Promise<ApiResponse<boolean>> {
     try {
       const response = await this.getUserLearningPathsForCourse(
         userId,
-        courseId
+        courseId,
+        token
       );
 
       if (!response.success) {
@@ -541,12 +578,14 @@ class ImprovedLearningPathApi {
    */
   async getLatestLearningPlanForCourse(
     userId: string,
-    courseId: string
+    courseId: string,
+    token: string
   ): Promise<ApiResponse<LearningPlan | null>> {
     try {
       const response = await this.getUserLearningPathsForCourse(
         userId,
-        courseId
+        courseId,
+        token
       );
 
       if (!response.success || !response.data) {
@@ -596,12 +635,14 @@ class ImprovedLearningPathApi {
    */
   async getLatestLearningPathForCourse(
     userId: string,
-    courseId: string
+    courseId: string,
+    token: string
   ): Promise<ApiResponse<LearningPathData | null>> {
     try {
       const response = await this.getLatestLearningPlanForCourse(
         userId,
-        courseId
+        courseId,
+        token
       );
 
       if (!response.success || !response.data) {
@@ -635,6 +676,7 @@ class ImprovedLearningPathApi {
   async getOrCreateLearningPath(
     userId: string,
     courseId: string,
+    token: string,
     input?: LearningPathInput
   ): Promise<
     ApiResponse<{
@@ -647,13 +689,15 @@ class ImprovedLearningPathApi {
       // Kiểm tra xem đã có learning path chưa
       const existingResponse = await this.getLatestLearningPathForCourse(
         userId,
-        courseId
+        courseId,
+        token
       );
 
       if (existingResponse.success && existingResponse.data) {
         const latestPlanResponse = await this.getLatestLearningPlanForCourse(
           userId,
-          courseId
+          courseId,
+          token
         );
 
         return {
@@ -668,7 +712,7 @@ class ImprovedLearningPathApi {
 
       // Nếu chưa có và có input, tạo mới
       if (input) {
-        const generateResponse = await this.generateLearningPath(input);
+        const generateResponse = await this.generateLearningPath(input, token);
 
         if (!generateResponse.success || !generateResponse.data) {
           return {

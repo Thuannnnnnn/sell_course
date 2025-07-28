@@ -36,14 +36,12 @@ export class CarouselSettingController {
   ) {
     return this.carouselSettingService.create(createCarouselSettingDto, file);
   }
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+
   @Get()
   findAll() {
     return this.carouselSettingService.findAll();
   }
 
-  /** Lấy một CarouselSetting theo ID */
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.carouselSettingService.findOne(id);
@@ -66,9 +64,6 @@ export class CarouselSettingController {
     );
   }
 
-  @ApiBearerAuth('Authorization')
-  @Roles(UserRole.MARKETINGMANAGER)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('by-version/:versionId')
   async getByVersionId(@Param('versionId') versionId: string) {
     return this.carouselSettingService.getByVersionId(versionId);
