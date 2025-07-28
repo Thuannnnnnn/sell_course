@@ -7,13 +7,19 @@ import {
   Param,
   Put,
   HttpException,
+  UseGuards,
 } from '@nestjs/common';
 import { ContentService } from './contents.service';
+import { Roles } from '../Auth/roles.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
+import { UserRole } from '../Auth/user.enum';
 
 @Controller('api')
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
-
+  @Roles(UserRole.CONTENTMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('admin/content/create_content')
   async createContent(
     @Body()
@@ -34,6 +40,7 @@ export class ContentController {
     }
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('admin/content/view_contentOfLesson/:lessonId')
   async getContentsByLesson(@Param('lessonId') lessonId: string) {
     return await this.contentService.getContentsByLesson(lessonId);
@@ -44,10 +51,15 @@ export class ContentController {
     return await this.contentService.getContentsByContentIds(contentIds);
   }
 
+  @Roles(UserRole.CONTENTMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('admin/content/delete_content/:contentId')
   async deleteContent(@Param('contentId') contentId: string) {
     return await this.contentService.deleteContent(contentId);
   }
+
+  @Roles(UserRole.CONTENTMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('admin/content/update_content/:contentId')
   async updateContent(
     @Param('contentId') contentId: string,
@@ -64,6 +76,8 @@ export class ContentController {
     }
   }
 
+  @Roles(UserRole.CONTENTMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('admin/content/update_order')
   async updateContentOrder(
     @Body() body: { contents: { contentId: string; order: number }[] },

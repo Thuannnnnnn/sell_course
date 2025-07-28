@@ -1,7 +1,3 @@
-/*
-https://docs.nestjs.com/controllers#controllers
-*/
-
 import {
   Controller,
   Get,
@@ -10,15 +6,21 @@ import {
   Delete,
   Param,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { Enrollment } from './entities/enrollment.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('enrollment')
 export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
 
   @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth('Authorization')
   async createEnrollment(
     @Body()
     body: {
@@ -36,6 +38,8 @@ export class EnrollmentController {
     );
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth('Authorization')
   @Post('check')
   async checkEnrollment(
     @Body()
@@ -51,6 +55,8 @@ export class EnrollmentController {
     return { enrolled: isEnrolled };
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth('Authorization')
   @Get(':enrollmentId')
   async getEnrollmentById(
     @Param('enrollmentId') enrollmentId: number,
@@ -63,6 +69,8 @@ export class EnrollmentController {
     return this.enrollmentService.getAllEnrollments();
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth('Authorization')
   @Put(':enrollmentId')
   async updateEnrollmentStatus(
     @Param('enrollmentId') enrollmentId: number,
@@ -74,6 +82,8 @@ export class EnrollmentController {
     );
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth('Authorization')
   @Delete(':enrollmentId')
   async deleteEnrollment(
     @Param('enrollmentId') enrollmentId: number,

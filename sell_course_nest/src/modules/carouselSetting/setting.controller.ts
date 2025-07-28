@@ -8,17 +8,26 @@ import {
   Body,
   UploadedFile,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { CarouselSettingService } from './setting.service';
 import { CreateCarouselSettingDto } from './dto/create-setting.dto';
 import { UpdateCarouselSettingDto } from './dto/update-setting.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RolesGuard } from '../Auth/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole } from '../Auth/user.enum';
+import { Roles } from '../Auth/roles.decorator';
 @Controller('carousel-settings')
 export class CarouselSettingController {
   constructor(
     private readonly carouselSettingService: CarouselSettingService,
   ) {}
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.MARKETINGMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   create(
@@ -27,7 +36,8 @@ export class CarouselSettingController {
   ) {
     return this.carouselSettingService.create(createCarouselSettingDto, file);
   }
-  /** Lấy tất cả CarouselSetting */
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get()
   findAll() {
     return this.carouselSettingService.findAll();
@@ -39,7 +49,9 @@ export class CarouselSettingController {
     return this.carouselSettingService.findOne(id);
   }
 
-  /** Cập nhật một CarouselSetting */
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.MARKETINGMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   update(
@@ -54,12 +66,17 @@ export class CarouselSettingController {
     );
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.MARKETINGMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('by-version/:versionId')
   async getByVersionId(@Param('versionId') versionId: string) {
     return this.carouselSettingService.getByVersionId(versionId);
   }
 
-  /** Xóa một CarouselSetting */
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.MARKETINGMANAGER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.carouselSettingService.remove(id);

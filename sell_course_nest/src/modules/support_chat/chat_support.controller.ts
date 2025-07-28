@@ -7,19 +7,26 @@ import {
   Get,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat_support.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
 
 @Controller('chats')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
-
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()
   async createChatSession(@Body() body: { userId: string }) {
     const session = await this.chatService.createChatSession(body.userId);
     return { sessionId: session.id };
   }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('active-sessions')
   @ApiOperation({
     summary: 'Lấy tất cả phiên hỗ trợ đang hoạt động',
@@ -41,6 +48,9 @@ export class ChatController {
       );
     }
   }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('history')
   @ApiOperation({
     summary: 'Lấy lịch sử chat của người dùng',
@@ -69,7 +79,8 @@ export class ChatController {
     }
   }
 
-  // Thêm endpoint mới lấy lịch sử chat theo sessionId
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('history/:sessionId')
   @ApiOperation({
     summary: 'Lấy lịch sử chat của một session',
@@ -101,13 +112,16 @@ export class ChatController {
     }
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':sessionId')
   async deleteChatSession(@Param('sessionId') sessionId: string) {
     await this.chatService.deleteChatSession(sessionId);
     return { success: true };
   }
 
-  // Xóa tất cả session cũ của user (trừ sessionId mới nhất)
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('user/:userId/except/:sessionId')
   async deleteOldSessionsOfUser(
     @Param('userId') userId: string,
@@ -117,6 +131,8 @@ export class ChatController {
     return { success: true };
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('deactivate/:sessionId')
   async deactivateSession(@Param('sessionId') sessionId: string) {
     await this.chatService.deactivateSession(sessionId);

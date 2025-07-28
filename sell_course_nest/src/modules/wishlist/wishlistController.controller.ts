@@ -7,6 +7,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -17,6 +18,8 @@ import {
 import { WishlistService } from './wishlistService.service';
 import { WishlistRequestDto } from './dto/WishlistRequestDto.dto';
 import { WishlistResponseDto } from './dto/WishlistResponseDto.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
 
 @ApiTags('Wishlist')
 @Controller('api/wishlist')
@@ -24,6 +27,7 @@ export class WishlistController {
   constructor(private readonly wishlistService: WishlistService) {}
 
   @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('add')
   @ApiOperation({ summary: 'Thêm khóa học vào wishlist' })
   @ApiResponse({
@@ -38,6 +42,7 @@ export class WishlistController {
   }
 
   @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get(':userId')
   @ApiOperation({ summary: 'Lấy danh sách wishlist của người dùng' })
   @ApiResponse({
@@ -52,6 +57,7 @@ export class WishlistController {
   }
 
   @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':courseId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Xóa khóa học khỏi wishlist' })

@@ -1,5 +1,18 @@
-import { Controller, Get, Query, Post, UseGuards, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Query,
+  Post,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 import { DashboardOverviewDto } from './dto/dashboard-overview.dto';
@@ -8,6 +21,10 @@ import { UserStatisticsDto } from './dto/user-statistics.dto';
 import { CoursePerformanceDto } from './dto/course-performance.dto';
 import { EnrollmentTrendsDto } from './dto/enrollment-trends.dto';
 import { RecentActivitiesDto } from './dto/recent-activities.dto';
+import { Roles } from '../Auth/roles.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
+import { UserRole } from '../Auth/user.enum';
 
 @ApiTags('Dashboard')
 @Controller('api/dashboard')
@@ -16,10 +33,14 @@ import { RecentActivitiesDto } from './dto/recent-activities.dto';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('overview')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get dashboard overview',
-    description: 'Retrieve comprehensive dashboard overview including KPIs, growth metrics, and key statistics'
+    description:
+      'Retrieve comprehensive dashboard overview including KPIs, growth metrics, and key statistics',
   })
   @ApiResponse({
     status: 200,
@@ -38,10 +59,14 @@ export class DashboardController {
     return this.dashboardService.getDashboardOverview();
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('revenue-analytics')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get revenue analytics',
-    description: 'Retrieve detailed revenue analytics including monthly trends, growth rates, and financial KPIs'
+    description:
+      'Retrieve detailed revenue analytics including monthly trends, growth rates, and financial KPIs',
   })
   @ApiResponse({
     status: 200,
@@ -59,11 +84,14 @@ export class DashboardController {
   async getRevenueAnalytics(): Promise<RevenueAnalyticsDto> {
     return this.dashboardService.getRevenueAnalytics();
   }
-
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('user-statistics')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get user statistics',
-    description: 'Retrieve user statistics including growth trends, role distribution, and user activity metrics'
+    description:
+      'Retrieve user statistics including growth trends, role distribution, and user activity metrics',
   })
   @ApiResponse({
     status: 200,
@@ -81,11 +109,14 @@ export class DashboardController {
   async getUserStatistics(): Promise<UserStatisticsDto> {
     return this.dashboardService.getUserStatistics();
   }
-
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('course-performance')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get course performance analytics',
-    description: 'Retrieve course performance metrics including top courses, category analysis, and completion rates'
+    description:
+      'Retrieve course performance metrics including top courses, category analysis, and completion rates',
   })
   @ApiResponse({
     status: 200,
@@ -103,11 +134,14 @@ export class DashboardController {
   async getCoursePerformance(): Promise<CoursePerformanceDto> {
     return this.dashboardService.getCoursePerformance();
   }
-
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('enrollment-trends')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get enrollment trends',
-    description: 'Retrieve enrollment trends including monthly patterns, status distribution, and conversion rates'
+    description:
+      'Retrieve enrollment trends including monthly patterns, status distribution, and conversion rates',
   })
   @ApiResponse({
     status: 200,
@@ -125,11 +159,14 @@ export class DashboardController {
   async getEnrollmentTrends(): Promise<EnrollmentTrendsDto> {
     return this.dashboardService.getEnrollmentTrends();
   }
-
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('recent-activities')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get recent activities',
-    description: 'Retrieve recent system activities including enrollments, user registrations, and course creations'
+    description:
+      'Retrieve recent system activities including enrollments, user registrations, and course creations',
   })
   @ApiQuery({
     name: 'limit',
@@ -162,14 +199,17 @@ export class DashboardController {
     if (limit < 1 || limit > 100) {
       limit = 50;
     }
-    
+
     return this.dashboardService.getRecentActivities(limit);
   }
-
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('clear-cache')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Clear dashboard cache',
-    description: 'Clear all cached dashboard data to force fresh data retrieval'
+    description:
+      'Clear all cached dashboard data to force fresh data retrieval',
   })
   @ApiResponse({
     status: 200,
@@ -179,15 +219,15 @@ export class DashboardController {
       properties: {
         message: {
           type: 'string',
-          example: 'Dashboard cache cleared successfully'
+          example: 'Dashboard cache cleared successfully',
         },
         timestamp: {
           type: 'string',
           format: 'date-time',
-          example: '2024-01-15T10:30:00Z'
-        }
-      }
-    }
+          example: '2024-01-15T10:30:00Z',
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 401,
@@ -204,11 +244,13 @@ export class DashboardController {
       timestamp: new Date().toISOString(),
     };
   }
-
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('health')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Dashboard health check',
-    description: 'Check dashboard service health and connectivity'
+    description: 'Check dashboard service health and connectivity',
   })
   @ApiResponse({
     status: 200,
@@ -218,38 +260,38 @@ export class DashboardController {
       properties: {
         status: {
           type: 'string',
-          example: 'healthy'
+          example: 'healthy',
         },
         service: {
           type: 'string',
-          example: 'dashboard'
+          example: 'dashboard',
         },
         timestamp: {
           type: 'string',
           format: 'date-time',
-          example: '2024-01-15T10:30:00Z'
+          example: '2024-01-15T10:30:00Z',
         },
         uptime: {
           type: 'string',
-          example: '5 hours 30 minutes'
-        }
-      }
-    }
+          example: '5 hours 30 minutes',
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 500,
     description: 'Dashboard service is unhealthy',
   })
-  async healthCheck(): Promise<{ 
-    status: string; 
-    service: string; 
-    timestamp: string; 
+  async healthCheck(): Promise<{
+    status: string;
+    service: string;
+    timestamp: string;
     uptime: string;
   }> {
     const uptime = process.uptime();
     const hours = Math.floor(uptime / 3600);
     const minutes = Math.floor((uptime % 3600) / 60);
-    
+
     return {
       status: 'healthy',
       service: 'dashboard',

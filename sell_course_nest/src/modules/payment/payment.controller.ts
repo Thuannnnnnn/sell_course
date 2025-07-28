@@ -1,9 +1,21 @@
-import { Controller, Post, Body, Res, Req, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  Req,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
 import PayOS from '@payos/node';
 import { PaymentStatus } from './entities/payment.entity';
 import { CourseService } from '../course/course.service';
 import { EnrollmentService } from '../enrollment/enrollment.service';
+import { RolesGuard } from '../Auth/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('payment')
 export class PaymentController {
@@ -20,7 +32,8 @@ export class PaymentController {
       process.env.PAYOS_CHECKSUM_KEY,
     );
   }
-
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('create-payment-link')
   async createPaymentLink(@Body() body: any, @Res() res: Response) {
     const orderCode = Number(String(Date.now()).slice(-6));
@@ -74,7 +87,8 @@ export class PaymentController {
       return res.status(500).json({ message: 'Something went wrong' });
     }
   }
-
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('webhook')
   async handleWebhook(@Req() req: Request, @Res() res: Response) {
     try {
@@ -105,7 +119,8 @@ export class PaymentController {
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
-
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('check-payment-status')
   async checkPaymentStatus(
     @Query('orderCode') orderCode: number,

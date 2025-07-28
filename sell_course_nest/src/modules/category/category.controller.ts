@@ -22,7 +22,7 @@ export class CategoryController {
 
   @Post('admin/categories/create_category')
   @ApiBearerAuth('Authorization')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.CONTENTMANAGER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({
@@ -41,7 +41,7 @@ export class CategoryController {
   }
 
   @Get('admin/categories/view_category')
-  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Get all categories (tree structure)' })
   @ApiResponse({
@@ -57,6 +57,8 @@ export class CategoryController {
     return await this.categoryService.getAllCategories();
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('categories/getById/:id')
   @ApiOperation({ summary: 'Get a category by ID' })
   @ApiResponse({
@@ -76,7 +78,7 @@ export class CategoryController {
 
   @Put('admin/categories/update_category/:id')
   @ApiBearerAuth('Authorization')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.CONTENTMANAGER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Update a category by ID' })
   @ApiResponse({
