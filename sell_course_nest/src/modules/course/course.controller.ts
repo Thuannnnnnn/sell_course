@@ -282,8 +282,11 @@ export class CourseController {
   async reviewCourseStatus(
     @Param('courseId') courseId: string,
     @Body() reviewStatusDto: ReviewCourseStatusDto,
+    // TODO: Extract from JWT token in real implementation
   ): Promise<{ message: string }> {
-    return this.courseService.reviewCourseStatus(courseId, reviewStatusDto);
+    // This should be extracted from JWT token in real implementation
+    const reviewerId = 'temp-reviewer-id'; // Replace with actual JWT extraction
+    return this.courseService.reviewCourseStatus(courseId, reviewStatusDto, reviewerId);
   }
 
   @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)

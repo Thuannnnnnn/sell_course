@@ -42,6 +42,7 @@ import {
     ExamReviewData
 } from '../../../api/courses/course';
 import { ContentModal, ExamModal } from '../../../../components/course/ContentModal';
+import { RejectionDialog } from '../../../../components/course/RejectionDialog';
 import { CourseStatus } from '../../../../app/types/course.d';
 
 export default function CourseReviewPage() {
@@ -53,6 +54,7 @@ export default function CourseReviewPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
     const handleBack = () => {
         router.back();
@@ -74,19 +76,25 @@ export default function CourseReviewPage() {
         }
     };
 
-    const handleReject = async () => {
+    const handleReject = () => {
+        setRejectDialogOpen(true);
+    };
+
+    const handleRejectConfirm = async (reason: string) => {
         if (!session?.accessToken || !courseId) return;
-        const reason = prompt('Please provide a reason for rejection:');
-        if (!reason) return;
+        
         try {
             setActionLoading(true);
+            console.log('📝 Rejecting course with reason:', reason);
+            
             await reviewCourseStatus(courseId, CourseStatus.REJECTED, session.accessToken, reason);
             const updatedData = await fetchCourseWithDetailsNew(session.accessToken, courseId);
             setCourseData(updatedData);
-            toast.success("Course rejected successfully!");
+            
+            toast.success("✅ Course has been rejected and notification sent to instructor!");
         } catch (error) {
-            console.error('Error rejecting course:', error);
-            toast.error("Failed to reject course. Please try again.");
+            console.error('❌ Error rejecting course:', error);
+            toast.error("❌ Failed to reject course. Please try again.");
         } finally {
             setActionLoading(false);
         }
@@ -272,6 +280,15 @@ export default function CourseReviewPage() {
                     <StatisticsCard lessons={lessons} exam={exam} />
                 </TabsContent>
             </Tabs>
+
+            {/* Rejection Dialog */}
+            <RejectionDialog
+                open={rejectDialogOpen}
+                onOpenChange={setRejectDialogOpen}
+                onConfirm={handleRejectConfirm}
+                courseName={courseData?.course?.title || 'Unknown Course'}
+                loading={actionLoading}
+            />
         </div>
     );
 }

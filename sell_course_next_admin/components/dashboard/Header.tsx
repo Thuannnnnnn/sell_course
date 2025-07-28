@@ -1,8 +1,9 @@
 "use client";
 import React from "react";
-import { Menu, Search, Bell, ChevronDown } from "lucide-react";
+import { Menu, Search, ChevronDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import LogoutButton from "../ui/LogoutButton";
+import { NotificationBell } from "../notifications/NotificationBell";
 interface HeaderProps {
   onMenuClick: () => void;
 }
@@ -33,10 +34,12 @@ export function Header({ onMenuClick }: HeaderProps) {
             </div>
           </div>
           <div className="flex items-center">
-            <button className="p-2 relative">
-              <Bell className="h-5 w-5 text-foreground" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full"></span>
-            </button>
+            {session?.user && (
+              <NotificationBell 
+                userId={session.user.id || ''} 
+                userRole={session.user.role || 'USER'} 
+              />
+            )}
             <div className="ml-3 relative">
               <div className="flex items-center">
                 <button className="flex items-center max-w-xs rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">

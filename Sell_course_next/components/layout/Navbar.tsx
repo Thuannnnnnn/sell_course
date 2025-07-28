@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { settingsApi } from "../../lib/api/settingsApi";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 
 export function Navbar() {
@@ -172,7 +173,12 @@ export function Navbar() {
         </NavigationMenu>
         <div className="flex items-center gap-2">
           {isLoggedIn ? (
-            <div className="relative">
+            <>
+              <NotificationBell 
+                userId={session?.user?.id || ''} 
+                userRole={session?.user?.role || 'USER'} 
+              />
+              <div className="relative">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -217,6 +223,7 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            </>
           ) : (
             <>
               <Link href="/auth/login">

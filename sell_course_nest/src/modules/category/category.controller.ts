@@ -11,10 +11,7 @@ import { CategoryService } from './category.service';
 import { CategoryRequestDto } from './dto/categoryRequestData.dto';
 import { CategoryResponseDto } from './dto/categoryResponseData.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { UserRole } from '../Auth/user.enum';
-import { Roles } from '../Auth/roles.decorator';
 import { UseGuards } from '@nestjs/common';
-import { RolesGuard } from '../Auth/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
 @Controller('api/')
 export class CategoryController {
@@ -104,8 +101,7 @@ export class CategoryController {
   @Delete('admin/categories/delete_category/:id')
   @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiBearerAuth('Authorization')
-  @Roles(UserRole.CONTENTMANAGER)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiResponse({
     status: 200,
     description: 'The category has been successfully deleted.',
