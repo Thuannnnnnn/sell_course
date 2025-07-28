@@ -237,7 +237,7 @@ export function useNotifications(userId: string) {
         setNotifications((prev) =>
           prev.map((notif) =>
             notif.id === notificationId
-              ? { ...notif, status: "ARCHIVED" as any }
+              ? { ...notif, status: NotificationStatus.ARCHIVED }
               : notif
           )
         );

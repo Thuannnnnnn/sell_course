@@ -6,15 +6,21 @@ import { UserNotification } from './entities/user-notification.entity';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { NotificationResponseDto, NotificationListResponseDto } from './dto/notification-response.dto';
+import { 
+  NotificationResponseDto, 
+  NotificationListResponseDto, 
+  NotificationDetailResponseDto,
+  RealTimeNotificationData 
+} from './dto/notification-response.dto';
 import { MarkNotificationDto, MarkAllNotificationsDto } from './dto/mark-notification.dto';
 import { NotificationStatus } from './enums/notification-type.enum';
 import { NotificationRuleService, NotificationContext } from './notification-rule.service';
 import { NotificationEvent } from './constants/notification.constants';
+import { INotificationGateway } from './interfaces/notification-gateway.interface';
 
 @Injectable()
 export class NotificationService {
-  private notificationGateway: any; // Will be injected later to avoid circular dependency
+  private notificationGateway: INotificationGateway | null = null;
 
   constructor(
     @InjectRepository(Notification)
@@ -29,7 +35,7 @@ export class NotificationService {
   ) {}
 
   // Method để set gateway (sẽ được gọi từ module)
-  setNotificationGateway(gateway: any) {
+  setNotificationGateway(gateway: INotificationGateway): void {
     this.notificationGateway = gateway;
   }
 
@@ -71,7 +77,7 @@ export class NotificationService {
 
     // Gửi thông báo real-time qua WebSocket
     if (this.notificationGateway) {
-      const notificationData = {
+      const notificationData: RealTimeNotificationData = {
         id: savedNotification.id,
         title: savedNotification.title,
         message: savedNotification.message,
@@ -211,7 +217,7 @@ export class NotificationService {
     await this.userNotificationRepository.remove(userNotification);
   }
 
-  async getNotificationDetail(userId: string, notificationId: string): Promise<any> {
+  async getNotificationDetail(userId: string, notificationId: string): Promise<NotificationDetailResponseDto> {
     console.log(`📖 Getting notification detail: ${notificationId} for user: ${userId}`);
 
     const userNotification = await this.userNotificationRepository.findOne({

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotificationService } from '../notification.service';
+import { NotificationRuleService } from '../notification-rule.service';
 import { Notification } from '../entities/notification.entity';
 import { UserNotification } from '../entities/user-notification.entity';
 import { User } from '../../user/entities/user.entity';
@@ -169,7 +170,7 @@ describe('NotificationService', () => {
       const result = await service.getUserNotifications(userId, 1, 20);
 
       expect(mockUserNotificationRepository.findAndCount).toHaveBeenCalledWith({
-        where: { user: { userId } },
+        where: { user: { user_id: userId } },
         relations: [
           'notification',
           'notification.course',
@@ -211,7 +212,7 @@ describe('NotificationService', () => {
 
       expect(mockUserNotificationRepository.findOne).toHaveBeenCalledWith({
         where: {
-          user: { userId },
+          user: { user_id: userId },
           notification: { id: notificationId },
         },
       });
@@ -247,7 +248,7 @@ describe('NotificationService', () => {
 
       expect(mockUserNotificationRepository.count).toHaveBeenCalledWith({
         where: {
-          user: { userId },
+          user: { user_id: userId },
           status: NotificationStatus.UNREAD,
         },
       });

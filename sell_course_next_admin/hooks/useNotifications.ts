@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { io, Socket } from 'socket.io-client';
-import { NotificationResponseDto, NotificationListResponseDto, NotificationDetailResponseDto } from '@/types/notification';
+import { NotificationResponseDto, NotificationListResponseDto, NotificationDetailResponseDto, NotificationStatus } from '@/types/notification';
 
 interface UseNotificationsReturn {
   notifications: NotificationResponseDto[];
@@ -63,7 +63,7 @@ export function useNotifications(userId: string, userRole: string): UseNotificat
       setNotifications(prev =>
         prev.map(notif =>
           notif.id === data.notificationId
-            ? { ...notif, status: 'READ' as any, readAt: new Date() }
+            ? { ...notif, status: NotificationStatus.READ, readAt: new Date() }
             : notif
         )
       );
@@ -140,7 +140,7 @@ export function useNotifications(userId: string, userRole: string): UseNotificat
       setNotifications(prev =>
         prev.map(notif =>
           notif.id === notificationId
-            ? { ...notif, status: 'read' as any, readAt: new Date() }
+            ? { ...notif, status: NotificationStatus.READ, readAt: new Date() }
             : notif
         )
       );
@@ -175,7 +175,7 @@ export function useNotifications(userId: string, userRole: string): UseNotificat
       setNotifications(prev =>
         prev.map(notif => ({
           ...notif,
-          status: 'read' as any,
+          status: NotificationStatus.READ,
           readAt: notif.readAt || new Date(),
         }))
       );
@@ -259,7 +259,7 @@ export function useNotifications(userId: string, userRole: string): UseNotificat
       setNotifications(prev =>
         prev.map(notif =>
           notif.id === notificationId
-            ? { ...notif, status: 'ARCHIVED' as any }
+            ? { ...notif, status: NotificationStatus.ARCHIVED }
             : notif
         )
       );
