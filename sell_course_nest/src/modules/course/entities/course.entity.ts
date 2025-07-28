@@ -1,8 +1,6 @@
 import { Category } from '../../category/entities/category.entity';
-import { Interaction } from '../../Interaction/entities/Interaction.entity';
 import { Notify } from '../../notify/entities/notify.entity';
 import { User } from '../../user/entities/user.entity';
-import { Waitlist } from '../../waitlist/entities/waitlist.entity';
 import { Promotion } from '../../promotion/entities/promotion.entity';
 import { Certificate } from '../../certificate/entities/certificate.entity';
 import {
@@ -75,14 +73,8 @@ export class Course {
   @Column({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Interaction, (interaction) => interaction.course)
-  interactions: Interaction[];
-
   @OneToMany(() => Notify, (notify) => notify.course)
   notifies: Notify[];
-
-  @OneToMany(() => Waitlist, (waitlist) => waitlist.user)
-  waitlists: Waitlist[];
 
   @OneToMany(() => Promotion, (promotion) => promotion.course)
   promotions: Promotion[];

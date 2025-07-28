@@ -10,8 +10,7 @@ import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { Category } from '../category/entities/category.entity';
 import { ResultExam } from '../result_exam/entities/result_exam.entity';
 import { ProgressTracking } from '../progress_tracking/entities/progress.entity';
-import { Forum } from '../forum/entities/forum.entity';
-import { QaStudy } from '../qa_study/entities/qa.entity';
+
 import { DashboardOverviewDto } from './dto/dashboard-overview.dto';
 import {
   RevenueAnalyticsDto,
@@ -52,10 +51,6 @@ export class DashboardService {
     private readonly resultExamRepository: Repository<ResultExam>,
     @InjectRepository(ProgressTracking)
     private readonly progressRepository: Repository<ProgressTracking>,
-    @InjectRepository(Forum)
-    private readonly forumRepository: Repository<Forum>,
-    @InjectRepository(QaStudy)
-    private readonly qaStudyRepository: Repository<QaStudy>,
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
   ) {}
@@ -71,7 +66,6 @@ export class DashboardService {
     const now = new Date();
     const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastLastMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
     // Get total counts
     const totalUsers = await this.userRepository.count();

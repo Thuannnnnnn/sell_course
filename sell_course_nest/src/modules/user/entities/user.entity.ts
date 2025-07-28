@@ -12,18 +12,12 @@ import {
 import { Permission } from '../../permission/entities/permission.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UserNotify } from '../../User_Notify/entities/User_Notify.entity';
-import { Forum } from '../../forum/entities/forum.entity';
-import { Waitlist } from '../../waitlist/entities/waitlist.entity';
-import { ReactionTopic } from '../../forum/entities/reaction_topic.entity';
-import { Discussion } from '../../forum/entities/discussion.entity';
-import { ReactionQa } from '../../qa_study/entities/reaction_qa.entity';
-import { Certificate } from '../../certificate/entities/certificate.entity';
-import { Interaction } from '../../Interaction/entities/Interaction.entity';
-import { UserAnswer } from '../../userAnswer/entities/userAnswer.entity';
+
 import { ChatSession } from '../../support_chat/entities/chat-session.entity';
 import { Message } from '../../support_chat/entities/message.entity';
 import { Enrollment } from '../../enrollment/entities/enrollment.entity';
 import { LearningPlan } from 'src/modules/learning-plan/learning-plan.entity';
+import { Certificate } from 'src/modules/certificate/entities/certificate.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -49,12 +43,6 @@ export class User {
 
   @Column({ type: 'bigint', nullable: true })
   phoneNumber: number;
-
-  @OneToMany(() => Interaction, (interaction) => interaction.user)
-  interactions: Interaction[];
-
-  @OneToMany(() => UserAnswer, (userAnswer) => userAnswer.user)
-  userAnswer: UserAnswer[];
 
   @ManyToMany(() => Permission, { cascade: true })
   @JoinTable({
@@ -84,16 +72,6 @@ export class User {
   }
   @OneToMany(() => UserNotify, (userNotify) => userNotify.user)
   userNotifies: UserNotify[];
-  @OneToMany(() => Forum, (forum) => forum.user)
-  forums: Forum[];
-  @OneToMany(() => Waitlist, (waitlist) => waitlist.user)
-  waitlists: Waitlist[];
-  @OneToMany(() => ReactionTopic, (reactionTopic) => reactionTopic.user)
-  reactionTopics: ReactionTopic[];
-  @OneToMany(() => Discussion, (discussion) => discussion.user)
-  discussions: Discussion[];
-  @OneToMany(() => ReactionQa, (reactionQa) => reactionQa.user)
-  reactionQa: ReactionTopic[];
   @OneToMany(() => Certificate, (certificate) => certificate.user)
   certificates: Certificate[];
   @OneToMany(() => ChatSession, (chatSession) => chatSession.user)
