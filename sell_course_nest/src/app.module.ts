@@ -7,7 +7,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './modules/user/entities/user.entity';
-import { Cart } from './modules/cart/entities/cart.entity';
 import { Certificate } from './modules/certificate/entities/certificate.entity';
 import { Contents } from './modules/contents/entities/contents.entity';
 import { Course } from './modules/course/entities/course.entity';
@@ -24,7 +23,6 @@ import { Video } from './modules/video/entities/video.entity';
 import { Wishlist } from './modules/wishlist/entities/wishlist.entity';
 import { UserModule } from './modules/user/user.module';
 import { authModule } from './modules/Auth/auth.module';
-import { CartModule } from './modules/cart/cart.module';
 import { CertificateModule } from './modules/certificate/certificate.module';
 import { ContentModule } from './modules/contents/contents.module';
 import { CourseModule } from './modules/course/course.module';
@@ -140,7 +138,6 @@ import { ScheduleModule } from '@nestjs/schedule';
         Notification,
         UserNotification,
         User,
-        Cart,
         Certificate,
         Contents,
         Course,
@@ -184,7 +181,6 @@ import { ScheduleModule } from '@nestjs/schedule';
     UserNotifyModule,
     UserModule,
     authModule,
-    CartModule,
     CertificateModule,
     ContentModule,
     CourseModule,
