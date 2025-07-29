@@ -8,7 +8,6 @@ import { Navbar } from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/toast";
 import ChatSupportWindow from "../components/course/ChatSupportWindow";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,7 +25,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [activeVersionId, setActiveVersionId] = useState<string | undefined>(
+  const [, setActiveVersionId] = useState<string | undefined>(
     undefined
   );
 
