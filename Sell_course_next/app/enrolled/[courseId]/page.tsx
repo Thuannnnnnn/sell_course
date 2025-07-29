@@ -60,7 +60,6 @@ import {
 } from "@/app/types/learningPath/learningPath";
 import UpdatedLearningPathDisplay from "@/components/course/LearningPathDisplay";
 import { toast } from "sonner";
-import { AuthGuard } from "@/components/AuthGuard";
 
 interface LearningPathState {
   data: LearningPathData | null;
@@ -184,7 +183,7 @@ export default function CourseLearnPage() {
     };
 
     checkExistingPlan();
-  }, [userId, courseId,token]);
+  }, [userId, courseId, token]);
   // Load all progress data for the course
   const loadProgressData = async () => {
     if (!userId || !token || lessons.length === 0) return;
@@ -1007,141 +1006,136 @@ export default function CourseLearnPage() {
   };
 
   return (
-    <AuthGuard fallback={<div>Checking access...</div>}>
-      <div className="flex flex-col min-h-screen bg-background">
-        {/* Header */}
-        <header className="top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="mx-auto flex h-16 items-center justify-between">
-            <div className="flex items-center gap-4 pl-0">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-lg font-semibold">{courseData.title}</h1>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Instructor: {courseData.instructor}</span>
-                </div>
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <header className="top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-16 items-center justify-between">
+          <div className="flex items-center gap-4 pl-0">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-lg font-semibold">{courseData.title}</h1>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Instructor: {courseData.instructor}</span>
               </div>
-            </div>
-            <div className="flex items-center gap-6 pr-5">
-              <div className="flex flex-col gap-1 w-48">
-                <div className="flex justify-between text-sm">
-                  <span>Course Progress</span>
-                  <span>{Math.round(courseProgress)}%</span>
-                </div>
-                <Progress value={courseProgress} className="h-2" />
-              </div>
-              {/* Action Buttons */}
-              <div className="mb-6 space-y-3">{renderLearningPathButton()}</div>
             </div>
           </div>
-        </header>
+          <div className="flex items-center gap-6 pr-5">
+            <div className="flex flex-col gap-1 w-48">
+              <div className="flex justify-between text-sm">
+                <span>Course Progress</span>
+                <span>{Math.round(courseProgress)}%</span>
+              </div>
+              <Progress value={courseProgress} className="h-2" />
+            </div>
+            {/* Action Buttons */}
+            <div className="mb-6 space-y-3">{renderLearningPathButton()}</div>
+          </div>
+        </div>
+      </header>
 
-        <div className="flex flex-1">
-          {/* Sidebar */}
-          <aside className="sticky top-20 h-[calc(100vh-5rem)] z-30">
-            <CourseSidebar
-              lessons={lessons} // Pass lessons with progress data
-              currentLesson={currentLesson}
-              currentContent={currentContent}
-              onLessonSelect={handleLessonSelect}
-              onContentSelect={handleContentSelect}
-              getContentDuration={getContentDuration}
-              isContentCompleted={isContentCompleted}
-            />
-          </aside>
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <aside className="sticky top-20 h-[calc(100vh-5rem)] z-30">
+          <CourseSidebar
+            lessons={lessons} // Pass lessons with progress data
+            currentLesson={currentLesson}
+            currentContent={currentContent}
+            onLessonSelect={handleLessonSelect}
+            onContentSelect={handleContentSelect}
+            getContentDuration={getContentDuration}
+            isContentCompleted={isContentCompleted}
+          />
+        </aside>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="container py-10 ml-6">
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full"
-              >
-                <TabsList className="mb-4">
-                  <TabsTrigger
-                    value="content"
-                    className="flex items-center gap-2"
-                  >
-                    <BookOpen className="h-4 w-4" />
-                    Lesson Content
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="exams"
-                    className="flex items-center gap-2"
-                  >
-                    <GraduationCap className="h-4 w-4" />
-                    Exams & Assessments
-                  </TabsTrigger>
-                </TabsList>
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="container py-10 ml-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsList className="mb-4">
+                <TabsTrigger
+                  value="content"
+                  className="flex items-center gap-2"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Lesson Content
+                </TabsTrigger>
+                <TabsTrigger value="exams" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Exams & Assessments
+                </TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="content" className="mt-0">
-                  {currentContent && (
-                    <LessonContent
-                      lesson={currentContent}
-                      content={selectedContent}
-                      onContentComplete={handleContentComplete}
-                      courseId={courseId}
-                      isContentCompleted={
-                        selectedContent ? selectedContent.isCompleted : false
-                      }
-                      token={token || ""}
+              <TabsContent value="content" className="mt-0">
+                {currentContent && (
+                  <LessonContent
+                    lesson={currentContent}
+                    content={selectedContent}
+                    onContentComplete={handleContentComplete}
+                    courseId={courseId}
+                    isContentCompleted={
+                      selectedContent ? selectedContent.isCompleted : false
+                    }
+                    token={token || ""}
+                  />
+                )}
+              </TabsContent>
+
+              <TabsContent value="exams" className="mt-0">
+                <div className="grid md:grid-cols-1 gap-6">
+                  {!examData ? (
+                    <div className="text-center py-8">
+                      <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">
+                        No Exam Available
+                      </h3>
+                      <p className="text-muted-foreground">
+                        This course does not have an exam configured yet.
+                      </p>
+                    </div>
+                  ) : (
+                    <ExamComponent
+                      exam={examData}
+                      userExamResults={userExamResults}
+                      onExamComplete={handleExamComplete}
                     />
                   )}
-                </TabsContent>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+      <div className="fixed bottom-6 right-6 z-50"></div>
+      {/* Learning Path Modal */}
+      <LearningPathModal
+        isOpen={showLearningPathModal}
+        onClose={() => setShowLearningPathModal(false)}
+        onSubmit={handleLearningPathSubmit}
+        courseId={courseId}
+        userId={session?.user?.id || ""}
+        userName={session?.user?.name || "Nguyễn Văn A"}
+        token={token || ""}
+      />
 
-                <TabsContent value="exams" className="mt-0">
-                  <div className="grid md:grid-cols-1 gap-6">
-                    {!examData ? (
-                      <div className="text-center py-8">
-                        <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">
-                          No Exam Available
-                        </h3>
-                        <p className="text-muted-foreground">
-                          This course does not have an exam configured yet.
-                        </p>
-                      </div>
-                    ) : (
-                      <ExamComponent
-                        exam={examData}
-                        userExamResults={userExamResults}
-                        onExamComplete={handleExamComplete}
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </main>
-        </div>
-        <div className="fixed bottom-6 right-6 z-50"></div>
-        {/* Learning Path Modal */}
-        <LearningPathModal
-          isOpen={showLearningPathModal}
-          onClose={() => setShowLearningPathModal(false)}
-          onSubmit={handleLearningPathSubmit}
-          courseId={courseId}
-          userId={session?.user?.id || ""}
-          userName={session?.user?.name || "Nguyễn Văn A"}
+      {/* Learning Path Display */}
+      {learningPathState.data && (
+        <UpdatedLearningPathDisplay
+          isOpen={showLearningPathDisplay}
+          onClose={() => setShowLearningPathDisplay(false)}
+          onSave={handleSaveLearningPath}
+          data={learningPathState.data}
+          isEditable={true}
+          planId={learningPathState.planId}
+          isExisting={learningPathState.isExisting}
           token={token || ""}
         />
-
-        {/* Learning Path Display */}
-        {learningPathState.data && (
-          <UpdatedLearningPathDisplay
-            isOpen={showLearningPathDisplay}
-            onClose={() => setShowLearningPathDisplay(false)}
-            onSave={handleSaveLearningPath}
-            data={learningPathState.data}
-            isEditable={true}
-            planId={learningPathState.planId}
-            isExisting={learningPathState.isExisting}
-            token={token || ""}
-          />
-        )}
-      </div>
-    </AuthGuard>
+      )}
+    </div>
   );
 }

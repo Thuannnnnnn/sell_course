@@ -3,7 +3,6 @@
 import React from "react";
 import { useParams } from "next/navigation";
 import QuizPage from "../../../../../components/pages/QuizPage";
-import { AuthGuard } from "@/components/AuthGuard";
 
 export default function QuizPageRoute() {
   const params = useParams();
@@ -13,7 +12,6 @@ export default function QuizPageRoute() {
   const quizId = params.quizId as string;
 
   return (
-    <AuthGuard fallback={<div>Checking access...</div>}>
       <div className="container mx-auto py-8">
         <QuizPage
           courseId={courseId}
@@ -26,6 +24,5 @@ export default function QuizPageRoute() {
           }}
         />
       </div>
-    </AuthGuard>
   );
 }

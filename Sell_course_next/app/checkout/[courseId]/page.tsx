@@ -17,7 +17,7 @@ import { DiscountCode } from "@/components/checkout/DiscountCode";
 import { CourseList } from "@/components/checkout/CourseList";
 import logo from "@/public/logo.png";
 import PageHead from "@/components/layout/Head";
-import { AuthGuard } from "@/components/AuthGuard";
+
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -130,7 +130,6 @@ export default function CheckoutPage() {
   }
 
   return (
-    <AuthGuard fallback={<div>Checking access...</div>}>
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <PageHead
           title="Checkout - Course Master"
@@ -229,6 +228,5 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-    </AuthGuard>
   );
 }
