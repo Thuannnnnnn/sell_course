@@ -10,8 +10,25 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
 import { NotificationService } from './notification.service';
+import { RealTimeNotificationData } from './dto/notification-response.dto';
+import { NotificationStatus } from './enums/notification-type.enum';
+import { INotificationGateway } from './interfaces/notification-gateway.interface';
+import { 
+  ServerToClientEvents, 
+  ClientToServerEvents, 
+  InterServerEvents, 
+  SocketData 
+} from './interfaces/websocket-events.interface';
+import { 
+  JoinRoomDto, 
+  GetNotificationsDto, 
+  MarkNotificationReadDto 
+} from './dto/websocket.dto';
 
-interface AuthenticatedSocket extends Socket {
+type TypedServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+
+interface AuthenticatedSocket extends TypedSocket {
   userId?: string;
   userRole?: string;
 }
@@ -23,9 +40,9 @@ interface AuthenticatedSocket extends Socket {
   },
   namespace: '/notifications',
 })
-export class NotificationGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationGateway implements OnGatewayConnection, OnGatewayDisconnect, INotificationGateway {
   @WebSocketServer()
-  server: Server;
+  server: TypedServer;
 
   private connectedUsers = new Map<string, AuthenticatedSocket>();
 
@@ -72,18 +89,18 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
 
   @SubscribeMessage('join_room')
   handleJoinRoom(
-    @MessageBody() data: { room: string },
+    @MessageBody() data: JoinRoomDto,
     @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
+  ): void {
     client.join(data.room);
     client.emit('joined_room', { room: data.room });
   }
 
   @SubscribeMessage('get_notifications')
   async handleGetNotifications(
-    @MessageBody() data: { page?: number; limit?: number },
+    @MessageBody() data: GetNotificationsDto,
     @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
+  ): Promise<void> {
     if (!client.userId) return;
 
     try {
@@ -100,15 +117,15 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
 
   @SubscribeMessage('mark_notification_read')
   async handleMarkNotificationRead(
-    @MessageBody() data: { notificationId: string },
+    @MessageBody() data: MarkNotificationReadDto,
     @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
+  ): Promise<void> {
     if (!client.userId) return;
 
     try {
       await this.notificationService.markNotification(client.userId, {
         notificationId: data.notificationId,
-        status: 'READ' as any,
+        status: NotificationStatus.READ,
       });
       
       const unreadCount = await this.notificationService.getUnreadCount(client.userId);
@@ -120,7 +137,7 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
   }
 
   // Method để gửi thông báo real-time cho user cụ thể
-  async sendNotificationToUser(userId: string, notification: any) {
+  async sendNotificationToUser(userId: string, notification: RealTimeNotificationData): Promise<void> {
     this.server.to(`user_${userId}`).emit('new_notification', notification);
     
     // Cập nhật unread count
@@ -129,12 +146,12 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
   }
 
   // Method để gửi thông báo cho tất cả users có role cụ thể
-  async sendNotificationToRole(role: string, notification: any) {
+  async sendNotificationToRole(role: string, notification: RealTimeNotificationData): Promise<void> {
     this.server.to(`role_${role}`).emit('new_notification', notification);
   }
 
   // Method để gửi thông báo cho nhiều users
-  async sendNotificationToUsers(userIds: string[], notification: any) {
+  async sendNotificationToUsers(userIds: string[], notification: RealTimeNotificationData): Promise<void> {
     for (const userId of userIds) {
       await this.sendNotificationToUser(userId, notification);
     }

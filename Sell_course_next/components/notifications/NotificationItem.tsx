@@ -25,6 +25,10 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete, onClick
         return <AlertCircle className="h-4 w-4" />;
       case NotificationType.COURSE_REVIEW_REQUESTED:
         return <User className="h-4 w-4" />;
+      case NotificationType.ENROLLMENT_CREATED:
+        return <User className="h-4 w-4" />;
+      case NotificationType.SUPPORT_REQUEST_CREATED:
+        return <AlertCircle className="h-4 w-4" />;
       default:
         return <AlertCircle className="h-4 w-4" />;
     }
@@ -57,6 +61,10 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete, onClick
         return 'Course Rejected';
       case NotificationType.COURSE_REVIEW_REQUESTED:
         return 'Review Required';
+      case NotificationType.ENROLLMENT_CREATED:
+        return 'New Enrollment';
+      case NotificationType.SUPPORT_REQUEST_CREATED:
+        return 'Support Request';
       default:
         return 'Notification';
     }

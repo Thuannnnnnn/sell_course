@@ -4,6 +4,10 @@ export enum NotificationType {
   COURSE_PUBLISHED = 'COURSE_PUBLISHED',
   COURSE_REJECTED = 'COURSE_REJECTED',
   COURSE_REVIEW_REQUESTED = 'COURSE_REVIEW_REQUESTED',
+  // Enrollment notifications
+  ENROLLMENT_CREATED = 'ENROLLMENT_CREATED',
+  // Support notifications
+  SUPPORT_REQUEST_CREATED = 'SUPPORT_REQUEST_CREATED',
 }
 
 export enum NotificationPriority {
@@ -15,7 +19,7 @@ export enum NotificationPriority {
 
 export enum NotificationStatus {
   UNREAD = 'UNREAD',
-  READ = 'read',
+  READ = 'READ',
   ARCHIVED = 'ARCHIVED',
 }
 
