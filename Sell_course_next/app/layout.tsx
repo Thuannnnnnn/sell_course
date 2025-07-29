@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/toast";
 import ChatSupportWindow from "../components/course/ChatSupportWindow";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

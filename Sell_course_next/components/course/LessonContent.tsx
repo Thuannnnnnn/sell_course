@@ -20,6 +20,7 @@ interface ContentWithProgress extends ContentResponse {
   isCompleted: boolean;
 }
 import AIChatWindow from "@/components/course/AIChatWindow";
+import { preloadChatSuggestions } from "@/app/api/ChatBot/chatbot";
 
 interface LessonContentProps {
   lesson: {
@@ -75,6 +76,10 @@ export function LessonContent({
             );
             setContentData({ type: "video", data: videoData });
             setUrlBot(videoData.urlScript);
+            // Preload chat suggestions when video content is loaded
+            if (videoData.urlScript) {
+              preloadChatSuggestions(videoData.urlScript);
+            }
             break;
 
           case "doc":
@@ -84,6 +89,10 @@ export function LessonContent({
             );
             setContentData({ type: "doc", data: docData });
             setUrlBot(docData.url);
+            // Preload chat suggestions when document content is loaded
+            if (docData.url) {
+              preloadChatSuggestions(docData.url);
+            }
             break;
 
           case "quiz":
