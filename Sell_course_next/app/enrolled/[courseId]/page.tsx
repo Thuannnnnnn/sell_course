@@ -19,7 +19,7 @@ import {
   GraduationCap,
   Loader2,
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { courseApi, contentApi } from "../../api/courses/lessons/lessons";
 import { examApi } from "../../api/courses/exam/exam";
 import { resultExamApi } from "../../api/courses/exam/result-exam";
@@ -98,6 +98,8 @@ interface UserExamResults {
 
 export default function CourseLearnPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const courseId = params.courseId as string;
   const { data: session } = useSession();
   const userId = session?.user?.id;
@@ -705,6 +707,40 @@ export default function CourseLearnPage() {
           setCurrentLesson(initialLessons[0]);
           if (lessonsWithContent.length > 0) {
             setCurrentContent(lessonsWithContent[0]);
+            
+            // Check if there's a contentId in URL params to restore user's position
+            const urlContentId = searchParams.get('contentId');
+            if (urlContentId) {
+              // Find the content in any lesson
+              const targetContent = initialLessons
+                .flatMap((l) => l.contents)
+                .find((c) => c.contentId === urlContentId);
+              
+              if (targetContent) {
+                // Find the lesson containing this content
+                const targetLesson = initialLessons.find((l) =>
+                  l.contents.some((c) => c.contentId === urlContentId)
+                );
+                
+                if (targetLesson) {
+                  setCurrentLesson(targetLesson);
+                  setSelectedContent(targetContent);
+                  
+                  // Also set the corresponding LessonWithContent
+                  const targetLessonWithContent = lessonsWithContent.find(
+                    (l) => l.id === targetLesson.lessonId
+                  );
+                  if (targetLessonWithContent) {
+                    setCurrentContent(targetLessonWithContent);
+                  }
+                }
+              }
+            } else {
+              // No contentId in URL, select first content
+              if (initialLessons[0].contents.length > 0) {
+                setSelectedContent(initialLessons[0].contents[0]);
+              }
+            }
           }
         }
 
@@ -804,9 +840,15 @@ export default function CourseLearnPage() {
         setCurrentContent(lessonWithContent);
       }
 
-      // Set first content as selected if available
+      // Set first content as selected if available and update URL
       if (lessonWithProgress.contents.length > 0) {
-        setSelectedContent(lessonWithProgress.contents[0]);
+        const firstContent = lessonWithProgress.contents[0];
+        setSelectedContent(firstContent);
+        
+        // Update URL params to preserve user's position
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.set('contentId', firstContent.contentId);
+        router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
       }
     }
   };
@@ -820,6 +862,11 @@ export default function CourseLearnPage() {
 
     if (contentWithProgress) {
       setSelectedContent(contentWithProgress);
+
+      // Update URL params to preserve user's position
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.set('contentId', content.contentId);
+      router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
 
       // Find the lesson containing this content
       const lesson = lessons.find((l: LessonWithProgress) =>

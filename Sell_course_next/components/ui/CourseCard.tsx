@@ -13,7 +13,7 @@ interface CourseProps {
 }
 
 export function CourseCard({ course, showWishlistButton = true }: CourseProps) {
-  const { id, title, instructor, price, rating, image, description, level, duration } = course;
+  const { id, title, instructor, price, image, description, level, duration } = course;
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState(image);
 
@@ -30,10 +30,10 @@ export function CourseCard({ course, showWishlistButton = true }: CourseProps) {
   };
   
   return (
-    <Card className="overflow-hidden flex flex-col justify-between hover:shadow-lg transition-shadow duration-300 relative">
+    <Card className="overflow-hidden flex flex-col justify-between hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out relative group cursor-pointer">
       {/* Wishlist Button - positioned absolutely in top right */}
       {showWishlistButton && (
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <WishlistButton courseId={id} size="sm" />
         </div>
       )}
@@ -43,7 +43,7 @@ export function CourseCard({ course, showWishlistButton = true }: CourseProps) {
           <Image
             src={imageSrc}
             alt={title}
-            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+            className="object-cover w-full h-full transition-transform duration-500 ease-in-out group-hover:scale-110"
             width={318}
             height={180}
             onError={handleImageError}
@@ -89,33 +89,12 @@ export function CourseCard({ course, showWishlistButton = true }: CourseProps) {
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <svg
-              key={i}
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill={i < Math.floor(rating) ? "gold" : "none"}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-yellow-500"
-            >
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-          ))}
-          <span className="text-sm ml-1">
-            {rating > 0 ? rating.toFixed(1) : "New"}
-          </span>
-        </div>
+        {/* Rating section removed */}
       </CardContent>
 
       <CardFooter className="pt-0">
         <Button 
-          className="w-full" 
+          className="w-full transform transition-all duration-300 ease-in-out hover:bg-primary/90 hover:scale-105 active:scale-95" 
           onClick={handleEnrollClick}
           variant="default"
         >

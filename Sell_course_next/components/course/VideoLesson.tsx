@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactPlayer from "react-player";
 import { AspectRatio } from "../ui/aspect-ratio";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { ScrollArea } from "../ui/scroll-area";
 import {
   Loader2,
@@ -13,8 +12,9 @@ import {
   VolumeX,
   SkipBack,
   SkipForward,
-  Settings,
+  Newspaper,
   Maximize,
+  Minimize,
   CheckCircle,
 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -59,15 +59,6 @@ interface TranscriptItem {
   words: WordItem[];
 }
 
-// Định nghĩa interface cho mỗi mục trong discussion (nếu bạn muốn giữ phần này)
-interface DiscussionItem {
-  id: string;
-  user: string;
-  message: string;
-  timestamp: string;
-  replies?: DiscussionItem[];
-}
-
 // Updated props interface to match your structure
 interface VideoLessonProps extends VideoState {
   onComplete?: (contentId: string) => void;
@@ -91,16 +82,15 @@ export function VideoLesson({
   const [seeking, setSeeking] = useState(false);
   const [playerRef, setPlayerRef] = useState<ReactPlayer | null>(null);
   const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
 
   // State cho transcript
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const [currentTranscriptIndex, setCurrentTranscriptIndex] =
     useState<number>(-1);
   const [showTranscript, setShowTranscript] = useState(false);
-
-  // State cho discussions
-  const [discussions] = useState<DiscussionItem[]>([]);
 
   // State cho auto-complete
   const [autoCompleted, setAutoCompleted] = useState(false);
@@ -272,6 +262,18 @@ export function VideoLesson({
     videoData?.videoId,
   ]);
 
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   // Auto-scroll to active transcript when currentTranscriptIndex changes
   useEffect(() => {
     if (
@@ -290,6 +292,24 @@ export function VideoLesson({
   const handlePlayPause = () => {
     setPlaying(!playing);
     setShowControls(true);
+  };
+
+  const handleFullscreen = () => {
+    if (!videoContainerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      videoContainerRef.current.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch((err) => {
+        console.error("Error attempting to enable fullscreen:", err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      }).catch((err) => {
+        console.error("Error attempting to exit fullscreen:", err);
+      });
+    }
   };
 
   const handleVolumeChange = (value: number[]) => {
@@ -454,6 +474,7 @@ export function VideoLesson({
         >
           <AspectRatio ratio={16 / 9}>
             <div
+              ref={videoContainerRef}
               className="relative w-full h-full bg-black rounded-lg overflow-hidden group"
               onMouseMove={handleMouseMove}
               onMouseLeave={() => playing && setShowControls(false)}
@@ -587,15 +608,21 @@ export function VideoLesson({
                             className="text-white hover:bg-white/20"
                             onClick={() => setShowTranscript(!showTranscript)}
                           >
-                            <Settings className="w-4 h-4" />
+                            <Newspaper className="w-4 h-4" />
                           </Button>
 
                           <Button
                             variant="ghost"
                             size="sm"
                             className="text-white hover:bg-white/20"
+                            onClick={handleFullscreen}
+                            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                           >
-                            <Maximize className="w-4 h-4" />
+                            {isFullscreen ? (
+                              <Minimize className="w-4 h-4" />
+                            ) : (
+                              <Maximize className="w-4 h-4" />
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -617,113 +644,69 @@ export function VideoLesson({
         {/* Transcript Sidebar */}
         {showTranscript && (
           <div className="w-1/3">
-            <Tabs defaultValue="transcript" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="transcript">Transcript</TabsTrigger>
-                <TabsTrigger value="discussion">Discussion</TabsTrigger>
-              </TabsList>
+            <div className="w-full">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold">Transcript</h3>
+              </div>
 
-              <TabsContent value="transcript" className="mt-4">
-                <ScrollArea
-                  className="h-[400px] w-full rounded-md border p-4"
-                  ref={transcriptContainerRef}
-                >
-                  {transcript.length > 0 ? (
-                    <div className="space-y-2">
-                      {transcript.map((item, index) => (
-                        <div
-                          key={index}
-                          ref={
-                            index === currentTranscriptIndex
-                              ? activeTranscriptRef
-                              : null
-                          }
-                          className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                            index === currentTranscriptIndex
-                              ? "bg-primary/20 border-primary border"
-                              : "bg-muted/50 hover:bg-muted"
-                          }`}
-                          onClick={() => handleTranscriptClick(item)}
-                        >
-                          <div className="flex items-start gap-2">
-                            <span className="text-xs text-muted-foreground font-mono min-w-[60px]">
-                              {item.words.length > 0
-                                ? formatTime(parseFloat(item.words[0].start))
-                                : "00:00"}
+              <ScrollArea
+                className="h-[400px] w-full rounded-md border p-4"
+                ref={transcriptContainerRef}
+              >
+                {transcript.length > 0 ? (
+                  <div className="space-y-2">
+                    {transcript.map((item, index) => (
+                      <div
+                        key={index}
+                        ref={
+                          index === currentTranscriptIndex
+                            ? activeTranscriptRef
+                            : null
+                        }
+                        className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                          index === currentTranscriptIndex
+                            ? "bg-primary/20 border-primary border"
+                            : "bg-muted/50 hover:bg-muted"
+                        }`}
+                        onClick={() => handleTranscriptClick(item)}
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs text-muted-foreground font-mono min-w-[60px]">
+                            {item.words.length > 0
+                              ? formatTime(parseFloat(item.words[0].start))
+                              : "00:00"}
+                          </span>
+                          <p className="text-sm leading-relaxed flex-1">
+                            {item.transcript}
+                          </p>
+                        </div>
+
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Duration: ~10s | Words: {item.words.length}
+                          {item.words.length > 0 && (
+                            <span className="ml-2">
+                              End:{" "}
+                              {formatTime(
+                                parseFloat(
+                                  item.words[item.words.length - 1].end
+                                )
+                              )}
                             </span>
-                            <p className="text-sm leading-relaxed flex-1">
-                              {item.transcript}
-                            </p>
-                          </div>
-
-                          <div className="mt-2 text-xs text-muted-foreground">
-                            Duration: ~10s | Words: {item.words.length}
-                            {item.words.length > 0 && (
-                              <span className="ml-2">
-                                End:{" "}
-                                {formatTime(
-                                  parseFloat(
-                                    item.words[item.words.length - 1].end
-                                  )
-                                )}
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground">
-                      <div className="text-center">
-                        <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-                        <p>No transcript available</p>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <div className="text-center">
+                      <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+                      <p>No transcript available</p>
                     </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent value="discussion" className="mt-4">
-                <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-                  {discussions.length > 0 ? (
-                    <div className="space-y-4">
-                      {discussions.map((discussion) => (
-                        <div
-                          key={discussion.id}
-                          className="p-3 rounded-lg bg-muted/50"
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                              <span className="text-xs font-semibold">
-                                {discussion.user.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-semibold">
-                                  {discussion.user}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {discussion.timestamp}
-                                </span>
-                              </div>
-                              <p className="text-sm">{discussion.message}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground">
-                      <div className="text-center">
-                        <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-                        <p>No discussions yet</p>
-                      </div>
-                    </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
           </div>
         )}
       </div>
