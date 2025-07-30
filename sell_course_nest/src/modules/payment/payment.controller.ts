@@ -13,6 +13,9 @@ import PayOS from '@payos/node';
 import { PaymentStatus } from './entities/payment.entity';
 import { CourseService } from '../course/course.service';
 import { EnrollmentService } from '../enrollment/enrollment.service';
+import { PromotionService } from '../promotion/promotion.service';
+import { CreatePaymentLinkDto } from './dto/create-payment-link.dto';
+import { ValidatePromotionDto } from './dto/validate-promotion.dto';
 import { RolesGuard } from '../Auth/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -25,6 +28,7 @@ export class PaymentController {
   constructor(
     private readonly enrollmentService: EnrollmentService,
     private readonly courseService: CourseService,
+    private readonly promotionService: PromotionService,
   ) {
     this.payOS = new PayOS(
       process.env.PAYOS_CLIENT_ID,
@@ -32,10 +36,10 @@ export class PaymentController {
       process.env.PAYOS_CHECKSUM_KEY,
     );
   }
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @ApiBearerAuth('Authorization')
+  // @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('create-payment-link')
-  async createPaymentLink(@Body() body: any, @Res() res: Response) {
+  async createPaymentLink(@Body() body: CreatePaymentLinkDto, @Res() res: Response) {
     const orderCode = Number(String(Date.now()).slice(-6));
     const course = await this.courseService.getCourseById(body.courseId);
     console.log(course.price);
@@ -64,6 +68,51 @@ export class PaymentController {
         .status(500)
         .json({ message: 'PayOS configuration is missing' });
     }
+
+    // Calculate final price with promotion discount
+    let finalPrice = course.price;
+    let promotionDetails = null;
+    
+    if (body.promotionCode) {
+      try {
+        const promotion = await this.promotionService.validatePromotionCode(body.promotionCode, body.courseId);
+        
+        // Check if promotion is active
+        if (promotion.status === 'active') {
+          // Check if promotion applies to this course (if course-specific)
+          if (!promotion.course || promotion.course.courseId === body.courseId) {
+            const discountAmount = (course.price * promotion.discount) / 100;
+            finalPrice = course.price - discountAmount;
+            promotionDetails = {
+              id: promotion.id,
+              name: promotion.name,
+              discount: promotion.discount,
+              discountAmount: discountAmount,
+              originalPrice: course.price,
+              finalPrice: finalPrice
+            };
+          } else {
+            return res.status(400).json({ 
+              message: 'Promotion is not applicable to this course' 
+            });
+          }
+        } else if (promotion.status === 'expired') {
+          return res.status(400).json({ 
+            message: 'Promotion has expired' 
+          });
+        } else if (promotion.status === 'pending') {
+          return res.status(400).json({ 
+            message: 'Promotion is not yet active' 
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching promotion:', error);
+        return res.status(404).json({ 
+          message: 'Promotion not found' 
+        });
+      }
+    }
+
     await this.enrollmentService.createEnrollment(
       orderCode,
       body.userId,
@@ -72,8 +121,8 @@ export class PaymentController {
     );
     const paymentData = {
       orderCode,
-      amount: course.price,
-      description: `Payment for order ${orderCode}`,
+      amount: finalPrice,
+      description: `Order ${orderCode}`,
       courseId: body.courseId,
       returnUrl: `${process.env.URL_FE}/payment/success`,
       cancelUrl: `${process.env.URL_FE}/payment/failure`,
@@ -81,14 +130,21 @@ export class PaymentController {
     try {
       const paymentLinkResponse =
         await this.payOS.createPaymentLink(paymentData);
-      return res.json(paymentLinkResponse);
+      
+      // Include promotion details in response
+      const response = {
+        ...paymentLinkResponse,
+        promotionDetails: promotionDetails
+      };
+      
+      return res.json(response);
     } catch (error) {
       console.error('Error creating payment link:', error);
       return res.status(500).json({ message: 'Something went wrong' });
     }
   }
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @ApiBearerAuth('Authorization')
+  // @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('webhook')
   async handleWebhook(@Req() req: Request, @Res() res: Response) {
     try {
@@ -136,6 +192,66 @@ export class PaymentController {
     } catch (error) {
       console.error('Error checking payment status:', error);
       return res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('validate-promotion')
+  async validatePromotion(@Body() body: ValidatePromotionDto, @Res() res: Response) {
+    try {
+      if (!body.promotionId) {
+        return res.status(400).json({ message: 'Promotion ID is required' });
+      }
+
+      const promotion = await this.promotionService.findById(body.promotionId);
+      const course = await this.courseService.getCourseById(body.courseId);
+
+      if (!course) {
+        return res.status(404).json({ message: 'Course not found' });
+      }
+
+      // Check if promotion is active
+      if (promotion.status === 'active') {
+        // Check if promotion applies to this course (if course-specific)
+        if (!promotion.course || promotion.course.courseId === body.courseId) {
+          const discountAmount = (course.price * promotion.discount) / 100;
+          const finalPrice = course.price - discountAmount;
+          
+          return res.json({
+            valid: true,
+            promotion: {
+              id: promotion.id,
+              name: promotion.name,
+              discount: promotion.discount,
+              discountAmount: discountAmount,
+              originalPrice: course.price,
+              finalPrice: finalPrice
+            }
+          });
+        } else {
+          return res.status(400).json({ 
+            valid: false,
+            message: 'Promotion is not applicable to this course' 
+          });
+        }
+      } else if (promotion.status === 'expired') {
+        return res.status(400).json({ 
+          valid: false,
+          message: 'Promotion has expired' 
+        });
+      } else if (promotion.status === 'pending') {
+        return res.status(400).json({ 
+          valid: false,
+          message: 'Promotion is not yet active' 
+        });
+      }
+    } catch (error) {
+      console.error('Error validating promotion:', error);
+      return res.status(404).json({ 
+        valid: false,
+        message: 'Promotion not found' 
+      });
     }
   }
 }
