@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateUserOtpDto } from './dto/create-user-otp.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -27,6 +28,8 @@ export class authService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(RefreshToken)
+    private refreshTokenRepository: Repository<RefreshToken>,
     private readonly mailService: MailService,
     @Inject('OTP_SERVICE')
     private readonly otpService: OtpService,
@@ -294,9 +297,11 @@ export class authService {
       role: user.role,
     };
     const token = this.jwtService.sign(payload);
+    const refreshToken = await this.generateRefreshToken(user.user_id);
 
     const loginResponse: LoginResponseDto = {
       token,
+      refreshToken,
       user_id: user.user_id,
       email: user.email,
       avatarImg: user.avatarImg,
@@ -339,9 +344,11 @@ export class authService {
         role: existingUser.role,
       };
       const token = this.jwtService.sign(payload);
+      const refreshToken = await this.generateRefreshToken(existingUser.user_id);
 
       return {
         token,
+        refreshToken,
         user_id: existingUser.user_id,
         email: existingUser.email,
         avatarImg: existingUser.avatarImg,
@@ -372,9 +379,11 @@ export class authService {
       role: savedUser.role,
     };
     const token = this.jwtService.sign(payload);
+    const refreshToken = await this.generateRefreshToken(savedUser.user_id);
 
     return {
       token,
+      refreshToken,
       user_id: savedUser.user_id,
       email: savedUser.email,
       avatarImg: savedUser.avatarImg,
@@ -686,5 +695,93 @@ export class authService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  // Helper method to generate refresh token
+  private async generateRefreshToken(userId: string): Promise<string> {
+    const refreshToken = uuidv4();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
+    await this.refreshTokenRepository.save({
+      token: refreshToken,
+      user_id: userId,
+      expires_at: expiresAt,
+      is_revoked: false,
+    });
+
+    return refreshToken;
+  }
+
+  // Helper method to generate access token
+  private generateAccessToken(user: User): string {
+    const payload = {
+      user_id: user.user_id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    };
+    return this.jwtService.sign(payload);
+  }
+
+  // Refresh token endpoint
+  async refreshToken(refreshToken: string): Promise<LoginResponseDto> {
+    // Find refresh token in database
+    const storedToken = await this.refreshTokenRepository.findOne({
+      where: { token: refreshToken, is_revoked: false },
+    });
+
+    if (!storedToken) {
+      throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+    }
+
+    // Check if refresh token is expired
+    if (new Date() > storedToken.expires_at) {
+      // Mark token as revoked
+      await this.refreshTokenRepository.update(
+        { id: storedToken.id },
+        { is_revoked: true }
+      );
+      throw new HttpException('Refresh token expired', HttpStatus.UNAUTHORIZED);
+    }
+
+    // Get user by ID
+    const user = await this.userRepository.findOne({
+      where: { user_id: storedToken.user_id },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Check if user is banned
+    if (user.isBan) {
+      throw new HttpException('Account is banned', HttpStatus.FORBIDDEN);
+    }
+
+    // Generate new tokens
+    const newAccessToken = this.generateAccessToken(user);
+    const newRefreshToken = await this.generateRefreshToken(user.user_id);
+
+    // Revoke old refresh token
+    await this.refreshTokenRepository.update(
+      { id: storedToken.id },
+      { is_revoked: true }
+    );
+
+    const loginResponse: LoginResponseDto = {
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
+      user_id: user.user_id,
+      email: user.email,
+      username: user.username,
+      avatarImg: user.avatarImg,
+      gender: user.gender,
+      birthDay: user.birthDay,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+    };
+
+    return loginResponse;
   }
 }

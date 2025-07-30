@@ -32,7 +32,6 @@ import {
 } from "@/app/types/learningPath/learningPath";
 import { ContentResponse } from "@/app/types/Course/Lesson/Lessons";
 import { fetchContentsByIds } from "@/app/api/courses/lessons/content";
-import { ToastContext, ToastProvider } from "../ui/toast";
 
 interface LearningPathDisplayProps {
   isOpen: boolean;
@@ -214,7 +213,7 @@ export default function UpdatedLearningPathDisplay({
       setHasUnsavedChanges(false);
       setIsEditing(false);
       setValidationErrors({});
-    } catch (error) {
+    } catch {
       toast.error("Có lỗi xảy ra khi lưu. Vui lòng thử lại.", {
         style: {
           background: "#ef4444",

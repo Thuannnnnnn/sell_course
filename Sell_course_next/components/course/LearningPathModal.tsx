@@ -68,7 +68,6 @@ export default function LearningPathModal({
   courseId,
   userId,
   userName,
-  token,
 }: LearningPathModalProps) {
   const [questions, setQuestions] = useState<RawQuestion[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
