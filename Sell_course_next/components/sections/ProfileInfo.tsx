@@ -27,6 +27,10 @@ import { ScheduleItem } from "@/app/types/learningPath/learningPath";
 import improvedLearningPathApi from "@/app/api/learningPath/learningPathAPI";
 import UserScheduleDisplay from "../UserScheduleDisplay";
 import GoogleCalendarIntegration from "../GoogleCalendarIntegration";
+import enrollmentApi from "@/app/api/enrollment/enrollment";
+import wishlistApi from "@/app/api/wishlist/wishlist-api";
+import { Enrollment } from "@/app/types/enrollment/enrollment";
+import { WishlistResponseDto } from "@/app/types/profile/wishlist/wishlist";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -46,12 +50,19 @@ export function ProfileInfo() {
     null
   );
   const [calendarMode, setCalendarMode] = useState<"single" | "week">("single");
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistResponseDto[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
   const coverImage =
     "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?q=80&w=1470&auto=format&fit=crop";
 
-  const coursesEnrolled = 0;
-  const wishlistedCourses = 0;
-  const completedCourses = 0;
+  // Calculate stats from loaded data
+  const coursesEnrolled = enrollments.length;
+  const wishlistedCourses = wishlistItems.length;
+  const completedCourses = enrollments.filter(enrollment => 
+    enrollment.status.toLowerCase() === 'completed' || 
+    enrollment.status.toLowerCase() === 'paid'
+  ).length;
   const token = session?.accessToken;
   useEffect(() => {
     // Simulate loading data
@@ -80,7 +91,34 @@ export function ProfileInfo() {
     };
 
     loadScheduleData();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, token]);
+
+  // Load enrollment and wishlist data
+  useEffect(() => {
+    const loadUserStats = async () => {
+      if (!session?.user?.id || !token) return;
+      
+      setStatsLoading(true);
+      try {
+        // Load enrollments
+        const enrollmentData = await enrollmentApi.getUserEnrollments(token);
+        setEnrollments(enrollmentData);
+
+        // Load wishlist
+        const wishlistData = await wishlistApi.getWishlist(session.user.id, token);
+        setWishlistItems(wishlistData);
+      } catch (err) {
+        console.error("Failed to load user stats:", err);
+        // Set default empty arrays on error
+        setEnrollments([]);
+        setWishlistItems([]);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    loadUserStats();
+  }, [session?.user?.id, token]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -337,12 +375,21 @@ export function ProfileInfo() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-blue-700 group-hover:scale-110 transition-transform duration-300">
-                      {coursesEnrolled}
-                    </p>
-                    <p className="text-sm font-medium text-blue-600 mt-1">
-                      Courses Enrolled
-                    </p>
+                    {statsLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+                        <span className="text-blue-600">Loading...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-3xl font-bold text-blue-700 group-hover:scale-110 transition-transform duration-300">
+                          {coursesEnrolled}
+                        </p>
+                        <p className="text-sm font-medium text-blue-600 mt-1">
+                          Courses Enrolled
+                        </p>
+                      </>
+                    )}
                   </div>
                   <div className="p-3 bg-blue-500 rounded-full group-hover:rotate-12 transition-transform duration-300">
                     <BookOpen className="h-6 w-6 text-white" />
@@ -355,12 +402,21 @@ export function ProfileInfo() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-green-700 group-hover:scale-110 transition-transform duration-300">
-                      {completedCourses}
-                    </p>
-                    <p className="text-sm font-medium text-green-600 mt-1">
-                      Completed
-                    </p>
+                    {statsLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-6 w-6 text-green-500 animate-spin" />
+                        <span className="text-green-600">Loading...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-3xl font-bold text-green-700 group-hover:scale-110 transition-transform duration-300">
+                          {completedCourses}
+                        </p>
+                        <p className="text-sm font-medium text-green-600 mt-1">
+                          Completed
+                        </p>
+                      </>
+                    )}
                   </div>
                   <div className="p-3 bg-green-500 rounded-full group-hover:rotate-12 transition-transform duration-300">
                     <Trophy className="h-6 w-6 text-white" />
@@ -373,12 +429,21 @@ export function ProfileInfo() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-purple-700 group-hover:scale-110 transition-transform duration-300">
-                      {wishlistedCourses}
-                    </p>
-                    <p className="text-sm font-medium text-purple-600 mt-1">
-                      Wishlisted
-                    </p>
+                    {statsLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-6 w-6 text-purple-500 animate-spin" />
+                        <span className="text-purple-600">Loading...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-3xl font-bold text-purple-700 group-hover:scale-110 transition-transform duration-300">
+                          {wishlistedCourses}
+                        </p>
+                        <p className="text-sm font-medium text-purple-600 mt-1">
+                          Wishlisted
+                        </p>
+                      </>
+                    )}
                   </div>
                   <div className="p-3 bg-purple-500 rounded-full group-hover:rotate-12 transition-transform duration-300">
                     <BookmarkIcon className="h-6 w-6 text-white" />

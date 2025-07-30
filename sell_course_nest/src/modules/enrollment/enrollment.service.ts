@@ -95,7 +95,7 @@ export class EnrollmentService {
 
   async getEnrollmentsByUser(userId: string): Promise<Enrollment[]> {
     return this.enrollmentRepository.find({
-      where: { user: { user_id: userId } },
+      where: { user: { user_id: userId }, status: 'active' },
       relations: ['course'],
     });
   }

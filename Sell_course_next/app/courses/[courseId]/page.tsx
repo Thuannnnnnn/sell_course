@@ -1,13 +1,13 @@
 "use client";
 
 import courseApi from "@/app/api/courses/courses";
-import { checkEnrollmentServer } from "@/app/api/enrollment/enrollment";
 import { Button } from "@/components/ui/button";
 import { CourseCard } from "@/components/ui/CourseCard";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { CourseResponseDTO, CourseCardData } from "@/app/types/Course/Course";
+import { useEnrollmentCheck } from "@/hooks/useEnrollmentCheck";
 import Link from "next/link";
 import {
   Play,
@@ -34,9 +34,10 @@ export default function UpdatedCourseDetailPage({
   const [relatedCourses, setRelatedCourses] = useState<CourseResponseDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
-  const [isEnrolled, setIsEnrolled] = useState(false);
-  const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Use the custom hook for enrollment check
+  const { isEnrolled, isLoading: isCheckingEnrollment } = useEnrollmentCheck(params.courseId);
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -56,27 +57,6 @@ export default function UpdatedCourseDetailPage({
     };
     fetchCourseData();
   }, [params.courseId]);
-
-  useEffect(() => {
-    const checkEnrollment = async () => {
-      if (status === "loading") return;
-      if (session?.user && params.courseId) {
-        try {
-          setIsCheckingEnrollment(true);
-          const response = await checkEnrollmentServer(params.courseId);
-          setIsEnrolled(response.enrolled);
-          console.log("Enrollment check response:", response);
-        } catch (error) {
-          console.error("Error checking enrollment:", error);
-        } finally {
-          setIsCheckingEnrollment(false);
-        }
-      } else {
-        setIsCheckingEnrollment(false);
-      }
-    };
-    checkEnrollment();
-  }, [session, status, params.courseId]);
 
   const convertToCourseCardData = (
     course: CourseResponseDTO
