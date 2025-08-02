@@ -22,6 +22,9 @@ export class ChatSession {
   @Column({ nullable: true })
   endTime: Date;
 
+  @Column({ nullable: true })
+  lastNotificationSent: Date;
+
   @OneToMany(() => Message, (message) => message.chatSession)
   messages: Message[];
 

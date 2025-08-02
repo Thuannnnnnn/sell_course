@@ -1,7 +1,3 @@
-/*
-https://docs.nestjs.com/providers#services
-*/
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -46,20 +42,24 @@ export class EnrollmentService {
       course,
       status,
     });
-    
+
     const savedEnrollment = await this.enrollmentRepository.save(enrollment);
-    
+
     // Send enrollment notification
     try {
       await this.notificationService.notifyUserEnrolled(
         course.courseId,
         userId,
-        user.username || 'Student'
+        user.username || 'Student',
       );
     } catch (error) {
-      console.error('Failed to send enrollment notification:', error);
+      // Suppressing notification errors for development
+      console.warn(
+        'Enrollment notification failed (suppressed):',
+        (error as Error).message || 'Unknown error',
+      );
     }
-    
+
     return savedEnrollment;
   }
 
@@ -69,7 +69,6 @@ export class EnrollmentService {
         user: { user_id: userId },
         course: { courseId: courseId },
       },
-      relations: ['user', 'course'],
     });
     return !!enrollment;
   }
@@ -79,11 +78,10 @@ export class EnrollmentService {
       where: { enrollmentId },
       relations: ['user', 'course'],
     });
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found');
+    }
     return enrollment;
-  }
-
-  async getAllEnrollments(): Promise<Enrollment[]> {
-    return this.enrollmentRepository.find({ relations: ['user', 'course'] });
   }
 
   async updateEnrollmentStatus(
@@ -91,11 +89,28 @@ export class EnrollmentService {
     status: string,
   ): Promise<Enrollment> {
     const enrollment = await this.getEnrollmentById(enrollmentId);
-    if (!enrollment && !status) {
-      return;
-    }
     enrollment.status = status;
     return this.enrollmentRepository.save(enrollment);
+  }
+
+  async getEnrollmentsByUser(userId: string): Promise<Enrollment[]> {
+    return this.enrollmentRepository.find({
+      where: { user: { user_id: userId }, status: 'active' },
+      relations: ['course'],
+    });
+  }
+
+  async getEnrollmentsByCourse(courseId: string): Promise<Enrollment[]> {
+    return this.enrollmentRepository.find({
+      where: { course: { courseId } },
+      relations: ['user'],
+    });
+  }
+
+  async getAllEnrollments(): Promise<Enrollment[]> {
+    return this.enrollmentRepository.find({
+      relations: ['user', 'course'],
+    });
   }
 
   async deleteEnrollment(enrollmentId: number): Promise<void> {

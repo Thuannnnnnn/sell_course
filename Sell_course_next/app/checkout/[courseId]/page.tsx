@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [orderCode, setOrderCode] = useState<string | null>(null);
   const [isPaymentCompleted, setIsPaymentCompleted] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [promotionCode, setPromotionCode] = useState<string | undefined>(undefined);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -53,13 +54,16 @@ export default function CheckoutPage() {
   }, [courseId]);
 
   const handlePayment = async () => {
-    if (course && session?.user?.email) {
+    if (course && session?.user?.email && session?.user?.id && session?.accessToken) {
       try {
         setIsLoading(true);
         const paymentResponse = await createPaymentLinkAPI({
           courseId: courseId as string,
           email: session?.user?.email,
-        });
+          userId: session?.user?.id,
+          amount: course.price,
+          promotionCode: promotionCode,
+        }, session?.accessToken);
         setQrCodeData(paymentResponse.qrCode);
         setCheckoutUrl(paymentResponse.checkoutUrl);
         setOrderCode(paymentResponse.orderCode);
@@ -89,8 +93,9 @@ export default function CheckoutPage() {
       checkPaymentStatus();
     }
   };
-  const handleApplyDiscount = (amount: number) => {
+  const handleApplyDiscount = (amount: number, promoCode?: string) => {
     setDiscount(amount);
+    setPromotionCode(promoCode);
   };
 
   if (isLoading) {

@@ -73,6 +73,7 @@ import { OTP } from './modules/otp/entities/otp.entity';
 import { OtpModule } from './modules/otp/otp.module';
 import { Enrollment } from './modules/enrollment/entities/enrollment.entity';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { RefreshToken } from './modules/Auth/entities/refresh-token.entity';
 
 /*
  * import { APP_GUARD } from '@nestjs/core';
@@ -163,6 +164,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         Promotion,
         OTP,
         Enrollment,
+        RefreshToken,
       ],
       synchronize: true,
       // dropSchema: true, // TEMPORARY: Drop and recreate schema

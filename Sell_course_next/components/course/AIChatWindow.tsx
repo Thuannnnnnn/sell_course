@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Minimize2, X, AlertTriangle } from "lucide-react";
-import { getChatSuggestions, sendChatMessage } from "@/app/api/ChatBot/chatbot";
+import { getChatSuggestionsWithCache, sendChatMessage } from "@/app/api/ChatBot/chatbot";
 
 interface Message {
   id: number;
@@ -8,9 +8,11 @@ interface Message {
   content: string;
   timestamp: Date;
 }
+
 interface AIChatWindowProps {
   urlBot: string;
 }
+
 const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -27,8 +29,9 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
   const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] =
-    useState<boolean>(true);
+    useState<boolean>(false);
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
+  const [suggestionsFetched, setSuggestionsFetched] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -38,17 +41,22 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
   const scrollToBottom = (): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+  
+  // Fetch suggestions immediately when component mounts or urlBot changes
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (suggestions.length > 0) return;
+      if (suggestionsFetched || !urlBot) return;
+      
       setIsLoadingSuggestions(true);
       setSuggestionError(null);
       try {
-        const fetchedSuggestions = await getChatSuggestions(urlBot);
+        const fetchedSuggestions = await getChatSuggestionsWithCache(urlBot);
         setSuggestions(fetchedSuggestions);
+        setSuggestionsFetched(true);
       } catch {
         setSuggestionError("Could not load suggestions. Please try again.");
       } finally {
@@ -56,10 +64,15 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
       }
     };
 
-    if (!isMinimized) {
-      fetchSuggestions();
-    }
-  }, [isMinimized, suggestions.length, urlBot]);
+    // Gọi suggestions ngay khi component load, không đợi mở chat window
+    fetchSuggestions();
+  }, [urlBot, suggestionsFetched]);
+
+  // Don't render chatbot if no valid URL is provided (e.g., for quiz/exam content)
+  if (!urlBot || urlBot.trim() === "") {
+    return null;
+  }
+  
   const handleSendMessage = async (
     message: string = inputMessage
   ): Promise<void> => {
@@ -136,17 +149,11 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
     setIsMinimized(false);
   };
 
-  //   const handleReset = (): void => {
-  //     setMessages([messages[0]]);
-  //     setShowSuggestions(true);
-  //   };
-
   if (isMinimized) {
     return (
       <div className="fixed bottom-4 right-4 z-50">
         <button
           onClick={handleMaximize}
-          // FIX: Removed 'animate-pulse' class to stop the blinking effect
           className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
         >
           <Bot className="w-6 h-6" />

@@ -10,13 +10,55 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat_support.service';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../Auth/roles.guard';
+import {
+  CreateOrGetChatSessionDto,
+  ChatSessionResponseDto,
+} from './dto/chat-session.dto';
 
 @Controller('chats')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('session')
+  @ApiOperation({
+    summary: 'Tạo hoặc lấy session chat',
+    description:
+      'Kiểm tra session hiện tại, nếu còn hạn thì load messages cũ, nếu hết hạn hoặc không có thì tạo mới',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Session và messages',
+    type: ChatSessionResponseDto,
+  })
+  @ApiBody({ type: CreateOrGetChatSessionDto })
+  async createOrGetChatSession(@Body() body: CreateOrGetChatSessionDto) {
+    try {
+      const result = await this.chatService.createOrGetChatSession(
+        body.userId,
+        body.sessionId,
+      );
+      return {
+        sessionId: result.sessionId,
+        messages: result.messages, // Messages đã được format từ Redis
+        isNewSession: result.isNewSession,
+      };
+    } catch {
+      throw new HttpException(
+        'Không thể tạo hoặc lấy session chat',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post()

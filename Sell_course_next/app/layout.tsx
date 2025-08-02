@@ -25,7 +25,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [activeVersionId, setActiveVersionId] = useState<string | undefined>(
+  const [, setActiveVersionId] = useState<string | undefined>(
     undefined
   );
 

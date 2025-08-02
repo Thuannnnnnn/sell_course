@@ -36,7 +36,7 @@ export class PromotionNotificationService {
     }
 
     // Lấy danh sách Marketing Managers
-    const marketingManagers = await this.getUsersByRole('Marketing Manager');
+    const marketingManagers = await this.getUsersByRole('MARKETINGMANAGER');
 
     // Tạo danh sách recipients
     const recipients: string[] = [];
@@ -164,7 +164,7 @@ export class PromotionNotificationService {
       return;
     }
 
-    const marketingManagers = await this.getUsersByRole('Marketing Manager');
+    const marketingManagers = await this.getUsersByRole('MARKETINGMANAGER');
     const recipients = [
       course.instructor.user_id,
       ...marketingManagers.map(user => user.user_id),
@@ -213,7 +213,7 @@ export class PromotionNotificationService {
       return;
     }
 
-    const marketingManagers = await this.getUsersByRole('Marketing Manager');
+    const marketingManagers = await this.getUsersByRole('MARKETINGMANAGER');
     const recipients = [
       course.instructor.user_id,
       ...marketingManagers.map(user => user.user_id),
@@ -260,7 +260,7 @@ export class PromotionNotificationService {
       return;
     }
 
-    const marketingManagers = await this.getUsersByRole('Marketing Manager');
+    const marketingManagers = await this.getUsersByRole('MARKETINGMANAGER');
     const recipients = [
       course.instructor.user_id,
       ...marketingManagers.map(user => user.user_id),

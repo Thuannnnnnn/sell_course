@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Check, X, BookOpen, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Check, X, BookOpen, AlertCircle, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { NotificationResponseDto } from '@/types/notification';
+import { NotificationResponseDto, NotificationStatus } from '@/types/notification';
 import { formatTimeAgo } from '@/lib/utils/timeUtils';
 
 interface NotificationItemProps {
@@ -26,6 +26,8 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete, onClick
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'COURSE_REJECTED':
         return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'SUPPORT_REQUEST_CREATED':
+        return <MessageCircle className="h-4 w-4 text-purple-500" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />;
     }
@@ -46,7 +48,7 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete, onClick
     }
   };
 
-  const isUnread = notification.status === 'UNREAD';
+  const isUnread = notification.status === NotificationStatus.UNREAD;
 
   const handleClick = (e: React.MouseEvent) => {
     // Prevent click when clicking action buttons

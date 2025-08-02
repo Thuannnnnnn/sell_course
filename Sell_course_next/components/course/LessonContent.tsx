@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "../ui/card";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
@@ -20,6 +21,7 @@ interface ContentWithProgress extends ContentResponse {
   isCompleted: boolean;
 }
 import AIChatWindow from "@/components/course/AIChatWindow";
+import { preloadChatSuggestions } from "@/app/api/ChatBot/chatbot";
 
 interface LessonContentProps {
   lesson: {
@@ -45,6 +47,7 @@ export function LessonContent({
   isContentCompleted = false,
   token,
 }: LessonContentProps) {
+  const searchParams = useSearchParams();
   const [contentData, setContentData] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +60,20 @@ export function LessonContent({
   const [urlBot, setUrlBot] = useState<string | null>(null);
   useEffect(() => {
     const fetchContent = async () => {
-      const selected = content || (lesson.contents && lesson.contents[0]);
+      // Determine which content to load
+      let selected = content;
+      
+      // If no content prop provided, try to find content by URL contentId
+      if (!selected && lesson.contents) {
+        const urlContentId = searchParams.get('contentId');
+        if (urlContentId) {
+          const foundContent = lesson.contents.find(c => c.contentId === urlContentId);
+          selected = foundContent ? { ...foundContent, isCompleted: false } : { ...lesson.contents[0], isCompleted: false };
+        } else {
+          selected = { ...lesson.contents[0], isCompleted: false };
+        }
+      }
+      
       if (!selected) {
         setContentData(null);
         return;
@@ -75,6 +91,10 @@ export function LessonContent({
             );
             setContentData({ type: "video", data: videoData });
             setUrlBot(videoData.urlScript);
+            // Preload chat suggestions when video content is loaded
+            if (videoData.urlScript) {
+              preloadChatSuggestions(videoData.urlScript);
+            }
             break;
 
           case "doc":
@@ -84,6 +104,10 @@ export function LessonContent({
             );
             setContentData({ type: "doc", data: docData });
             setUrlBot(docData.url);
+            // Preload chat suggestions when document content is loaded
+            if (docData.url) {
+              preloadChatSuggestions(docData.url);
+            }
             break;
 
           case "quiz":
@@ -119,7 +143,7 @@ export function LessonContent({
     };
 
     fetchContent();
-  }, [lesson.contents, lesson.title, content, courseId, lesson.id]);
+  }, [lesson.contents, lesson.title, content, courseId, lesson.id, token, searchParams]);
 
   // Enhanced completion handler
   const handleContentComplete = async (contentId: string) => {
@@ -187,7 +211,9 @@ export function LessonContent({
     }
 
     const currentContentId =
-      content?.contentId || lesson.contents?.[0]?.contentId;
+      content?.contentId || 
+      searchParams.get('contentId') || 
+      lesson.contents?.[0]?.contentId;
 
     switch (contentData.type) {
       case "video":
@@ -323,7 +349,9 @@ export function LessonContent({
             variant="outline"
             onClick={() => {
               const currentContentId =
-                content?.contentId || lesson.contents?.[0]?.contentId;
+                content?.contentId || 
+                searchParams.get('contentId') || 
+                lesson.contents?.[0]?.contentId;
               if (currentContentId) {
                 handleContentComplete(currentContentId);
               }

@@ -55,12 +55,12 @@ interface CreateUserModalProps {
   allRoles: string[];
 }
 const ALLOWED_CREATION_ROLES = [
-  "Admin",
-  "Instructor",
-  "Content Manager",
-  "Marketing Manager",
-  "Course Reviewer",
-  "Support"
+  "ADMIN",
+  "INSTRUCTOR",
+  "CONTENTMANAGER",
+  "MARKETINGMANAGER",
+  "COURSEREVIEWER",
+  "SUPPORT"
 ];
 
 function CreateUserModal({

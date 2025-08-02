@@ -102,7 +102,7 @@ function EditContentModal({
             const quizzes = await quizApi.getQuizzesByContentId(courseId, lessonId, content.contentId);
             setHasQuiz(quizzes && quizzes.length > 0);
           } else if (contentType === 'video') {
-            const videos = await getAllVideos();
+            const videos = await getAllVideos(session?.accessToken || '');
             const hasVideoContent = videos.some(v => 
               v.contents && v.contents.contentId === content.contentId
             );
@@ -475,7 +475,7 @@ export default function LessonContentsPage() {
         const [lessonsData, contentsData, videosData] = await Promise.all([
           fetchLessons(session.accessToken),
           fetchContentsByLesson(lessonId, session.accessToken),
-          getAllVideos(),
+          getAllVideos(session.accessToken),
         ]);
         const foundLesson = lessonsData.find(
           (l: Lesson) => l.lessonId === lessonId
@@ -553,7 +553,7 @@ export default function LessonContentsPage() {
         session.accessToken
       );
       setContents(contentsData);
-      const videosData = await getAllVideos();
+      const videosData = await getAllVideos(session.accessToken);
       setAllVideos(videosData);
     } catch {
       setError("Failed to reload contents.");

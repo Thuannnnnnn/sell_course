@@ -7,14 +7,20 @@ import {
   Param,
   Body,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { Enrollment } from './entities/enrollment.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../Auth/roles.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import {
+  CreateEnrollmentDto,
+  CheckEnrollmentDto,
+  UpdateEnrollmentStatusDto,
+} from './dto/enrollment.dto';
 
-@Controller('enrollment')
+@Controller('/api/enrollment')
 export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
 
@@ -22,13 +28,7 @@ export class EnrollmentController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('Authorization')
   async createEnrollment(
-    @Body()
-    body: {
-      enrollmentId: number;
-      userId: string;
-      courseId: string;
-      status: string;
-    },
+    @Body() body: CreateEnrollmentDto,
   ): Promise<Enrollment> {
     return this.enrollmentService.createEnrollment(
       body.enrollmentId,
@@ -42,17 +42,35 @@ export class EnrollmentController {
   @ApiBearerAuth('Authorization')
   @Post('check')
   async checkEnrollment(
-    @Body()
-    body: {
-      userId: string;
-      courseId: string;
-    },
+    @Body() body: CheckEnrollmentDto,
   ): Promise<{ enrolled: boolean }> {
     const isEnrolled = await this.enrollmentService.checkEnrollment(
       body.userId,
       body.courseId,
     );
     return { enrolled: isEnrolled };
+  }
+
+  @Get()
+  async getAllEnrollments(): Promise<Enrollment[]> {
+    return this.enrollmentService.getAllEnrollments();
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth('Authorization')
+  @Get('my-enrollments')
+  async getMyEnrollments(@Req() req: any): Promise<Enrollment[]> {
+    const userId = req.user?.user_id || req.user?.id;
+    return this.enrollmentService.getEnrollmentsByUser(userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth('Authorization')
+  @Get('user/:userId')
+  async getEnrollmentsByUser(
+    @Param('userId') userId: string,
+  ): Promise<Enrollment[]> {
+    return this.enrollmentService.getEnrollmentsByUser(userId);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -64,17 +82,12 @@ export class EnrollmentController {
     return this.enrollmentService.getEnrollmentById(enrollmentId);
   }
 
-  @Get()
-  async getAllEnrollments(): Promise<Enrollment[]> {
-    return this.enrollmentService.getAllEnrollments();
-  }
-
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('Authorization')
   @Put(':enrollmentId')
   async updateEnrollmentStatus(
     @Param('enrollmentId') enrollmentId: number,
-    @Body() body: { status: string },
+    @Body() body: UpdateEnrollmentStatusDto,
   ): Promise<Enrollment> {
     return this.enrollmentService.updateEnrollmentStatus(
       enrollmentId,

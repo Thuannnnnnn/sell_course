@@ -4,9 +4,10 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Check, X, AlertCircle } from 'lucide-react';
 import { validatePromotionCode, PromotionValidationResponse } from '../../lib/api/promotion';
+import { useSession } from 'next-auth/react';
 
 interface DiscountCodeProps {
-  onApplyDiscount: (amount: number) => void;
+  onApplyDiscount: (amount: number, promotionCode?: string) => void;
   courseId?: string;
 }
 
@@ -20,7 +21,7 @@ export function DiscountCode({
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [promotionInfo, setPromotionInfo] = useState<PromotionValidationResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
-
+  const {data: session} = useSession();
   const handleApplyCode = async () => {
     if (!code.trim()) return;
     
@@ -29,12 +30,13 @@ export function DiscountCode({
     setErrorMessage('');
     
     try {
-      const promotion = await validatePromotionCode(code.trim().toUpperCase(), courseId);
-      
-      setPromotionInfo(promotion);
-      setAppliedDiscount(promotion.discount);
-      setStatus('valid');
-      onApplyDiscount(promotion.discount);
+      if (session?.accessToken) {
+        const promotion = await validatePromotionCode(code.trim().toUpperCase(), courseId, session?.accessToken);
+        setPromotionInfo(promotion);
+        setAppliedDiscount(promotion.discount);
+        setStatus('valid');
+        onApplyDiscount(promotion.discount, code.trim().toUpperCase());
+      }
     } catch (error: unknown) {
       setStatus('invalid');
       setAppliedDiscount(0);

@@ -132,6 +132,19 @@ export class PromotionService {
     return this.addStatusToPromotion(promotion);
   }
 
+  async findById(id: string): Promise<any> {
+    const promotion = await this.promotionRepository.findOne({
+      where: { id },
+      relations: ['course'],
+    });
+
+    if (!promotion) {
+      throw new NotFoundException('Promotion not found');
+    }
+
+    return this.addStatusToPromotion(promotion);
+  }
+
   async validatePromotionCode(code: string, courseId?: string): Promise<any> {
     const promotion = await this.promotionRepository.findOne({
       where: { code },

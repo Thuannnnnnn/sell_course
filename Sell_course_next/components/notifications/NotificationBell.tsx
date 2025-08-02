@@ -20,7 +20,7 @@ interface NotificationBellProps {
   userRole: string;
 }
 
-export function NotificationBell({ userId, userRole }: NotificationBellProps) {
+export function NotificationBell({ userId }: NotificationBellProps) {
   const {
     notifications,
     unreadCount,
@@ -28,7 +28,7 @@ export function NotificationBell({ userId, userRole }: NotificationBellProps) {
     fetchNotifications,
     markAsRead,
     deleteNotification,
-  } = useNotifications(userId, userRole);
+  } = useNotifications(userId);
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<NotificationResponseDto | null>(null);

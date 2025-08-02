@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useSession } from 'next-auth/react'
 import { getUserById } from '../../app/api/profile/profile'
-import { StartChat } from '../../app/api/chat/chat'
+import { StartOrGetChatSession } from '../../app/api/chat/chat'
 import { v4 as uuidv4 } from 'uuid'
 
 const SOCKET_SERVER = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -18,6 +18,8 @@ interface Message {
 
 const SESSION_KEY = 'chatSessionId'
 const SESSION_EXPIRE_KEY = 'chatSessionExpire'
+// Thời gian tồn tại session: 2 giờ (2 * 60 * 60 * 1000 ms)
+const SESSION_DURATION = 2 * 60 * 60 * 1000
 
 const ChatWindow: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string>('')
@@ -43,34 +45,46 @@ const ChatWindow: React.FC = () => {
         if (!user?.user_id) return;
         setCurrentUserId(user.user_id);
 
-        // Kiểm tra localStorage có sessionId và còn hạn không
+        // Lấy sessionId từ localStorage
         let localSessionId = null;
-        let localExpire = null;
         if (typeof window !== 'undefined') {
           localSessionId = localStorage.getItem(SESSION_KEY);
-          localExpire = localStorage.getItem(SESSION_EXPIRE_KEY);
         }
-        const now = Date.now();
-        if (
-          localSessionId &&
-          localExpire &&
-          Number(localExpire) > now
-        ) {
-          setChatSessionId(localSessionId);
-        } else {
-          // Tạo phiên mới
-          const chatSession = await StartChat(user.user_id, session.accessToken);
-          if (!chatSession?.sessionId) {
-            return;
-          }
-          setChatSessionId(chatSession.sessionId);
-          // Lưu vào localStorage, expire sau 24h
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(SESSION_KEY, chatSession.sessionId);
-            localStorage.setItem(SESSION_EXPIRE_KEY, (now + 24 * 60 * 60 * 1000).toString());
-          }
+
+        // Gọi BE để kiểm tra session và tạo/load messages
+        const chatSession = await StartOrGetChatSession(
+          user.user_id, 
+          localSessionId, 
+          session.accessToken
+        );
+        
+        if (!chatSession?.sessionId) {
+          return;
         }
-      } catch {
+
+        setChatSessionId(chatSession.sessionId);
+        
+        // Cập nhật localStorage với session mới hoặc hiện tại
+        if (typeof window !== 'undefined') {
+          const now = Date.now();
+          localStorage.setItem(SESSION_KEY, chatSession.sessionId);
+          localStorage.setItem(SESSION_EXPIRE_KEY, (now + SESSION_DURATION).toString());
+        }
+
+        // Load messages nếu có
+        if (chatSession.messages && chatSession.messages.length > 0) {
+          const formattedMessages = chatSession.messages.map(msg => ({
+            id: msg.id,
+            sessionId: msg.sessionId,
+            messageText: msg.messageText,
+            timestamp: msg.timestamp,
+            senderId: msg.sender,
+          }));
+          setMessages(formattedMessages);
+        }
+
+      } catch (error) {
+        console.error('Error fetching user and session:', error);
         sessionFetched.current = false; // Reset nếu có lỗi
       } finally {
         setIsLoading(false);
@@ -110,7 +124,7 @@ const ChatWindow: React.FC = () => {
     socket.on('connect', () => {
       setIsConnected(true);
       socket.emit('join', { sessionId: chatSessionId, userId: currentUserId });
-      socket.emit('getHistory', chatSessionId);
+      // Không cần gọi getHistory nữa vì messages đã được load từ API
     });
 
     socket.on('disconnect', () => {
@@ -121,6 +135,7 @@ const ChatWindow: React.FC = () => {
       setIsConnected(false);
     });
 
+    // Lắng nghe tin nhắn mới từ socket
     socket.on('message', (msg: Message) => {
       // msg: { id, sessionId, senderId, messageText, timestamp }
       if (!msg.sessionId && chatSessionId) msg.sessionId = chatSessionId;
@@ -144,10 +159,7 @@ const ChatWindow: React.FC = () => {
       }
     });
 
-    // Lắng nghe lịch sử chat trả về từ BE
-    socket.on('history', (msgs: Message[]) => {
-      setMessages(msgs || []);
-    });
+    // Xóa listener history vì không cần thiết nữa
 
     socket.on('error', () => {
       setIsConnected(false);

@@ -84,7 +84,7 @@ export class PromotionController {
   }
 
   @ApiBearerAuth('Authorization')
-  @Roles(UserRole.MARKETINGMANAGER)
+  @Roles(UserRole.USER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('promotion/validate/:code')
   @ApiOperation({ summary: 'Validate a promotion code' })

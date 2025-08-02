@@ -83,7 +83,7 @@ export function Navbar() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 className={navigationMenuTriggerStyle()}
-                href="#"
+                href="/"
               >
                 Home
               </NavigationMenuLink>
@@ -99,28 +99,12 @@ export function Navbar() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 className={navigationMenuTriggerStyle()}
-                href="#"
+                href="/about"
               >
                 About Us
               </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink
-                className={navigationMenuTriggerStyle()}
-                href="#"
-              >
-                Blog
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink
-                className={navigationMenuTriggerStyle()}
-                href="#"
-              >
-                Contact
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
+                      </NavigationMenuList>
         </NavigationMenu>
         <div className="flex items-center gap-2">
           {isLoggedIn ? (

@@ -15,6 +15,7 @@ import { CreateUserOtpDto } from './dto/create-user-otp.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { LoginRequestDto } from './dto/loginRequest.dto';
 import { LoginResponseDto } from './dto/loginResponse.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { OAuthRequestDto } from './dto/authRequest.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
@@ -141,5 +142,10 @@ export class authController {
 
     const token = authHeader.split(' ')[1];
     return await this.authService.logout(token);
+  }
+
+  @Post('refresh')
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<LoginResponseDto> {
+    return await this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 }

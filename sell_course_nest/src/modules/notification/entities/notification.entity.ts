@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Course } from '../../course/entities/course.entity';
-import { NotificationType, NotificationPriority, NotificationStatus } from '../enums/notification-type.enum';
+import { NotificationType, NotificationPriority } from '../enums/notification-type.enum';
 import { UserNotification } from './user-notification.entity';
 
 @Entity('notifications')

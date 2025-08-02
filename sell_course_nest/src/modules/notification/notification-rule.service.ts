@@ -1,13 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UserRole } from '../Auth/user.enum';
-import { NotificationType, NotificationPriority } from './enums/notification-type.enum';
-import { 
-  NotificationEvent, 
-  NOTIFICATION_RULES, 
-  NotificationRule, 
+import {
+  NotificationType,
+  NotificationPriority,
+} from './enums/notification-type.enum';
+import {
+  NotificationEvent,
+  NOTIFICATION_RULES,
+  NotificationRule,
   ROLE_TO_DATABASE_STRING,
-  TEMPLATE_VARIABLES 
-}  from './constants/notification.constants';
+  TEMPLATE_VARIABLES,
+} from './constants/notification.constants';
 
 /**
  * Context data for notification rule processing
@@ -18,17 +21,18 @@ export interface NotificationContext {
   courseTitle?: string;
   instructorId?: string;
   instructorName?: string;
-  
+
   // User related context
   userId?: string;
   userName?: string;
   studentName?: string;
-  
+
   // Additional context
   rejectionReason?: string;
   maintenanceDetails?: string;
   chatSessionId?: string;
-  
+  messageText?: string;
+
   // Metadata
   triggeredBy?: string; // User ID who triggered the event
 }
@@ -54,10 +58,10 @@ export class NotificationRuleService {
    */
   async processNotificationEvent(
     event: NotificationEvent,
-    context: NotificationContext
+    context: NotificationContext,
   ): Promise<NotificationRuleResult> {
     this.logger.debug(`Processing notification event: ${event}`);
-    
+
     // Get rule for this event
     const rule = this.getRule(event);
     if (!rule) {
@@ -66,11 +70,11 @@ export class NotificationRuleService {
 
     // Resolve recipients
     const recipients = await this.resolveRecipients(event, context);
-    
+
     // Generate templated content
     const title = this.interpolateTemplate(rule.titleTemplate, context);
     const message = this.interpolateTemplate(rule.messageTemplate, context);
-    
+
     // Convert to database role strings
     const databaseRoles = this.convertRolesToDatabaseStrings(recipients);
 
@@ -80,7 +84,7 @@ export class NotificationRuleService {
       message,
       notificationType: rule.notificationType,
       priority: rule.priority,
-      databaseRoles
+      databaseRoles,
     };
   }
 
@@ -100,15 +104,15 @@ export class NotificationRuleService {
    * Resolve recipients for notification based on event and context
    */
   async resolveRecipients(
-    event: NotificationEvent, 
-    context: NotificationContext
+    event: NotificationEvent,
+    context: NotificationContext,
   ): Promise<UserRole[]> {
     const rule = this.getRule(event);
     if (!rule) {
       return [];
     }
 
-    let recipients = [...rule.recipients];
+    const recipients = [...rule.recipients];
 
     // Apply context-specific logic for recipient filtering
     switch (event) {
@@ -133,7 +137,9 @@ export class NotificationRuleService {
         break;
 
       default:
-        this.logger.warn(`Unhandled event type for recipient resolution: ${event}`);
+        this.logger.warn(
+          `Unhandled event type for recipient resolution: ${event}`,
+        );
     }
 
     // Filter out the user who triggered the event (avoid self-notification)
@@ -146,24 +152,30 @@ export class NotificationRuleService {
   /**
    * Generate notification title with template interpolation
    */
-  getNotificationTitle(event: NotificationEvent, context: NotificationContext): string {
+  getNotificationTitle(
+    event: NotificationEvent,
+    context: NotificationContext,
+  ): string {
     const rule = this.getRule(event);
     if (!rule) {
       return 'Notification';
     }
-    
+
     return this.interpolateTemplate(rule.titleTemplate, context);
   }
 
   /**
    * Generate notification message with template interpolation
    */
-  getNotificationMessage(event: NotificationEvent, context: NotificationContext): string {
+  getNotificationMessage(
+    event: NotificationEvent,
+    context: NotificationContext,
+  ): string {
     const rule = this.getRule(event);
     if (!rule) {
       return '';
     }
-    
+
     return this.interpolateTemplate(rule.messageTemplate, context);
   }
 
@@ -185,15 +197,18 @@ export class NotificationRuleService {
    * Convert UserRole array to database role strings for compatibility
    */
   private convertRolesToDatabaseStrings(roles: UserRole[]): string[] {
-    return roles.map(role => ROLE_TO_DATABASE_STRING[role]).filter(Boolean);
+    return roles.map((role) => ROLE_TO_DATABASE_STRING[role]).filter(Boolean);
   }
 
   /**
    * Interpolate template with context data
    */
-  private interpolateTemplate(template: string, context: NotificationContext): string {
+  private interpolateTemplate(
+    template: string,
+    context: NotificationContext,
+  ): string {
     let result = template;
-    
+
     // Replace all template variables with context values
     const replacements: Record<string, string | undefined> = {
       [TEMPLATE_VARIABLES.courseTitle]: context.courseTitle,
@@ -206,14 +221,20 @@ export class NotificationRuleService {
 
     for (const [placeholder, value] of Object.entries(replacements)) {
       if (value !== undefined) {
-        result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), value);
+        result = result.replace(
+          new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'),
+          value,
+        );
       }
     }
 
     // Log warning for unresolved placeholders
     const unresolvedPlaceholders = result.match(/\{[^}]+\}/g);
     if (unresolvedPlaceholders) {
-      this.logger.warn(`Unresolved template placeholders:`, unresolvedPlaceholders);
+      this.logger.warn(
+        `Unresolved template placeholders:`,
+        unresolvedPlaceholders,
+      );
     }
 
     return result;
@@ -232,7 +253,7 @@ export class NotificationRuleService {
           courseTitle: 'string',
           instructorId: 'uuid-string',
           instructorName: 'string',
-          triggeredBy: 'uuid-string'
+          triggeredBy: 'uuid-string',
         };
 
       case NotificationEvent.COURSE_REJECTED:
@@ -241,7 +262,7 @@ export class NotificationRuleService {
           courseTitle: 'string',
           instructorId: 'uuid-string',
           rejectionReason: 'string',
-          triggeredBy: 'uuid-string'
+          triggeredBy: 'uuid-string',
         };
 
       case NotificationEvent.USER_ENROLLED:
@@ -251,7 +272,7 @@ export class NotificationRuleService {
           instructorId: 'uuid-string',
           userId: 'uuid-string',
           studentName: 'string',
-          triggeredBy: 'uuid-string'
+          triggeredBy: 'uuid-string',
         };
 
       case NotificationEvent.CHAT_SESSION_CREATED:
@@ -259,13 +280,13 @@ export class NotificationRuleService {
           userId: 'uuid-string',
           userName: 'string',
           chatSessionId: 'uuid-string',
-          triggeredBy: 'uuid-string'
+          triggeredBy: 'uuid-string',
         };
 
       case NotificationEvent.SYSTEM_MAINTENANCE:
         return {
           maintenanceDetails: 'string',
-          triggeredBy: 'uuid-string'
+          triggeredBy: 'uuid-string',
         };
 
       default:
