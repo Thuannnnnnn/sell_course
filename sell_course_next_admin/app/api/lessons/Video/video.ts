@@ -154,9 +154,24 @@ export const deleteVideo = async (
     }
   }
 };
-export const getAllVideos = async (): Promise<VideoState[]> => {
-  const response = await axios.get<VideoState[]>(
-    `${API_BASE_URL}/instructor/video/view_video_list`
-  );
-  return response.data;
+export const getAllVideos = async (accessToken: string): Promise<VideoState[]> => {
+  try {
+    const response = await axios.get<VideoState[]>(
+      `${API_BASE_URL}/instructor/video/view_video_list`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch videos"
+      );
+    } else {
+      throw new Error("An unexpected error occurred");
+    }
+  }
 };
