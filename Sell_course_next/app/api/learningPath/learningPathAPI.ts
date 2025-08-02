@@ -4,6 +4,7 @@ import {
   LearningPathProgress,
   LearningPlanData,
   LearningPlanSummary,
+  RawQuestion,
 } from "@/app/types/learningPath/learningPath";
 import axios, { AxiosResponse } from "axios";
 
@@ -34,11 +35,11 @@ export class LearningPathAPI {
         { headers: this.getHeaders() }
       );
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        throw new Error("NO_LEARNING_PATH");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data.message || "Lỗi không xác định");
       }
-      throw error;
+      throw new Error("Lỗi không xác định");
     }
   }
 
@@ -53,24 +54,12 @@ export class LearningPathAPI {
     return response.data;
   }
 
-  /**
-   * Tạo learning path mới từ dữ liệu người dùng
-   */
-  async createLearningPath(
-    learningPathInput: LearningPathInput
-  ): Promise<LearningPlanData> {
-    const response: AxiosResponse<LearningPlanData> = await axios.post(
-      `${API_BASE_URL}/learningPath`,
-      learningPathInput,
-      { headers: this.getHeaders() }
-    );
-    return response.data;
-  }
+
 
   /**
    * Lưu learning path từ dữ liệu n8n đã xử lý
    */
-  async saveLearningPathFromN8n(n8nData: any): Promise<LearningPlanData> {
+  async saveLearningPathFromN8n(n8nData: LearningPlanData): Promise<LearningPlanData> {
     const response: AxiosResponse<LearningPlanData> = await axios.post(
       `${API_BASE_URL}/learningPath/from-n8n`,
       n8nData,
@@ -188,7 +177,7 @@ export class N8nAPI {
 
   constructor() {
     this.webhookUrl =
-      process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL ||
+      `${process.env.NEXT_PUBLIC_N8N_URL}/learningPath` ||
       "https://your-n8n-instance.com/webhook/learning-path";
   }
 
@@ -197,7 +186,7 @@ export class N8nAPI {
    */
   async processLearningPath(
     learningPathInput: LearningPathInput
-  ): Promise<any> {
+  ): Promise<LearningPlanData> {
     try {
       const response = await axios.post(this.webhookUrl, learningPathInput, {
         headers: {
@@ -216,7 +205,7 @@ export class N8nAPI {
  * Survey Questions API
  */
 export class SurveyAPI {
-  async getQuestions(): Promise<any[]> {
+  async getQuestions(): Promise<RawQuestion[]> {
     const response = await axios.get(`${API_BASE_URL}/survey-questions`);
     return response.data;
   }

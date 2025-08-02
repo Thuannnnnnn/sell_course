@@ -11,14 +11,7 @@ import {
 } from "../../../components/ui/tabs";
 import { Button } from "../../../components/ui/button";
 import { Progress } from "../../../components/ui/progress";
-import {
-  ArrowLeft,
-  BookOpen,
-  Brain,
-  Eye,
-  GraduationCap,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { courseApi, contentApi } from "../../api/courses/lessons/lessons";
 import { examApi } from "../../api/courses/exam/exam";
@@ -49,9 +42,6 @@ import {
   CompletedCountResponse,
 } from "@/app/types/Progress/progress";
 import { useSession } from "next-auth/react";
-
-import { toast } from "sonner";
-
 // Enhanced types for progress tracking
 interface LessonWithProgress extends LessonResponse {
   isCompleted: boolean;
@@ -109,14 +99,6 @@ export default function CourseLearnPage() {
   const [completedContents, setCompletedContents] = useState<Set<string>>(
     new Set()
   );
-
-  // Learning Path states
-  const [showLearningPathModal, setShowLearningPathModal] = useState(false);
-  const [showLearningPathDisplay, setShowLearningPathDisplay] = useState(false);
-  const [isCreatingLearningPath, setIsCreatingLearningPath] = useState(false);
-
-  const [hasExistingPlan, setHasExistingPlan] = useState<boolean | null>(null);
-  const [isCheckingPlan, setIsCheckingPlan] = useState(false);
 
   // Exam State
   const [examData, setExamData] = useState<ExamData | null>(null);
@@ -221,22 +203,6 @@ export default function CourseLearnPage() {
     } catch (error) {
       console.error("❌ Failed to load progress data:", error);
     }
-  };
-
-  // Learning Path handlers
-  const handleCreateLearningPath = () => {
-    if (!session) {
-      toast.error("please login to view Learning Path", {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
-      return;
-    }
-    setShowLearningPathModal(true);
   };
 
   // Load exam data
@@ -454,25 +420,25 @@ export default function CourseLearnPage() {
           setCurrentLesson(initialLessons[0]);
           if (lessonsWithContent.length > 0) {
             setCurrentContent(lessonsWithContent[0]);
-            
+
             // Check if there's a contentId in URL params to restore user's position
-            const urlContentId = searchParams.get('contentId');
+            const urlContentId = searchParams.get("contentId");
             if (urlContentId) {
               // Find the content in any lesson
               const targetContent = initialLessons
                 .flatMap((l) => l.contents)
                 .find((c) => c.contentId === urlContentId);
-              
+
               if (targetContent) {
                 // Find the lesson containing this content
                 const targetLesson = initialLessons.find((l) =>
                   l.contents.some((c) => c.contentId === urlContentId)
                 );
-                
+
                 if (targetLesson) {
                   setCurrentLesson(targetLesson);
                   setSelectedContent(targetContent);
-                  
+
                   // Also set the corresponding LessonWithContent
                   const targetLessonWithContent = lessonsWithContent.find(
                     (l) => l.id === targetLesson.lessonId
@@ -591,11 +557,14 @@ export default function CourseLearnPage() {
       if (lessonWithProgress.contents.length > 0) {
         const firstContent = lessonWithProgress.contents[0];
         setSelectedContent(firstContent);
-        
+
         // Update URL params to preserve user's position
         const newSearchParams = new URLSearchParams(searchParams.toString());
-        newSearchParams.set('contentId', firstContent.contentId);
-        router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
+        newSearchParams.set("contentId", firstContent.contentId);
+        router.replace(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+          { scroll: false }
+        );
       }
     }
   };
@@ -612,8 +581,11 @@ export default function CourseLearnPage() {
 
       // Update URL params to preserve user's position
       const newSearchParams = new URLSearchParams(searchParams.toString());
-      newSearchParams.set('contentId', content.contentId);
-      router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
+      newSearchParams.set("contentId", content.contentId);
+      router.replace(
+        `${window.location.pathname}?${newSearchParams.toString()}`,
+        { scroll: false }
+      );
 
       // Find the lesson containing this content
       const lesson = lessons.find((l: LessonWithProgress) =>
@@ -741,42 +713,6 @@ export default function CourseLearnPage() {
     );
   }
 
-  const renderLearningPathButton = () => {
-    if (!session) return null;
-
-    if (isCheckingPlan) {
-      return (
-        <Button
-          disabled
-          className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg mt-3"
-        >
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Đang kiểm tra...
-        </Button>
-      );
-    }
-
-    return (
-      <Button
-        onClick={handleCreateLearningPath}
-        disabled={isCreatingLearningPath}
-        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-2xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 mt-3"
-      >
-        {isCreatingLearningPath ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            Created...
-          </>
-        ) : (
-          <>
-            <Brain className="w-5 h-5 mr-2" />
-            Create Learning Path
-          </>
-        )}
-      </Button>
-    );
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
@@ -801,8 +737,6 @@ export default function CourseLearnPage() {
               </div>
               <Progress value={courseProgress} className="h-2" />
             </div>
-            {/* Action Buttons */}
-            <div className="mb-6 space-y-3">{renderLearningPathButton()}</div>
           </div>
         </div>
       </header>

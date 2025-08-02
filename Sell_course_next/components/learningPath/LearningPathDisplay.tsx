@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Calendar,
   Clock,
   BookOpen,
   ChevronDown,
@@ -12,17 +11,23 @@ import {
   HelpCircle,
   Download,
   ArrowLeft,
-  User,
   GraduationCap,
   CheckCircle,
   Circle,
   PlayCircle,
   BarChart3,
-  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ContentItem, ContentProgress, CourseItem, LearningPathProgress, LearningPlanData, LessonItem, NarrativeItem } from "@/app/types/learningPath/learningPath";
+import {
+  ContentItem,
+  ContentProgress,
+  CourseItem,
+  LearningPathProgress,
+  LearningPlanData,
+  LessonItem,
+  NarrativeItem,
+} from "@/app/types/learningPath/learningPath";
 import { createLearningPathAPI } from "@/app/api/learningPath/learningPathAPI";
 
 interface LearningPathDisplayProps {
@@ -50,8 +55,34 @@ export default function LearningPathDisplay({
   const api = createLearningPathAPI(token);
 
   useEffect(() => {
+    const fetchProgressData = async () => {
+      try {
+        setLoading(true);
+        const allContentIds = extractAllContentIds(learningPlan);
+
+        // Fetch bulk progress status
+        const progressData = await api.getBulkContentProgress(
+          userId,
+          allContentIds
+        );
+        setContentProgress(progressData);
+
+        // Fetch overall learning path progress
+        const pathProgressData = await api.getLearningPathProgress(
+          userId,
+          allContentIds
+        );
+        setPathProgress(pathProgressData);
+      } catch (error) {
+        console.error("Failed to fetch progress data:", error);
+        toast.error("Failed to load progress data");
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProgressData();
-  }, [learningPlan.planId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [learningPlan.planId, userId, token, learningPlan]);
 
   const extractAllContentIds = (plan: LearningPlanData): string[] => {
     const contentIds: string[] = [];
@@ -63,68 +94,6 @@ export default function LearningPathDisplay({
       });
     });
     return contentIds;
-  };
-
-  const fetchProgressData = async () => {
-    try {
-      setLoading(true);
-      const allContentIds = extractAllContentIds(learningPlan);
-
-      // Fetch bulk progress status
-      const progressData = await api.getBulkContentProgress(
-        userId,
-        allContentIds
-      );
-      setContentProgress(progressData);
-
-      // Fetch overall learning path progress
-      const pathProgressData = await api.getLearningPathProgress(
-        userId,
-        allContentIds
-      );
-      setPathProgress(pathProgressData);
-    } catch (error) {
-      console.error("Failed to fetch progress data:", error);
-      toast.error("Failed to load progress data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateContentStatus = async (
-    contentId: string,
-    status: "not_started" | "in_progress" | "completed",
-    progressPercentage?: number,
-    timeSpentMinutes?: number
-  ) => {
-    try {
-      const updatedProgress = await api.updateContentStatus(
-        contentId,
-        userId,
-        status,
-        progressPercentage,
-        timeSpentMinutes
-      );
-
-      // Update local state
-      setContentProgress((prev) => ({
-        ...prev,
-        [contentId]: updatedProgress,
-      }));
-
-      // Refresh overall progress
-      const allContentIds = extractAllContentIds(learningPlan);
-      const pathProgressData = await api.getLearningPathProgress(
-        userId,
-        allContentIds
-      );
-      setPathProgress(pathProgressData);
-
-      toast.success(`Content marked as ${status.replace("_", " ")}`);
-    } catch (error) {
-      console.error("Failed to update content status:", error);
-      toast.error("Failed to update progress");
-    }
   };
 
   const toggleExpanded = (itemId: string) => {
@@ -317,44 +286,6 @@ export default function LearningPathDisplay({
               )}
             </button>
           </div>
-        </div>
-
-        {/* Progress Actions */}
-        <div className="flex gap-2 mb-3">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              updateContentStatus(content.contentId, "in_progress", 50)
-            }
-            disabled={progress?.status === "in_progress"}
-            className="text-xs"
-          >
-            Start
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              updateContentStatus(content.contentId, "completed", 100)
-            }
-            disabled={progress?.status === "completed"}
-            className="text-xs"
-          >
-            Complete
-          </Button>
-          {progress?.status !== "not_started" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                updateContentStatus(content.contentId, "not_started", 0)
-              }
-              className="text-xs text-gray-500"
-            >
-              Reset
-            </Button>
-          )}
         </div>
 
         {/* Progress Bar */}

@@ -4,9 +4,15 @@ import React, { useEffect, useState } from "react";
 import { X, ChevronRight, ChevronLeft, BookOpen, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { createLearningPathAPI, createN8nAPI, createSurveyAPI } from "@/app/api/learningPath/learningPathAPI";
-import { LearningPathInput, RawQuestion } from "@/app/types/learningPath/learningPath";
-
+import {
+  createLearningPathAPI,
+  createN8nAPI,
+  createSurveyAPI,
+} from "@/app/api/learningPath/learningPathAPI";
+import {
+  LearningPathInput,
+  RawQuestion,
+} from "@/app/types/learningPath/learningPath";
 
 interface CreateLearningPathModalProps {
   isOpen: boolean;
@@ -71,26 +77,26 @@ export default function CreateLearningPathModal({
   const learningPathAPI = createLearningPathAPI(token);
 
   useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const questionsData = await surveyAPI.getQuestions();
+        setQuestions(questionsData);
+      } catch (error) {
+        console.error("Failed to fetch questions:", error);
+        toast.error("Failed to load questions. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
     if (isOpen) {
       fetchQuestions();
       // Reset form khi mở modal
       setAnswers({ ...defaultSurveyAnswers, userId, userName });
       setCurrentStep(0);
     }
-  }, [isOpen, userId, userName]);
-
-  const fetchQuestions = async () => {
-    try {
-      setLoading(true);
-      const questionsData = await surveyAPI.getQuestions();
-      setQuestions(questionsData);
-    } catch (error) {
-      console.error("Failed to fetch questions:", error);
-      toast.error("Failed to load questions. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, userName, token]);
 
   const currentQuestion = questions[currentStep];
   const isLastStep = currentStep === questions.length - 1;
@@ -227,13 +233,12 @@ export default function CreateLearningPathModal({
       });
 
       // Step 3: Save the processed data to backend
-      const savedPlan = await learningPathAPI.saveLearningPathFromN8n(
-        n8nResponse
-      );
-
-      toast.success("Learning path created successfully!", {
-        duration: 3000,
-      });
+      if (n8nResponse) {
+        await learningPathAPI.saveLearningPathFromN8n(n8nResponse);
+        toast.success("Learning paths saved successfully!");
+      } else {
+        toast.error("Failed to save learning paths. Invalid data from n8n.");
+      }
 
       // Step 4: Call the onSubmit callback to refresh the parent component
       await onSubmit();

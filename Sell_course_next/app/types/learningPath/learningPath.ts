@@ -1,6 +1,6 @@
 export interface NarrativeItem {
   template: string;
-  bindings: Record<string, any>;
+  bindings: Record<string, unknown>;
 }
 
 export interface ContentItem {
@@ -46,12 +46,11 @@ export interface TargetLearningPath {
 export interface LearningPlanData {
   planId: string;
   userId: string;
+  courseId: string;
   createdAt: string;
   updatedAt: string;
   targetLearningPath: TargetLearningPath;
   learningPathCourses: CourseItem[];
-  constraints: any[];
-  preferences: any[];
 }
 
 export interface ContentProgress {

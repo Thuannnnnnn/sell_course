@@ -280,7 +280,10 @@ export class authService {
       throw new HttpException('Email not found', HttpStatus.UNAUTHORIZED);
     }
     if (user.isBan) {
-      throw new HttpException('Tài khoản của bạn đã bị khóa (banned)', HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        'Tài khoản của bạn đã bị khóa (banned)',
+        HttpStatus.FORBIDDEN,
+      );
     }
     const passwordMatch = await bcrypt.compare(
       loginRequest.password,
@@ -326,7 +329,10 @@ export class authService {
     if (existingUser) {
       // Nếu user bị ban thì không cho đăng nhập
       if (existingUser.isBan) {
-        throw new HttpException('Tài khoản của bạn đã bị khóa (banned)', HttpStatus.FORBIDDEN);
+        throw new HttpException(
+          'Tài khoản của bạn đã bị khóa (banned)',
+          HttpStatus.FORBIDDEN,
+        );
       }
       // If user exists and was registered with password (not OAuth), prevent login
       if (existingUser.isOAuth === false) {
@@ -344,7 +350,9 @@ export class authService {
         role: existingUser.role,
       };
       const token = this.jwtService.sign(payload);
-      const refreshToken = await this.generateRefreshToken(existingUser.user_id);
+      const refreshToken = await this.generateRefreshToken(
+        existingUser.user_id,
+      );
 
       return {
         token,
@@ -402,7 +410,10 @@ export class authService {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
     if (user.isBan) {
-      throw new HttpException('Tài khoản của bạn đã bị khóa (banned)', HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        'Tài khoản của bạn đã bị khóa (banned)',
+        HttpStatus.FORBIDDEN,
+      );
     }
     console.log('Plain password:', pass);
     const hashedInputPassword = await bcrypt.hash(pass, 10);
@@ -740,7 +751,7 @@ export class authService {
       // Mark token as revoked
       await this.refreshTokenRepository.update(
         { id: storedToken.id },
-        { is_revoked: true }
+        { is_revoked: true },
       );
       throw new HttpException('Refresh token expired', HttpStatus.UNAUTHORIZED);
     }
@@ -766,7 +777,7 @@ export class authService {
     // Revoke old refresh token
     await this.refreshTokenRepository.update(
       { id: storedToken.id },
-      { is_revoked: true }
+      { is_revoked: true },
     );
 
     const loginResponse: LoginResponseDto = {

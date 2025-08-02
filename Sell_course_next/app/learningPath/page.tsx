@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { AlertCircle, BookOpen, Plus } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LearningPlanData } from "../types/learningPath/learningPath";
 import { createLearningPathAPI } from "../api/learningPath/learningPathAPI";
@@ -30,6 +30,7 @@ export default function LearningPathPage() {
     if (userId && token) {
       checkExistingLearningPaths();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token]);
 
   const checkExistingLearningPaths = async () => {
@@ -47,15 +48,8 @@ export default function LearningPathPage() {
         // Không có learning path, hiển thị modal
         setShowModal(true);
       }
-    } catch (error: any) {
-      if (error.message === "NO_LEARNING_PATH") {
-        // Không có learning path, hiển thị modal
-        setShowModal(true);
-      } else {
-        console.error("Failed to fetch learning paths:", error);
-        setError("Failed to load learning paths. Please try again.");
-        toast.error("Failed to load learning paths");
-      }
+    } catch (error) {
+      setError("Lỗi khi lấy danh sách learning path." + error);
     } finally {
       setLoading(false);
     }
@@ -65,13 +59,15 @@ export default function LearningPathPage() {
     setShowModal(true);
   };
 
+  const handleUpdatePath = () => {
+    setShowModal(true);
+  };
+
   const handleModalClose = () => {
     setShowModal(false);
   };
 
   const handleModalSubmit = async () => {
-    // Modal sẽ tự xử lý việc tạo learning path
-    // Sau khi tạo xong, refresh lại danh sách
     await checkExistingLearningPaths();
     setShowModal(false);
   };
@@ -144,6 +140,7 @@ export default function LearningPathPage() {
           onCreateNew={handleCreateNewPath}
           onViewPlan={handleViewPlan}
           onDeletePlan={handleDeletePlan}
+          updatePlan={handleUpdatePath}
         />
       )}
 
@@ -165,28 +162,6 @@ export default function LearningPathPage() {
           userName={userName}
           token={token}
         />
-      )}
-
-      {/* Empty state khi không có learning path và không hiển thị modal */}
-      {!loading && !error && learningPlans.length === 0 && !showModal && (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No Learning Paths Yet
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Create your first personalized learning path to get started.
-            </p>
-            <Button
-              onClick={handleCreateNewPath}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4" />
-              Create Your First Learning Path
-            </Button>
-          </div>
-        </div>
       )}
     </div>
   );

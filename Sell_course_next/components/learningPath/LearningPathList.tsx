@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import {
   BookOpen,
   Calendar,
-  Clock,
   User,
   Plus,
   Search,
@@ -21,6 +20,7 @@ interface LearningPathListProps {
   onCreateNew: () => void;
   onViewPlan: (plan: LearningPlanData) => void;
   onDeletePlan: (planId: string) => void;
+  updatePlan: () => void;
 }
 
 export default function LearningPathList({
@@ -28,6 +28,7 @@ export default function LearningPathList({
   onCreateNew,
   onViewPlan,
   onDeletePlan,
+  updatePlan,
 }: LearningPathListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLevel, setFilterLevel] = useState<string>("all");
@@ -111,13 +112,23 @@ export default function LearningPathList({
                 My Learning Paths
               </h1>
             </div>
-            <Button
-              onClick={onCreateNew}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4" />
-              Create New Path
-            </Button>
+            {learningPlans ? (
+              <Button
+                onClick={onCreateNew}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                Create New Path
+              </Button>
+            ) : (
+              <Button
+                onClick={updatePlan}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                update
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -167,15 +178,6 @@ export default function LearningPathList({
                 ? "Create your first personalized learning path to get started."
                 : "Try adjusting your search or filter criteria."}
             </p>
-            {learningPlans.length === 0 && (
-              <Button
-                onClick={onCreateNew}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4" />
-                Create Your First Learning Path
-              </Button>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

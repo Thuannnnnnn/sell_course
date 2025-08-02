@@ -7,9 +7,8 @@ import { Course } from '../course/entities/course.entity';
 import { PlanConstraint } from '../plan-constraint/plan-constraint.entity';
 import { PlanPreference } from '../plan-preference/plan-preference.entity';
 import {
-  CreateLearningPlanDto,
+  N8nLearningPathDtOut,
   UpdateLearningPlanDto,
-  N8nLearningPathDto,
 } from './create-learning-plan.dto';
 
 @Injectable()
@@ -31,66 +30,41 @@ export class LearningPlanService {
     private preferenceRepo: Repository<PlanPreference>,
   ) {}
 
-  async create(createDto: CreateLearningPlanDto): Promise<LearningPlan> {
+  async createFromN8nData(
+    n8nData: N8nLearningPathDtOut,
+  ): Promise<LearningPlan[]> {
+    console.log(
+      'n8nData',
+      JSON.stringify(
+        n8nData[0].learningPath[1].tagetLearningPath.userId,
+        null,
+        2,
+      ),
+    );
+
     const user = await this.userRepo.findOne({
-      where: { user_id: createDto.userId },
+      where: {
+        user_id: n8nData[0].learningPath[1].tagetLearningPath.userId,
+      },
     });
     if (!user) {
       throw new Error('User not found');
     }
+    const savedPlans: LearningPlan[] = [];
+    const courses = n8nData[0].learningPath[0].learningPathCourses;
+    const target = n8nData[0].learningPath[1].tagetLearningPath;
 
-    // Optional: Find course if courseId is provided for backward compatibility
-    let course = null;
-    if (createDto.courseId) {
-      course = await this.courseRepo.findOne({
-        where: { courseId: createDto.courseId },
+    for (const course of courses) {
+      const newPlan = this.planRepo.create({
+        user,
+        targetLearningPath: target,
+        learningPathCourses: [course],
       });
+
+      savedPlans.push(await this.planRepo.save(newPlan));
     }
 
-    const newPlan = this.planRepo.create({
-      user: user,
-      course: course,
-      targetLearningPath: createDto.targetLearningPath,
-      learningPathCourses: createDto.learningPathCourses,
-    });
-
-    const savedPlan = await this.planRepo.save(newPlan);
-
-    // Handle constraints if provided
-    if (createDto.constraints && createDto.constraints.length > 0) {
-      const constraints = createDto.constraints.map((c) =>
-        this.constraintRepo.create({ plan: savedPlan, ...c }),
-      );
-      await this.constraintRepo.save(constraints);
-    }
-
-    // Handle preferences if provided
-    if (createDto.preferences && createDto.preferences.length > 0) {
-      const preferences = createDto.preferences.map((p) =>
-        this.preferenceRepo.create({ plan: savedPlan, ...p }),
-      );
-      await this.preferenceRepo.save(preferences);
-    }
-
-    return this.findOne(savedPlan.planId);
-  }
-
-  // New method to handle n8n processed data
-  async createFromN8nData(n8nData: N8nLearningPathDto): Promise<LearningPlan> {
-    const user = await this.userRepo.findOne({
-      where: { user_id: n8nData.userId },
-    });
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const newPlan = this.planRepo.create({
-      user: user,
-      targetLearningPath: n8nData.targetLearningPath,
-      learningPathCourses: n8nData.learningPathCourses,
-    });
-
-    return await this.planRepo.save(newPlan);
+    return savedPlans;
   }
 
   async findOne(planId: string) {

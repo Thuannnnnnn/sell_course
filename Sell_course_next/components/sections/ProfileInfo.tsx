@@ -23,6 +23,8 @@ import { useRouter } from "next/navigation";
 import { EditProfileModal } from "./EditProfileModal";
 import { UserProfile } from "@/app/types/profile/editProfile";
 import Image from "next/image";
+import { WishlistResponseDto } from "@/app/types/profile/wishlist/wishlist";
+import { Enrollment } from "@/app/types/enrollment/enrollment";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -31,27 +33,21 @@ export function ProfileInfo() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
 
-  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number | null>(
-    null
-  );
-  const [calendarMode, setCalendarMode] = useState<"single" | "week">("single");
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<WishlistResponseDto[]>([]);
-  const [statsLoading, setStatsLoading] = useState(false);
+  const [enrollments] = useState<Enrollment[]>([]);
+  const [wishlistItems] = useState<WishlistResponseDto[]>([]);
+  const [statsLoading] = useState(false);
   const coverImage =
     "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?q=80&w=1470&auto=format&fit=crop";
 
   // Calculate stats from loaded data
   const coursesEnrolled = enrollments.length;
   const wishlistedCourses = wishlistItems.length;
-  const completedCourses = enrollments.filter(enrollment => 
-    enrollment.status.toLowerCase() === 'completed' || 
-    enrollment.status.toLowerCase() === 'paid'
+  const completedCourses = enrollments.filter(
+    (enrollment) =>
+      enrollment.status.toLowerCase() === "completed" ||
+      enrollment.status.toLowerCase() === "paid"
   ).length;
-  const token = session?.accessToken;
 
   useEffect(() => {
     const fetchUserProfile = async () => {

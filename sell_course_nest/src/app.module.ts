@@ -84,8 +84,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { PlanConstraint } from './modules/plan-constraint/plan-constraint.entity';
 import { PlanPreference } from './modules/plan-preference/plan-preference.entity';
 import { LearningPlan } from './modules/learning-plan/learning-plan.entity';
-import { ScheduleItem } from './modules/schedule_item/entities/schedule_item.entity';
-import { ScheduleItemModule } from './modules/schedule_item/schedule_item.module';
+
 import { PlanConstraintModule } from './modules/plan-constraint/plan-constraint.module';
 import { PlanPreferenceModule } from './modules/plan-preference/plan-preference.module';
 import { LearningPlanModule } from './modules/learning-plan/learning-plan.module';
@@ -129,7 +128,6 @@ import { ScheduleModule } from '@nestjs/schedule';
         PlanConstraint,
         PlanPreference,
         LearningPlan,
-        ScheduleItem,
         SurveyAnswerOption,
         LogoSetting,
         VersionSetting,
@@ -171,7 +169,6 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     TypeOrmModule.forFeature([User, Permission]),
     SurveyAnswerOptionModule,
-    ScheduleItemModule,
     PlanConstraintModule,
     PlanPreferenceModule,
     LearningPlanModule,

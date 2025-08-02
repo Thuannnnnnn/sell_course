@@ -101,13 +101,60 @@ export class UpdateLearningPlanDto {
 }
 
 // DTO for receiving n8n processed data
-export class N8nLearningPathDto {
-  @IsString()
+interface NarrativeItem {
+  template: string;
+  bindings: Record<string, unknown>;
+}
+
+interface ContentItem {
+  contentId: string;
+  type: string;
+  title: string;
+  durationMin: number;
+  narrativeText: NarrativeItem[];
+}
+
+interface LessonItem {
+  lessonId: string;
+  title: string;
+  narrativeText: NarrativeItem[];
+  contents: ContentItem[];
+}
+
+interface CourseItem {
+  courseId: string;
+  title: string;
+  narrativeText: NarrativeItem[];
+  lessons: LessonItem[];
+}
+
+export interface TargetLearningPath {
+  topic: string;
+  learning_goal: string;
+  target_level: string;
+  current_level: string;
+  has_prior_knowledge: boolean;
+  desired_duration: string;
+  preferred_learning_styles: string[];
+  learning_order: string;
+  output_expectations: {
+    want_progress_tracking: boolean;
+    want_mentor_or_AI_assist: boolean;
+    post_learning_outcome: string;
+  };
   userId: string;
+  userName: string;
+}
 
-  @IsObject()
-  targetLearningPath: TargetLearningPath;
+// New DTO for n8n data
+export interface N8nLearningPathDto {
+  userId: string;
+  learningPath: [
+    { learningPathCourses: CourseItem[] },
+    { tagetLearningPath: TargetLearningPath },
+  ];
+}
 
-  @IsArray()
-  learningPathCourses: LearningPathCourse[];
+export interface N8nLearningPathDtOut {
+  learningPath: N8nLearningPathDto[];
 }

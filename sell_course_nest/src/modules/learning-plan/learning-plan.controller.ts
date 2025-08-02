@@ -10,9 +10,8 @@ import {
 } from '@nestjs/common';
 import { LearningPlanService } from './learning-plan.service';
 import {
-  CreateLearningPlanDto,
   UpdateLearningPlanDto,
-  N8nLearningPathDto,
+  N8nLearningPathDtOut,
 } from './create-learning-plan.dto';
 import { DeleteResult } from 'typeorm';
 import { RolesGuard } from '../Auth/roles.guard';
@@ -23,21 +22,13 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 export class LearningPlanController {
   constructor(private readonly planService: LearningPlanService) {}
 
-  @ApiBearerAuth('Authorization')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Post()
-  async create(@Body() createDto: CreateLearningPlanDto) {
-    const plan = await this.planService.create(createDto);
-    return this.planService.transformToFrontendFormat(plan);
-  }
-
   // New endpoint to handle n8n processed data
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('/from-n8n')
-  async createFromN8nData(@Body() n8nData: N8nLearningPathDto) {
+  async createFromN8nData(@Body() n8nData: N8nLearningPathDtOut) {
     const plan = await this.planService.createFromN8nData(n8nData);
-    return this.planService.transformToFrontendFormat(plan);
+    return plan;
   }
 
   @ApiBearerAuth('Authorization')
