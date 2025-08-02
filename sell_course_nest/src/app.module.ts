@@ -1,5 +1,4 @@
 import { PaymentModule } from './modules/payment/payment.module';
-import { MeetingModule } from './modules/meeting/meeting.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 // app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
@@ -8,41 +7,35 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './modules/user/entities/user.entity';
-import { Cart } from './modules/cart/entities/cart.entity';
 import { Certificate } from './modules/certificate/entities/certificate.entity';
 import { Contents } from './modules/contents/entities/contents.entity';
 import { Course } from './modules/course/entities/course.entity';
 import { Docs } from './modules/docs/entities/docs.entity';
 
 import { Exam } from './modules/exam/entities/exam.entity';
-import { FeedbackRatting } from './modules/feedback_ratting/entities/feedback_ratting.entity';
-import { Forum } from './modules/forum/entities/forum.entity';
+
 import { Lesson } from './modules/lesson/entities/lesson.entity';
-import { Qa } from './modules/qa/entities/qa.entity';
+
 import { QuestionsExam } from './modules/questions_exam/entities/questions_exam.entity';
 import { Quizz } from './modules/quizz/entities/quizz.entity';
-import { Reply } from './modules/reply/entities/reply.entity';
 import { Video } from './modules/video/entities/video.entity';
-import { Waitlist } from './modules/waitlist/entities/waitlist.entity';
+
 import { Wishlist } from './modules/wishlist/entities/wishlist.entity';
 import { UserModule } from './modules/user/user.module';
 import { authModule } from './modules/Auth/auth.module';
-import { CartModule } from './modules/cart/cart.module';
 import { CertificateModule } from './modules/certificate/certificate.module';
 import { ContentModule } from './modules/contents/contents.module';
 import { CourseModule } from './modules/course/course.module';
 import { DocsModule } from './modules/docs/docs.module';
 
 import { ExamModule } from './modules/exam/exam.module';
-import { FeedbackRattingModule } from './modules/feedback_ratting/feedback_ratting.module';
-import { ForumModule } from './modules/forum/forum.module';
+
 import { LessonModule } from './modules/lesson/lesson.module';
-import { QaModule } from './modules/qa/qa.module';
+
 import { QuestionsExamModule } from './modules/questions_exam/questions_exam.module';
 import { QuizzModule } from './modules/quizz/quizz.module';
-import { ReplyModule } from './modules/reply/reply.module';
 import { VideoModule } from './modules/video/video.module';
-import { WaitlistModule } from './modules/waitlist/waitlist.module';
+
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { Category } from './modules/category/entities/category.entity';
 import { CategoryModule } from './modules/category/category.module';
@@ -63,17 +56,7 @@ import { ResultExamModule } from './modules/result_exam/result_exam.module';
 import { ResultExam } from './modules/result_exam/entities/result_exam.entity';
 import { ProgressTracking } from './modules/progress_tracking/entities/progress.entity';
 import { ProcessModule } from './modules/progress_tracking/progress.module';
-import { QaStudyModule } from './modules/qa_study/qa_study.module';
-import { QaStudy } from './modules/qa_study/entities/qa.entity';
-import { ReactionTopic } from './modules/forum/entities/reaction_topic.entity';
-import { Discussion } from './modules/forum/entities/discussion.entity';
-import { ReactionQa } from './modules/qa_study/entities/reaction_qa.entity';
-import { Interaction } from './modules/Interaction/entities/Interaction.entity';
-import { InteractionModule } from './modules/Interaction/interaction.module';
-import { QuestionHabit } from './modules/questionHabit/entities/questionHabit.entity';
-import { UserAnswer } from './modules/userAnswer/entities/userAnswer.entity';
-import { QuestionHabitModule } from './modules/questionHabit/questionHabit.module';
-import { UserAnswerModule } from './modules/userAnswer/userAnswer.module';
+
 import { SupportChatModule } from './modules/support_chat/chat_support.module';
 import { ChatSession } from './modules/support_chat/entities/chat-session.entity';
 import { Message } from './modules/support_chat/entities/message.entity';
@@ -85,12 +68,12 @@ import { LogoSetting } from './modules/logoSetting/entities/LogoSetting.entity';
 import { LogoSettingModule } from './modules/logoSetting/logoSetting.module';
 import { VersionSettingModule } from './modules/vesionSetting/vesionSetting.module';
 import { VersionSetting } from './modules/vesionSetting/entities/vesionSetting.entity';
-import { Meeting } from './modules/meeting/entities/meeting.entity';
-import { MeetingParticipant } from './modules/meeting/entities/meeting-participant.entity';
+
 import { OTP } from './modules/otp/entities/otp.entity';
 import { OtpModule } from './modules/otp/otp.module';
 import { Enrollment } from './modules/enrollment/entities/enrollment.entity';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { RefreshToken } from './modules/Auth/entities/refresh-token.entity';
 
 /*
  * import { APP_GUARD } from '@nestjs/core';
@@ -110,8 +93,13 @@ import { SurveyQuestionModule } from './modules/survey-response/survey-response.
 import { SurveyAnswerOption } from './modules/surveyAnswerOption/survey-answer-option.entity';
 import { SurveyAnswerOptionModule } from './modules/surveyAnswerOption/survey-answer-option.module';
 import { SurveyQuestion } from './modules/survey-response/survey-response.entity';
+import { NotificationModule } from './modules/notification/notification.module';
+import { Notification } from './modules/notification/entities/notification.entity';
+import { UserNotification } from './modules/notification/entities/user-notification.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     VideoModule,
     ContentModule,
     PaymentModule,
@@ -145,16 +133,12 @@ import { SurveyQuestion } from './modules/survey-response/survey-response.entity
         SurveyAnswerOption,
         LogoSetting,
         VersionSetting,
-        Interaction,
-        MeetingParticipant,
         CarouselSetting,
-        Meeting,
-        QuestionHabit,
-        UserAnswer,
         Notify,
         UserNotify,
+        Notification,
+        UserNotification,
         User,
-        Cart,
         Certificate,
         Contents,
         Course,
@@ -162,35 +146,28 @@ import { SurveyQuestion } from './modules/survey-response/survey-response.entity
         Exam,
         ExamQuestion,
         Answer,
-        FeedbackRatting,
-        Forum,
         Lesson,
-        Qa,
         QuestionsExam,
         Quizz,
         Questionentity,
         AnswerEntity,
         QuizzStore,
-        Reply,
         Video,
-        Waitlist,
         Wishlist,
         Category,
         Permission,
         ResultExam,
         ProgressTracking,
         UserNotify,
-        QaStudy,
-        ReactionTopic,
-        Discussion,
-        ReactionQa,
         ChatSession,
         Message,
         Promotion,
         OTP,
         Enrollment,
+        RefreshToken,
       ],
       synchronize: true,
+      // dropSchema: true, // TEMPORARY: Drop and recreate schema
     }),
     TypeOrmModule.forFeature([User, Permission]),
     SurveyAnswerOptionModule,
@@ -201,15 +178,11 @@ import { SurveyQuestion } from './modules/survey-response/survey-response.entity
     SurveyQuestionModule,
     LogoSettingModule,
     VersionSettingModule,
-    QuestionHabitModule,
-    UserAnswerModule,
-    InteractionModule,
     ProcessModule,
     NotifyModule,
     UserNotifyModule,
     UserModule,
     authModule,
-    CartModule,
     CertificateModule,
     ContentModule,
     CourseModule,
@@ -217,29 +190,23 @@ import { SurveyQuestion } from './modules/survey-response/survey-response.entity
     ExamModule,
     ExamQuestion,
     Answer,
-    FeedbackRattingModule,
-    ForumModule,
     LessonModule,
-    QaModule,
     QuestionsExamModule,
     QuizzStoreModule,
     QuizzModule,
-    ReplyModule,
     VideoModule,
-    WaitlistModule,
     WishlistModule,
     CategoryModule,
     PermissionModule,
     PaymentModule,
     ResultExamModule,
-    QaStudyModule,
     SupportChatModule,
     PromotionModule,
     CarouselSettingModule,
-    MeetingModule,
     OtpModule,
     EnrollmentModule,
     DashboardModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

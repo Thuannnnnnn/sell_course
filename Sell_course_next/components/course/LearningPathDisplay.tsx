@@ -20,6 +20,7 @@ import {
   Download,
 } from "lucide-react";
 import { Button } from "../ui/button";
+import { toast } from "sonner";
 import {
   ScheduleItem,
   NarrativeItem,
@@ -40,6 +41,7 @@ interface LearningPathDisplayProps {
   isEditable?: boolean;
   planId?: string | null;
   isExisting?: boolean;
+  token: string;
 }
 
 export default function UpdatedLearningPathDisplay({
@@ -50,6 +52,7 @@ export default function UpdatedLearningPathDisplay({
   isEditable = true,
   planId = null,
   isExisting = false,
+  token,
 }: LearningPathDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<LearningPathData>(data);
@@ -83,7 +86,7 @@ export default function UpdatedLearningPathDisplay({
       const fetchDetails = async () => {
         try {
           // Gọi API với các ID mới
-          const contents = await fetchContentsByIds(uniqueNewIds);
+          const contents = await fetchContentsByIds(uniqueNewIds, token);
 
           // Cập nhật state với dữ liệu mới nhận được
           const newDetails: Record<string, ContentResponse> = {};
@@ -181,7 +184,14 @@ export default function UpdatedLearningPathDisplay({
 
   const handleSave = async () => {
     if (!validateAllScheduleItems()) {
-      alert("Vui lòng sửa các lỗi validation trước khi lưu.");
+      toast.error("Vui lòng sửa các lỗi validation trước khi lưu.", {
+        style: {
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
+        },
+        icon: "❌",
+      });
       return;
     }
 
@@ -203,9 +213,15 @@ export default function UpdatedLearningPathDisplay({
       setHasUnsavedChanges(false);
       setIsEditing(false);
       setValidationErrors({});
-    } catch (error) {
-      console.error("Error saving learning path:", error);
-      alert("Có lỗi xảy ra khi lưu. Vui lòng thử lại.");
+    } catch {
+      toast.error("Có lỗi xảy ra khi lưu. Vui lòng thử lại.", {
+        style: {
+          background: "#ef4444",
+          color: "white",
+          border: "1px solid #dc2626",
+        },
+        icon: "❌",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -636,7 +652,7 @@ export default function UpdatedLearningPathDisplay({
             })}
             {item.contentIds.length === 0 && (
               <span className="text-gray-400 text-sm italic">
-                Chưa có nội dung học nào
+                Dont have content yet.
               </span>
             )}
           </div>
@@ -656,18 +672,18 @@ export default function UpdatedLearningPathDisplay({
             <div className="flex items-center gap-3">
               <Target className="w-6 h-6" />
               <h2 className="text-2xl font-bold">
-                {isExisting ? "Learning Path của bạn" : "Learning Path mới"}
+                {isExisting ? "Your Learning Path" : "New Learning Path"}
               </h2>
               {planId && (
                 <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                   <CheckCircle className="w-4 h-4" />
-                  <span className="text-sm">Đã lưu</span>
+                  <span className="text-sm">Saved</span>
                 </div>
               )}
               {hasUnsavedChanges && (
                 <div className="flex items-center gap-2 bg-yellow-500/20 px-3 py-1 rounded-full">
                   <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">Có thay đổi chưa lưu</span>
+                  <span className="text-sm">You have unsaved changes</span>
                 </div>
               )}
             </div>
@@ -682,12 +698,12 @@ export default function UpdatedLearningPathDisplay({
                   {isSaving ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Đang lưu...
+                      Saving...
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4 mr-2" />
-                      {planId ? "Đã lưu" : "Lưu Learning Path"}
+                      {planId ? "Saved" : "Save Learning Path"}
                     </>
                   )}
                 </Button>
@@ -700,7 +716,7 @@ export default function UpdatedLearningPathDisplay({
                   className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Xuất JSON
+                  Export JSON
                 </Button>
               )}
 
@@ -716,7 +732,7 @@ export default function UpdatedLearningPathDisplay({
                         {isSaving ? (
                           <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            Đang lưu...
+                            Saving...
                           </>
                         ) : (
                           <>
@@ -730,7 +746,7 @@ export default function UpdatedLearningPathDisplay({
                         disabled={isSaving}
                         className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
                       >
-                        Hủy
+                        Cancel
                       </Button>
                     </>
                   ) : (
@@ -740,7 +756,7 @@ export default function UpdatedLearningPathDisplay({
                       className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
                     >
                       <Edit3 className="w-4 h-4 mr-2" />
-                      Chỉnh sửa
+                      Edit
                     </Button>
                   )}
                 </>
@@ -762,10 +778,10 @@ export default function UpdatedLearningPathDisplay({
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-blue-500" />
-                Lịch học của bạn ({
+                Your class schedule ({
                   editedData.scheduleItems.scheduleData.length
                 }{" "}
-                buổi)
+                session)
               </h3>
               {isEditing && (
                 <Button
@@ -773,7 +789,7 @@ export default function UpdatedLearningPathDisplay({
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Thêm buổi học
+                  Add a lesson
                 </Button>
               )}
             </div>
@@ -787,7 +803,7 @@ export default function UpdatedLearningPathDisplay({
                 <div className="bg-gray-50 rounded-xl p-6 text-center">
                   <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                   <p className="text-gray-500">
-                    Chưa có lịch học nào.{" "}
+                      No class schedule yet.{" "}
                     {isEditing && 'Nhấn "Thêm buổi học" để bắt đầu.'}
                   </p>
                 </div>
@@ -799,7 +815,7 @@ export default function UpdatedLearningPathDisplay({
           <div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-green-500" />
-              Chi tiết nội dung học
+              Course content details
             </h3>
 
             <div className="space-y-4">
@@ -811,8 +827,7 @@ export default function UpdatedLearningPathDisplay({
                 <div className="bg-gray-50 rounded-xl p-6 text-center">
                   <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                   <p className="text-gray-500">
-                    Chưa có nội dung chi tiết. Nội dung sẽ được tạo tự động khi
-                    bạn lưu lịch học.
+                    No detailed content yet. Content will be generated automatically when you save your schedule.
                   </p>
                 </div>
               )}
@@ -861,12 +876,12 @@ export default function UpdatedLearningPathDisplay({
                   {isSaving ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Đang lưu...
+                      Saving...
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4 mr-2" />
-                      Lưu ngay
+                      Save now
                     </>
                   )}
                 </Button>

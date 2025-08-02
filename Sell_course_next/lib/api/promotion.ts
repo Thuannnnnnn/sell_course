@@ -14,10 +14,11 @@ export interface PromotionValidationResponse {
 }
 
 export const validatePromotionCode = async (
-  code: string, 
-  courseId?: string
+  code: string,
+  courseId?: string,
+  token?: string
 ): Promise<PromotionValidationResponse> => {
-  const url = courseId 
+  const url = courseId
     ? `${process.env.NEXT_PUBLIC_API_URL}/api/promotion/validate/${code}?courseId=${courseId}`
     : `${process.env.NEXT_PUBLIC_API_URL}/api/promotion/validate/${code}`;
 
@@ -25,6 +26,7 @@ export const validatePromotionCode = async (
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
   });
 

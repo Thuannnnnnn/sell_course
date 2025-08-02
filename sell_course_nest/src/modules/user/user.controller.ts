@@ -22,10 +22,15 @@ import { ChangePasswordDto } from './dto/changePassword.dto';
 import { CreateUserDto } from './dto/createUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserDto } from './dto/updateProfile.dto';
-import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from '../Auth/roles.guard';
+import { Roles } from '../Auth/roles.decorator';
+import { UserRole } from '../Auth/user.enum';
 @Controller('api')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/admin/user/view_user')
   async getAllUsers() {
     return this.userService.findAll();
@@ -38,11 +43,11 @@ export class UserController {
    * }
    */
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/users/user')
   async findUserById(@Req() req): Promise<any> {
     const user_id = req.user.user_id;
-    console.log('Fetching user with ID:', user_id);
 
     const user = await this.userService.getUserById(user_id);
     if (!user) {
@@ -51,7 +56,8 @@ export class UserController {
     return user;
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('/users/user')
   @UseInterceptors(FileInterceptor('avatar'))
   async updateUser(
@@ -100,7 +106,6 @@ export class UserController {
     }
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Put('/users/user/change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
@@ -125,6 +130,8 @@ export class UserController {
     );
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('/admin/users/assign_permissions/:id')
   async addPermissionsToUser(
     @Param('id') userId: string,
@@ -132,6 +139,9 @@ export class UserController {
   ) {
     return this.userService.addPermissions(userId, body.permissionIds);
   }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete(':id/permissions/:permissionId')
   async removePermissionFromUser(
     @Param('id') userId: string,
@@ -140,7 +150,8 @@ export class UserController {
     return this.userService.removePermission(userId, permissionId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async get(@Req() req) {
     const user_id = req.user.user_id;
     return this.userService.getUserById(user_id);
@@ -165,6 +176,8 @@ export class UserController {
   //   );
   // }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('/admin/users/remove_permission/:userId/:permissionId')
   async removePermission(
     @Param('userId') userId: string,
@@ -187,7 +200,8 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/users/profile')
   async getMe(@Req() req: any) {
     try {
@@ -221,6 +235,9 @@ export class UserController {
     }
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('/admin/users/create')
   async createUser(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     try {
@@ -263,6 +280,9 @@ export class UserController {
     }
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('/admin/users/delete/:id')
   async deleteUser(@Param('id') userId: string) {
     try {
@@ -271,12 +291,19 @@ export class UserController {
         message: 'User deleted successfully',
       };
     } catch (error) {
+      console.error('Error deleting user:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new HttpException(
         'Failed to delete user',
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('admin/users/update_user/:id')
   async updateUserAdmin(
     @Param('id') userId: string,
@@ -284,6 +311,10 @@ export class UserController {
   ): Promise<UserDto> {
     return this.userService.updateUser(userId, updateData);
   }
+
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('/admin/users/ban/:id')
   async banUser(
     @Param('id') userId: string,

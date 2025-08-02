@@ -8,21 +8,30 @@ import {
   UseInterceptors,
   Body,
   Get,
+  UseGuards,
 } from '@nestjs/common';
 import { VideoService } from './video.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { UserRole } from '../Auth/user.enum';
+import { Roles } from '../Auth/roles.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
 
 @Controller('api')
 export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('/instructor/video/create_video')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
@@ -58,6 +67,9 @@ export class VideoController {
     return this.videoService.uploadFile(file, title, contentId);
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('/instructor/video/update_script/:videoId')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
@@ -92,6 +104,9 @@ export class VideoController {
     return this.videoService.updateScript(videoId, file);
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('/instructor/video/update_video/:videoId')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
@@ -130,6 +145,9 @@ export class VideoController {
     return this.videoService.updateVideo(videoId, file);
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('/instructor/video/delete_video_script/:videoId')
   @ApiOperation({
     summary: 'Delete video and script',
@@ -156,6 +174,8 @@ export class VideoController {
     return this.videoService.deleteVideoScript(videoId);
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/instructor/video/view_video_list')
   @ApiOperation({
     summary: 'Get all videos',
@@ -191,6 +211,8 @@ export class VideoController {
     return this.videoService.viewVideo();
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/video/view_video/:videoId')
   @ApiOperation({
     summary: 'Get video by content ID',
@@ -225,6 +247,8 @@ export class VideoController {
     return this.videoService.viewVideoById(videoId);
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/video/view_video_content/:contentId')
   @ApiOperation({
     summary: 'Get video by content ID',

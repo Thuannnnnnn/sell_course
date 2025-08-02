@@ -100,7 +100,8 @@ export function DocLesson({
         // Try to fetch document metadata first
         try {
           const docData = await apiCall<DocumentData>(
-            `/api/docs/view_doc/${lesson.content}`
+            `/api/docs/view_doc/${lesson.content}`,
+            'GET'
           );
           setDocumentData(docData);
 

@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
@@ -19,10 +20,17 @@ import { DocsResponseDTO } from './dto/docResponseData.dto';
 import { DocsService } from './docs.service';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { DocsRequestDTO } from './dto/docRequestData.dto';
+import { Roles } from '../Auth/roles.decorator';
+import { UserRole } from '../Auth/user.enum';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
 
 @Controller('api')
 export class DocsController {
   constructor(private readonly docsService: DocsService) {}
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/admin/docs/getAll')
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get all Docs' })
@@ -39,6 +47,8 @@ export class DocsController {
     return await this.docsService.getAllDocs();
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/admin/docs/view_doc/:id')
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get all Docs' })
@@ -74,7 +84,8 @@ export class DocsController {
   ): Promise<DocsResponseDTO> {
     return await this.docsService.getByContentId(contentsId);
   }
-
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('/admin/docs/create_docs')
   @ApiBearerAuth('Authorization')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 1 }]))
@@ -98,6 +109,8 @@ export class DocsController {
     return await this.docsService.createDocs(docs, file);
   }
 
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('Authorization')
   @Put('/admin/docs/update_docs/:id')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 1 }]))
@@ -121,6 +134,8 @@ export class DocsController {
     return await this.docsService.updatedDocs(docsId, updateData, file);
   }
 
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('Authorization')
   @Delete('admin/docs/delete_doc/:id')
   @ApiOperation({ summary: 'Delete a doc by ID' })

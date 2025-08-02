@@ -95,13 +95,56 @@ export async function checkEnrollmentServer(courseId: string): Promise<Enrollmen
 // Client-side enrollment API functions
 export const enrollmentApi = {
   // Check if user is enrolled in a course (client-side)
-  checkEnrollment: async (courseId: string): Promise<EnrollmentResponse> => {
-    return apiCall<EnrollmentResponse>(`/api/enrollment/check?courseId=${courseId}`);
+  checkEnrollment: async (courseId: string, token?: string): Promise<EnrollmentResponse> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    // Get user ID from token payload (you might need to decode JWT or get from session)
+    // For now, we'll make a call to get the current user's profile first
+    try {
+      // First get the current user's profile to get userId
+      const userResponse = await fetch(`${API_BASE_URL}/api/users/profile`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (!userResponse.ok) {
+        throw new Error('Failed to get user profile');
+      }
+      
+      const userData = await userResponse.json();
+      const userId = userData.user_id || userData.id;
+      
+      // Now check enrollment with POST request as backend expects
+      return apiCall<EnrollmentResponse>(`/api/enrollment/check`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          courseId: courseId,
+          userId: userId
+        })
+      });
+    } catch (error) {
+      console.error('Error in checkEnrollment:', error);
+      throw error;
+    }
   },
 
   // Get user's enrolled courses
-  getUserEnrollments: async (): Promise<Enrollment[]> => {
-    return apiCall<Enrollment[]>("/api/enrollment/user");
+  getUserEnrollments: async (token?: string): Promise<Enrollment[]> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    // Use the my-enrollments endpoint for current user
+    return apiCall<Enrollment[]>("/api/enrollment/my-enrollments", {
+      headers
+    });
   },
 
   // Create enrollment

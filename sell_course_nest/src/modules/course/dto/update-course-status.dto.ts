@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { CourseStatus } from '../enums/course-status.enum';
 
 export class UpdateCourseStatusDto {
@@ -31,5 +31,16 @@ export class ReviewCourseStatusDto {
     example: 'Content quality needs improvement',
     required: false,
   })
+  @IsOptional()
+  @IsString()
+  rejectionReason?: string;
+
+  @ApiProperty({
+    description: 'Optional reason for rejection (alternative field name)',
+    example: 'Content quality needs improvement',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
   reason?: string;
 }

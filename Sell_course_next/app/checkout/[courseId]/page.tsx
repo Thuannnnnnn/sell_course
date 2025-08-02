@@ -18,6 +18,7 @@ import { CourseList } from "@/components/checkout/CourseList";
 import logo from "@/public/logo.png";
 import PageHead from "@/components/layout/Head";
 
+
 export default function CheckoutPage() {
   const params = useParams();
   const courseId = params.courseId;
@@ -29,6 +30,7 @@ export default function CheckoutPage() {
   const [orderCode, setOrderCode] = useState<string | null>(null);
   const [isPaymentCompleted, setIsPaymentCompleted] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [promotionCode, setPromotionCode] = useState<string | undefined>(undefined);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -52,13 +54,16 @@ export default function CheckoutPage() {
   }, [courseId]);
 
   const handlePayment = async () => {
-    if (course && session?.user?.email) {
+    if (course && session?.user?.email && session?.user?.id && session?.accessToken) {
       try {
         setIsLoading(true);
         const paymentResponse = await createPaymentLinkAPI({
           courseId: courseId as string,
           email: session?.user?.email,
-        });
+          userId: session?.user?.id,
+          amount: course.price,
+          promotionCode: promotionCode,
+        }, session?.accessToken);
         setQrCodeData(paymentResponse.qrCode);
         setCheckoutUrl(paymentResponse.checkoutUrl);
         setOrderCode(paymentResponse.orderCode);
@@ -88,8 +93,9 @@ export default function CheckoutPage() {
       checkPaymentStatus();
     }
   };
-  const handleApplyDiscount = (amount: number) => {
+  const handleApplyDiscount = (amount: number, promoCode?: string) => {
     setDiscount(amount);
+    setPromotionCode(promoCode);
   };
 
   if (isLoading) {
@@ -129,96 +135,103 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background flex items-center justify-center">
-      <PageHead
-        title="Checkout - Course Master"
-        description="Checkout - Course Master"
-      />
-      <div className="container max-w-6xl px-4 py-8 md:py-12">
-        <div className="space-y-2 text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-            Confirm Your Order
-          </h1>
-          <p className="text-muted-foreground">
-            Please review your course and total before proceeding to payment
-          </p>
-        </div>
-        <div className="grid gap-8 md:grid-cols-[1fr_400px]">
-          <div className="space-y-8">
-            {course && (
-              <CourseList
-                courses={[
-                  {
-                    id: course.courseId,
-                    title: course.title,
-                    instructor: course.instructorName || "Unknown",
-                    duration: course.duration ? String(course.duration) : "N/A",
-                    price: course.price,
-                    image: course.thumbnail || "/placeholder.png",
-                    originalPrice: course.price,
-                  },
-                ]}
-              />
-            )}
-            <DiscountCode onApplyDiscount={handleApplyDiscount} courseId={courseId as string} />
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+        <PageHead
+          title="Checkout - Course Master"
+          description="Checkout - Course Master"
+        />
+        <div className="container max-w-6xl px-4 py-8 md:py-12">
+          <div className="space-y-2 text-center mb-8">
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+              Confirm Your Order
+            </h1>
+            <p className="text-muted-foreground">
+              Please review your course and total before proceeding to payment
+            </p>
           </div>
-          <div className="space-y-6">
-            {course && (
-              <PaymentSummary
-                subtotal={course.price}
-                discount={(course.price * discount) / 100}
-                total={course.price - (course.price * discount) / 100}
-              />
-            )}
-            {qrCodeData ? (
-              <div className="flex flex-col items-center">
-                <h2 className="text-xl font-semibold mb-4">Scan the QR Code</h2>
-                <QRCodeSVG
-                  value={qrCodeData}
-                  size={256}
-                  imageSettings={{
-                    src: logo.src,
-                    height: 40,
-                    width: 40,
-                    excavate: true,
-                  }}
+          <div className="grid gap-8 md:grid-cols-[1fr_400px]">
+            <div className="space-y-8">
+              {course && (
+                <CourseList
+                  courses={[
+                    {
+                      id: course.courseId,
+                      title: course.title,
+                      instructor: course.instructorName || "Unknown",
+                      duration: course.duration
+                        ? String(course.duration)
+                        : "N/A",
+                      price: course.price,
+                      image: course.thumbnail || "/placeholder.png",
+                      originalPrice: course.price,
+                    },
+                  ]}
                 />
-                {checkoutUrl && (
-                  <a
-                    href={checkoutUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline mt-4"
+              )}
+              <DiscountCode
+                onApplyDiscount={handleApplyDiscount}
+                courseId={courseId as string}
+              />
+            </div>
+            <div className="space-y-6">
+              {course && (
+                <PaymentSummary
+                  subtotal={course.price}
+                  discount={(course.price * discount) / 100}
+                  total={course.price - (course.price * discount) / 100}
+                />
+              )}
+              {qrCodeData ? (
+                <div className="flex flex-col items-center">
+                  <h2 className="text-xl font-semibold mb-4">
+                    Scan the QR Code
+                  </h2>
+                  <QRCodeSVG
+                    value={qrCodeData}
+                    size={256}
+                    imageSettings={{
+                      src: logo.src,
+                      height: 40,
+                      width: 40,
+                      excavate: true,
+                    }}
+                  />
+                  {checkoutUrl && (
+                    <a
+                      href={checkoutUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline mt-4"
+                    >
+                      Or click here to proceed to payment
+                    </a>
+                  )}
+                  <Button
+                    size="lg"
+                    className="w-full text-lg py-6"
+                    onClick={handleCheckPaymentStatus}
                   >
-                    Or click here to proceed to payment
-                  </a>
-                )}
-                <Button
-                  size="lg"
-                  className="w-full text-lg py-6"
-                  onClick={handleCheckPaymentStatus}
-                >
-                  Check Payment
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Button
-                  size="lg"
-                  className="w-full text-lg py-6"
-                  onClick={handlePayment}
-                >
-                  Proceed to Payment
-                </Button>
-                <div className="flex items-center justify-center text-sm text-muted-foreground gap-1">
-                  <Lock className="h-4 w-4" />
-                  <span>All transactions are secure</span>
+                    Check Payment
+                  </Button>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-4">
+                  <Button
+                    size="lg"
+                    className="w-full text-lg py-6"
+                    onClick={handlePayment}
+                  >
+                    Proceed to Payment
+                  </Button>
+                  <div className="flex items-center justify-center text-sm text-muted-foreground gap-1">
+                    <Lock className="h-4 w-4" />
+                    <span>All transactions are secure</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
   );
 }

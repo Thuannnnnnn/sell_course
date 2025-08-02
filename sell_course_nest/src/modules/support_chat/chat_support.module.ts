@@ -8,9 +8,13 @@ import { ChatGateway } from './chat_support.gateway';
 import { User } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
 import { Permission } from '../permission/entities/permission.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ChatSession, Message, User, Permission])],
+  imports: [
+    TypeOrmModule.forFeature([ChatSession, Message, User, Permission]),
+    NotificationModule,
+  ],
   providers: [ChatService, ChatGateway, UserService],
   controllers: [ChatController],
 })

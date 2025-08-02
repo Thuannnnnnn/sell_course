@@ -269,7 +269,7 @@ ${item.contentIds
               <div>
                 <p className="font-medium text-gray-900">{event.title}</p>
                 <p className="text-sm text-gray-600">
-                  Tuần {scheduleItem.weekNumber}
+                  Week {scheduleItem.weekNumber}
                 </p>
               </div>
             </div>
@@ -282,7 +282,7 @@ ${item.contentIds
                 </p>
                 <p className="text-sm text-gray-600">
                   {scheduleItem.startTime} - {endTime} (
-                  {scheduleItem.durationMin} phút)
+                  {scheduleItem.durationMin} minutes)
                 </p>
               </div>
             </div>
@@ -388,11 +388,11 @@ ${item.contentIds
             <Calendar className="w-8 h-8 text-green-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Thêm tuần {weekNumber} vào Google Calendar
+            Add week {weekNumber} into Google Calendar
           </h2>
           <p className="text-gray-600">
-            Thêm tất cả {scheduleItems.length} buổi học trong tuần này vào lịch
-            của bạn
+            Add all {scheduleItems.length} this week&apos;s classes on your
+            calendar
           </p>
         </div>
 
@@ -400,7 +400,7 @@ ${item.contentIds
         <div className="bg-gray-50 rounded-lg p-6">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Tổng quan tuần {weekNumber}
+            Weekly Overview {weekNumber}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -408,19 +408,19 @@ ${item.contentIds
               <div className="text-2xl font-bold text-blue-600">
                 {scheduleItems.length}
               </div>
-              <div className="text-sm text-gray-600">Buổi học</div>
+              <div className="text-sm text-gray-600">Lesson</div>
             </div>
             <div className="text-center p-3 bg-white rounded-lg">
               <div className="text-2xl font-bold text-green-600">
                 {Math.round(totalDuration / 60)}h {totalDuration % 60}m
               </div>
-              <div className="text-sm text-gray-600">Tổng thời gian</div>
+              <div className="text-sm text-gray-600">Total time</div>
             </div>
             <div className="text-center p-3 bg-white rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
                 {totalContents}
               </div>
-              <div className="text-sm text-gray-600">Nội dung học</div>
+              <div className="text-sm text-gray-600">Learning content</div>
             </div>
           </div>
 
@@ -447,12 +447,12 @@ ${item.contentIds
                       </p>
                       <p className="text-sm text-gray-600">
                         {item.startTime} - {endTime} • {item.contentIds.length}{" "}
-                        nội dung
+                        Content
                       </p>
                     </div>
                   </div>
                   <div className="text-sm text-gray-500">
-                    {item.durationMin} phút
+                    {item.durationMin} minutes
                   </div>
                 </div>
               );
@@ -470,12 +470,12 @@ ${item.contentIds
             {isGenerating ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Đang tạo {scheduleItems.length} sự kiện...
+                Creating {scheduleItems.length} event...
               </>
             ) : (
               <>
                 <ExternalLink className="w-5 h-5" />
-                Thêm tất cả vào Google Calendar
+                Add all to Google Calendar
               </>
             )}
           </button>
@@ -485,7 +485,7 @@ ${item.contentIds
             className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium flex items-center gap-2 transition-colors"
           >
             <Download className="w-5 h-5" />
-            Tải file .ics
+            Download .ics file
           </button>
         </div>
 
@@ -494,11 +494,13 @@ ${item.contentIds
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
             <div className="text-amber-800">
-              <p className="font-medium mb-1">Lưu ý khi thêm nhiều sự kiện</p>
+              <p className="font-medium mb-1">
+                Note when adding multiple events
+              </p>
               <p className="text-sm">
-                Trình duyệt có thể chặn việc mở nhiều tab cùng lúc. Nếu không
-                thấy tất cả sự kiện, hãy cho phép popup hoặc sử dụng tính năng
-                tải file .ics để import vào lịch.
+                Your browser may block multiple tabs from opening at once. If
+                you don&apos;t see all your events, allow popups or use the .ics file
+                download feature to import them into your calendar.
               </p>
             </div>
           </div>
@@ -513,7 +515,7 @@ ${item.contentIds
       {showSuccess && (
         <div className="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5" />
-          <span>Đã mở Google Calendar thành công!</span>
+          <span>Google Calendar opened successfully!</span>
         </div>
       )}
 
@@ -527,7 +529,7 @@ ${item.contentIds
             onClick={onClose}
             className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
-            Đóng
+           Close
           </button>
         </div>
       )}

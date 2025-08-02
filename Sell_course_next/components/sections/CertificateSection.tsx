@@ -141,7 +141,7 @@ export function CertificateSection() {
   // Initial fetch on mount
   useEffect(() => {
     fetchCertificates(false);
-  }, [session?.user?.id, session?.accessToken]);
+  }, [fetchCertificates]);
 
   // Filter certificates based on search query
   const filteredCertificates = certificates.filter(cert =>

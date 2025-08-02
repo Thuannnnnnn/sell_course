@@ -118,12 +118,7 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         );
       },
       cell: ({ row }) => {
-        const price = parseFloat(row.getValue("price"));
-        const vndPrice = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(price * 24000); // Converting USD to VND for demo
-        return <div>{vndPrice}</div>;
+        return <div>{row.getValue("price")}</div>;
       },
     },
     {

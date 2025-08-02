@@ -10,8 +10,6 @@ import { Exam } from '../exam/entities/exam.entity';
 import { ResultExam } from '../result_exam/entities/result_exam.entity';
 import { ProgressTracking } from '../progress_tracking/entities/progress.entity';
 import { Promotion } from '../promotion/entities/promotion.entity';
-import { Forum } from '../forum/entities/forum.entity';
-import { QaStudy } from '../qa_study/entities/qa.entity';
 
 @Module({
   imports: [
@@ -24,8 +22,6 @@ import { QaStudy } from '../qa_study/entities/qa.entity';
       ResultExam,
       ProgressTracking,
       Promotion,
-      Forum,
-      QaStudy,
     ]),
   ],
   controllers: [DashboardController],

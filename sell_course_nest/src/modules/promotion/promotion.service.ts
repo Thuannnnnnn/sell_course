@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Promotion } from './entities/promotion.entity';
 import { CreatePromotionDto, UpdatePromotionDto } from './dto/promotion.dto';
 import { Course } from '../course/entities/course.entity';
+import { User } from '../user/entities/user.entity';
+import { PromotionNotificationService } from '../notification/promotion-notification.service';
 
 @Injectable()
 export class PromotionService {
@@ -12,6 +14,9 @@ export class PromotionService {
     private promotionRepository: Repository<Promotion>,
     @InjectRepository(Course)
     private courseRepository: Repository<Course>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private promotionNotificationService: PromotionNotificationService,
   ) {}
 
   private isPromotionExpired(promotion: Promotion): boolean {
@@ -55,9 +60,10 @@ export class PromotionService {
     };
   }
 
-  async create(createPromotionDto: CreatePromotionDto): Promise<Promotion> {
+  async create(createPromotionDto: CreatePromotionDto, createdByUserId?: string): Promise<Promotion> {
     const course = await this.courseRepository.findOne({
       where: { courseId: createPromotionDto.courseId },
+      relations: ['instructor'],
     });
     console.log(course);
     if (!course) {
@@ -77,11 +83,33 @@ export class PromotionService {
 
     const savedPromotion = await this.promotionRepository.save(promotion);
 
-    // Return with course relation loaded
-    return this.promotionRepository.findOne({
+    // Load promotion with course relation
+    const promotionWithCourse = await this.promotionRepository.findOne({
       where: { id: savedPromotion.id },
       relations: ['course'],
     });
+
+    // Send notification if createdByUserId is provided
+    if (createdByUserId && promotionWithCourse) {
+      try {
+        const createdByUser = await this.userRepository.findOne({
+          where: { user_id: createdByUserId },
+        });
+
+        if (createdByUser) {
+          console.log(`🎯 Sending promotion notification for: ${promotionWithCourse.name}`);
+          await this.promotionNotificationService.notifyOnPromotionCreated(
+            promotionWithCourse,
+            createdByUser
+          );
+        }
+      } catch (error) {
+        console.error('Failed to send promotion notification:', error);
+        // Don't throw error to avoid breaking the promotion creation
+      }
+    }
+
+    return promotionWithCourse;
   }
 
   async findAll(): Promise<any[]> {
@@ -94,6 +122,19 @@ export class PromotionService {
   async findOne(code: string): Promise<any> {
     const promotion = await this.promotionRepository.findOne({
       where: { code },
+      relations: ['course'],
+    });
+
+    if (!promotion) {
+      throw new NotFoundException('Promotion not found');
+    }
+
+    return this.addStatusToPromotion(promotion);
+  }
+
+  async findById(id: string): Promise<any> {
+    const promotion = await this.promotionRepository.findOne({
+      where: { id },
       relations: ['course'],
     });
 
@@ -148,6 +189,7 @@ export class PromotionService {
   async update(
     id: string,
     updatePromotionDto: UpdatePromotionDto,
+    updatedByUserId?: string,
   ): Promise<any> {
     const promotion = await this.promotionRepository.findOne({
       where: { id },
@@ -157,6 +199,9 @@ export class PromotionService {
     if (!promotion) {
       throw new NotFoundException('Promotion not found');
     }
+
+    // Track updated fields for notification
+    const updatedFields: string[] = [];
 
     // If courseId is being updated, find the new course
     if (updatePromotionDto.courseId) {
@@ -169,35 +214,101 @@ export class PromotionService {
       }
 
       promotion.course = course;
+      updatedFields.push('course');
     }
 
-    // Update other fields
-    if (updatePromotionDto.name) promotion.name = updatePromotionDto.name;
-    if (updatePromotionDto.discount)
+    // Update other fields and track changes
+    if (updatePromotionDto.name && updatePromotionDto.name !== promotion.name) {
+      promotion.name = updatePromotionDto.name;
+      updatedFields.push('name');
+    }
+    if (updatePromotionDto.discount && updatePromotionDto.discount !== promotion.discount) {
       promotion.discount = updatePromotionDto.discount;
-    if (updatePromotionDto.code) promotion.code = updatePromotionDto.code;
+      updatedFields.push('discount');
+    }
+    if (updatePromotionDto.code && updatePromotionDto.code !== promotion.code) {
+      promotion.code = updatePromotionDto.code;
+      updatedFields.push('code');
+    }
     if ('startDate' in updatePromotionDto) {
-      promotion.startDate = updatePromotionDto.startDate
+      const newStartDate = updatePromotionDto.startDate
         ? new Date(updatePromotionDto.startDate)
         : null;
+      if (newStartDate?.getTime() !== promotion.startDate?.getTime()) {
+        promotion.startDate = newStartDate;
+        updatedFields.push('startDate');
+      }
     }
     if ('endDate' in updatePromotionDto) {
-      promotion.endDate = updatePromotionDto.endDate
+      const newEndDate = updatePromotionDto.endDate
         ? new Date(updatePromotionDto.endDate)
         : null;
+      if (newEndDate?.getTime() !== promotion.endDate?.getTime()) {
+        promotion.endDate = newEndDate;
+        updatedFields.push('endDate');
+      }
     }
+
     const savedPromotion = await this.promotionRepository.save(promotion);
+    
     // Return with course relation loaded
     const updatedPromotion = await this.promotionRepository.findOne({
       where: { id: savedPromotion.id },
       relations: ['course'],
     });
 
+    // Send notification if there are actual changes and updatedByUserId is provided
+    if (updatedFields.length > 0 && updatedByUserId && updatedPromotion) {
+      try {
+        const updatedByUser = await this.userRepository.findOne({
+          where: { user_id: updatedByUserId },
+        });
+
+        if (updatedByUser) {
+          console.log(`🔄 Sending promotion update notification for: ${updatedPromotion.name}`);
+          await this.promotionNotificationService.notifyOnPromotionUpdated(
+            updatedPromotion,
+            updatedByUser,
+            updatedFields
+          );
+        }
+      } catch (error) {
+        console.error('Failed to send promotion update notification:', error);
+      }
+    }
+
     return this.addStatusToPromotion(updatedPromotion);
   }
 
-  async remove(id: string): Promise<void> {
-    const promotion = await this.promotionRepository.findOne({ where: { id } });
+  async remove(id: string, deletedByUserId?: string): Promise<void> {
+    const promotion = await this.promotionRepository.findOne({ 
+      where: { id },
+      relations: ['course'],
+    });
+
+    if (!promotion) {
+      throw new NotFoundException('Promotion not found');
+    }
+
+    // Send notification before deletion if deletedByUserId is provided
+    if (deletedByUserId) {
+      try {
+        const deletedByUser = await this.userRepository.findOne({
+          where: { user_id: deletedByUserId },
+        });
+
+        if (deletedByUser) {
+          console.log(`🗑️ Sending promotion deletion notification for: ${promotion.name}`);
+          await this.promotionNotificationService.notifyOnPromotionDeleted(
+            promotion,
+            deletedByUser
+          );
+        }
+      } catch (error) {
+        console.error('Failed to send promotion deletion notification:', error);
+      }
+    }
+
     await this.promotionRepository.remove(promotion);
   }
 }

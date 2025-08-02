@@ -69,7 +69,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="/"
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Home
@@ -77,7 +77,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/courses"
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Courses
@@ -85,26 +85,10 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/about"
                   className="text-muted-foreground hover:text-foreground"
                 >
                   About Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Contact
                 </a>
               </li>
             </ul>

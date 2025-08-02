@@ -1,21 +1,41 @@
 import axios from "axios";
 
-export const createPaymentLinkAPI = async (paymentData: {
-  courseId: string;
-  email: string;
-}): Promise<{
+export const createPaymentLinkAPI = async (
+  paymentData: {
+    courseId: string;
+    email: string;
+    promotionCode?: string;
+    userId?: string;
+    amount?: number;
+  },
+  accessToken?: string
+): Promise<{
   qrCode: string;
   checkoutUrl: string;
   orderCode: string;
+  promotionDetails?: {
+    id: string;
+    name: string;
+    discount: number;
+    discountAmount: number;
+    originalPrice: number;
+    finalPrice: number;
+  };
 }> => {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/payment/create-payment-link`,
       paymentData,
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       }
     );
 

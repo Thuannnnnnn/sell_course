@@ -8,6 +8,7 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { UpdateLessonDTO } from './dto/lesson.dto';
@@ -15,17 +16,23 @@ import {
   ApiOperation,
   ApiResponse,
   ApiTags,
-  ApiBearerAuth,
   ApiBody,
   ApiParam,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { UserRole } from '../Auth/user.enum';
+import { Roles } from '../Auth/roles.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../Auth/roles.guard';
 
-@ApiTags('Lessons') // Group các API dưới tag "Lessons" trong Swagger UI
-@ApiBearerAuth('Authorization') // Yêu cầu authentication cho tất cả routes
+@ApiTags('Lessons')
 @Controller('api')
 export class LessonController {
   constructor(private readonly lessonService: LessonService) {}
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('instructor/lesson/create_lesson')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -56,7 +63,8 @@ export class LessonController {
     );
     return { message: 'Lesson created successfully', data: result };
   }
-
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -81,7 +89,8 @@ export class LessonController {
   async getLessons() {
     return this.lessonService.getLessons();
   }
-
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('instructor/lesson/view_lesson')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -106,7 +115,8 @@ export class LessonController {
   async getLessonsForInstructor() {
     return this.lessonService.getLessons();
   }
-
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('instructor/lesson/view_lesson/:courseId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -125,6 +135,8 @@ export class LessonController {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('lesson/view_lesson/:courseId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -143,6 +155,9 @@ export class LessonController {
     return this.lessonService.getLessonsByCourseId(courseId);
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('instructor/lesson/update_lesson/:lessonId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -169,6 +184,9 @@ export class LessonController {
     return this.lessonService.updateLesson(lessonId, updateLessonDto);
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('instructor/lesson/update_order')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -200,6 +218,9 @@ export class LessonController {
     return this.lessonService.updateLessonOrder(body.lessons);
   }
 
+  @ApiBearerAuth('Authorization')
+  @Roles(UserRole.INSTRUCTOR)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('instructor/lesson/delete_lesson/:lessonId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

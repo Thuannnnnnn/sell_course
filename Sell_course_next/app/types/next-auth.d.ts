@@ -13,6 +13,7 @@ declare module "next-auth" {
       role?: string;
     };
     accessToken?: string;
+    refreshToken?: string;
     expires: string;
   }
 
@@ -22,6 +23,7 @@ declare module "next-auth" {
     name?: string;
     image?: string;
     token?: string;
+    refreshToken?: string;
     avatarImg?: string;
     gender?: string;
     birthDay?: string;
@@ -34,10 +36,13 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     accessToken?: string;
+    refreshToken?: string;
+    accessTokenExpires?: number;
     avatarImg?: string;
     gender?: string;
     birthDay?: string;
     phoneNumber?: string;
     role?: string;
+    error?: string;
   }
 }

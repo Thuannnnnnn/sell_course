@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
 
 import { authService } from './auth.service';
 import { authController } from './auth.controller';
@@ -31,7 +32,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
         from: '"No Reply" <sdnmmagr5@gmail.com>',
       },
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, RefreshToken]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,

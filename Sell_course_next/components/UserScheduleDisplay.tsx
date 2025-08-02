@@ -29,6 +29,7 @@ import {
 import { ContentResponse } from "@/app/types/Course/Lesson/Lessons";
 import { getContentStatus } from "@/app/api/Progress/progress";
 import { fetchContentsByIds } from "@/app/api/courses/lessons/content";
+import { useSession } from "next-auth/react";
 
 interface EnhancedUserScheduleDisplayProps {
   scheduleItems: ScheduleItem[];
@@ -105,6 +106,7 @@ export default function EnhancedUserScheduleDisplay({
   onAddWeekToCalendar,
   isLoading = false,
 }: EnhancedUserScheduleDisplayProps) {
+    const { data: session } = useSession();
   const [filter, setFilter] = useState<ScheduleFilter>({});
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [currentWeek, setCurrentWeek] = useState<number>(1);
@@ -114,21 +116,22 @@ export default function EnhancedUserScheduleDisplay({
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
   const [showModal, setShowModal] = useState(false);
-
+const token = session?.accessToken;
   // Load content progress data
   useEffect(() => {
     const loadContentProgress = async () => {
       try {
+        if(!token) return;
         const allContentIds = scheduleItems.flatMap((item) => item.contentIds);
         const uniqueContentIds = Array.from(new Set(allContentIds));
 
         if (uniqueContentIds.length === 0 || !userId) return;
 
         // Fetch content details in batch
-        const contents = await fetchContentsByIds(uniqueContentIds);
+        const contents = await fetchContentsByIds(uniqueContentIds, token);
 
         const progressResults = await Promise.all(
-          uniqueContentIds.map((id) => getContentStatus(id, userId))
+          uniqueContentIds.map((id) => getContentStatus(id, userId, token))
         );
 
         const progressMap = new Map<string, ContentWithProgress>();
@@ -154,7 +157,7 @@ export default function EnhancedUserScheduleDisplay({
     if (userId && scheduleItems.length > 0) {
       loadContentProgress();
     }
-  }, [userId, scheduleItems]);
+  }, [userId, scheduleItems, token]);
 
   // Calculate week information
   const getWeekInfo = (weekNumber: number, items: ScheduleItem[]): WeekInfo => {
@@ -383,7 +386,7 @@ export default function EnhancedUserScheduleDisplay({
               <div
                 className={`px-3 py-1 rounded-full text-sm font-medium border ${weekColor}`}
               >
-                Tuần {item.weekNumber}
+                Week {item.weekNumber}
               </div>
               <div className="flex items-center gap-2 text-gray-600">
                 <StatusIcon className={`w-4 h-4 ${scheduleStatus.color}`} />
@@ -416,7 +419,7 @@ export default function EnhancedUserScheduleDisplay({
             </div>
             <div className="flex items-center gap-2 text-gray-500">
               <Target className="w-4 h-4" />
-              <span className="text-sm">{item.durationMin} phút</span>
+              <span className="text-sm">{item.durationMin} minutes</span>
             </div>
           </div>
 
@@ -424,7 +427,7 @@ export default function EnhancedUserScheduleDisplay({
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-gray-700">
-                Tiến độ hoàn thành
+                Completion progress
               </span>
               <span className="text-sm text-gray-600">{completionRate}%</span>
             </div>
@@ -447,7 +450,7 @@ export default function EnhancedUserScheduleDisplay({
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
                 <BookOpen className="w-4 h-4" />
-                Nội dung học ({item.contentIds.length})
+               Learning content ({item.contentIds.length})
               </h4>
               {item.contentIds.length > 3 && (
                 <button
@@ -457,7 +460,7 @@ export default function EnhancedUserScheduleDisplay({
                   }}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  {isExpanded ? "Thu gọn" : "Xem thêm"}
+                  {isExpanded ? "simplify" : "Read more"}
                 </button>
               )}
             </div>
@@ -502,7 +505,7 @@ export default function EnhancedUserScheduleDisplay({
               className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
             >
               <MoreHorizontal className="w-4 h-4" />
-              Chi tiết
+                Details
             </button>
 
             {onAddToCalendar && (
@@ -511,7 +514,7 @@ export default function EnhancedUserScheduleDisplay({
                 className="text-sm bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-md font-medium flex items-center gap-1 transition-colors"
               >
                 <CalendarPlus className="w-4 h-4" />
-                Thêm vào lịch
+                Add to calendar
               </button>
             )}
           </div>
@@ -536,13 +539,13 @@ export default function EnhancedUserScheduleDisplay({
       <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
         <div className="flex items-center gap-4">
           <div className={`px-4 py-2 rounded-lg font-semibold ${weekColor}`}>
-            Tuần {weekNumber}
+            Week {weekNumber}
           </div>
           <div className="text-sm text-gray-600">
             📅 {formatWeekDateRange(weekInfo)}
           </div>
           <div className="text-sm text-gray-600">
-            📚 {items.length} buổi học
+            📚 {items.length} Lessons
           </div>
           <div className="flex items-center gap-1 text-sm">
             <TrendingUp className="w-4 h-4 text-green-600" />
@@ -558,7 +561,7 @@ export default function EnhancedUserScheduleDisplay({
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <CalendarPlus className="w-4 h-4" />
-            Thêm tuần này vào Google Calendar
+            Add this week to Google Calendar
           </button>
         )}
       </div>
@@ -576,7 +579,7 @@ export default function EnhancedUserScheduleDisplay({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Tìm kiếm..."
+              placeholder="Search..."
               value={filter.searchTerm || ""}
               onChange={(e) =>
                 setFilter({ ...filter, searchTerm: e.target.value })
@@ -598,10 +601,10 @@ export default function EnhancedUserScheduleDisplay({
             }
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">Tất cả tuần</option>
+            <option value="">All week</option>
             {availableWeeks.map((week) => (
               <option key={week} value={week}>
-                Tuần {week}
+                Week {week}
               </option>
             ))}
           </select>
@@ -619,7 +622,7 @@ export default function EnhancedUserScheduleDisplay({
             }
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">Tất cả ngày</option>
+            <option value="">All days</option>
             {DAY_NAMES.map((day, index) => (
               <option key={index} value={index}>
                 {day}
@@ -638,7 +641,7 @@ export default function EnhancedUserScheduleDisplay({
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Tất cả khóa học</option>
+              <option value="">All courses</option>
               {availableCourses.map((courseId) => (
                 <option key={courseId} value={courseId}>
                   {courseId.slice(0, 8)}...
@@ -658,7 +661,7 @@ export default function EnhancedUserScheduleDisplay({
               onClick={() => setFilter({})}
               className="text-sm text-gray-600 hover:text-gray-800 underline"
             >
-              Xóa bộ lọc
+             Clear filter
             </button>
           </div>
         )}
@@ -690,7 +693,7 @@ export default function EnhancedUserScheduleDisplay({
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              Tuần {week}
+              Week {week}
             </button>
           ))}
         </div>
@@ -735,7 +738,7 @@ export default function EnhancedUserScheduleDisplay({
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900">
-                Chi tiết buổi học
+                Lesson details
               </h2>
               <button
                 onClick={closeModal}
@@ -749,19 +752,19 @@ export default function EnhancedUserScheduleDisplay({
               {/* Date and Time */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">
-                  📅 Thời gian
+                  📅 Time
                 </h3>
                 <p className="text-gray-700">{fullDate}</p>
                 <p className="text-gray-700">
                   {selectedItem.startTime} - {endTime} (
-                  {selectedItem.durationMin} phút)
+                  {selectedItem.durationMin} minute)
                 </p>
               </div>
 
               {/* Status */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">
-                  📊 Trạng thái
+                  📊 Status
                 </h3>
                 <div className="flex items-center gap-2">
                   <StatusIcon className={`w-5 h-5 ${scheduleStatus.color}`} />
@@ -772,7 +775,7 @@ export default function EnhancedUserScheduleDisplay({
               {/* Progress */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">
-                  🎯 Tiến độ hoàn thành
+                  🎯 Completion progress
                 </h3>
                 <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                   <div
@@ -787,14 +790,14 @@ export default function EnhancedUserScheduleDisplay({
                   />
                 </div>
                 <p className="text-sm text-gray-600">
-                  {completionRate}% hoàn thành
+                  {completionRate}% complete
                 </p>
               </div>
 
               {/* Content List */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">
-                  📚 Nội dung học
+                  📚 Learning content
                 </h3>
                 <div className="space-y-2">
                   {selectedItem.contentIds.map((contentId, index) => {
@@ -839,14 +842,14 @@ export default function EnhancedUserScheduleDisplay({
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2"
                   >
                     <CalendarPlus className="w-4 h-4" />
-                    Thêm vào Google Calendar
+                    Add to Google Calendar
                   </button>
                 )}
                 <button
                   onClick={closeModal}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
-                  Đóng
+                  Close
                 </button>
               </div>
             </div>
@@ -863,7 +866,7 @@ export default function EnhancedUserScheduleDisplay({
           <div className="flex items-center gap-3 mb-6">
             <Calendar className="w-6 h-6 text-blue-600" />
             <h2 className="text-2xl font-bold text-gray-900">
-              Lịch học của bạn
+              Your class schedule
             </h2>
           </div>
         )}
@@ -886,18 +889,17 @@ export default function EnhancedUserScheduleDisplay({
           <div className="flex items-center gap-3 mb-6">
             <Calendar className="w-6 h-6 text-blue-600" />
             <h2 className="text-2xl font-bold text-gray-900">
-              Lịch học của bạn
+              Your class schedule
             </h2>
           </div>
         )}
         <div className="bg-gray-50 rounded-xl p-8 text-center">
           <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Chưa có lịch học nào
+            No schedule yet
           </h3>
           <p className="text-gray-600">
-            Bạn chưa có lịch học nào được lên kế hoạch. Hãy tạo learning path để
-            bắt đầu!
+            You don&apos;t have any classes planned yet. Create a learning path to get started!
           </p>
         </div>
       </div>
@@ -912,10 +914,10 @@ export default function EnhancedUserScheduleDisplay({
           <div className="flex items-center gap-3">
             <Calendar className="w-6 h-6 text-blue-600" />
             <h2 className="text-2xl font-bold text-gray-900">
-              Lịch học của bạn
+              Your class schedule
             </h2>
             <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-              {filteredItems.length} buổi học
+              {filteredItems.length} lesson
             </div>
             {userId && (
               <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -927,7 +929,7 @@ export default function EnhancedUserScheduleDisplay({
                       0
                     ) / (filteredItems.length || 1)
                   )}
-                  % hoàn thành
+                  % complete
                 </span>
               </div>
             )}
@@ -952,10 +954,10 @@ export default function EnhancedUserScheduleDisplay({
         <div className="bg-gray-50 rounded-xl p-8 text-center">
           <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Không tìm thấy lịch học
+            No class schedule found
           </h3>
           <p className="text-gray-600">
-            Không có lịch học nào phù hợp với bộ lọc hiện tại.
+            There are no class schedules matching the current filter.
           </p>
         </div>
       ) : (
@@ -980,8 +982,7 @@ export default function EnhancedUserScheduleDisplay({
       {maxItemsToShow && filteredItems.length > maxItemsToShow && (
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            Hiển thị {maxItemsToShow} trong tổng số {filteredItems.length} buổi
-            học
+           Display {maxItemsToShow} in total {filteredItems.length} lesson
           </p>
         </div>
       )}

@@ -1,18 +1,43 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({
+  const { pathname } = request.nextUrl;
+
+  const session = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
   });
-  if (!token) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+
+  const publicRoutes = [
+    "/",
+    "/auth/login",
+    "/auth/register",
+    "/auth/forgot-password",
+    "/auth/login-google",
+  ];
+
+  // So sánh chính xác thay vì startsWith
+  const isPublicRoute = publicRoutes.includes(pathname);
+  const isAuthRoute = pathname.startsWith("/auth");
+
+  // ✅ Chưa login & vào private → redirect login
+  if (!session?.accessToken && !isPublicRoute) {
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("message", "Please login to access this page");
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // ✅ Đã login nhưng vào auth → redirect về /
+  if (session?.accessToken && isAuthRoute) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/protected/:path*", "/sell-course/:path*"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|public/).*)"],
 };

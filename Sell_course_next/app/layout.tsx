@@ -9,7 +9,6 @@ import { ToastProvider } from "@/components/ui/toast";
 import ChatSupportWindow from "../components/course/ChatSupportWindow";
 import { useEffect, useState } from "react";
 
-
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -26,7 +25,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [activeVersionId, setActiveVersionId] = useState<string | undefined>(undefined);
+  const [, setActiveVersionId] = useState<string | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     const updateVersionId = () => {
@@ -44,22 +45,19 @@ export default function RootLayout({
     };
   }, []);
 
-  // Debug
-  console.log("activeVersionId:", activeVersionId);
-
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased mx-auto`}
       >
         <SessionProvider refetchOnWindowFocus={false}>
-           <ToastProvider>
-          <div className="flex flex-col min-h-screen w-full">
-            <Navbar />
-            {children}
-            <Footer />
-            <ChatSupportWindow />
-          </div>
+          <ToastProvider>
+            <div className="flex flex-col min-h-screen w-full">
+              <Navbar />
+              {children}
+              <Footer />
+              <ChatSupportWindow />
+            </div>
           </ToastProvider>
         </SessionProvider>
       </body>

@@ -4,6 +4,18 @@ export interface StartChatResponse {
   sessionId: string;
 }
 
+export interface ChatSessionResponse {
+  sessionId: string;
+  messages: {
+    id: string;
+    sessionId: string;
+    sender: string;
+    messageText: string;
+    timestamp: string;
+  }[];
+  isNewSession: boolean;
+}
+
 export interface ChatHistoryResponse {
   session: {
     id: string;
@@ -43,6 +55,32 @@ export interface ChatHistoryResponse {
 //     console.error("Failed to notify admin", error);
 //   }
 // };
+
+export const StartOrGetChatSession = async (
+  userId: string,
+  sessionId: string | null,
+  token: string
+): Promise<ChatSessionResponse | undefined> => {
+  try {
+    const response: AxiosResponse<ChatSessionResponse> = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/chats/session`,
+      {
+        userId: userId,
+        sessionId: sessionId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("chat session error", error);
+    return undefined;
+  }
+};
 
 export const StartChat = async (
   userId: string,
