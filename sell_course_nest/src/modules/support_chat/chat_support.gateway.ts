@@ -11,6 +11,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Server } from 'socket.io';
 import { UserService } from '../user/user.service';
+import { ChatService } from './chat_support.service';
+import { NotificationService } from '../notification/notification.service';
 interface ChatSession {
   id: string;
   isActive: boolean;
@@ -22,7 +24,8 @@ interface ChatSession {
     username?: string;
   };
 }
-const SESSION_TTL = 86400;
+// TTL trong giây: 2 giờ = 2 * 60 * 60 = 7200 giây
+const SESSION_TTL = 7200; // 2 hours in seconds
 const getSessionInfoKey = (sessionId: string) =>
   `chat:session:${sessionId}:info`;
 const getSessionMessagesKey = (sessionId: string) =>
@@ -38,6 +41,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly userService: UserService,
+    private readonly chatService: ChatService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   // Helper: Lấy thông tin user từ database
@@ -215,8 +220,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('join')
-  handleJoin(client: Socket, data: { sessionId: string }) {
+  async handleJoin(client: Socket, data: { sessionId: string }) {
     client.join(data.sessionId);
+
+    // Refresh session TTL khi user join
+    const sessionKey = getSessionInfoKey(data.sessionId);
+    const chatSession = await this.cacheManager.get<ChatSession>(sessionKey);
+
+    if (chatSession) {
+      await this.cacheManager.set(sessionKey, chatSession, SESSION_TTL);
+      console.log(`[Chat] Session ${data.sessionId} TTL refreshed on join`);
+    }
   }
 
   @SubscribeMessage('leave')
@@ -232,7 +246,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const sessionKey = getSessionInfoKey(data.sessionId);
     let chatSession = await this.cacheManager.get<ChatSession>(sessionKey);
 
+    console.log(
+      `[Chat] Handling message for session: ${data.sessionId}, existing session:`,
+      !!chatSession,
+    );
+
     if (!chatSession) {
+      console.log(`[Chat] Creating new session: ${data.sessionId}`);
       const userInfo = data.sender ? await this.getUserInfo(data.sender) : null;
       const now = new Date();
       chatSession = {
@@ -255,6 +275,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const allSessions = await this.getAllSessions();
       this.server.emit('sessionsList', allSessions);
+    } else {
+      // Session đã tồn tại, refresh TTL để không bị expire
+      console.log(`[Chat] Refreshing existing session: ${data.sessionId}`);
+      await this.cacheManager.set(sessionKey, chatSession, SESSION_TTL);
     }
 
     const message = {
@@ -265,15 +289,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timestamp: new Date().toISOString(),
     };
 
-    const messagesKey = getSessionMessagesKey(data.sessionId);
+    // Sử dụng service để lưu message vào Redis
     try {
-      const messages = (await this.cacheManager.get<any[]>(messagesKey)) || [];
-      messages.push(message);
+      await this.chatService.saveMessageToRedis(data.sessionId, message);
 
-      await this.cacheManager.set(messagesKey, messages, SESSION_TTL);
+      // Refresh session TTL sau khi lưu message thành công
       await this.cacheManager.set(sessionKey, chatSession, SESSION_TTL);
-    } catch {
-      // Ignore errors
+      console.log(
+        `[Chat] Session ${data.sessionId} TTL refreshed to ${SESSION_TTL} seconds`,
+      );
+
+      // Notify support team of new chat message
+      if (chatSession.user) {
+        await this.notificationService.notifyChatMessageReceived(
+          chatSession.user.user_id,
+          chatSession.user.username || `User ${chatSession.user.user_id}`,
+          data.message,
+          data.sessionId,
+        );
+      }
+    } catch (error) {
+      console.error('Failed to save message to Redis:', error);
     }
 
     this.server.to(data.sessionId).emit('message', message);
@@ -281,8 +317,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('getHistory')
   async handleGetHistory(client: Socket, sessionId: string) {
-    const messagesKey = getSessionMessagesKey(sessionId);
-    const messages = (await this.cacheManager.get<any[]>(messagesKey)) || [];
+    // Sử dụng service để lấy messages từ Redis
+    const messages = await this.chatService.getMessagesFromRedis(sessionId);
 
     if (messages.length === 0) {
       client.emit('history', []);
@@ -301,5 +337,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }));
 
     client.emit('history', transformedMessages);
+  }
+
+  // Thêm method để check session status
+  @SubscribeMessage('checkSession')
+  async handleCheckSession(client: Socket, sessionId: string) {
+    const sessionKey = getSessionInfoKey(sessionId);
+    const chatSession = await this.cacheManager.get<ChatSession>(sessionKey);
+
+    if (chatSession) {
+      // Refresh TTL nếu session tồn tại
+      await this.cacheManager.set(sessionKey, chatSession, SESSION_TTL);
+      console.log(`[Chat] Session ${sessionId} checked and TTL refreshed`);
+      client.emit('sessionStatus', {
+        sessionId,
+        status: 'active',
+        session: chatSession,
+      });
+    } else {
+      console.log(`[Chat] Session ${sessionId} not found or expired`);
+      client.emit('sessionStatus', {
+        sessionId,
+        status: 'expired',
+        session: null,
+      });
+    }
   }
 }

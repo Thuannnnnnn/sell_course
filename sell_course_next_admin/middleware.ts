@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const roleRoutesMap: Record<string, string[]> = {
-  ADMIN: ["/", "users"],
+  ADMIN: ["/", "/users"],
   CONTENTMANAGER: ["/categories"],
   COURSEREVIEWER: ["/course", "/course/review/"],
   MARKETINGMANAGER: ["/settings", "/promotion"],

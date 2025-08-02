@@ -491,4 +491,23 @@ export class NotificationService {
       [userId] // Don't notify the user who created the chat
     );
   }
+
+  /**
+   * Flow 6: Support chat message received
+   */
+  async notifyChatMessageReceived(userId: string, userName: string, messageText: string, chatSessionId?: string): Promise<Notification> {
+    const context: NotificationContext = {
+      userId,
+      userName,
+      messageText,
+      chatSessionId,
+      triggeredBy: userId
+    };
+
+    return await this.createRuleBasedNotification(
+      NotificationEvent.CHAT_MESSAGE_RECEIVED,
+      context,
+      [userId] // Don't notify the user who sent the message
+    );
+  }
 }

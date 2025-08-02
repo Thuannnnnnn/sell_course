@@ -16,6 +16,7 @@ export enum NotificationEvent {
   
   // Support related events
   CHAT_SESSION_CREATED = 'CHAT_SESSION_CREATED',
+  CHAT_MESSAGE_RECEIVED = 'CHAT_MESSAGE_RECEIVED',
   
   // General events
   SYSTEM_MAINTENANCE = 'SYSTEM_MAINTENANCE',
@@ -87,6 +88,16 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
     messageTemplate: 'User {userName} has created a new support chat session.',
   },
 
+  // Flow 6: User send message in chat → Support
+  [NotificationEvent.CHAT_MESSAGE_RECEIVED]: {
+    event: NotificationEvent.CHAT_MESSAGE_RECEIVED,
+    recipients: [UserRole.SUPPORT, UserRole.ADMIN],
+    notificationType: NotificationType.SUPPORT_REQUEST_CREATED,
+    priority: NotificationPriority.MEDIUM,
+    titleTemplate: 'New Chat Message',
+    messageTemplate: 'User {userName} sent a message: "{messageText}"',
+  },
+
   // Additional rule for course updates
   [NotificationEvent.COURSE_UPDATED]: {
     event: NotificationEvent.COURSE_UPDATED,
@@ -116,6 +127,7 @@ export const TEMPLATE_VARIABLES = {
   instructorName: '{instructorName}',
   studentName: '{studentName}',
   userName: '{userName}',
+  messageText: '{messageText}',
   rejectionReason: '{rejectionReason}',
   maintenanceDetails: '{maintenanceDetails}',
 } as const;
