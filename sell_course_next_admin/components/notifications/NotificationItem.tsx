@@ -4,7 +4,7 @@ import React from 'react';
 import { Check, X, BookOpen, AlertCircle, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { NotificationResponseDto } from '@/types/notification';
+import { NotificationResponseDto, NotificationStatus } from '@/types/notification';
 import { formatTimeAgo } from '@/lib/utils/timeUtils';
 
 interface NotificationItemProps {
@@ -48,7 +48,7 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete, onClick
     }
   };
 
-  const isUnread = notification.status === 'UNREAD';
+  const isUnread = notification.status === NotificationStatus.UNREAD;
 
   const handleClick = (e: React.MouseEvent) => {
     // Prevent click when clicking action buttons

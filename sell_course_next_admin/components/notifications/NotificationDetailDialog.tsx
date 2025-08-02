@@ -27,7 +27,7 @@ import {
   XCircle,
   MessageSquare,
 } from 'lucide-react';
-import { NotificationResponseDto } from '@/types/notification';
+import { NotificationResponseDto, NotificationStatus } from '@/types/notification';
 import { formatDistance } from 'date-fns';
 
 interface NotificationDetailDialogProps {
@@ -99,7 +99,7 @@ export function NotificationDetailDialog({
   };
 
   const priorityConfig = getPriorityConfig(notification.priority);
-  const isUnread = notification.status === 'UNREAD';
+  const isUnread = notification.status === NotificationStatus.UNREAD;
 
   // Format metadata for display
   const formatMetadata = (metadata: Record<string, unknown>) => {
@@ -274,7 +274,7 @@ export function NotificationDetailDialog({
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Status:</span>
                   <Badge 
-                    variant={notification.status === 'UNREAD' ? 'destructive' : 'secondary'}
+                    variant={notification.status === NotificationStatus.UNREAD ? 'destructive' : 'secondary'}
                     className="text-xs"
                   >
                     {notification.status}

@@ -23,10 +23,27 @@ export class ChatService {
 
   // Thời gian tồn tại session: 2 giờ (milliseconds)
   private readonly SESSION_DURATION = 2 * 60 * 60 * 1000;
+  
+  // Thời gian tối thiểu giữa các notification gửi cho SUPPORT: 24 giờ (milliseconds)
+  private readonly NOTIFICATION_COOLDOWN = 24 * 60 * 60 * 1000;
 
   // Helper methods for Redis keys
   private getSessionMessagesKey(sessionId: string): string {
     return `chat:session:${sessionId}:messages`;
+  }
+
+  // Helper method to check if should send notification to SUPPORT
+  private shouldSendNotification(session: ChatSession): boolean {
+    const now = new Date();
+    
+    // If never sent notification before, send it
+    if (!session.lastNotificationSent) {
+      return true;
+    }
+    
+    // If last notification was sent more than 24h ago, send new one
+    const timeSinceLastNotification = now.getTime() - session.lastNotificationSent.getTime();
+    return timeSinceLastNotification >= this.NOTIFICATION_COOLDOWN;
   }
 
   async createOrGetChatSession(
@@ -62,6 +79,27 @@ export class ChatService {
           session.startTime = new Date();
           session.isActive = true;
           session.endTime = null;
+
+          // Check if should send notification to SUPPORT when user returns
+          const shouldNotify = this.shouldSendNotification(session);
+          if (shouldNotify) {
+            const user = await this.userRepository.findOne({
+              where: { user_id: userId },
+            });
+
+            try {
+              await this.notificationService.notifyChatSessionCreated(
+                userId,
+                user?.username || 'Unknown user',
+                session.id,
+              );
+              session.lastNotificationSent = new Date();
+              console.log(`🔔 Notification sent to SUPPORT for returning user: ${user?.username}`);
+            } catch (error) {
+              console.error('Failed to send returning user notification:', error);
+            }
+          }
+
           await this.chatSessionRepository.save(session);
           isNewSession = true;
           return { sessionId: session.id, messages: [], isNewSession };
@@ -89,6 +127,10 @@ export class ChatService {
         user?.username || 'Unknown user',
         savedSession.id,
       );
+      // Update lastNotificationSent after successful notification
+      savedSession.lastNotificationSent = new Date();
+      await this.chatSessionRepository.save(savedSession);
+      console.log(`🔔 Notification sent to SUPPORT for new user: ${user?.username}`);
     } catch (error) {
       console.error('Failed to send chat session notification:', error);
     }
@@ -116,6 +158,10 @@ export class ChatService {
         user?.username || 'Unknown user',
         savedSession.id,
       );
+      // Update lastNotificationSent after successful notification
+      savedSession.lastNotificationSent = new Date();
+      await this.chatSessionRepository.save(savedSession);
+      console.log(`🔔 Notification sent to SUPPORT for new user: ${user?.username}`);
     } catch (error) {
       console.error('Failed to send chat session notification:', error);
     }
@@ -205,5 +251,44 @@ export class ChatService {
       { id: sessionId },
       { isActive: false },
     );
+  }
+
+  // Admin helper: Reset notification cooldown for a user
+  async resetNotificationCooldown(userId: string): Promise<void> {
+    await this.chatSessionRepository.update(
+      { user: { user_id: userId } },
+      { lastNotificationSent: null },
+    );
+    console.log(`🔄 Notification cooldown reset for user: ${userId}`);
+  }
+
+  // Manual trigger notification for active session (if needed)
+  async triggerSupportNotification(sessionId: string): Promise<void> {
+    const session = await this.chatSessionRepository.findOne({
+      where: { id: sessionId },
+      relations: ['user'],
+    });
+
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    if (this.shouldSendNotification(session)) {
+      try {
+        await this.notificationService.notifyChatSessionCreated(
+          session.user.user_id,
+          session.user.username || 'Unknown user',
+          session.id,
+        );
+        session.lastNotificationSent = new Date();
+        await this.chatSessionRepository.save(session);
+        console.log(`🔔 Manual notification sent to SUPPORT for session: ${sessionId}`);
+      } catch (error) {
+        console.error('Failed to send manual notification:', error);
+        throw error;
+      }
+    } else {
+      throw new Error('Notification cooldown still active');
+    }
   }
 }

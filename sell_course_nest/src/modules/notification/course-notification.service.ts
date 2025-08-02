@@ -22,9 +22,9 @@ export class CourseNotificationService {
   async notifyOnCourseCreated(course: Course): Promise<void> {
     // Lấy danh sách users cần thông báo - sử dụng format database
     const [courseReviewers, admins, contentManagers] = await Promise.all([
-      this.getUsersByDatabaseRole('Course Reviewer'),
-      this.getUsersByDatabaseRole('Admin'), 
-      this.getUsersByDatabaseRole('Content Manager'),
+      this.getUsersByDatabaseRole('COURSEREVIEWER'),
+      this.getUsersByDatabaseRole('ADMIN'), 
+      this.getUsersByDatabaseRole('CONTENTMANAGER'),
     ]);
 
     // Notify Course Reviewers
@@ -101,8 +101,8 @@ export class CourseNotificationService {
 
     // Nếu khóa học chưa PUBLISHED - gửi cho Course Reviewers và Admins
     const [courseReviewers, admins] = await Promise.all([
-      this.getUsersByDatabaseRole('Course Reviewer'),
-      this.getUsersByDatabaseRole('Admin'),
+      this.getUsersByDatabaseRole('COURSEREVIEWER'),
+      this.getUsersByDatabaseRole('ADMIN'),
     ]);
 
     // Notify Course Reviewers

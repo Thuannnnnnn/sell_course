@@ -122,6 +122,19 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
 /**
  * Template variable patterns for string interpolation
  */
+/**
+ * Mapping from UserRole enum to database string values
+ */
+export const ROLE_TO_DATABASE_STRING: Record<UserRole, string> = {
+  [UserRole.ADMIN]: 'ADMIN',
+  [UserRole.INSTRUCTOR]: 'INSTRUCTOR', 
+  [UserRole.USER]: 'USER',
+  [UserRole.COURSEREVIEWER]: 'COURSEREVIEWER',
+  [UserRole.SUPPORT]: 'SUPPORT',
+  [UserRole.CONTENTMANAGER]: 'CONTENTMANAGER',
+  [UserRole.MARKETINGMANAGER]: 'MARKETINGMANAGER',
+};
+
 export const TEMPLATE_VARIABLES = {
   courseTitle: '{courseTitle}',
   instructorName: '{instructorName}',
@@ -131,16 +144,3 @@ export const TEMPLATE_VARIABLES = {
   rejectionReason: '{rejectionReason}',
   maintenanceDetails: '{maintenanceDetails}',
 } as const;
-
-/**
- * Role to database string mapping (for existing getUsersByDatabaseRole compatibility)
- */
-export const ROLE_TO_DATABASE_STRING: Record<UserRole, string> = {
-  [UserRole.ADMIN]: 'Admin',
-  [UserRole.INSTRUCTOR]: 'Instructor', 
-  [UserRole.USER]: 'User',
-  [UserRole.COURSEREVIEWER]: 'Course Reviewer',
-  [UserRole.SUPPORT]: 'Support',
-  [UserRole.CONTENTMANAGER]: 'Content Manager',
-  [UserRole.MARKETINGMANAGER]: 'Marketing Manager',
-};
