@@ -18,7 +18,7 @@ import { UserRole } from '../Auth/user.enum';
 @Controller('api')
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
-  @Roles(UserRole.CONTENTMANAGER)
+  @Roles(UserRole.INSTRUCTOR)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('admin/content/create_content')
   async createContent(
@@ -51,14 +51,14 @@ export class ContentController {
     return await this.contentService.getContentsByContentIds(contentIds);
   }
 
-  @Roles(UserRole.CONTENTMANAGER)
+  @Roles(UserRole.INSTRUCTOR)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('admin/content/delete_content/:contentId')
   async deleteContent(@Param('contentId') contentId: string) {
     return await this.contentService.deleteContent(contentId);
   }
 
-  @Roles(UserRole.CONTENTMANAGER)
+  @Roles(UserRole.INSTRUCTOR)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('admin/content/update_content/:contentId')
   async updateContent(
@@ -76,7 +76,7 @@ export class ContentController {
     }
   }
 
-  @Roles(UserRole.CONTENTMANAGER)
+  @Roles(UserRole.INSTRUCTOR)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('admin/content/update_order')
   async updateContentOrder(
