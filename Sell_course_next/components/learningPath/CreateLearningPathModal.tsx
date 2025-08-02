@@ -3,34 +3,15 @@
 import React, { useEffect, useState } from "react";
 import { X, ChevronRight, ChevronLeft, BookOpen, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
-import { RawQuestion } from "@/app/types/learningPath/learningPath";
-export interface AvailableSlot {
-  day_of_week: number;
-  start_time: string;
-  duration: number;
-}
+import { toast } from "sonner";
+import { createLearningPathAPI, createN8nAPI, createSurveyAPI } from "@/app/api/learningPath/learningPathAPI";
+import { LearningPathInput, RawQuestion } from "@/app/types/learningPath/learningPath";
 
-export interface LearningPathInput {
-  userId: string;
-  name: string;
-  level: "beginner" | "intermediate" | "advanced" | "expert";
-  study_goal: string;
-  study_hours_per_week: number;
-  total_weeks: number;
-  max_minutes_per_day: number;
-  no_study_days: number[];
-  experience: string;
-  available_slots: AvailableSlot[];
-  course_ids: string;
-  start_date: string;
-}
 
-interface LearningPathModalProps {
+interface CreateLearningPathModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (answers: LearningPathInput) => void;
-  courseId: string;
+  onSubmit: () => void;
   userId: string;
   userName: string;
   token: string;
@@ -38,90 +19,106 @@ interface LearningPathModalProps {
 
 // Survey answers state
 interface SurveyAnswers {
+  topic: string;
   learning_goal: string;
-  time_availability: string;
-  preferred_days: string[];
-  preferred_time: string;
-  learning_style: string;
-  difficulty_level: string;
-  special_requirements: string;
-  start_date: string;
+  current_level: string;
+  has_prior_knowledge: string;
+  target_level: string;
+  desired_duration: string;
+  preferred_learning_styles: string[];
+  learning_order: string;
+  want_progress_tracking: string;
+  want_mentor_or_AI_assist: string;
+  post_learning_outcome: string;
+  userName: string;
+  userId: string;
   other_values: Record<string, string>;
 }
 
 const defaultSurveyAnswers: SurveyAnswers = {
+  topic: "",
   learning_goal: "",
-  time_availability: "",
-  preferred_days: [],
-  preferred_time: "",
-  learning_style: "",
-  difficulty_level: "",
-  special_requirements: "",
-  start_date: "",
+  current_level: "",
+  has_prior_knowledge: "",
+  target_level: "",
+  desired_duration: "",
+  preferred_learning_styles: [],
+  learning_order: "",
+  want_progress_tracking: "",
+  want_mentor_or_AI_assist: "",
+  post_learning_outcome: "",
+  userName: "",
+  userId: "",
   other_values: {},
 };
 
-export default function LearningPathModal({
+export default function CreateLearningPathModal({
   isOpen,
   onClose,
   onSubmit,
-  courseId,
   userId,
   userName,
   token,
-}: LearningPathModalProps) {
+}: CreateLearningPathModalProps) {
   const [questions, setQuestions] = useState<RawQuestion[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<SurveyAnswers>(defaultSurveyAnswers);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const surveyAPI = createSurveyAPI();
+  const n8nAPI = createN8nAPI();
+  const learningPathAPI = createLearningPathAPI(token);
+
   useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const res = await axios.get<RawQuestion[]>(
-          `${process.env.NEXT_PUBLIC_API_URL}/survey-questions`
-        );
-        setQuestions(res.data);
-      } catch (error) {
-        console.error("Failed to fetch questions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (isOpen) fetchQuestions();
-  }, [isOpen]);
+    if (isOpen) {
+      fetchQuestions();
+      // Reset form khi mở modal
+      setAnswers({ ...defaultSurveyAnswers, userId, userName });
+      setCurrentStep(0);
+    }
+  }, [isOpen, userId, userName]);
+
+  const fetchQuestions = async () => {
+    try {
+      setLoading(true);
+      const questionsData = await surveyAPI.getQuestions();
+      setQuestions(questionsData);
+    } catch (error) {
+      console.error("Failed to fetch questions:", error);
+      toast.error("Failed to load questions. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const currentQuestion = questions[currentStep];
   const isLastStep = currentStep === questions.length - 1;
 
-  // Map question IDs to answer keys
   const getAnswerKey = (questionId: string): keyof SurveyAnswers => {
-    switch (questionId) {
-      case "a6f51238-237c-4d43-95ad-bb8db6dc7e3a":
-        return "learning_goal";
-      case "2de3fe94-04cb-40cb-9f13-2d950fa525cf":
-        return "time_availability";
-      case "bf5fb3cb-a993-448a-80ab-613ea9f3715a":
-        return "preferred_days";
-      case "0e5d3d82-c201-4eef-86f1-fc1b92f97bb7":
-        return "preferred_time";
-      case "f1a8f0ea-6bd7-4a66-a36e-1f087a121073":
-        return "learning_style";
-      case "adb34cf4-fc42-47a2-9559-4a343cb40636":
-        return "difficulty_level";
-      case "9d68bf30-bb4a-470a-9aea-c9352d1c7d04":
-        return "special_requirements";
-      case "00d54cb6-2c4d-4da6-b409-2c8d908de27e":
-        return "start_date";
-      default:
-        return "learning_goal";
-    }
+    // Map question IDs to answer keys based on your question structure
+    const questionMapping: Record<string, keyof SurveyAnswers> = {
+      "6928a00f-47be-47ec-b267-e5d6234d7ca9": "topic",
+      "d1fd2c25-66cf-4290-834f-6bbc555e147d": "learning_goal",
+      "f7e006de-22c1-42b1-95cb-152d30ce3e03": "current_level",
+      "133d5b24-bb22-46a4-82e1-1bf89764431a": "has_prior_knowledge",
+      "068818da-02ee-4402-8037-9c5648a14a2d": "target_level",
+      "7d1fd292-cde2-4466-bc5f-6aea40049831": "desired_duration",
+      "43d6b66a-845e-458f-9443-d0cf11d4b4c2": "preferred_learning_styles",
+      "b855c9b8-b0a0-41ec-a501-c65373330322": "learning_order",
+      "f18a0d34-d6a2-46fc-8249-bcc7550a43be": "want_progress_tracking",
+      "2745b2e1-f21d-4f72-ac12-83f4567b855c": "want_mentor_or_AI_assist",
+      "cb42d249-5f5e-4e53-a589-9457d131c507": "post_learning_outcome",
+      "4a50e5d5-36e4-464d-b8af-2940d289cc46": "userName",
+    };
+
+    return questionMapping[questionId] || "topic";
   };
 
   const currentAnswerKey = currentQuestion
     ? getAnswerKey(currentQuestion.id)
-    : "learning_goal";
+    : "topic";
+
   const canProceed =
     currentQuestion &&
     (!currentQuestion.required ||
@@ -142,110 +139,117 @@ export default function LearningPathModal({
   };
 
   const convertToLearningPathInput = (
-    surveyAnswers: SurveyAnswers
+    surveyAnswers: SurveyAnswers,
+    userId: string,
+    userName: string
   ): LearningPathInput => {
-    // Level mapping
     const levelMapping: Record<
       string,
-      "beginner" | "intermediate" | "advanced" | "expert"
+      "Beginner" | "Intermediate" | "Advanced" | "Expert"
     > = {
-      "Cơ bản - Từ những kiến thức nền tảng": "beginner",
-      "Trung bình - Có một số kiến thức sẵn": "intermediate",
-      "Nâng cao - Đã có kinh nghiệm trong lĩnh vực": "advanced",
-      "Chuyên sâu - Muốn nâng cao kỹ năng chuyên môn": "expert",
+      "Cơ bản": "Beginner",
+      "Trung bình": "Intermediate",
+      "Nâng cao": "Advanced",
+      "Chuyên sâu": "Expert",
+      "Trình độ cơ bản": "Beginner",
+      "Trình độ trung bình": "Intermediate",
+      "Trình độ nâng cao": "Advanced",
     };
 
-    // Time mapping (in minutes)
-    const timeMapping: Record<string, number> = {
-      "Dưới 30 phút": 25,
-      "30-60 phút": 45,
-      "1-2 giờ": 90,
-      "2-3 giờ": 150,
-      "Trên 3 giờ": 180,
+    const booleanMapping: Record<string, boolean> = {
+      Có: true,
+      Không: false,
+      "Có, tôi muốn": true,
+      "Không, tôi không muốn": false,
     };
 
-    // Time slot mapping
-    const timeSlotMapping: Record<string, string> = {
-      "Sáng sớm (6:00-9:00)": "06:00",
-      "Buổi sáng (9:00-12:00)": "09:00",
-      "Buổi chiều (12:00-17:00)": "12:00",
-      "Buổi tối (17:00-21:00)": "17:00",
-      "Tối muộn (21:00-24:00)": "21:00",
+    const getFinalValue = (
+      answer: string,
+      otherValue: string | undefined
+    ): string => {
+      return answer.toLowerCase().includes("khác") && otherValue
+        ? otherValue
+        : answer;
     };
 
-    // Day mapping
-    const dayMapping: Record<string, number> = {
-      "Thứ 2": 2,
-      "Thứ 3": 3,
-      "Thứ 4": 4,
-      "Thứ 5": 5,
-      "Thứ 6": 6,
-      "Thứ 7": 7,
-      "Chủ nhật": 1,
-    };
-    const learningGoal = surveyAnswers.learning_goal;
-    const otherLearningGoal = surveyAnswers.other_values["learning_goal"];
-    const finalLearningGoal =
-      learningGoal.toLowerCase().includes("khác") && otherLearningGoal
-        ? otherLearningGoal
-        : learningGoal;
-
-    const learningStyle = surveyAnswers.learning_style;
-    const otherLearningStyle = surveyAnswers.other_values["learning_style"];
-    const finalLearningStyle =
-      learningStyle.toLowerCase().includes("khác") && otherLearningStyle
-        ? otherLearningStyle
-        : learningStyle;
-    const maxMinutesPerDay = timeMapping[surveyAnswers.time_availability] || 90;
-    const selectedDays = surveyAnswers.preferred_days
-      .map((day) => dayMapping[day])
-      .filter((day): day is number => day !== undefined);
-
-    const allDays = [1, 2, 3, 4, 5, 6, 7];
-    const noStudyDays = allDays.filter((day) => !selectedDays.includes(day));
-
-    const availableSlots: AvailableSlot[] = selectedDays.map((dayOfWeek) => ({
-      day_of_week: dayOfWeek,
-      start_time: timeSlotMapping[surveyAnswers.preferred_time] || "09:00",
-      duration: maxMinutesPerDay,
-    }));
-
-    const studyHoursPerWeek =
-      availableSlots.reduce((sum, slot) => sum + slot.duration, 0) / 60;
+    const finalLearningGoal = getFinalValue(
+      surveyAnswers.learning_goal,
+      surveyAnswers.other_values["learning_goal"]
+    );
+    const finalPostLearningOutcome = getFinalValue(
+      surveyAnswers.post_learning_outcome,
+      surveyAnswers.other_values["post_learning_outcome"]
+    );
 
     return {
-      userId: userId, // This should be set from user context
-      name: userName, // This should be set from user context
-      level: levelMapping[surveyAnswers.difficulty_level] || "beginner",
-      study_goal:
-        finalLearningGoal +
-        " and learning style: " +
-        (finalLearningStyle || ""),
-      study_hours_per_week: parseFloat(studyHoursPerWeek.toFixed(1)),
-      total_weeks: 4, // Default or could be calculated based on goals
-      max_minutes_per_day: maxMinutesPerDay,
-      no_study_days: noStudyDays,
-      experience: surveyAnswers.special_requirements || "",
-      available_slots: availableSlots,
-      course_ids: courseId,
-      start_date:
-        surveyAnswers.start_date || new Date().toISOString().split("T")[0],
+      userId: userId,
+      userName: userName,
+      topic: surveyAnswers.topic,
+      learning_goal: finalLearningGoal,
+      target_level: levelMapping[surveyAnswers.target_level] || "Beginner",
+      current_level: levelMapping[surveyAnswers.current_level] || "Beginner",
+      has_prior_knowledge:
+        booleanMapping[surveyAnswers.has_prior_knowledge] || false,
+      desired_duration: surveyAnswers.desired_duration,
+      preferred_learning_styles: surveyAnswers.preferred_learning_styles,
+      learning_order: surveyAnswers.learning_order,
+      output_expectations: {
+        want_progress_tracking:
+          booleanMapping[surveyAnswers.want_progress_tracking] || false,
+        want_mentor_or_AI_assist:
+          booleanMapping[surveyAnswers.want_mentor_or_AI_assist] || false,
+        post_learning_outcome: finalPostLearningOutcome,
+      },
     };
   };
 
   const handleSubmit = async () => {
     if (!canProceed) return;
     setIsSubmitting(true);
+
     try {
-      const learningPathInput = convertToLearningPathInput(answers);
-      console.log(
-        "Learning Path Input:",
-        JSON.stringify(learningPathInput, null, 2)
+      // Step 1: Convert survey answers to learning path input
+      const learningPathInput = convertToLearningPathInput(
+        answers,
+        userId,
+        userName
       );
-      await onSubmit(learningPathInput);
+
+      toast.info("Processing your learning path...", {
+        duration: 3000,
+      });
+
+      // Step 2: Send data to n8n for processing
+      const n8nResponse = await n8nAPI.processLearningPath(learningPathInput);
+
+      toast.info("Saving your learning path...", {
+        duration: 2000,
+      });
+
+      // Step 3: Save the processed data to backend
+      const savedPlan = await learningPathAPI.saveLearningPathFromN8n(
+        n8nResponse
+      );
+
+      toast.success("Learning path created successfully!", {
+        duration: 3000,
+      });
+
+      // Step 4: Call the onSubmit callback to refresh the parent component
+      await onSubmit();
+
+      // Step 5: Close modal
       onClose();
     } catch (error) {
-      console.error("Error submitting learning path:", error);
+      console.error("Error in learning path creation flow:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to create learning path. Please try again.",
+        {
+          duration: 5000,
+        }
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -258,7 +262,6 @@ export default function LearningPathModal({
     const currentAnswer = answers[currentAnswerKey];
     const answerKey = currentAnswerKey;
 
-    // Hàm kiểm tra xem lựa chọn "Khác" có được chọn không
     const isOtherSelected = (
       answer: string | string[] | undefined
     ): boolean => {
@@ -283,6 +286,7 @@ export default function LearningPathModal({
         },
       }));
     };
+
     switch (question.type) {
       case "single":
         return (
@@ -430,84 +434,86 @@ export default function LearningPathModal({
   };
 
   if (!isOpen) return null;
-  if (loading)
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-white p-6 rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span>Loading...</span>
-          </div>
-        </div>
-      </div>
-    );
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <BookOpen className="w-6 h-6" />
-              <h2 className="text-2xl font-bold">Create Learning Path</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Target className="w-5 h-5 text-blue-600" />
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Create Learning Path
+              </h2>
+              <p className="text-sm text-gray-600">
+                Step {currentStep + 1} of {questions.length}
+              </p>
+            </div>
           </div>
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span>
-                Question {currentStep + 1} / {questions.length}
-              </span>
-              <span>
-                {questions.length > 0
-                  ? Math.round(((currentStep + 1) / questions.length) * 100)
-                  : 0}
-                %
-              </span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-2">
-              <div
-                className="bg-white rounded-full h-2 transition-all duration-300"
-                style={{
-                  width: `${
-                    questions.length > 0
-                      ? ((currentStep + 1) / questions.length) * 100
-                      : 0
-                  }%`,
-                }}
-              />
-            </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={isSubmitting}
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="px-6 py-4 bg-gray-50">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              style={{
+                width: `${((currentStep + 1) / questions.length) * 100}%`,
+              }}
+            ></div>
           </div>
         </div>
 
+        {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              {currentQuestion?.questionText}
-            </h3>
-            {currentQuestion?.required && (
-              <p className="text-sm text-red-500 mb-4">* Câu hỏi bắt buộc</p>
-            )}
-          </div>
-          {renderQuestionInput()}
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading questions...</p>
+            </div>
+          ) : currentQuestion ? (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {currentQuestion.questionText}
+                </h3>
+                {currentQuestion.required && (
+                  <p className="text-sm text-red-600 mb-4">* Required</p>
+                )}
+              </div>
+              {renderQuestionInput()}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600">No questions available</p>
+            </div>
+          )}
         </div>
 
-        <div className="bg-gray-50 p-6 flex items-center justify-between">
+        {/* Footer */}
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
           <Button
-            onClick={handlePrevious}
-            disabled={currentStep === 0}
             variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 0 || isSubmitting}
             className="flex items-center gap-2"
           >
-            <ChevronLeft className="w-4 h-4" /> Previous
+            <ChevronLeft className="w-4 h-4" />
+            Previous
           </Button>
+
           <div className="flex items-center gap-2">
-            {questions.map((_, index) => (
+            {Array.from({ length: questions.length }, (_, index) => (
               <div
                 key={index}
                 className={`w-2 h-2 rounded-full transition-colors ${
@@ -516,11 +522,12 @@ export default function LearningPathModal({
               />
             ))}
           </div>
+
           {isLastStep ? (
             <Button
               onClick={handleSubmit}
               disabled={!canProceed || isSubmitting}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center gap-2"
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? (
                 <>
@@ -529,17 +536,19 @@ export default function LearningPathModal({
                 </>
               ) : (
                 <>
-                  <Target className="w-4 h-4" /> Create Learning Path
+                  <BookOpen className="w-4 h-4" />
+                  Create Learning Path
                 </>
               )}
             </Button>
           ) : (
             <Button
               onClick={handleNext}
-              disabled={!canProceed}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center gap-2"
+              disabled={!canProceed || isSubmitting}
+              className="flex items-center gap-2"
             >
-              Next <ChevronRight className="w-4 h-4" />
+              Next
+              <ChevronRight className="w-4 h-4" />
             </Button>
           )}
         </div>

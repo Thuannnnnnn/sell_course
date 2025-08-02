@@ -1,176 +1,113 @@
-import {
-  IsString,
-  IsNumber,
-  IsArray,
-  IsOptional,
-  ValidateNested,
-  IsUUID,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsArray, IsObject } from 'class-validator';
 
-export class CreatePlanConstraintDto {
-  @IsString()
-  type: string;
-
-  @IsString()
-  key: string;
-
-  @IsString()
-  value: string;
+export interface TargetLearningPath {
+  topic: string;
+  learning_goal: string;
+  target_level: string;
+  current_level: string;
+  has_prior_knowledge: boolean;
+  desired_duration: string;
+  preferred_learning_styles: string[];
+  learning_order: string;
+  output_expectations: {
+    want_progress_tracking: boolean;
+    want_mentor_or_AI_assist: boolean;
+    post_learning_outcome: string;
+  };
+  userId: string;
+  userName: string;
 }
 
-export class CreatePlanPreferenceDto {
-  @IsString()
-  type: string;
-
-  @IsString()
-  key: string;
-
-  @IsString()
-  value: string;
-}
-
-export class CreateScheduleItemDto {
-  @IsNumber()
-  dayOfWeek: number;
-
-  @IsString()
-  startTime: string;
-
-  @IsNumber()
-  durationMin: number;
-
-  @IsString()
+export interface LearningPathCourse {
   courseId: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  contentIds: string[];
-
-  @IsNumber()
-  weekNumber: number;
-
-  @IsString()
-  scheduledDate: string;
-}
-
-export class NarrativeBindingsDto {
-  @IsOptional()
-  @IsNumber()
-  weekNumber?: number;
-
-  @IsOptional()
-  @IsString()
-  dayOfWeek?: string;
-
-  @IsOptional()
-  @IsString()
-  startTime?: string;
-
-  @IsOptional()
-  @IsString()
-  endTime?: string;
-
-  @IsOptional()
-  @IsString()
-  contentId?: string;
-
-  @IsOptional()
-  @IsString()
-  contentTitle?: string;
-
-  @IsOptional()
-  @IsString()
-  contentTitles?: string;
-
-  @IsOptional()
-  @IsString()
-  overview?: string;
-
-  @IsOptional()
-  @IsString()
-  questions?: string;
-
-  @IsOptional()
-  @IsString()
-  summary?: string;
-}
-
-export class NarrativeItemDto {
-  @IsString()
-  template: string;
-
-  @ValidateNested()
-  @Type(() => NarrativeBindingsDto)
-  bindings: NarrativeBindingsDto;
+  title: string;
+  narrativeText: Array<{
+    template: string;
+    bindings: Record<string, any>;
+  }>;
+  lessons: Array<{
+    lessonId: string;
+    title: string;
+    narrativeText: Array<{
+      template: string;
+      bindings: Record<string, any>;
+    }>;
+    contents: Array<{
+      contentId: string;
+      type: string;
+      title: string;
+      durationMin: number;
+      narrativeText: Array<{
+        template: string;
+        bindings: Record<string, any>;
+      }>;
+    }>;
+  }>;
 }
 
 export class CreateLearningPlanDto {
-  @IsUUID()
+  @IsString()
   userId: string;
 
-  @IsUUID()
-  courseId: string;
+  @IsOptional()
+  @IsObject()
+  targetLearningPath?: TargetLearningPath;
 
+  @IsOptional()
+  @IsArray()
+  learningPathCourses?: LearningPathCourse[];
+
+  @IsOptional()
   @IsString()
-  studyGoal: string;
-
-  @IsNumber()
-  totalWeeks: number;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanConstraintDto)
-  constraints: CreatePlanConstraintDto[];
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanPreferenceDto)
-  preferences: CreatePlanPreferenceDto[];
+  courseId?: string; // For backward compatibility
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => NarrativeItemDto)
-  narrativeTemplates?: NarrativeItemDto[];
+  constraints?: Array<{
+    constraintType: string;
+    constraintValue: string;
+  }>;
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateScheduleItemDto)
-  scheduleItems?: CreateScheduleItemDto[];
+  preferences?: Array<{
+    preferenceType: string;
+    preferenceValue: string;
+  }>;
 }
 
 export class UpdateLearningPlanDto {
   @IsOptional()
+  @IsObject()
+  targetLearningPath?: TargetLearningPath;
+
+  @IsOptional()
+  @IsArray()
+  learningPathCourses?: LearningPathCourse[];
+
+  @IsOptional()
+  @IsArray()
+  constraints?: Array<{
+    constraintType: string;
+    constraintValue: string;
+  }>;
+
+  @IsOptional()
+  @IsArray()
+  preferences?: Array<{
+    preferenceType: string;
+    preferenceValue: string;
+  }>;
+}
+
+// DTO for receiving n8n processed data
+export class N8nLearningPathDto {
   @IsString()
-  studyGoal?: string;
+  userId: string;
 
-  @IsOptional()
-  @IsNumber()
-  totalWeeks?: number;
+  @IsObject()
+  targetLearningPath: TargetLearningPath;
 
-  @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanConstraintDto)
-  constraints?: CreatePlanConstraintDto[];
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanPreferenceDto)
-  preferences?: CreatePlanPreferenceDto[];
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => NarrativeItemDto)
-  narrativeTemplates?: NarrativeItemDto[];
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateScheduleItemDto)
-  scheduleItems?: CreateScheduleItemDto[];
+  learningPathCourses: LearningPathCourse[];
 }

@@ -23,10 +23,6 @@ import { useRouter } from "next/navigation";
 import { EditProfileModal } from "./EditProfileModal";
 import { UserProfile } from "@/app/types/profile/editProfile";
 import Image from "next/image";
-import { ScheduleItem } from "@/app/types/learningPath/learningPath";
-import improvedLearningPathApi from "@/app/api/learningPath/learningPathAPI";
-import UserScheduleDisplay from "../UserScheduleDisplay";
-import GoogleCalendarIntegration from "../GoogleCalendarIntegration";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -35,13 +31,9 @@ export function ProfileInfo() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
-  const [selectedWeekItems, setSelectedWeekItems] = useState<ScheduleItem[]>(
-    []
-  );
+
   const [selectedWeekNumber, setSelectedWeekNumber] = useState<number | null>(
     null
   );
@@ -53,34 +45,6 @@ export function ProfileInfo() {
   const wishlistedCourses = 0;
   const completedCourses = 0;
   const token = session?.accessToken;
-  useEffect(() => {
-    // Simulate loading data
-    const loadScheduleData = async () => {
-      try {
-        if(!token) return
-        setIsLoading(true);
-
-        // In real app, you would fetch from API:
-        const response = await improvedLearningPathApi.getLearningPlansByUserId(
-          session?.user?.id || "",
-          token
-        );
-        if (response.success && response.data) {
-          const allScheduleItems = response.data.flatMap(
-            (plan) => plan.scheduleItems.scheduleData
-          );
-          setScheduleItems(allScheduleItems);
-        }
-      } catch (err) {
-        setError("Failed to load schedule data");
-        console.error("Error loading schedule:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadScheduleData();
-  }, [session?.user?.id]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -114,29 +78,6 @@ export function ProfileInfo() {
 
     fetchUserProfile();
   }, [session, sessionStatus]);
-  const handleAddToCalendar = (item: ScheduleItem) => {
-    setSelectedItem(item);
-    setSelectedWeekItems([]);
-    setSelectedWeekNumber(null);
-    setCalendarMode("single");
-    setShowCalendarModal(true);
-  };
-  const handleAddWeekToCalendar = (
-    weekNumber: number,
-    items: ScheduleItem[]
-  ) => {
-    setSelectedItem(null);
-    setSelectedWeekItems(items);
-    setSelectedWeekNumber(weekNumber);
-    setCalendarMode("week");
-    setShowCalendarModal(true);
-  };
-  const closeCalendarModal = () => {
-    setShowCalendarModal(false);
-    setSelectedItem(null);
-    setSelectedWeekItems([]);
-    setSelectedWeekNumber(null);
-  };
 
   if (sessionStatus === "loading" || loading) {
     return (
@@ -216,40 +157,7 @@ export function ProfileInfo() {
           </p>
         </div>
       </div>
-      <section>
-        <UserScheduleDisplay
-          scheduleItems={scheduleItems}
-          userId="a517dfd7-1e59-4177-b4de-f4ba549e46b8"
-          showHeader={true}
-          showFilters={true}
-          isLoading={isLoading}
-          onAddToCalendar={handleAddToCalendar}
-          onAddWeekToCalendar={handleAddWeekToCalendar}
-          className="bg-white rounded-lg shadow-lg p-6"
-        />
-        {showCalendarModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <GoogleCalendarIntegration
-                  scheduleItem={
-                    calendarMode === "single"
-                      ? selectedItem !== null
-                        ? selectedItem
-                        : undefined
-                      : undefined
-                  }
-                  scheduleItems={
-                    calendarMode === "week" ? selectedWeekItems : []
-                  }
-                  weekNumber={selectedWeekNumber || undefined}
-                  onClose={closeCalendarModal}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
+
       {/* Main Profile Card */}
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Left Column - Profile Info */}

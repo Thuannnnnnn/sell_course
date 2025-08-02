@@ -12,6 +12,7 @@ import { LearningPlanService } from './learning-plan.service';
 import {
   CreateLearningPlanDto,
   UpdateLearningPlanDto,
+  N8nLearningPathDto,
 } from './create-learning-plan.dto';
 import { DeleteResult } from 'typeorm';
 import { RolesGuard } from '../Auth/roles.guard';
@@ -30,6 +31,15 @@ export class LearningPlanController {
     return this.planService.transformToFrontendFormat(plan);
   }
 
+  // New endpoint to handle n8n processed data
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('/from-n8n')
+  async createFromN8nData(@Body() n8nData: N8nLearningPathDto) {
+    const plan = await this.planService.createFromN8nData(n8nData);
+    return this.planService.transformToFrontendFormat(plan);
+  }
+
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/getAll')
@@ -39,6 +49,7 @@ export class LearningPlanController {
       this.planService.transformToFrontendFormat(plan),
     );
   }
+
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/getById/:id')
@@ -49,6 +60,7 @@ export class LearningPlanController {
     }
     return this.planService.transformToFrontendFormat(plan);
   }
+
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('/user/:userId')
@@ -58,6 +70,22 @@ export class LearningPlanController {
       this.planService.transformToFrontendFormat(plan),
     );
   }
+
+  // New endpoint to get content IDs for progress tracking
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Get('/content-ids/:planId')
+  async getContentIds(@Param('planId') planId: string) {
+    const plan = await this.planService.findOne(planId);
+    if (!plan) {
+      throw new Error('Learning plan not found');
+    }
+    return {
+      planId: plan.planId,
+      contentIds: this.planService.getAllContentIds(plan),
+    };
+  }
+
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('/update/:id')
@@ -68,6 +96,7 @@ export class LearningPlanController {
     const plan = await this.planService.update(id, updateDto);
     return this.planService.transformToFrontendFormat(plan);
   }
+
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Delete('/delete/:id')
