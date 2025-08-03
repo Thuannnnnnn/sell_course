@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X, ChevronRight, ChevronLeft, BookOpen, Target } from "lucide-react";
+import {
+  X,
+  ChevronRight,
+  ChevronLeft,
+  Target,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -12,7 +19,11 @@ import {
 import {
   LearningPathInput,
   RawQuestion,
+  LearningPlanData,
+  CompletionCheckResult,
 } from "@/app/types/learningPath/learningPath";
+import { checkCanCreateNewLearningPath } from "@/utils/learningPathUtils";
+
 
 interface CreateLearningPathModalProps {
   isOpen: boolean;
@@ -21,6 +32,7 @@ interface CreateLearningPathModalProps {
   userId: string;
   userName: string;
   token: string;
+  existingLearningPlans?: LearningPlanData[]; // Thêm prop để kiểm tra existing plans
 }
 
 // Survey answers state
@@ -65,38 +77,65 @@ export default function CreateLearningPathModal({
   userId,
   userName,
   token,
+  existingLearningPlans = [],
 }: CreateLearningPathModalProps) {
   const [questions, setQuestions] = useState<RawQuestion[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<SurveyAnswers>(defaultSurveyAnswers);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [completionCheck, setCompletionCheck] =
+    useState<CompletionCheckResult | null>(null);
+  const [checkingCompletion, setCheckingCompletion] = useState(false);
 
   const surveyAPI = createSurveyAPI();
   const n8nAPI = createN8nAPI();
   const learningPathAPI = createLearningPathAPI(token);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
+    const initializeModal = async () => {
+      if (!isOpen) return;
+
       try {
         setLoading(true);
+        setCheckingCompletion(true);
+
+        // Kiểm tra điều kiện tạo learning path mới
+        const completionResult = await checkCanCreateNewLearningPath(
+          existingLearningPlans,
+          userId,
+          token
+        );
+        setCompletionCheck(completionResult);
+
+        // Nếu không thể tạo mới, hiển thị thông báo và không load questions
+        if (
+          !completionResult.canCreateNew &&
+          existingLearningPlans.length > 0
+        ) {
+          setCheckingCompletion(false);
+          setLoading(false);
+          return;
+        }
+
+        // Load questions nếu có thể tạo learning path mới
         const questionsData = await surveyAPI.getQuestions();
         setQuestions(questionsData);
+
+        // Reset form
+        setAnswers({ ...defaultSurveyAnswers, userId, userName });
+        setCurrentStep(0);
       } catch (error) {
-        console.error("Failed to fetch questions:", error);
-        toast.error("Failed to load questions. Please try again.");
+        console.error("Failed to initialize modal:", error);
+        toast.error("Failed to load. Please try again.");
       } finally {
         setLoading(false);
+        setCheckingCompletion(false);
       }
     };
-    if (isOpen) {
-      fetchQuestions();
-      // Reset form khi mở modal
-      setAnswers({ ...defaultSurveyAnswers, userId, userName });
-      setCurrentStep(0);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, userName, token]);
+
+    initializeModal();
+  }, [isOpen, userId, userName, token, existingLearningPlans]);
 
   const currentQuestion = questions[currentStep];
   const isLastStep = currentStep === questions.length - 1;
@@ -211,6 +250,19 @@ export default function CreateLearningPathModal({
 
   const handleSubmit = async () => {
     if (!canProceed) return;
+
+    // Double check completion status before submitting
+    if (
+      completionCheck &&
+      !completionCheck.canCreateNew &&
+      existingLearningPlans.length > 0
+    ) {
+      toast.error(
+        "You must complete at least one learning path 100% before creating a new one."
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -235,9 +287,9 @@ export default function CreateLearningPathModal({
       // Step 3: Save the processed data to backend
       if (n8nResponse) {
         await learningPathAPI.saveLearningPathFromN8n(n8nResponse);
-        toast.success("Learning paths saved successfully!");
+        toast.success("Learning path created successfully!");
       } else {
-        toast.error("Failed to save learning paths. Invalid data from n8n.");
+        toast.error("Failed to create learning path. Invalid data from n8n.");
       }
 
       // Step 4: Call the onSubmit callback to refresh the parent component
@@ -257,6 +309,12 @@ export default function CreateLearningPathModal({
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleForceClose = () => {
+    if (!isSubmitting) {
+      onClose();
     }
   };
 
@@ -440,6 +498,109 @@ export default function CreateLearningPathModal({
 
   if (!isOpen) return null;
 
+  // Render completion check screen
+  if (checkingCompletion) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Checking Requirements
+            </h3>
+            <p className="text-gray-600">
+              Verifying your learning path completion status...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render restriction screen if cannot create new path
+  if (
+    completionCheck &&
+    !completionCheck.canCreateNew &&
+    existingLearningPlans.length > 0
+  ) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Complete Current Path
+              </h2>
+            </div>
+            <button
+              onClick={handleForceClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            <div className="text-center mb-6">
+              <p className="text-gray-600 mb-4">
+                You need to complete at least one learning path 100% before
+                creating a new one.
+              </p>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-2 text-amber-800 mb-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="font-medium">Current Status</span>
+                </div>
+                <div className="text-sm text-amber-700">
+                  <p>
+                    Completed paths: {completionCheck.completedPaths.length}
+                  </p>
+                  <p>
+                    Incomplete paths: {completionCheck.incompletePaths.length}
+                  </p>
+                  <p>
+                    Average progress:{" "}
+                    {Math.round(completionCheck.overallProgress)}%
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-500">
+                Continue with your current learning path to unlock the ability
+                to create new ones.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={handleForceClose}
+                variant="outline"
+                className="flex-1"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  handleForceClose();
+                  // Optionally trigger navigation to current learning path
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Continue Learning
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
@@ -459,7 +620,7 @@ export default function CreateLearningPathModal({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleForceClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
             disabled={isSubmitting}
           >
@@ -487,15 +648,13 @@ export default function CreateLearningPathModal({
               <p className="text-gray-600">Loading questions...</p>
             </div>
           ) : currentQuestion ? (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {currentQuestion.questionText}
-                </h3>
-                {currentQuestion.required && (
-                  <p className="text-sm text-red-600 mb-4">* Required</p>
-                )}
-              </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                {currentQuestion.questionText}
+              </h3>
+              {currentQuestion.required && (
+                <p className="text-sm text-red-600 mb-4">* Required</p>
+              )}
               {renderQuestionInput()}
             </div>
           ) : (
@@ -518,10 +677,10 @@ export default function CreateLearningPathModal({
           </Button>
 
           <div className="flex items-center gap-2">
-            {Array.from({ length: questions.length }, (_, index) => (
+            {questions.map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
+                className={`w-2 h-2 rounded-full ${
                   index <= currentStep ? "bg-blue-500" : "bg-gray-300"
                 }`}
               />
@@ -541,7 +700,7 @@ export default function CreateLearningPathModal({
                 </>
               ) : (
                 <>
-                  <BookOpen className="w-4 h-4" />
+                  <CheckCircle className="w-4 h-4" />
                   Create Learning Path
                 </>
               )}
