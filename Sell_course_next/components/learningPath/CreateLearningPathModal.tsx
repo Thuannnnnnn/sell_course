@@ -135,6 +135,7 @@ export default function CreateLearningPathModal({
     };
 
     initializeModal();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId, userName, token, existingLearningPlans]);
 
   const currentQuestion = questions[currentStep];

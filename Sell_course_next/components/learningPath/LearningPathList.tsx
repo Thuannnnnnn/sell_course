@@ -110,6 +110,7 @@ export default function LearningPathList({
     };
 
     fetchProgressData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [learningPlans, userId, token]);
 
   const getLevelColor = (level: string): string => {
