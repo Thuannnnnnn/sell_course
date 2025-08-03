@@ -11,14 +11,7 @@ import {
 } from "../../../components/ui/tabs";
 import { Button } from "../../../components/ui/button";
 import { Progress } from "../../../components/ui/progress";
-import {
-  ArrowLeft,
-  BookOpen,
-  Brain,
-  Eye,
-  GraduationCap,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { courseApi, contentApi } from "../../api/courses/lessons/lessons";
 import { examApi } from "../../api/courses/exam/exam";
@@ -49,25 +42,6 @@ import {
   CompletedCountResponse,
 } from "@/app/types/Progress/progress";
 import { useSession } from "next-auth/react";
-import LearningPathModal, {
-  LearningPathInput,
-} from "@/components/course/LearningPathModal";
-import improvedLearningPathApi from "@/app/api/learningPath/learningPathAPI";
-import {
-  isLearningPathData,
-  isLearningPlan,
-  LearningPathData,
-} from "@/app/types/learningPath/learningPath";
-import UpdatedLearningPathDisplay from "@/components/course/LearningPathDisplay";
-import { toast } from "sonner";
-
-interface LearningPathState {
-  data: LearningPathData | null;
-  planId: string | null;
-  isExisting: boolean;
-  isLoading: boolean;
-}
-
 // Enhanced types for progress tracking
 interface LessonWithProgress extends LessonResponse {
   isCompleted: boolean;
@@ -126,66 +100,13 @@ export default function CourseLearnPage() {
     new Set()
   );
 
-  // Learning Path states
-  const [showLearningPathModal, setShowLearningPathModal] = useState(false);
-  const [showLearningPathDisplay, setShowLearningPathDisplay] = useState(false);
-  const [learningPathState, setLearningPathState] = useState<LearningPathState>(
-    {
-      data: null,
-      planId: null,
-      isExisting: false,
-      isLoading: false,
-    }
-  );
-  const [isCreatingLearningPath, setIsCreatingLearningPath] = useState(false);
-  const [currentLearningPathInput, setCurrentLearningPathInput] =
-    useState<LearningPathInput | null>(null);
-  const [hasExistingPlan, setHasExistingPlan] = useState<boolean | null>(null);
-  const [isCheckingPlan, setIsCheckingPlan] = useState(false);
-
   // Exam State
   const [examData, setExamData] = useState<ExamData | null>(null);
   const [userExamResults, setUserExamResults] =
     useState<UserExamResults | null>(null);
 
   const token = session?.accessToken;
-  // Check for existing learning plan
-  useEffect(() => {
-    const checkExistingPlan = async () => {
-      if (!userId || !userId || !token) {
-        setHasExistingPlan(false);
-        return;
-      }
 
-      try {
-        setIsCheckingPlan(true);
-        if (!userId) {
-          setHasExistingPlan(false);
-          setIsCheckingPlan(false);
-          return;
-        }
-        const response = await improvedLearningPathApi.hasLearningPlanForCourse(
-          userId,
-          courseId,
-          token
-        );
-
-        if (response.success) {
-          setHasExistingPlan(response.data || false);
-        } else {
-          console.error("Error checking existing plan:", response.error);
-          setHasExistingPlan(false);
-        }
-      } catch (error) {
-        console.error("Error checking existing plan:", error);
-        setHasExistingPlan(false);
-      } finally {
-        setIsCheckingPlan(false);
-      }
-    };
-
-    checkExistingPlan();
-  }, [userId, courseId, token]);
   // Load all progress data for the course
   const loadProgressData = async () => {
     if (!userId || !token || lessons.length === 0) return;
@@ -284,214 +205,6 @@ export default function CourseLearnPage() {
     }
   };
 
-  // Learning Path handlers
-  const handleCreateLearningPath = () => {
-    if (!session) {
-      toast.error("please login to view Learning Path", {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
-      return;
-    }
-    setShowLearningPathModal(true);
-  };
-
-  const handleViewLearningPath = async () => {
-    if (!session?.user?.id || !token) {
-      toast.error("please login to view Learning Path", {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
-      return;
-    }
-
-    try {
-      setLearningPathState((prev) => ({ ...prev, isLoading: true }));
-
-      const response =
-        await improvedLearningPathApi.getLatestLearningPathForCourse(
-          session.user.id,
-          courseId,
-          token
-        );
-
-      if (response.success && response.data) {
-        // Get plan ID
-        const planResponse =
-          await improvedLearningPathApi.getLatestLearningPlanForCourse(
-            session.user.id,
-            courseId,
-            token
-          );
-
-        setLearningPathState({
-          data: response.data,
-          planId: planResponse.data?.planId || null,
-          isExisting: true,
-          isLoading: false,
-        });
-        setShowLearningPathDisplay(true);
-      } else {
-        toast.error("Error viewing learning path", {
-          style: {
-            background: "#ef4444",
-            color: "white",
-            border: "1px solid #dc2626",
-          },
-          icon: "❌",
-        });
-        setLearningPathState((prev) => ({ ...prev, isLoading: false }));
-      }
-    } catch (error) {
-      console.error("Error viewing learning path:", error);
-      toast.error("have an error while viewing learning path", {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
-      setLearningPathState((prev) => ({ ...prev, isLoading: false }));
-    }
-  };
-
-  const handleLearningPathSubmit = async (
-    learningPathInput: LearningPathInput
-  ) => {
-    if (!session?.user?.id || !token) {
-      toast.error("please login to create learning path", {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
-      return;
-    }
-    setIsCreatingLearningPath(true);
-
-    try {
-      // Store input for later use when saving
-      setCurrentLearningPathInput(learningPathInput);
-
-      // Call API to generate learning path
-      const response = await improvedLearningPathApi.generateLearningPath(
-        learningPathInput,
-        token
-      );
-
-      if (response.success && response.data) {
-        if (!isLearningPathData(response.data)) {
-          throw new Error("Invalid learning path data format");
-        }
-
-        setLearningPathState({
-          data: response.data,
-          planId: null,
-          isExisting: false,
-          isLoading: false,
-        });
-        setShowLearningPathModal(false);
-        setShowLearningPathDisplay(true);
-      } else {
-        toast.error("have an error creating learning path", {
-          style: {
-            background: "#ef4444",
-            color: "white",
-            border: "1px solid #dc2626",
-          },
-          icon: "❌",
-        });
-      }
-    } catch (error) {
-      toast.error("have an error creating learning path", {
-        style: {
-          background: "#ef4444",
-          color: "white",
-          border: "1px solid #dc2626",
-        },
-        icon: "❌",
-      });
-      console.error("Error creating learning path:", error);
-    } finally {
-      setIsCreatingLearningPath(false);
-    }
-  };
-
-  const handleSaveLearningPath = async (
-    data: LearningPathData
-  ): Promise<void> => {
-    if (!session?.user?.id || !currentLearningPathInput || !token) {
-      throw new Error(
-        "dont have user id or currentLearningPathInput or token "
-      );
-    }
-
-    if (!isLearningPathData(data)) {
-      throw new Error("Invalid learning path data format");
-    }
-
-    try {
-      let response;
-
-      if (learningPathState.planId) {
-        // Update existing learning path
-        response = await improvedLearningPathApi.updateLearningPath(
-          learningPathState.planId,
-          data,
-          token
-        );
-      } else {
-        // Save new learning path
-        response = await improvedLearningPathApi.saveLearningPath(
-          session.user.id,
-          courseId,
-          data,
-          currentLearningPathInput,
-          token
-        );
-      }
-
-      if (response.success && response.data) {
-        if (!isLearningPlan(response.data)) {
-          throw new Error("Invalid learning plan response format");
-        }
-
-        setLearningPathState((prev) => ({
-          ...prev,
-          data: data,
-          planId: response.data!.planId,
-          isExisting: true,
-        }));
-
-        // Update hasExistingPlan state
-        setHasExistingPlan(true);
-        toast.success("Learning Path saved successfully!", {
-          style: {
-            background: "#10b981",
-            color: "white",
-            border: "1px solid #059669",
-          },
-          icon: "✅",
-        });
-      } else {
-        throw new Error(response.error || "Failed to save learning path");
-      }
-    } catch (error) {
-      console.error("Error saving learning path:", error);
-      throw error;
-    }
-  };
   // Load exam data
   const loadExamData = async () => {
     if (!courseId || !token) return;
@@ -707,25 +420,25 @@ export default function CourseLearnPage() {
           setCurrentLesson(initialLessons[0]);
           if (lessonsWithContent.length > 0) {
             setCurrentContent(lessonsWithContent[0]);
-            
+
             // Check if there's a contentId in URL params to restore user's position
-            const urlContentId = searchParams.get('contentId');
+            const urlContentId = searchParams.get("contentId");
             if (urlContentId) {
               // Find the content in any lesson
               const targetContent = initialLessons
                 .flatMap((l) => l.contents)
                 .find((c) => c.contentId === urlContentId);
-              
+
               if (targetContent) {
                 // Find the lesson containing this content
                 const targetLesson = initialLessons.find((l) =>
                   l.contents.some((c) => c.contentId === urlContentId)
                 );
-                
+
                 if (targetLesson) {
                   setCurrentLesson(targetLesson);
                   setSelectedContent(targetContent);
-                  
+
                   // Also set the corresponding LessonWithContent
                   const targetLessonWithContent = lessonsWithContent.find(
                     (l) => l.id === targetLesson.lessonId
@@ -844,11 +557,14 @@ export default function CourseLearnPage() {
       if (lessonWithProgress.contents.length > 0) {
         const firstContent = lessonWithProgress.contents[0];
         setSelectedContent(firstContent);
-        
+
         // Update URL params to preserve user's position
         const newSearchParams = new URLSearchParams(searchParams.toString());
-        newSearchParams.set('contentId', firstContent.contentId);
-        router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
+        newSearchParams.set("contentId", firstContent.contentId);
+        router.replace(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+          { scroll: false }
+        );
       }
     }
   };
@@ -865,8 +581,11 @@ export default function CourseLearnPage() {
 
       // Update URL params to preserve user's position
       const newSearchParams = new URLSearchParams(searchParams.toString());
-      newSearchParams.set('contentId', content.contentId);
-      router.replace(`${window.location.pathname}?${newSearchParams.toString()}`, { scroll: false });
+      newSearchParams.set("contentId", content.contentId);
+      router.replace(
+        `${window.location.pathname}?${newSearchParams.toString()}`,
+        { scroll: false }
+      );
 
       // Find the lesson containing this content
       const lesson = lessons.find((l: LessonWithProgress) =>
@@ -994,64 +713,6 @@ export default function CourseLearnPage() {
     );
   }
 
-  const renderLearningPathButton = () => {
-    if (!session) return null;
-
-    if (isCheckingPlan) {
-      return (
-        <Button
-          disabled
-          className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg mt-3"
-        >
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Đang kiểm tra...
-        </Button>
-      );
-    }
-
-    if (hasExistingPlan) {
-      return (
-        <Button
-          onClick={handleViewLearningPath}
-          disabled={learningPathState.isLoading}
-          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-2xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 mt-3"
-        >
-          {learningPathState.isLoading ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              Loading...
-            </>
-          ) : (
-            <>
-              <Eye className="w-5 h-5 mr-2" />
-              View Learning Path
-            </>
-          )}
-        </Button>
-      );
-    }
-
-    return (
-      <Button
-        onClick={handleCreateLearningPath}
-        disabled={isCreatingLearningPath}
-        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-2xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 mt-3"
-      >
-        {isCreatingLearningPath ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            Created...
-          </>
-        ) : (
-          <>
-            <Brain className="w-5 h-5 mr-2" />
-            Create Learning Path
-          </>
-        )}
-      </Button>
-    );
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
@@ -1076,8 +737,6 @@ export default function CourseLearnPage() {
               </div>
               <Progress value={courseProgress} className="h-2" />
             </div>
-            {/* Action Buttons */}
-            <div className="mb-6 space-y-3">{renderLearningPathButton()}</div>
           </div>
         </div>
       </header>
@@ -1160,29 +819,6 @@ export default function CourseLearnPage() {
       </div>
       <div className="fixed bottom-6 right-6 z-50"></div>
       {/* Learning Path Modal */}
-      <LearningPathModal
-        isOpen={showLearningPathModal}
-        onClose={() => setShowLearningPathModal(false)}
-        onSubmit={handleLearningPathSubmit}
-        courseId={courseId}
-        userId={session?.user?.id || ""}
-        userName={session?.user?.name || "Nguyễn Văn A"}
-        token={token || ""}
-      />
-
-      {/* Learning Path Display */}
-      {learningPathState.data && (
-        <UpdatedLearningPathDisplay
-          isOpen={showLearningPathDisplay}
-          onClose={() => setShowLearningPathDisplay(false)}
-          onSave={handleSaveLearningPath}
-          data={learningPathState.data}
-          isEditable={true}
-          planId={learningPathState.planId}
-          isExisting={learningPathState.isExisting}
-          token={token || ""}
-        />
-      )}
     </div>
   );
 }

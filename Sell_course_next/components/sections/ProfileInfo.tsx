@@ -23,14 +23,8 @@ import { useRouter } from "next/navigation";
 import { EditProfileModal } from "./EditProfileModal";
 import { UserProfile } from "@/app/types/profile/editProfile";
 import Image from "next/image";
-import { ScheduleItem } from "@/app/types/learningPath/learningPath";
-import improvedLearningPathApi from "@/app/api/learningPath/learningPathAPI";
-import UserScheduleDisplay from "../UserScheduleDisplay";
-import GoogleCalendarIntegration from "../GoogleCalendarIntegration";
-import enrollmentApi from "@/app/api/enrollment/enrollment";
-import wishlistApi from "@/app/api/wishlist/wishlist-api";
-import { Enrollment } from "@/app/types/enrollment/enrollment";
 import { WishlistResponseDto } from "@/app/types/profile/wishlist/wishlist";
+import { Enrollment } from "@/app/types/enrollment/enrollment";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -39,86 +33,21 @@ export function ProfileInfo() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
-  const [selectedWeekItems, setSelectedWeekItems] = useState<ScheduleItem[]>(
-    []
-  );
-  const [selectedWeekNumber, setSelectedWeekNumber] = useState<number | null>(
-    null
-  );
-  const [calendarMode, setCalendarMode] = useState<"single" | "week">("single");
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<WishlistResponseDto[]>([]);
-  const [statsLoading, setStatsLoading] = useState(false);
+
+  const [enrollments] = useState<Enrollment[]>([]);
+  const [wishlistItems] = useState<WishlistResponseDto[]>([]);
+  const [statsLoading] = useState(false);
   const coverImage =
     "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?q=80&w=1470&auto=format&fit=crop";
 
   // Calculate stats from loaded data
   const coursesEnrolled = enrollments.length;
   const wishlistedCourses = wishlistItems.length;
-  const completedCourses = enrollments.filter(enrollment => 
-    enrollment.status.toLowerCase() === 'completed' || 
-    enrollment.status.toLowerCase() === 'paid'
+  const completedCourses = enrollments.filter(
+    (enrollment) =>
+      enrollment.status.toLowerCase() === "completed" ||
+      enrollment.status.toLowerCase() === "paid"
   ).length;
-  const token = session?.accessToken;
-  useEffect(() => {
-    // Simulate loading data
-    const loadScheduleData = async () => {
-      try {
-        if(!token) return
-        setIsLoading(true);
-
-        // In real app, you would fetch from API:
-        const response = await improvedLearningPathApi.getLearningPlansByUserId(
-          session?.user?.id || "",
-          token
-        );
-        if (response.success && response.data) {
-          const allScheduleItems = response.data.flatMap(
-            (plan) => plan.scheduleItems.scheduleData
-          );
-          setScheduleItems(allScheduleItems);
-        }
-      } catch (err) {
-        setError("Failed to load schedule data");
-        console.error("Error loading schedule:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadScheduleData();
-  }, [session?.user?.id, token]);
-
-  // Load enrollment and wishlist data
-  useEffect(() => {
-    const loadUserStats = async () => {
-      if (!session?.user?.id || !token) return;
-      
-      setStatsLoading(true);
-      try {
-        // Load enrollments
-        const enrollmentData = await enrollmentApi.getUserEnrollments(token);
-        setEnrollments(enrollmentData);
-
-        // Load wishlist
-        const wishlistData = await wishlistApi.getWishlist(session.user.id, token);
-        setWishlistItems(wishlistData);
-      } catch (err) {
-        console.error("Failed to load user stats:", err);
-        // Set default empty arrays on error
-        setEnrollments([]);
-        setWishlistItems([]);
-      } finally {
-        setStatsLoading(false);
-      }
-    };
-
-    loadUserStats();
-  }, [session?.user?.id, token]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -152,29 +81,6 @@ export function ProfileInfo() {
 
     fetchUserProfile();
   }, [session, sessionStatus]);
-  const handleAddToCalendar = (item: ScheduleItem) => {
-    setSelectedItem(item);
-    setSelectedWeekItems([]);
-    setSelectedWeekNumber(null);
-    setCalendarMode("single");
-    setShowCalendarModal(true);
-  };
-  const handleAddWeekToCalendar = (
-    weekNumber: number,
-    items: ScheduleItem[]
-  ) => {
-    setSelectedItem(null);
-    setSelectedWeekItems(items);
-    setSelectedWeekNumber(weekNumber);
-    setCalendarMode("week");
-    setShowCalendarModal(true);
-  };
-  const closeCalendarModal = () => {
-    setShowCalendarModal(false);
-    setSelectedItem(null);
-    setSelectedWeekItems([]);
-    setSelectedWeekNumber(null);
-  };
 
   if (sessionStatus === "loading" || loading) {
     return (
@@ -254,40 +160,7 @@ export function ProfileInfo() {
           </p>
         </div>
       </div>
-      <section>
-        <UserScheduleDisplay
-          scheduleItems={scheduleItems}
-          userId="a517dfd7-1e59-4177-b4de-f4ba549e46b8"
-          showHeader={true}
-          showFilters={true}
-          isLoading={isLoading}
-          onAddToCalendar={handleAddToCalendar}
-          onAddWeekToCalendar={handleAddWeekToCalendar}
-          className="bg-white rounded-lg shadow-lg p-6"
-        />
-        {showCalendarModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <GoogleCalendarIntegration
-                  scheduleItem={
-                    calendarMode === "single"
-                      ? selectedItem !== null
-                        ? selectedItem
-                        : undefined
-                      : undefined
-                  }
-                  scheduleItems={
-                    calendarMode === "week" ? selectedWeekItems : []
-                  }
-                  weekNumber={selectedWeekNumber || undefined}
-                  onClose={closeCalendarModal}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
+
       {/* Main Profile Card */}
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Left Column - Profile Info */}

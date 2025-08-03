@@ -6,9 +6,8 @@ import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { PlanConstraint } from '../plan-constraint/plan-constraint.entity';
 import { PlanPreference } from '../plan-preference/plan-preference.entity';
-import { ScheduleItem } from '../schedule_item/entities/schedule_item.entity';
 import {
-  CreateLearningPlanDto,
+  N8nLearningPathDtOut,
   UpdateLearningPlanDto,
 } from './create-learning-plan.dto';
 
@@ -29,86 +28,55 @@ export class LearningPlanService {
 
     @InjectRepository(PlanPreference)
     private preferenceRepo: Repository<PlanPreference>,
-
-    @InjectRepository(ScheduleItem)
-    private scheduleItemRepo: Repository<ScheduleItem>,
   ) {}
 
-  async create(createDto: CreateLearningPlanDto) {
-    const user = await this.userRepo.findOneByOrFail({
-      user_id: createDto.userId,
-    });
-    const course = await this.courseRepo.findOneByOrFail({
-      courseId: createDto.courseId,
-    });
+  async createFromN8nData(
+    n8nData: N8nLearningPathDtOut,
+  ): Promise<LearningPlan[]> {
+    console.log(
+      'n8nData',
+      JSON.stringify(
+        n8nData[0].learningPath[1].tagetLearningPath.userId,
+        null,
+        2,
+      ),
+    );
 
-    const plan = this.planRepo.create({
-      user,
-      course,
-      studyGoal: createDto.studyGoal,
-      totalWeeks: createDto.totalWeeks,
-      narrativeTemplates: createDto.narrativeTemplates || null,
+    const user = await this.userRepo.findOne({
+      where: {
+        user_id: n8nData[0].learningPath[1].tagetLearningPath.userId,
+      },
     });
-    const savedPlan = await this.planRepo.save(plan);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const savedPlans: LearningPlan[] = [];
+    const courses = n8nData[0].learningPath[0].learningPathCourses;
+    const target = n8nData[0].learningPath[1].tagetLearningPath;
 
-    // Save constraints
-    if (createDto.constraints && createDto.constraints.length > 0) {
-      const constraints = createDto.constraints.map((c) =>
-        this.constraintRepo.create({ plan: savedPlan, ...c }),
-      );
-      await this.constraintRepo.save(constraints);
+    for (const course of courses) {
+      const newPlan = this.planRepo.create({
+        user,
+        targetLearningPath: target,
+        learningPathCourses: [course],
+      });
+
+      savedPlans.push(await this.planRepo.save(newPlan));
     }
 
-    // Save preferences
-    if (createDto.preferences && createDto.preferences.length > 0) {
-      const preferences = createDto.preferences.map((p) =>
-        this.preferenceRepo.create({ plan: savedPlan, ...p }),
-      );
-      await this.preferenceRepo.save(preferences);
-    }
-
-    // Save schedule items
-    if (createDto.scheduleItems && createDto.scheduleItems.length > 0) {
-      const scheduleItems = createDto.scheduleItems.map((item) =>
-        this.scheduleItemRepo.create({
-          plan: savedPlan,
-          dayOfWeek: item.dayOfWeek,
-          startTime: item.startTime,
-          durationMin: item.durationMin,
-          course: item.courseId ? { courseId: item.courseId } : undefined,
-          contentIds: item.contentIds,
-          weekNumber: item.weekNumber,
-          scheduledDate: item.scheduledDate,
-        }),
-      );
-      await this.scheduleItemRepo.save(scheduleItems);
-    }
-
-    return this.findOne(savedPlan.planId);
+    return savedPlans;
   }
 
   async findOne(planId: string) {
     return this.planRepo.findOne({
       where: { planId },
-      relations: [
-        'user',
-        'course',
-        'constraints',
-        'preferences',
-        'scheduleItems',
-      ],
+      relations: ['user', 'course', 'constraints', 'preferences'],
     });
   }
 
   async findAll() {
     return this.planRepo.find({
-      relations: [
-        'user',
-        'course',
-        'constraints',
-        'preferences',
-        'scheduleItems',
-      ],
+      relations: ['user', 'course', 'constraints', 'preferences'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -116,13 +84,7 @@ export class LearningPlanService {
   async findByUserId(userId: string) {
     return this.planRepo.find({
       where: { user: { user_id: userId } },
-      relations: [
-        'user',
-        'course',
-        'constraints',
-        'preferences',
-        'scheduleItems',
-      ],
+      relations: ['user', 'course', 'constraints', 'preferences'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -132,10 +94,11 @@ export class LearningPlanService {
 
     // Update primitive fields
     Object.assign(plan, {
-      studyGoal: updateDto.studyGoal ?? plan.studyGoal,
-      totalWeeks: updateDto.totalWeeks ?? plan.totalWeeks,
-      narrativeTemplates:
-        updateDto.narrativeTemplates ?? plan.narrativeTemplates,
+      targetLearningPath:
+        updateDto.targetLearningPath ?? plan.targetLearningPath,
+      learningPathCourses:
+        updateDto.learningPathCourses ?? plan.learningPathCourses,
+      updatedAt: new Date(),
     });
 
     await this.planRepo.save(plan);
@@ -162,26 +125,6 @@ export class LearningPlanService {
       }
     }
 
-    // Update schedule items if provided
-    if (updateDto.scheduleItems) {
-      await this.scheduleItemRepo.delete({ plan: { planId } });
-      if (updateDto.scheduleItems.length > 0) {
-        const newScheduleItems = updateDto.scheduleItems.map((item) =>
-          this.scheduleItemRepo.create({
-            plan: plan,
-            dayOfWeek: item.dayOfWeek,
-            startTime: item.startTime,
-            durationMin: item.durationMin,
-            course: item.courseId ? { courseId: item.courseId } : undefined,
-            contentIds: item.contentIds,
-            weekNumber: item.weekNumber,
-            scheduledDate: item.scheduledDate,
-          }),
-        );
-        await this.scheduleItemRepo.save(newScheduleItems);
-      }
-    }
-
     return this.findOne(planId);
   }
 
@@ -197,24 +140,30 @@ export class LearningPlanService {
       planId: plan.planId,
       userId: plan.user?.user_id,
       courseId: plan.course?.courseId,
-      studyGoal: plan.studyGoal,
-      totalWeeks: plan.totalWeeks,
       createdAt: plan.createdAt,
-      scheduleItems: {
-        scheduleData:
-          plan.scheduleItems?.map((item) => ({
-            dayOfWeek: item.dayOfWeek,
-            startTime: item.startTime,
-            durationMin: item.durationMin,
-            courseId: item.contentIds[0],
-            contentIds: item.contentIds,
-            weekNumber: item.weekNumber,
-            scheduledDate: item.scheduledDate,
-          })) || [],
-        narrativeText: plan.narrativeTemplates || [],
-      },
+      updatedAt: plan.updatedAt,
+      targetLearningPath: plan.targetLearningPath,
+      learningPathCourses: plan.learningPathCourses,
       constraints: plan.constraints || [],
       preferences: plan.preferences || [],
     };
+  }
+
+  /**
+   * Get all content IDs from a learning plan for progress tracking
+   */
+  getAllContentIds(plan: LearningPlan): string[] {
+    if (!plan.learningPathCourses) return [];
+
+    const contentIds: string[] = [];
+    plan.learningPathCourses.forEach((course) => {
+      course.lessons.forEach((lesson) => {
+        lesson.contents.forEach((content) => {
+          contentIds.push(content.contentId);
+        });
+      });
+    });
+
+    return contentIds;
   }
 }
