@@ -122,6 +122,7 @@ interface LessonItem {
 }
 
 interface CourseItem {
+  order: number;
   courseId: string;
   title: string;
   narrativeText: NarrativeItem[];
@@ -151,7 +152,7 @@ export interface N8nLearningPathDto {
   userId: string;
   learningPath: [
     { learningPathCourses: CourseItem[] },
-    { tagetLearningPath: TargetLearningPath },
+    { targetLearningPath: TargetLearningPath },
   ];
 }
 
