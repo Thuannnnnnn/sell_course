@@ -1,15 +1,7 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
-import { PlanConstraint } from '../plan-constraint/plan-constraint.entity';
-import { PlanPreference } from '../plan-preference/plan-preference.entity';
 
 @Entity()
 export class LearningPlan {
@@ -76,18 +68,6 @@ export class LearningPlan {
       }>;
     }>;
   }[];
-
-  @OneToMany(() => PlanConstraint, (pc) => pc.plan, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  constraints: PlanConstraint[];
-
-  @OneToMany(() => PlanPreference, (pp) => pp.plan, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  preferences: PlanPreference[];
 
   // Optional: Keep course reference for backward compatibility
   @ManyToOne(() => Course, { nullable: true })

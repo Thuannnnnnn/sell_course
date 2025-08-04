@@ -81,12 +81,9 @@ import { RefreshToken } from './modules/Auth/entities/refresh-token.entity';
  */
 import * as redisStore from 'cache-manager-ioredis';
 import { CacheModule } from '@nestjs/cache-manager';
-import { PlanConstraint } from './modules/plan-constraint/plan-constraint.entity';
-import { PlanPreference } from './modules/plan-preference/plan-preference.entity';
+
 import { LearningPlan } from './modules/learning-plan/learning-plan.entity';
 
-import { PlanConstraintModule } from './modules/plan-constraint/plan-constraint.module';
-import { PlanPreferenceModule } from './modules/plan-preference/plan-preference.module';
 import { LearningPlanModule } from './modules/learning-plan/learning-plan.module';
 import { SurveyQuestionModule } from './modules/survey-response/survey-response.module';
 import { SurveyAnswerOption } from './modules/surveyAnswerOption/survey-answer-option.entity';
@@ -125,8 +122,6 @@ import { ScheduleModule } from '@nestjs/schedule';
       // },
       entities: [
         SurveyQuestion,
-        PlanConstraint,
-        PlanPreference,
         LearningPlan,
         SurveyAnswerOption,
         LogoSetting,
@@ -169,8 +164,6 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     TypeOrmModule.forFeature([User, Permission]),
     SurveyAnswerOptionModule,
-    PlanConstraintModule,
-    PlanPreferenceModule,
     LearningPlanModule,
     SurveyQuestionModule,
     LogoSettingModule,

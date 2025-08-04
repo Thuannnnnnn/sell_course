@@ -95,4 +95,3 @@ export class LearningPlanController {
     return this.planService.remove(id);
   }
 }
-

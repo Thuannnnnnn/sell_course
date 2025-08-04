@@ -4,8 +4,6 @@ import { LearningPlan } from './learning-plan.entity';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
-import { PlanConstraint } from '../plan-constraint/plan-constraint.entity';
-import { PlanPreference } from '../plan-preference/plan-preference.entity';
 import {
   N8nLearningPathDtOut,
   UpdateLearningPlanDto,
@@ -22,12 +20,6 @@ export class LearningPlanService {
 
     @InjectRepository(Course)
     private courseRepo: Repository<Course>,
-
-    @InjectRepository(PlanConstraint)
-    private constraintRepo: Repository<PlanConstraint>,
-
-    @InjectRepository(PlanPreference)
-    private preferenceRepo: Repository<PlanPreference>,
   ) {}
 
   async createFromN8nData(
@@ -76,13 +68,13 @@ export class LearningPlanService {
   async findOne(planId: string) {
     return this.planRepo.findOne({
       where: { planId },
-      relations: ['user', 'course', 'constraints', 'preferences'],
+      relations: ['user', 'course'],
     });
   }
 
   async findAll() {
     return this.planRepo.find({
-      relations: ['user', 'course', 'constraints', 'preferences'],
+      relations: ['user', 'course'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -90,7 +82,7 @@ export class LearningPlanService {
   async findByUserId(userId: string) {
     return this.planRepo.find({
       where: { user: { user_id: userId } },
-      relations: ['user', 'course', 'constraints', 'preferences'],
+      relations: ['user', 'course'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -108,28 +100,6 @@ export class LearningPlanService {
     });
 
     await this.planRepo.save(plan);
-
-    // Update constraints if provided
-    if (updateDto.constraints) {
-      await this.constraintRepo.delete({ plan: { planId } });
-      if (updateDto.constraints.length > 0) {
-        const newConstraints = updateDto.constraints.map((c) =>
-          this.constraintRepo.create({ plan, ...c }),
-        );
-        await this.constraintRepo.save(newConstraints);
-      }
-    }
-
-    // Update preferences if provided
-    if (updateDto.preferences) {
-      await this.preferenceRepo.delete({ plan: { planId } });
-      if (updateDto.preferences.length > 0) {
-        const newPreferences = updateDto.preferences.map((p) =>
-          this.preferenceRepo.create({ plan, ...p }),
-        );
-        await this.preferenceRepo.save(newPreferences);
-      }
-    }
 
     return this.findOne(planId);
   }
@@ -150,8 +120,6 @@ export class LearningPlanService {
       updatedAt: plan.updatedAt,
       targetLearningPath: plan.targetLearningPath,
       learningPathCourses: plan.learningPathCourses,
-      constraints: plan.constraints || [],
-      preferences: plan.preferences || [],
     };
   }
 
