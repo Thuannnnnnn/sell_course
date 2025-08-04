@@ -93,7 +93,11 @@ function ExamPageContent({ params }: ExamPageProps) {
     setSuccess('')
     
     try {
-      const newExam = await examApi.createExamFromQuizzes(courseId, config)
+      const examConfig = {
+        ...config,
+        courseId
+      }
+      const newExam = await examApi.createExamFromQuizzes(examConfig)
       setExam(newExam)
       setSuccess('Exam created successfully from quizzes!')
       setActiveTab('overview')
