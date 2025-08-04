@@ -15,7 +15,8 @@ import { changePasswordAPI } from "@/app/api/auth/change-password/changePassword
 import PageHead from "@/components/layout/Head";
 import { PasswordRequirements, PasswordStrengthIndicator } from "@/components/ui/password-requirements";
 import { PasswordConfirmation } from "@/components/ui/password-confirmation";
-
+import Image from "next/image";
+import logo from "../../../public/logo.png";
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -109,21 +110,7 @@ export default function ChangePasswordPage() {
         <CardHeader>
           <div className="flex flex-col items-center space-y-2 text-center">
             <div className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-primary"
-              >
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-              </svg>
+             <Image src={logo} alt="Logo" width={80} height={80} />
               <span className="text-2xl font-bold">Course Master</span>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">

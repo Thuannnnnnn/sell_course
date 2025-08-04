@@ -72,23 +72,66 @@ export default function SettingsPage() {
       );
 
       setVersions(versionsWithIds);
-      if (versionsWithIds.length > 0 && !selectedVersion) {
-        const activeVersion =
-          versionsWithIds.find((v) => v.isActive) || versionsWithIds[0];
-        setSelectedVersion(activeVersion);
-      }
+      // Only set selected version if there isn't one already selected
+      setSelectedVersion(prev => {
+        if (!prev && versionsWithIds.length > 0) {
+          return versionsWithIds.find((v) => v.isActive) || versionsWithIds[0];
+        }
+        return prev;
+      });
     } catch {
     } finally {
       setLoading(false);
     }
-  }, [selectedVersion]);
+  }, []); // Remove selectedVersion dependency to prevent infinite loop
 
   useEffect(() => {
     loadVersions();
   }, [loadVersions]);
 
-  const loadVersionDetails = useCallback(async () => {
-    if (!selectedVersion) return;
+  useEffect(() => {
+    const loadDetails = async () => {
+      if (!selectedVersion?.versionSettingId) return;
+      try {
+        const [logo, banner] = await Promise.all([
+          settingsApi.getLogoByVersionId(selectedVersion.versionSettingId),
+          settingsApi.getBannerByVersionId(selectedVersion.versionSettingId),
+        ]);
+        setLogoSetting(logo[0]);
+        setBannerSetting(banner);
+
+        // Update the selected version with the IDs
+        setSelectedVersion((prev) =>
+          prev
+            ? {
+                ...prev,
+                logoId: logo[0]?.logoSettingId,
+                bannerId: banner?.carouselSettingId,
+              }
+            : null
+        );
+
+        // Update the versions array with the IDs
+        setVersions((prev) =>
+          prev.map((v) =>
+            v.versionSettingId === selectedVersion.versionSettingId
+              ? {
+                  ...v,
+                  logoId: logo[0]?.logoSettingId,
+                  bannerId: banner?.carouselSettingId,
+                }
+              : v
+          )
+        );
+      } catch {}
+    };
+
+    loadDetails();
+  }, [selectedVersion?.versionSettingId]);
+
+  // Helper function to reload current version details
+  const reloadCurrentVersionDetails = async () => {
+    if (!selectedVersion?.versionSettingId) return;
     try {
       const [logo, banner] = await Promise.all([
         settingsApi.getLogoByVersionId(selectedVersion.versionSettingId),
@@ -96,45 +139,15 @@ export default function SettingsPage() {
       ]);
       setLogoSetting(logo[0]);
       setBannerSetting(banner);
-
-      // Update the selected version with the IDs
-      setSelectedVersion((prev) =>
-        prev
-          ? {
-              ...prev,
-              logoId: logo[0]?.logoSettingId,
-              bannerId: banner?.carouselSettingId,
-            }
-          : null
-      );
-
-      // Update the versions array with the IDs
-      setVersions((prev) =>
-        prev.map((v) =>
-          v.versionSettingId === selectedVersion.versionSettingId
-            ? {
-                ...v,
-                logoId: logo[0]?.logoSettingId,
-                bannerId: banner?.carouselSettingId,
-              }
-            : v
-        )
-      );
     } catch {}
-  }, [selectedVersion]);
-
-  useEffect(() => {
-    if (selectedVersion?.versionSettingId) {
-      loadVersionDetails();
-    }
-  }, [selectedVersion?.versionSettingId, loadVersionDetails]);
+  };
 
   const handleDeleteBanner = async () => {
     if (!bannerSetting || !selectedVersion) return;
     if (window.confirm("Are you sure you want to delete this banner?")) {
       try {
         await settingsApi.deleteBanner(bannerSetting.carouselSettingId);
-        await loadVersionDetails();
+        await reloadCurrentVersionDetails();
       } catch (error) {
         console.error("Failed to delete banner:", error);
       }
@@ -198,7 +211,7 @@ export default function SettingsPage() {
           );
         }
       }
-      await loadVersionDetails();
+      await reloadCurrentVersionDetails();
       toast.success(`${type === "logo" ? "Logo" : "Banner"} ${Id || (type === "logo" ? selectedVersion.logoId : selectedVersion.bannerId) ? "updated" : "uploaded"} successfully!`);
     } catch (error) {
       console.error(

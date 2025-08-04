@@ -6,16 +6,7 @@ import {
   UpdateVersionSettingDto,
   VersionSetting,
 } from "app/types/setting";
-import axios from "axios";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import { apiClient } from "../../../lib/utils/axiosWithAuth";
 
 function isAxiosErrorWithMessage(error: unknown): error is { response: { data: { message: string } } } {
   return (
@@ -35,7 +26,7 @@ export const settingsApi = {
   // Version Settings
   async getVersionSettings(): Promise<VersionSetting[]> {
     try {
-      const response = await api.get("/version-settings");
+      const response = await apiClient.get("/version-settings");
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -47,7 +38,7 @@ export const settingsApi = {
 
   async getVersionById(id: string): Promise<VersionSetting> {
     try {
-      const response = await api.get(`/version-settings/${id}`);
+      const response = await apiClient.get(`/version-settings/${id}`);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -59,7 +50,7 @@ export const settingsApi = {
 
   async createVersion(data: CreateVersionSettingDto): Promise<VersionSetting> {
     try {
-      const response = await api.post("/version-settings", data);
+      const response = await apiClient.post("/version-settings", data);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -74,7 +65,7 @@ export const settingsApi = {
     data: UpdateVersionSettingDto
   ): Promise<VersionSetting> {
     try {
-      const response = await api.patch(`/version-settings/${id}`, data);
+      const response = await apiClient.patch(`/version-settings/${id}`, data);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -86,7 +77,7 @@ export const settingsApi = {
 
   async deleteVersion(id: string): Promise<ApiResponse> {
     try {
-      const response = await api.delete(`/version-settings/${id}`);
+      const response = await apiClient.delete(`/version-settings/${id}`);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -101,7 +92,7 @@ export const settingsApi = {
     isActive: boolean
   ): Promise<VersionSetting> {
     try {
-      const response = await api.patch(`/version-settings/${id}`, { isActive });
+      const response = await apiClient.patch(`/version-settings/${id}`, { isActive });
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -113,7 +104,7 @@ export const settingsApi = {
 
   async getActiveVersion(): Promise<VersionSetting> {
     try {
-      const response = await api.get("/version-settings/active");
+      const response = await apiClient.get("/version-settings/active");
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -126,7 +117,7 @@ export const settingsApi = {
   // Logo Settings
   async getLogoByVersionId(versionId: string): Promise<LogoSetting[]> {
     try {
-      const response = await api.get(`/logo-settings/by-version/${versionId}`);
+      const response = await apiClient.get(`/logo-settings/by-version/${versionId}`);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -141,7 +132,7 @@ export const settingsApi = {
     formData.append("imageInfo", file);
     formData.append("versionSettingId", versionId);
     try {
-      const response = await api.patch(`/logo-settings/${logoId}`, formData, {
+      const response = await apiClient.patch(`/logo-settings/${logoId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -157,7 +148,7 @@ export const settingsApi = {
 
   async deleteLogo(id: string): Promise<ApiResponse> {
     try {
-      const response = await api.delete(`/logo-settings/${id}`);
+      const response = await apiClient.delete(`/logo-settings/${id}`);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -172,7 +163,7 @@ export const settingsApi = {
     formData.append("imageInfo", file);
     formData.append("versionSettingId", versionId);
     try {
-      const response = await api.post(`/logo-settings`, formData, {
+      const response = await apiClient.post(`/logo-settings`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -189,7 +180,7 @@ export const settingsApi = {
   // Banner Settings (formerly Carousel)
   async getBannerByVersionId(versionId: string): Promise<BannerSetting | null> {
     try {
-      const response = await api.get(
+      const response = await apiClient.get(
         `/carousel-settings/by-version/${versionId}`
       );
       return response.data.length > 0 ? response.data[0] : null;
@@ -206,7 +197,7 @@ export const settingsApi = {
     formData.append("file", file);
     formData.append("versionSettingId", versionId);
     try {
-      const response = await api.patch(`/carousel-settings/${bannerId}`, formData, {
+      const response = await apiClient.patch(`/carousel-settings/${bannerId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -222,7 +213,7 @@ export const settingsApi = {
 
   async deleteBanner(id: string): Promise<ApiResponse> {
     try {
-      const response = await api.delete(`/carousel-settings/${id}`);
+      const response = await apiClient.delete(`/carousel-settings/${id}`);
       return response.data;
     } catch (error) {
       if (isAxiosErrorWithMessage(error)) {
@@ -237,7 +228,7 @@ export const settingsApi = {
     formData.append("file", file);
     formData.append("versionSettingId", versionId);
     try {
-      const response = await api.post(`/carousel-settings`, formData, {
+      const response = await apiClient.post(`/carousel-settings`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

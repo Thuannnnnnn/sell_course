@@ -16,11 +16,15 @@ export async function middleware(request: NextRequest) {
     "/auth/register",
     "/auth/forgot-password",
     "/auth/login-google",
+    "/about",
   ];
 
-  // So sánh chính xác thay vì startsWith
+  // Routes that require authentication
+  const authenticatedAuthRoutes = ["/auth/change-password"];
+
   const isPublicRoute = publicRoutes.includes(pathname);
   const isAuthRoute = pathname.startsWith("/auth");
+  const isAuthenticatedAuthRoute = authenticatedAuthRoutes.includes(pathname);
 
   // ✅ Chưa login & vào private → redirect login
   if (!session?.accessToken && !isPublicRoute) {
@@ -30,8 +34,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // ✅ Đã login nhưng vào auth → redirect về /
-  if (session?.accessToken && isAuthRoute) {
+  // ✅ Đã login nhưng vào auth (trừ các route cần authentication) → redirect về /
+  if (session?.accessToken && isAuthRoute && !isAuthenticatedAuthRoute) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
