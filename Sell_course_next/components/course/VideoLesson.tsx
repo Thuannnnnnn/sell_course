@@ -213,21 +213,36 @@ export function VideoLesson({
     };
   }, [showControls, playing]);
 
-  // Tìm transcript hiện tại dựa trên thời gian phát
+  // Tìm transcript hiện tại dựa trên thời gian phát - chỉ tracking segment, không tracking từng từ
   useEffect(() => {
-    if (transcript.length > 0 && playedSeconds > 0) {
-      const newCurrentIndex = transcript.findIndex((item) => {
-        const itemStartTime = parseFloat(item.words[0]?.start || "0");
-        const itemEndTime = parseFloat(
-          item.words[item.words.length - 1]?.end || "0"
-        );
-        return playedSeconds >= itemStartTime && playedSeconds < itemEndTime;
-      });
+    if (transcript.length > 0 && playedSeconds >= 0) {
+      // Tìm transcript index chính xác dựa trên thời gian hiện tại
+      let newCurrentIndex = -1;
+      
+      for (let i = 0; i < transcript.length; i++) {
+        const item = transcript[i];
+        if (item.words.length > 0) {
+          const itemStartTime = parseFloat(item.words[0].start || "0");
+          const itemEndTime = parseFloat(
+            item.words[item.words.length - 1].end || "0"
+          );
+          
+          // Kiểm tra nếu thời gian hiện tại nằm trong khoảng của transcript này
+          if (playedSeconds >= itemStartTime && playedSeconds <= itemEndTime + 0.5) {
+            newCurrentIndex = i;
+            break;
+          }
+          
+          // Hoặc nếu thời gian hiện tại gần với transcript này nhất (tolerance 1 giây)
+          if (playedSeconds >= itemStartTime - 0.5 && playedSeconds < itemStartTime) {
+            newCurrentIndex = i;
+            break;
+          }
+        }
+      }
 
-      if (
-        newCurrentIndex !== -1 &&
-        newCurrentIndex !== currentTranscriptIndex
-      ) {
+      // Cập nhật index nếu có thay đổi
+      if (newCurrentIndex !== currentTranscriptIndex) {
         setCurrentTranscriptIndex(newCurrentIndex);
       }
     }
@@ -274,19 +289,37 @@ export function VideoLesson({
     };
   }, []);
 
-  // Auto-scroll to active transcript when currentTranscriptIndex changes
+  // Auto-scroll to active transcript when currentTranscriptIndex changes - cải thiện smooth scroll
   useEffect(() => {
     if (
       currentTranscriptIndex !== -1 &&
       activeTranscriptRef.current &&
       transcriptContainerRef.current
     ) {
-      activeTranscriptRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+      // Smooth scroll với timing tốt hơn
+      setTimeout(() => {
+        activeTranscriptRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest"
+        });
+      }, 100);
     }
   }, [currentTranscriptIndex]);
+
+  // Auto-show transcript khi video bắt đầu phát và có transcript
+  useEffect(() => {
+    if (playing && transcript.length > 0 && !showTranscript) {
+      setShowTranscript(true);
+    }
+  }, [playing, transcript.length, showTranscript]);
+
+  // Tự động bật transcript khi vào fullscreen nếu có transcript
+  useEffect(() => {
+    if (isFullscreen && transcript.length > 0) {
+      setShowTranscript(true);
+    }
+  }, [isFullscreen, transcript.length]);
 
   // Player event handlers
   const handlePlayPause = () => {
@@ -377,6 +410,15 @@ export function VideoLesson({
     return `${mm}:${ss}`;
   };
 
+  // Hàm render transcript với text thông thường (không highlight từng từ)
+  const renderTranscriptText = (item: TranscriptItem) => {
+    return (
+      <p className="text-sm leading-relaxed flex-1">
+        {item.transcript}
+      </p>
+    );
+  };
+
   // Xử lý khi click vào một dòng transcript
   const handleTranscriptClick = (item: TranscriptItem) => {
     if (playerRef && item.words.length > 0) {
@@ -465,16 +507,22 @@ export function VideoLesson({
       )}
 
       {/* Video Player Container */}
-      <div className="flex gap-4">
+      <div 
+        ref={videoContainerRef}
+        className={`${isFullscreen ? 'fixed inset-0 z-50 bg-black flex flex-col' : 'flex gap-4'}`}
+      >
         {/* Main Video Player */}
         <div
           className={`${
-            showTranscript ? "w-2/3" : "w-full"
+            isFullscreen 
+              ? "flex-1" 
+              : showTranscript 
+                ? "w-2/3" 
+                : "w-full"
           } transition-all duration-300`}
         >
           <AspectRatio ratio={16 / 9}>
             <div
-              ref={videoContainerRef}
               className="relative w-full h-full bg-black rounded-lg overflow-hidden group"
               onMouseMove={handleMouseMove}
               onMouseLeave={() => playing && setShowControls(false)}
@@ -501,6 +549,17 @@ export function VideoLesson({
                       },
                     }}
                   />
+
+                  {/* Subtitle/Script overlay for fullscreen mode */}
+                  {isFullscreen && showTranscript && currentTranscriptIndex >= 0 && transcript[currentTranscriptIndex] && (
+                    <div className="absolute bottom-16 left-4 right-4 flex justify-center pointer-events-none">
+                      <div className="bg-black/80 text-white px-6 py-3 rounded-lg max-w-4xl text-center">
+                        <p className="text-lg leading-relaxed">
+                          {transcript[currentTranscriptIndex].transcript}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Custom Controls Overlay */}
                   <div
@@ -605,10 +664,22 @@ export function VideoLesson({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white hover:bg-white/20"
+                            className={`text-white hover:bg-white/20 ${
+                              showTranscript ? 'bg-white/20' : ''
+                            }`}
                             onClick={() => setShowTranscript(!showTranscript)}
+                            title={
+                              isFullscreen 
+                                ? (showTranscript ? "Hide Subtitles" : "Show Subtitles")
+                                : (showTranscript ? "Hide Transcript" : "Show Transcript")
+                            }
                           >
                             <Newspaper className="w-4 h-4" />
+                            {transcript.length > 0 && (
+                              <span className="ml-1 text-xs">
+                                {isFullscreen ? 'SUB' : `(${transcript.length})`}
+                              </span>
+                            )}
                           </Button>
 
                           <Button
@@ -641,12 +712,101 @@ export function VideoLesson({
           </AspectRatio>
         </div>
 
-        {/* Transcript Sidebar */}
-        {showTranscript && (
+        {/* Fullscreen Subtitle Panel */}
+        {isFullscreen && showTranscript && (
+          <div className="bg-black/90 text-white p-4 border-t border-gray-700">
+            <div className="max-w-6xl mx-auto">
+              {/* Current transcript display */}
+              {currentTranscriptIndex >= 0 && transcript[currentTranscriptIndex] && (
+                <div className="mb-4">
+                  <div className="text-center">
+                    <p className="text-xl leading-relaxed mb-2 text-white">
+                      {transcript[currentTranscriptIndex].transcript}
+                    </p>
+                    <div className="text-sm text-gray-400">
+                      Segment {currentTranscriptIndex + 1} of {transcript.length} | 
+                      Time: {transcript[currentTranscriptIndex].words.length > 0 
+                        ? formatTime(parseFloat(transcript[currentTranscriptIndex].words[0].start))
+                        : "00:00"
+                      }
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Progress bar */}
+              {transcript.length > 0 && (
+                <div className="mb-3">
+                  <div className="h-2 bg-gray-700 rounded-full">
+                    <div
+                      className="h-2 bg-blue-500 rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${currentTranscriptIndex >= 0 ? ((currentTranscriptIndex + 1) / transcript.length) * 100 : 0}%` 
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>Start</span>
+                    <span>{currentTranscriptIndex >= 0 ? `${currentTranscriptIndex + 1}/${transcript.length}` : '0/0'}</span>
+                    <span>End</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Quick navigation */}
+              <div className="flex justify-center gap-2">
+                <button
+                  onClick={() => {
+                    if (currentTranscriptIndex > 0) {
+                      const prevItem = transcript[currentTranscriptIndex - 1];
+                      handleTranscriptClick(prevItem);
+                    }
+                  }}
+                  disabled={currentTranscriptIndex <= 0}
+                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 text-white text-sm rounded transition-colors"
+                >
+                  ← Previous
+                </button>
+                <button
+                  onClick={() => {
+                    if (currentTranscriptIndex < transcript.length - 1) {
+                      const nextItem = transcript[currentTranscriptIndex + 1];
+                      handleTranscriptClick(nextItem);
+                    }
+                  }}
+                  disabled={currentTranscriptIndex >= transcript.length - 1}
+                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 text-white text-sm rounded transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Transcript Sidebar - Only show when not in fullscreen */}
+        {showTranscript && !isFullscreen && (
           <div className="w-1/3">
             <div className="w-full">
               <div className="mb-4">
-                <h3 className="text-lg font-semibold">Transcript</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Transcript</h3>
+                  {currentTranscriptIndex >= 0 && transcript.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      {currentTranscriptIndex + 1} / {transcript.length}
+                    </div>
+                  )}
+                </div>
+                {transcript.length > 0 && currentTranscriptIndex >= 0 && (
+                  <div className="mt-2 h-1 bg-gray-200 dark:bg-gray-700 rounded-full">
+                    <div
+                      className="h-1 bg-blue-500 rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${((currentTranscriptIndex + 1) / transcript.length) * 100}%` 
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               <ScrollArea
@@ -663,10 +823,10 @@ export function VideoLesson({
                             ? activeTranscriptRef
                             : null
                         }
-                        className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                        className={`p-3 rounded-lg cursor-pointer transition-all duration-300 transform ${
                           index === currentTranscriptIndex
-                            ? "bg-primary/20 border-primary border"
-                            : "bg-muted/50 hover:bg-muted"
+                            ? 'bg-primary/20 border-primary scale-105 border shadow-lg'
+                            : 'bg-muted/50 hover:bg-muted hover:scale-102'
                         }`}
                         onClick={() => handleTranscriptClick(item)}
                       >
@@ -676,9 +836,7 @@ export function VideoLesson({
                               ? formatTime(parseFloat(item.words[0].start))
                               : "00:00"}
                           </span>
-                          <p className="text-sm leading-relaxed flex-1">
-                            {item.transcript}
-                          </p>
+                          {renderTranscriptText(item)}
                         </div>
 
                         <div className="mt-2 text-xs text-muted-foreground">

@@ -436,7 +436,10 @@ export function LessonContent({
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-      <AIChatWindow urlBot={urlBot || ""} />
+      <AIChatWindow 
+        key={`chatbot-${lesson.id}-${content?.contentId || 'default'}`} 
+        urlBot={urlBot || ""} 
+      />
     </div>
   );
 }

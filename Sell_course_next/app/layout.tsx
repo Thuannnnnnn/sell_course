@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { ToastProvider } from "@/components/ui/toast";
 import ChatSupportWindow from "../components/course/ChatSupportWindow";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,6 +29,24 @@ export default function RootLayout({
   const [, setActiveVersionId] = useState<string | undefined>(
     undefined
   );
+  const pathname = usePathname();
+
+  // Định nghĩa các trang không hiển thị chat support
+  const hideChatSupportPaths = [
+    '/auth/',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+  ];
+
+  // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách ẩn chat
+  const shouldHideChatSupport = 
+    hideChatSupportPaths.some(path => pathname.startsWith(path)) ||
+    // Ẩn trong tất cả trang enrolled
+    pathname.startsWith('/enrolled/') ||
+    // Ẩn trong trang quiz (course lesson content)
+    pathname.match(/^\/quiz\/[^\/]+\/[^\/]+\/[^\/]+/);
 
   useEffect(() => {
     const updateVersionId = () => {
@@ -56,7 +75,7 @@ export default function RootLayout({
               <Navbar />
               {children}
               <Footer />
-              <ChatSupportWindow />
+              {!shouldHideChatSupport && <ChatSupportWindow />}
             </div>
           </ToastProvider>
         </SessionProvider>

@@ -717,8 +717,8 @@ export default function CourseLearnPage() {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <header className="top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4 pl-0">
+        <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -729,7 +729,7 @@ export default function CourseLearnPage() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-6 pr-5">
+          <div className="flex items-center gap-6">
             <div className="flex flex-col gap-1 w-48">
               <div className="flex justify-between text-sm">
                 <span>Course Progress</span>
@@ -741,7 +741,7 @@ export default function CourseLearnPage() {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 px-4 md:px-6 py-4 gap-6">
         {/* Sidebar */}
         <aside className="sticky top-20 h-[calc(100vh-5rem)] z-30">
           <CourseSidebar
@@ -757,7 +757,7 @@ export default function CourseLearnPage() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="container py-10 ml-6">
+          <div className="max-w-7xl mx-auto">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}

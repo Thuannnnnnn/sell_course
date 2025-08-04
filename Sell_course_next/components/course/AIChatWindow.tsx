@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Minimize2, X, AlertTriangle } from "lucide-react";
+import { Send, Bot, User, Minimize2, X, AlertTriangle, Loader2 } from "lucide-react";
 import { getChatSuggestionsWithCache, sendChatMessage } from "@/app/api/ChatBot/chatbot";
 
 interface Message {
@@ -19,7 +19,7 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
       id: 1,
       type: "ai",
       content:
-        "Hello! I'm a Gemini-powered assistant. How can I help you today?",
+        "Hello! I'm a coursemaster assistant. How can I help you today?",
       timestamp: new Date(),
     },
   ]);
@@ -31,7 +31,7 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
   const [isLoadingSuggestions, setIsLoadingSuggestions] =
     useState<boolean>(false);
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
-  const [suggestionsFetched, setSuggestionsFetched] = useState<boolean>(false);
+  const [isResetting, setIsResetting] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -49,14 +49,16 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
   // Fetch suggestions immediately when component mounts or urlBot changes
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (suggestionsFetched || !urlBot) return;
+      if (!urlBot) return;
       
+      // Reset state when urlBot changes
       setIsLoadingSuggestions(true);
       setSuggestionError(null);
+      setSuggestions([]);
+      
       try {
         const fetchedSuggestions = await getChatSuggestionsWithCache(urlBot);
         setSuggestions(fetchedSuggestions);
-        setSuggestionsFetched(true);
       } catch {
         setSuggestionError("Could not load suggestions. Please try again.");
       } finally {
@@ -64,9 +66,38 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
       }
     };
 
-    // Gọi suggestions ngay khi component load, không đợi mở chat window
+    // Gọi suggestions khi urlBot thay đổi
     fetchSuggestions();
-  }, [urlBot, suggestionsFetched]);
+  }, [urlBot]); // Chỉ phụ thuộc vào urlBot
+
+  // Reset chat state when urlBot changes
+  useEffect(() => {
+    if (urlBot) {
+      setIsResetting(true);
+      
+      // Reset chat messages to initial state
+      setMessages([
+        {
+          id: 1,
+          type: "ai",
+          content: "Hello! I'm a coursemaster assistant. How can I help you today?",
+          timestamp: new Date(),
+        },
+      ]);
+      
+      // Reset other states
+      setInputMessage("");
+      setIsTyping(false);
+      setShowSuggestions(true);
+      
+      console.log("🔄 Chat reset for new content:", urlBot);
+      
+      // Small delay to show reset state
+      setTimeout(() => {
+        setIsResetting(false);
+      }, 500);
+    }
+  }, [urlBot]);
 
   // Don't render chatbot if no valid URL is provided (e.g., for quiz/exam content)
   if (!urlBot || urlBot.trim() === "") {
@@ -193,7 +224,16 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
-        {showSuggestions && messages.length === 1 && (
+        {isResetting && (
+          <div className="flex items-center justify-center p-4">
+            <div className="flex items-center gap-2 text-blue-600">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Loading new content...</span>
+            </div>
+          </div>
+        )}
+        
+        {!isResetting && showSuggestions && messages.length === 1 && (
           <div className="space-y-2">
             <p className="text-xs text-gray-600 font-medium">
               💫 Suggestions for you:
@@ -234,7 +274,7 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
           </div>
         )}
 
-        {messages.map((message) => (
+        {!isResetting && messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${
@@ -274,7 +314,7 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
           </div>
         ))}
 
-        {isTyping && (
+        {!isResetting && isTyping && (
           <div className="flex justify-start">
             <div className="bg-white text-gray-800 rounded-lg rounded-bl-sm p-2.5 shadow-sm border max-w-[85%]">
               <div className="flex items-center space-x-2">
@@ -307,15 +347,16 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
               value={inputMessage}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
+              placeholder={isResetting ? "Loading new content..." : "Type a message..."}
               rows={1}
-              className="w-full p-2.5 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm max-h-20 overflow-y-auto"
+              disabled={isResetting}
+              className="w-full p-2.5 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm max-h-20 overflow-y-auto disabled:bg-gray-100 disabled:cursor-not-allowed"
               style={{ minHeight: "42px" }}
             />
           </div>
           <button
             onClick={() => handleSendMessage()}
-            disabled={!inputMessage.trim() || isTyping}
+            disabled={!inputMessage.trim() || isTyping || isResetting}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-2.5 rounded-lg transition-colors duration-200 flex-shrink-0"
             aria-label="Send message"
           >
