@@ -28,13 +28,7 @@ import {
 import { ExamQuestion } from "../../types/Course/exam/result-exam";
 import { Exam } from "../../types/Course/exam/exam";
 import { VideoState } from "@/app/types/Course/Lesson/content/video";
-import {
-  markContentAsCompleted,
-  getLessonProgress,
-  getCourseProgress,
-  getContentStatus,
-  getCompletedContentsCount,
-} from "../../api/Progress/progress";
+
 import {
   ContentProgressStatus,
   CourseProgressResponse,
@@ -42,6 +36,7 @@ import {
   CompletedCountResponse,
 } from "@/app/types/Progress/progress";
 import { useSession } from "next-auth/react";
+import { createProgressTrackingAPI } from "@/app/api/Progress/progress";
 // Enhanced types for progress tracking
 interface LessonWithProgress extends LessonResponse {
   isCompleted: boolean;
@@ -106,14 +101,14 @@ export default function CourseLearnPage() {
     useState<UserExamResults | null>(null);
 
   const token = session?.accessToken;
-
+  const api = createProgressTrackingAPI(token || "");
   // Load all progress data for the course
   const loadProgressData = async () => {
     if (!userId || !token || lessons.length === 0) return;
 
     try {
       const courseProgressData: CourseProgressResponse =
-        await getCourseProgress(courseId, userId, token);
+        await api.getCourseProgress(courseId, userId);
       setCourseProgress(courseProgressData.progress);
 
       const lessonsWithProgress = await Promise.all(
@@ -121,18 +116,18 @@ export default function CourseLearnPage() {
           try {
             // Get lesson progress
             const lessonProgress: LessonProgressResponseDto =
-              await getLessonProgress(lesson.lessonId, userId, token);
+              await api.getLessonProgress(lesson.lessonId, userId);
 
             // Get completed contents count for this lesson
             const completedCount: CompletedCountResponse =
-              await getCompletedContentsCount(lesson.lessonId, userId, token);
+              await api.getCompletedContentsCount(lesson.lessonId, userId);
 
             // Get progress for each content in the lesson
             const contentsWithProgress = await Promise.all(
               lesson.contents.map(async (content) => {
                 try {
                   const contentStatus: ContentProgressStatus =
-                    await getContentStatus(content.contentId, userId, token);
+                    await api.getContentStatus(content.contentId, userId);
                   return {
                     ...content,
                     isCompleted: contentStatus.isCompleted,
@@ -620,11 +615,10 @@ export default function CourseLearnPage() {
       );
 
       // Mark content as completed via API
-      await markContentAsCompleted(
+      await api.markAsCompleted(
         userId,
         contentId,
-        currentLesson.lessonId,
-        token
+        currentLesson.lessonId
       );
 
       // Update local state immediately for better UX

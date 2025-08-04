@@ -3,105 +3,95 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { LearningPlanData } from "../types/learningPath/learningPath";
 import { createLearningPathAPI } from "../api/learningPath/learningPathAPI";
 import LearningPathList from "@/components/learningPath/LearningPathList";
 import LearningPathDisplay from "@/components/learningPath/LearningPathDisplay";
 import CreateLearningPathModal from "@/components/learningPath/CreateLearningPathModal";
+import LearningPathRoadmap from "@/components/learningPath/LearningPathRoadmap";
+
+type ViewMode = "roadmap" | "list" | "display";
 
 export default function LearningPathPage() {
+  const { data: session } = useSession();
+
   const [learningPlans, setLearningPlans] = useState<LearningPlanData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>("roadmap");
   const [selectedPlan, setSelectedPlan] = useState<LearningPlanData | null>(
     null
   );
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"list" | "detail">("list");
-
-  const { data: session } = useSession();
-  const userId = session?.user.id;
-  const token = session?.accessToken;
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const userId = session?.user.id || "";
+  const token = session?.accessToken || "";
   const userName = session?.user.name || "";
-
+  const api = createLearningPathAPI(token);
   useEffect(() => {
-    if (userId && token) {
-      checkExistingLearningPaths();
-    }
+    fetchLearningPlans();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token]);
 
-  const checkExistingLearningPaths = async () => {
-    if (!userId || !token) return;
-
+  const fetchLearningPlans = async () => {
     try {
+      if (!userId) return;
       setLoading(true);
-      const api = createLearningPathAPI(token);
       const plans = await api.getLearningPathByUserId(userId);
-
-      if (plans && plans.length > 0) {
-        setLearningPlans(plans);
-        setView("list");
-      } else {
-        // Không có learning path, hiển thị modal
-        setShowModal(true);
-      }
+      setLearningPlans(plans);
     } catch (error) {
-      setError("Lỗi khi lấy danh sách learning path." + error);
+      console.error("Failed to fetch learning plans:", error);
+      if (error instanceof Error && error.message.includes("404")) {
+        // No learning paths found, this is normal for new users
+        setLearningPlans([]);
+      } else {
+        toast.error("Failed to load learning paths");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateNewPath = () => {
-    setShowModal(true);
-  };
-
-  const handleUpdatePath = () => {
-    setShowModal(true);
-  };
-
-  const handleModalClose = () => {
-    setShowModal(false);
-  };
-
-  const handleModalSubmit = async () => {
-    await checkExistingLearningPaths();
-    setShowModal(false);
+  const handleCreateNew = () => {
+    setShowCreateModal(true);
   };
 
   const handleViewPlan = (plan: LearningPlanData) => {
     setSelectedPlan(plan);
-    setView("detail");
+    setViewMode("display");
   };
 
-  const handleBackToList = () => {
-    setSelectedPlan(null);
-    setView("list");
+  const handleViewCourse = (plan: LearningPlanData) => {
+    setSelectedPlan(plan);
+    setViewMode("display");
   };
 
   const handleDeletePlan = async (planId: string) => {
-    if (!token) return;
-
     try {
-      const api = createLearningPathAPI(token);
       await api.deleteLearningPath(planId);
-
-      // Refresh danh sách
-      await checkExistingLearningPaths();
-
-      // Nếu đang xem plan bị xóa, quay về list
-      if (selectedPlan?.planId === planId) {
-        handleBackToList();
-      }
-
       toast.success("Learning path deleted successfully");
+      await fetchLearningPlans();
     } catch (error) {
       console.error("Failed to delete learning path:", error);
       toast.error("Failed to delete learning path");
     }
+  };
+
+  const handleBackToRoadmap = () => {
+    setSelectedPlan(null);
+    setViewMode("roadmap");
+  };
+
+  const handleModalSubmit = async () => {
+    await fetchLearningPlans();
+    setShowCreateModal(false);
+  };
+
+  const handleModalClose = () => {
+    setShowCreateModal(false);
+  };
+
+  const handleSwitchView = (mode: ViewMode) => {
+    setViewMode(mode);
+    setSelectedPlan(null);
   };
 
   if (loading) {
@@ -115,54 +105,98 @@ export default function LearningPathPage() {
     );
   }
 
-  if (error) {
+  // Render based on current view mode
+  if (viewMode === "display" && selectedPlan) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Error Loading Learning Paths
-          </h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={checkExistingLearningPaths} variant="outline">
-            Try Again
-          </Button>
+      <>
+        <LearningPathDisplay
+          learningPlan={selectedPlan}
+          userId={userId || ""}
+          token={token}
+          onBack={handleBackToRoadmap}
+        />
+        <CreateLearningPathModal
+          isOpen={showCreateModal}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
+          userId={userId || ""}
+          userName={userName}
+          token={token}
+          existingLearningPlans={learningPlans}
+        />
+      </>
+    );
+  }
+
+  if (viewMode === "list") {
+    return (
+      <>
+        <div className="mb-4 p-4 bg-white border-b">
+          <div className="max-w-7xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => handleSwitchView("roadmap")}
+              className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              Switch to Roadmap View
+            </button>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-600">List View</span>
+          </div>
         </div>
-      </div>
+        <LearningPathList
+          learningPlans={learningPlans}
+          onCreateNew={handleCreateNew}
+          onViewPlan={handleViewPlan}
+          onDeletePlan={handleDeletePlan}
+          updatePlan={fetchLearningPlans}
+          userId={userId || ""}
+          token={token}
+        />
+        <CreateLearningPathModal
+          isOpen={showCreateModal}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
+          userId={userId || ""}
+          userName={userName}
+          token={token}
+          existingLearningPlans={learningPlans}
+        />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {view === "list" && (
-        <LearningPathList
-          learningPlans={learningPlans}
-          onCreateNew={handleCreateNewPath}
-          onViewPlan={handleViewPlan}
-          onDeletePlan={handleDeletePlan}
-          updatePlan={handleUpdatePath}
-        />
-      )}
-
-      {view === "detail" && selectedPlan && userId && token && (
-        <LearningPathDisplay
-          learningPlan={selectedPlan}
-          userId={userId}
-          token={token}
-          onBack={handleBackToList}
-        />
-      )}
-
-      {showModal && userId && token && (
-        <CreateLearningPathModal
-          isOpen={showModal}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          userId={userId}
-          userName={userName}
-          token={token}
-        />
-      )}
-    </div>
+    <>
+      <div className="mb-4 p-4 bg-white border-b">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
+          <span className="text-gray-600">Roadmap View</span>
+          <span className="text-gray-400">|</span>
+          <button
+            onClick={() => handleSwitchView("list")}
+            className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            Switch to List View
+          </button>
+        </div>
+      </div>
+      <LearningPathRoadmap
+        learningPlans={learningPlans}
+        onCreateNew={handleCreateNew}
+        onViewCourse={handleViewCourse}
+        onDeletePlan={handleDeletePlan}
+        updatePlan={fetchLearningPlans}
+        userId={userId || ""}
+        token={token}
+      />
+      <CreateLearningPathModal
+        isOpen={showCreateModal}
+        onClose={handleModalClose}
+        onSubmit={handleModalSubmit}
+        userId={userId || ""}
+        userName={userName}
+        token={token}
+        existingLearningPlans={learningPlans}
+      />
+    </>
   );
 }

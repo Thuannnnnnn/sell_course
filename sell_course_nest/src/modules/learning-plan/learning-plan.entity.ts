@@ -22,6 +22,9 @@ export class LearningPlan {
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
+  @Column()
+  order: number;
+
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
@@ -90,3 +93,4 @@ export class LearningPlan {
   @ManyToOne(() => Course, { nullable: true })
   course: Course;
 }
+

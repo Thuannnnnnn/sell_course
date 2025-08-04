@@ -36,7 +36,7 @@ export class LearningPlanService {
     console.log(
       'n8nData',
       JSON.stringify(
-        n8nData[0].learningPath[1].tagetLearningPath.userId,
+        n8nData[0].learningPath[1].targetLearningPath.userId,
         null,
         2,
       ),
@@ -44,7 +44,7 @@ export class LearningPlanService {
 
     const user = await this.userRepo.findOne({
       where: {
-        user_id: n8nData[0].learningPath[1].tagetLearningPath.userId,
+        user_id: n8nData[0].learningPath[1].targetLearningPath.userId,
       },
     });
     if (!user) {
@@ -52,11 +52,17 @@ export class LearningPlanService {
     }
     const savedPlans: LearningPlan[] = [];
     const courses = n8nData[0].learningPath[0].learningPathCourses;
-    const target = n8nData[0].learningPath[1].tagetLearningPath;
+    const target = n8nData[0].learningPath[1].targetLearningPath;
 
     for (const course of courses) {
       const newPlan = this.planRepo.create({
         user,
+        course: await this.courseRepo.findOneByOrFail({
+          courseId: course.courseId,
+        }),
+        order: course.order,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         targetLearningPath: target,
         learningPathCourses: [course],
       });

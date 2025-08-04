@@ -54,12 +54,12 @@ export class LearningPathAPI {
     return response.data;
   }
 
-
-
   /**
    * Lưu learning path từ dữ liệu n8n đã xử lý
    */
-  async saveLearningPathFromN8n(n8nData: LearningPlanData): Promise<LearningPlanData> {
+  async saveLearningPathFromN8n(
+    n8nData: LearningPlanData
+  ): Promise<LearningPlanData> {
     const response: AxiosResponse<LearningPlanData> = await axios.post(
       `${API_BASE_URL}/learningPath/from-n8n`,
       n8nData,
@@ -109,10 +109,10 @@ export class LearningPathAPI {
   async getContentIds(
     planId: string
   ): Promise<{ planId: string; contentIds: string[] }> {
-    const response = await axios.get(
-      `${API_BASE_URL}/learningPath/content-ids/${planId}`,
-      { headers: this.getHeaders() }
-    );
+    const response: AxiosResponse<{ planId: string; contentIds: string[] }> =
+      await axios.get(`${API_BASE_URL}/learningPath/content-ids/${planId}`, {
+        headers: this.getHeaders(),
+      });
     return response.data;
   }
 
@@ -123,11 +123,12 @@ export class LearningPathAPI {
     userId: string,
     contentIds: string[]
   ): Promise<Record<string, ContentProgress>> {
-    const response = await axios.post(
-      `${API_BASE_URL}/content-progress/bulk-status/user/${userId}`,
-      { contentIds },
-      { headers: this.getHeaders() }
-    );
+    const response: AxiosResponse<Record<string, ContentProgress>> =
+      await axios.post(
+        `${API_BASE_URL}/progress/bulk-status/user/${userId}`,
+        { contentIds },
+        { headers: this.getHeaders() }
+      );
     return response.data;
   }
 
@@ -138,8 +139,8 @@ export class LearningPathAPI {
     userId: string,
     contentIds: string[]
   ): Promise<LearningPathProgress> {
-    const response = await axios.post(
-      `${API_BASE_URL}/content-progress/learning-path-progress/user/${userId}`,
+    const response: AxiosResponse<LearningPathProgress> = await axios.post(
+      `${API_BASE_URL}/progress/learning-path-progress/user/${userId}`,
       { contentIds },
       { headers: this.getHeaders() }
     );
@@ -156,8 +157,8 @@ export class LearningPathAPI {
     progressPercentage?: number,
     timeSpentMinutes?: number
   ): Promise<ContentProgress> {
-    const response = await axios.put(
-      `${API_BASE_URL}/content-progress/content/${contentId}/user/${userId}`,
+    const response: AxiosResponse<ContentProgress> = await axios.put(
+      `${API_BASE_URL}/progress/content/${contentId}/user/${userId}`,
       {
         status,
         progressPercentage,
@@ -188,11 +189,15 @@ export class N8nAPI {
     learningPathInput: LearningPathInput
   ): Promise<LearningPlanData> {
     try {
-      const response = await axios.post(this.webhookUrl, learningPathInput, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response: AxiosResponse<LearningPlanData> = await axios.post(
+        this.webhookUrl,
+        learningPathInput,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("N8n API call failed:", error);
@@ -206,7 +211,9 @@ export class N8nAPI {
  */
 export class SurveyAPI {
   async getQuestions(): Promise<RawQuestion[]> {
-    const response = await axios.get(`${API_BASE_URL}/survey-questions`);
+    const response: AxiosResponse<RawQuestion[]> = await axios.get(
+      `${API_BASE_URL}/survey-questions`
+    );
     return response.data;
   }
 }
@@ -217,6 +224,10 @@ export class SurveyAPI {
 export const createLearningPathAPI = (token: string): LearningPathAPI => {
   return new LearningPathAPI(token);
 };
+
+/**
+ * Factory function để tạo ProgressTrackingAPI instance
+ */
 
 /**
  * Factory function để tạo N8nAPI instance

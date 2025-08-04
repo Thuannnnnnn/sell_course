@@ -9,13 +9,13 @@ import {
   Target,
   FileText,
   HelpCircle,
-  Download,
   ArrowLeft,
   GraduationCap,
   CheckCircle,
   Circle,
   PlayCircle,
   BarChart3,
+  Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ import {
   NarrativeItem,
 } from "@/app/types/learningPath/learningPath";
 import { createLearningPathAPI } from "@/app/api/learningPath/learningPathAPI";
+import { useRouter } from "next/navigation";
 
 interface LearningPathDisplayProps {
   learningPlan: LearningPlanData;
@@ -49,6 +50,7 @@ export default function LearningPathDisplay({
   const [pathProgress, setPathProgress] = useState<LearningPathProgress | null>(
     null
   );
+  const route = useRouter();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -483,19 +485,8 @@ export default function LearningPathDisplay({
     );
   };
 
-  const exportToJSON = () => {
-    const dataStr = JSON.stringify(learningPlan, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-
-    const exportFileDefaultName = `learning-path-${learningPlan.planId}-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
+  const goToCourse = () => {
+    route.push(`/enrolled/${learningPlan.courseId}`);
   };
 
   if (loading) {
@@ -537,11 +528,11 @@ export default function LearningPathDisplay({
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                onClick={exportToJSON}
+                onClick={goToCourse}
                 className="flex items-center gap-2"
               >
-                <Download className="w-4 h-4" />
-                Export
+                <Rocket className="w-4 h-4" />
+                Go to Course
               </Button>
             </div>
           </div>

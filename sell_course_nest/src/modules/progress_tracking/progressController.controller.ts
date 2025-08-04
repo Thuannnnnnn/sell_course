@@ -1,6 +1,20 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  UseGuards,
+  Put,
+} from '@nestjs/common';
 import { ProgressTrackingService } from './progressService.service';
-import { MarkProgressDto } from './dto/progressRequestDto.dto';
+import {
+  BulkProgressRequest,
+  ContentProgress,
+  LearningPathProgress,
+  MarkProgressDto,
+  UpdateContentStatusRequest,
+} from './dto/progressRequestDto.dto';
 import { LessonProgressResponseDto } from './dto/progressReponseDto.dto';
 import { ProgressTracking } from './entities/progress.entity';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -102,5 +116,51 @@ export class ProgressTrackingController {
       courseId,
     );
     return { courseId, userId, completedLessonsCount: count };
+  }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('bulk-status/user/:userId')
+  async getBulkContentProgress(
+    @Param('userId') userId: string,
+    @Body() request: BulkProgressRequest,
+  ): Promise<Record<string, ContentProgress>> {
+    const { contentIds } = request;
+    return await this.progressService.getBulkContentProgress(
+      userId,
+      contentIds,
+    );
+  }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('learning-path-progress/user/:userId')
+  async getLearningPathProgress(
+    @Param('userId') userId: string,
+    @Body() request: BulkProgressRequest,
+  ): Promise<LearningPathProgress> {
+    const { contentIds } = request;
+    return await this.progressService.getLearningPathProgress(
+      userId,
+      contentIds,
+    );
+  }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Put('content/:contentId/user/:userId')
+  async updateContentStatus(
+    @Param('contentId') contentId: string,
+    @Param('userId') userId: string,
+    @Body() request: UpdateContentStatusRequest,
+  ): Promise<ContentProgress> {
+    const { status, progressPercentage, timeSpentMinutes } = request;
+    return await this.progressService.updateContentStatus(
+      contentId,
+      userId,
+      status,
+      progressPercentage,
+      timeSpentMinutes,
+    );
   }
 }
