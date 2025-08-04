@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from './authOptions';
+import { getServerSession } from "next-auth";
 import {
   DashboardOverview,
   RevenueAnalytics,
@@ -8,8 +7,9 @@ import {
   EnrollmentTrends,
   RecentActivities,
   DashboardClearCacheResponse,
-  DashboardHealthResponse
-} from '../app/types/dashboard';
+  DashboardHealthResponse,
+} from "../app/types/dashboard";
+import { authOptions } from "./authOptions";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,21 +20,24 @@ class DashboardApiError extends Error {
     public timestamp: string = new Date().toISOString()
   ) {
     super(message);
-    this.name = 'DashboardApiError';
+    this.name = "DashboardApiError";
   }
 }
 
 class DashboardApiService {
-  private async getAuthHeaders(): Promise<Record<string, string>> {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.accessToken) {
-      throw new DashboardApiError('No authentication token available', 401);
+  private token: string;
+  constructor(token: string) {
+    if (!token) {
+      throw new Error(
+        "DashboardApiService requires a token for initialization."
+      );
     }
-
+    this.token = token;
+  }
+  private async getAuthHeaders(): Promise<Record<string, string>> {
     return {
-      'Authorization': `Bearer ${session.accessToken}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.token}`,
+      "Content-Type": "application/json",
     };
   }
 
@@ -43,7 +46,7 @@ class DashboardApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const headers = await this.getAuthHeaders();
-    
+
     const response = await fetch(`${API_BASE_URL}/api/dashboard${endpoint}`, {
       ...options,
       headers: {
@@ -54,8 +57,8 @@ class DashboardApiService {
 
     if (!response.ok) {
       const errorText = await response.text();
-      let errorMessage = 'An error occurred';
-      
+      let errorMessage = "An error occurred";
+
       try {
         const errorData = JSON.parse(errorText);
         errorMessage = errorData.message || errorMessage;
@@ -63,10 +66,7 @@ class DashboardApiService {
         errorMessage = errorText || `HTTP ${response.status}`;
       }
 
-      throw new DashboardApiError(
-        errorMessage,
-        response.status
-      );
+      throw new DashboardApiError(errorMessage, response.status);
     }
 
     const data = await response.json();
@@ -77,35 +77,35 @@ class DashboardApiService {
    * Get dashboard overview with KPIs and growth metrics
    */
   async getDashboardOverview(): Promise<DashboardOverview> {
-    return this.makeRequest<DashboardOverview>('/overview');
+    return this.makeRequest<DashboardOverview>("/overview");
   }
 
   /**
    * Get detailed revenue analytics
    */
   async getRevenueAnalytics(): Promise<RevenueAnalytics> {
-    return this.makeRequest<RevenueAnalytics>('/revenue-analytics');
+    return this.makeRequest<RevenueAnalytics>("/revenue-analytics");
   }
 
   /**
    * Get user statistics including growth and role distribution
    */
   async getUserStatistics(): Promise<UserStatistics> {
-    return this.makeRequest<UserStatistics>('/user-statistics');
+    return this.makeRequest<UserStatistics>("/user-statistics");
   }
 
   /**
    * Get course performance analytics
    */
   async getCoursePerformance(): Promise<CoursePerformance> {
-    return this.makeRequest<CoursePerformance>('/course-performance');
+    return this.makeRequest<CoursePerformance>("/course-performance");
   }
 
   /**
    * Get enrollment trends and patterns
    */
   async getEnrollmentTrends(): Promise<EnrollmentTrends> {
-    return this.makeRequest<EnrollmentTrends>('/enrollment-trends');
+    return this.makeRequest<EnrollmentTrends>("/enrollment-trends");
   }
 
   /**
@@ -116,16 +116,18 @@ class DashboardApiService {
     if (limit < 1 || limit > 100) {
       limit = 50;
     }
-    
-    return this.makeRequest<RecentActivities>(`/recent-activities?limit=${limit}`);
+
+    return this.makeRequest<RecentActivities>(
+      `/recent-activities?limit=${limit}`
+    );
   }
 
   /**
    * Clear dashboard cache
    */
   async clearDashboardCache(): Promise<DashboardClearCacheResponse> {
-    return this.makeRequest<DashboardClearCacheResponse>('/clear-cache', {
-      method: 'POST',
+    return this.makeRequest<DashboardClearCacheResponse>("/clear-cache", {
+      method: "POST",
     });
   }
 
@@ -133,7 +135,7 @@ class DashboardApiService {
    * Check dashboard service health
    */
   async checkHealth(): Promise<DashboardHealthResponse> {
-    return this.makeRequest<DashboardHealthResponse>('/health');
+    return this.makeRequest<DashboardHealthResponse>("/health");
   }
 
   /**
@@ -153,14 +155,14 @@ class DashboardApiService {
       userStatistics,
       coursePerformance,
       enrollmentTrends,
-      recentActivities
+      recentActivities,
     ] = await Promise.all([
       this.getDashboardOverview(),
       this.getRevenueAnalytics(),
       this.getUserStatistics(),
       this.getCoursePerformance(),
       this.getEnrollmentTrends(),
-      this.getRecentActivities()
+      this.getRecentActivities(),
     ]);
 
     return {
@@ -169,12 +171,17 @@ class DashboardApiService {
       userStatistics,
       coursePerformance,
       enrollmentTrends,
-      recentActivities
+      recentActivities,
     };
   }
 }
 
 // Export singleton instance
-export const dashboardApi = new DashboardApiService();
-export { DashboardApiError };
-export default dashboardApi;
+export async function createDashboardApi(): Promise<DashboardApiService> {
+  const session = await getServerSession(authOptions);
+  console.log("Session:", session);
+  const token = session?.accessToken as string;
+  return new DashboardApiService(token);
+}
+
+export { DashboardApiError, DashboardApiService };

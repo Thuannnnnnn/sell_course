@@ -93,4 +93,3 @@ export class LearningPlan {
   @ManyToOne(() => Course, { nullable: true })
   course: Course;
 }
-
