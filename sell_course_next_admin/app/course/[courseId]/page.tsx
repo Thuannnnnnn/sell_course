@@ -292,11 +292,12 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
           </Button>
           <Button
             variant="outline"
-            size="icon"
+            className="flex items-center gap-2"
             onClick={() => router.push(`/course/${courseId}/exam`)}
-            title="Go to Exam Page"
+            title="Manage Course Exam"
           >
             <GraduationCap className="h-5 w-5 text-primary" />
+            <span className="hidden sm:inline">Exam</span>
           </Button>
         </div>
       </div>

@@ -171,8 +171,8 @@ export const examApi = {
 
   // Utility function to get exam statistics
   getExamStats: async (
-    token: string,
-    courseId: string
+    courseId: string,
+    token: string
   ): Promise<{
     totalQuestions: number;
     questionsByDifficulty: {
@@ -199,8 +199,8 @@ export const examApi = {
 
   // Check if exam exists for a course
   checkExamExists: async (
-    token: string,
-    courseId: string
+    courseId: string,
+    token: string
   ): Promise<boolean> => {
     try {
       await examApi.getExamById(courseId, token);
@@ -215,8 +215,8 @@ export const examApi = {
 
   // Get exam questions for student view (without correct answers)
   getExamForStudent: async (
-      token: string,
-    courseId: string
+    courseId: string,
+    token: string
   ): Promise<{
     examId: string;
     courseId: string;

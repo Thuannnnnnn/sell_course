@@ -5,6 +5,8 @@ import { Button } from "../ui/button";
 import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import logo from "../../public/logo.png";
 import Image from "next/image";
+import { CertificateVerifyDialog } from "../certificates/CertificateVerifyDialog";
+import { CertificateTestDialog } from "../certificates/CertificateTestDialog";
 export function Footer() {
   return (
     <footer className="w-full py-12 md:py-16 lg:py-20 border-t bg-background flex items-center justify-center">
@@ -91,6 +93,9 @@ export function Footer() {
                   About Us
                 </a>
               </li>
+              <li>
+          <CertificateVerifyDialog />
+              </li>
             </ul>
           </div>
           {/* Policies */}
@@ -157,6 +162,17 @@ export function Footer() {
             </div>
           </div>
         </div>
+        
+        {/* Certificate Verification Section */}
+        <div className="mt-12 pt-8 border-t text-center space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <CertificateVerifyDialog />
+            {process.env.NODE_ENV === "development" && (
+              <CertificateTestDialog />
+            )}
+          </div>
+        </div>
+
         <div className="mt-12 pt-6 border-t text-center text-muted-foreground">
           <p>
             &copy; {new Date().getFullYear()} Course Master. All rights

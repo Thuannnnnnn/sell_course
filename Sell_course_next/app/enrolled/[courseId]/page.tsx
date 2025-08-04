@@ -202,28 +202,35 @@ export default function CourseLearnPage() {
 
   // Load exam data
   const loadExamData = async () => {
-    if (!courseId || !token) return;
+    if (!courseId || !token) {
+      console.log("❌ loadExamData - Missing courseId or token:", { courseId, token: !!token });
+      return;
+    }
 
     try {
       console.log("🎓 Loading exam data for course:", courseId);
 
       // Check if exam exists for this course
+      console.log("🔍 Checking if exam exists with params:", { courseId, token: !!token });
       const examExists = await examApi.checkExamExists(courseId, token);
 
       if (examExists) {
+        console.log("✅ Exam exists, fetching exam data...");
         const exam = (await examApi.getExamById(courseId, token)) as Exam;
 
         // Check if user has taken the exam
         if (token) {
           try {
+            console.log("🔍 Checking user exam results...");
             const results = await resultExamApi.getUserExamResults(
               courseId,
               token
             );
             setUserExamResults(results);
-          } catch {
+            console.log("✅ User exam results loaded:", results);
+          } catch (error) {
             // User hasn't taken the exam yet
-            console.log("User hasn't taken the exam yet");
+            console.log("ℹ️ User hasn't taken the exam yet or error:", error);
           }
         }
 
@@ -247,11 +254,15 @@ export default function CourseLearnPage() {
         setExamData(examInfo);
         console.log("✅ Exam data loaded successfully");
       } else {
-        console.log("No exam found for this course");
+        console.log("ℹ️ No exam found for this course");
         setExamData(null);
       }
     } catch (error) {
       console.error("❌ Failed to load exam data:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
       setExamData(null);
     }
   };

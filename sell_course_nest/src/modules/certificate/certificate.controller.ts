@@ -14,6 +14,8 @@ import { Response } from 'express';
 import { CertificateService } from './certificate.service';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { UpdateCertificateDto } from './dto/update-certificate.dto';
+import { VerifyCertificateDto } from './dto/verify-certificate.dto';
+import { CertificateVerificationResponseDto } from './dto/certificate-verification-response.dto';
 
 @ApiTags('certificates')
 @Controller('api/certificates') // Changed from 'certificates' to 'api/certificates'

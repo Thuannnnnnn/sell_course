@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Certificate } from './entities/certificate.entity';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { UpdateCertificateDto } from './dto/update-certificate.dto';
+import { CertificateVerificationResponseDto } from './dto/certificate-verification-response.dto';
 import * as xmlbuilder from 'xmlbuilder';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -97,9 +98,63 @@ export class CertificateService {
     }
   }
 
-  async verifyCertificate(id: string): Promise<boolean> {
-    const certificate = await this.findOne(id);
-    return !!certificate;
+  // Verify certificate by ID (public method)
+  async verifyCertificate(
+    certificateId: string,
+  ): Promise<CertificateVerificationResponseDto> {
+    try {
+      console.log('🔍 Verifying certificate:', certificateId);
+
+      // Find certificate with relations
+      const certificate = await this.certificateRepository.findOne({
+        where: { certificateId },
+        relations: ['user', 'course', 'course.instructor'],
+      });
+
+      if (!certificate) {
+        console.log('❌ Certificate not found:', certificateId);
+        return {
+          success: false,
+          error:
+            'Certificate not found. Please check the certificate ID and try again.',
+        };
+      }
+
+      // Build certificate response
+      const certificateResponse = {
+        certificateId: certificate.certificateId,
+        courseName: certificate.course.title,
+        studentName: certificate.user.username,
+        studentEmail: certificate.user.email,
+        instructorName:
+          certificate.course.instructor?.username || 'Unknown Instructor',
+        issueDate: certificate.createdAt.toISOString(),
+        completionDate: certificate.createdAt.toISOString(),
+        score: undefined,
+        grade: undefined,
+        isValid: true,
+        isRevoked: false,
+        verificationHash: `sha256:${certificateId}-verified`,
+        metadata: {
+          duration: certificate.course.duration?.toString() || 'N/A',
+          requirements: ['Complete all modules', 'Pass final assessment'],
+          skills: [],
+        },
+      };
+
+      console.log('✅ Certificate verified successfully:', certificateId);
+      return {
+        success: true,
+        certificate: certificateResponse,
+      };
+    } catch (error) {
+      console.error('❌ Error verifying certificate:', error);
+      return {
+        success: false,
+        error:
+          'An error occurred while verifying the certificate. Please try again.',
+      };
+    }
   }
 
   async generateCertificateXML(id: string): Promise<string> {

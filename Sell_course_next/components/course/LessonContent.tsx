@@ -119,6 +119,16 @@ export function LessonContent({
             );
             console.log("✅ LessonContent - Quiz content loaded:", quizData);
             setContentData({ type: "quiz", data: quizData });
+            // Hide chatBot for quiz content
+            setUrlBot(null);
+            break;
+
+          case "exam":
+            console.log("📝 LessonContent - Loading exam content...");
+            // Handle exam content similar to quiz
+            setContentData({ type: "exam", data: { text: "Exam content" } });
+            // Hide chatBot for exam content
+            setUrlBot(null);
             break;
 
           default:
@@ -310,6 +320,20 @@ export function LessonContent({
             }}
             isCompleted={localCompleted}
           />
+        );
+
+      case "exam":
+        const examData = contentData.data as { text: string };
+        return (
+          <div className="p-8 text-center">
+            <h3 className="text-lg font-semibold mb-4">Exam Content</h3>
+            <p className="text-muted-foreground">
+              {examData.text || "Exam content will be available here"}
+            </p>
+            <p className="text-sm text-muted-foreground mt-4">
+              💡 ChatBot AI is disabled during exams for fair assessment
+            </p>
+          </div>
         );
 
       default:

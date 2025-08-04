@@ -200,7 +200,7 @@ const AIChatWindow: React.FC<AIChatWindowProps> = ({ urlBot }) => {
         <div className="flex items-center space-x-2">
           <Bot className="w-5 h-5" />
           <div>
-            <h3 className="font-semibold text-sm">Gemini Assistant</h3>
+            <h3 className="font-semibold text-sm">Coursemaster Assistant</h3>
             <p className="text-xs opacity-90">Ready to help</p>
           </div>
         </div>

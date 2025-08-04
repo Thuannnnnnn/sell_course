@@ -418,6 +418,10 @@ export default function QuizIntegration({
                   Retake the quiz as many times as you want to improve
                 </span>
               </li>
+              <li className="flex items-start gap-2">
+                <span className="text-amber-500 font-bold">🤖</span>
+                <span className="text-amber-700">AI ChatBot is disabled during quiz for fair assessment</span>
+              </li>
             </ul>
           </div>
 

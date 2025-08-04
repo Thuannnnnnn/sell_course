@@ -99,8 +99,8 @@ export interface ApiErrorResponse {
 
 // Frontend Types
 export interface ContentData {
-  type: "video" | "doc" | "quiz" | "text";
-  data: VideoState | DocumentResponse | QuizResponse | { text: string };
+  type: "video" | "doc" | "quiz" | "text" | "exam";
+  data: VideoState | DocumentResponse | QuizResponse | ExamResponse | { text: string };
 }
 
 export interface LessonWithContent {

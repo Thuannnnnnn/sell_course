@@ -77,6 +77,14 @@ export function WishlistSection() {
       }
     } catch (err) {
       console.error("Error fetching wishlist:", err);
+      
+      // Check if error is due to unauthorized/expired session
+      if (err instanceof Error && (err.message.includes('401') || err.message.includes('Unauthorized'))) {
+        console.log("⚠️ Session expired or unauthorized - stopping wishlist fetch");
+        setError("Session expired. Please login again.");
+        return; // Don't show error toast for auth issues
+      }
+      
       const errorMessage = err instanceof Error ? err.message : "Could not fetch wishlist. Please try again.";
       setError(errorMessage);
       
@@ -88,12 +96,19 @@ export function WishlistSection() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user, session?.accessToken, toast]);
+  }, [session?.user, session?.accessToken, toast]); // Use session.user instead of session.user.id
 
   // Initial fetch on mount - no success toast
   useEffect(() => {
-    fetchWishlist(false);
-  }, [fetchWishlist]);
+    // Only fetch if we have valid session
+    if (session?.user?.id && session?.accessToken) {
+      fetchWishlist(false);
+    } else if (session === null) {
+      // Session is explicitly null (not loading), clear data
+      setWishlistCourses([]);
+      setLoading(false);
+    }
+  }, [session, fetchWishlist]); // Use session directly to handle all session changes
 
   // Filter courses based on search query
   const filteredCourses = wishlistCourses.filter(course =>

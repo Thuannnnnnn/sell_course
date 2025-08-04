@@ -29,7 +29,7 @@ export class ResultExamController {
   constructor(private readonly resultExamService: ResultExamService) {}
 
   @ApiBearerAuth('Authorization')
-  @Roles(UserRole.INSTRUCTOR)
+  @Roles(UserRole.USER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('users/user/submit')
   @ApiOperation({

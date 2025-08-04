@@ -47,13 +47,25 @@ export function WishlistButton({
 
   // Check if course is already in wishlist
   const checkWishlistStatus = useCallback(async () => {
-    if (!userId || !token) return;
+    if (!userId || !token) {
+      setIsInWishlist(false);
+      return;
+    }
+    
     try {
       const wishlist = await wishlistApi.getWishlist(userId, token);
       const isInList = wishlist.some((item) => item.courseId === courseId);
       setIsInWishlist(isInList);
     } catch (error) {
       console.error("Error checking wishlist:", error);
+      
+      // Check if error is due to unauthorized/expired session
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+        console.log("⚠️ Session expired - stopping wishlist check");
+        setIsInWishlist(false);
+        return; // Don't show error toast for auth issues
+      }
+      
       toast({
         title: "Error",
         description: "Unable to fetch wishlist.",
@@ -63,8 +75,13 @@ export function WishlistButton({
   }, [courseId, userId, token, toast]);
 
   useEffect(() => {
-    checkWishlistStatus();
-  }, [checkWishlistStatus]);
+    // Only check if we have valid session data
+    if (userId && token) {
+      checkWishlistStatus();
+    } else {
+      setIsInWishlist(false);
+    }
+  }, [userId, token, courseId, checkWishlistStatus]);
 
   const handleWishlistToggle = async () => {
     setError(null);
