@@ -78,7 +78,7 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
     messageTemplate: 'Student {studentName} has enrolled in your course "{courseTitle}".',
   },
 
-  // Flow 5: User create chat → Support
+  // Flow 5: User sends first message → Creates chat session → Notify Support (triggered once per session)
   [NotificationEvent.CHAT_SESSION_CREATED]: {
     event: NotificationEvent.CHAT_SESSION_CREATED,
     recipients: [UserRole.SUPPORT],
@@ -88,7 +88,7 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
     messageTemplate: 'User {userName} has created a new support chat session.',
   },
 
-  // Flow 6: User send message in chat → Support
+  // Flow 6: User sends subsequent messages → No notification (only session creation is notified)
   [NotificationEvent.CHAT_MESSAGE_RECEIVED]: {
     event: NotificationEvent.CHAT_MESSAGE_RECEIVED,
     recipients: [UserRole.SUPPORT, UserRole.ADMIN],

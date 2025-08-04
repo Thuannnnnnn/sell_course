@@ -215,6 +215,7 @@ export class NotificationRuleService {
       [TEMPLATE_VARIABLES.instructorName]: context.instructorName,
       [TEMPLATE_VARIABLES.studentName]: context.studentName,
       [TEMPLATE_VARIABLES.userName]: context.userName,
+      [TEMPLATE_VARIABLES.messageText]: context.messageText,
       [TEMPLATE_VARIABLES.rejectionReason]: context.rejectionReason,
       [TEMPLATE_VARIABLES.maintenanceDetails]: context.maintenanceDetails,
     };
@@ -279,6 +280,15 @@ export class NotificationRuleService {
         return {
           userId: 'uuid-string',
           userName: 'string',
+          chatSessionId: 'uuid-string',
+          triggeredBy: 'uuid-string',
+        };
+
+      case NotificationEvent.CHAT_MESSAGE_RECEIVED:
+        return {
+          userId: 'uuid-string',
+          userName: 'string',
+          messageText: 'string',
           chatSessionId: 'uuid-string',
           triggeredBy: 'uuid-string',
         };
