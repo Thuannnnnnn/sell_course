@@ -163,7 +163,7 @@ export function useNotifications(userId: string, userRole: string): UseNotificat
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          status: 'read',
+          status: NotificationStatus.READ,
         }),
       });
 
@@ -206,7 +206,7 @@ export function useNotifications(userId: string, userRole: string): UseNotificat
       const deletedNotification = notifications.find(n => n.id === notificationId);
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
       
-      if (deletedNotification?.status === 'UNREAD') {
+      if (deletedNotification?.status === NotificationStatus.UNREAD) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (err) {
@@ -265,7 +265,7 @@ export function useNotifications(userId: string, userRole: string): UseNotificat
       );
       
       const archivedNotification = notifications.find(n => n.id === notificationId);
-      if (archivedNotification?.status === 'UNREAD') {
+      if (archivedNotification?.status === NotificationStatus.UNREAD) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (err) {

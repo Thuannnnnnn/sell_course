@@ -4,7 +4,7 @@ import React from 'react';
 import { Check, X, BookOpen, User, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { NotificationResponseDto, NotificationType, NotificationPriority } from '@/types/notification';
+import { NotificationResponseDto, NotificationType, NotificationPriority, NotificationStatus } from '@/types/notification';
 import { formatTimeAgo } from '@/lib/utils/timeUtils';
 
 interface NotificationItemProps {
@@ -98,7 +98,7 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete, onClick
               {notification.title}
             </h4>
             <div className="flex items-center space-x-1">
-              {notification.status === 'UNREAD' && (
+              {notification.status === NotificationStatus.UNREAD && (
                 <Button
                   variant="ghost"
                   size="sm"

@@ -7,7 +7,6 @@ import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { PlanConstraint } from '../plan-constraint/plan-constraint.entity';
 import { PlanPreference } from '../plan-preference/plan-preference.entity';
-import { ScheduleItem } from '../schedule_item/entities/schedule_item.entity';
 
 @Module({
   imports: [
@@ -17,7 +16,6 @@ import { ScheduleItem } from '../schedule_item/entities/schedule_item.entity';
       Course,
       PlanConstraint,
       PlanPreference,
-      ScheduleItem,
     ]),
   ],
   providers: [LearningPlanService],

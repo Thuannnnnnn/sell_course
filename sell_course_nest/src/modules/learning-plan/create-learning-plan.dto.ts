@@ -1,176 +1,160 @@
-import {
-  IsString,
-  IsNumber,
-  IsArray,
-  IsOptional,
-  ValidateNested,
-  IsUUID,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsArray, IsObject } from 'class-validator';
 
-export class CreatePlanConstraintDto {
-  @IsString()
-  type: string;
-
-  @IsString()
-  key: string;
-
-  @IsString()
-  value: string;
+export interface TargetLearningPath {
+  topic: string;
+  learning_goal: string;
+  target_level: string;
+  current_level: string;
+  has_prior_knowledge: boolean;
+  desired_duration: string;
+  preferred_learning_styles: string[];
+  learning_order: string;
+  output_expectations: {
+    want_progress_tracking: boolean;
+    want_mentor_or_AI_assist: boolean;
+    post_learning_outcome: string;
+  };
+  userId: string;
+  userName: string;
 }
 
-export class CreatePlanPreferenceDto {
-  @IsString()
-  type: string;
-
-  @IsString()
-  key: string;
-
-  @IsString()
-  value: string;
-}
-
-export class CreateScheduleItemDto {
-  @IsNumber()
-  dayOfWeek: number;
-
-  @IsString()
-  startTime: string;
-
-  @IsNumber()
-  durationMin: number;
-
-  @IsString()
+export interface LearningPathCourse {
   courseId: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  contentIds: string[];
-
-  @IsNumber()
-  weekNumber: number;
-
-  @IsString()
-  scheduledDate: string;
-}
-
-export class NarrativeBindingsDto {
-  @IsOptional()
-  @IsNumber()
-  weekNumber?: number;
-
-  @IsOptional()
-  @IsString()
-  dayOfWeek?: string;
-
-  @IsOptional()
-  @IsString()
-  startTime?: string;
-
-  @IsOptional()
-  @IsString()
-  endTime?: string;
-
-  @IsOptional()
-  @IsString()
-  contentId?: string;
-
-  @IsOptional()
-  @IsString()
-  contentTitle?: string;
-
-  @IsOptional()
-  @IsString()
-  contentTitles?: string;
-
-  @IsOptional()
-  @IsString()
-  overview?: string;
-
-  @IsOptional()
-  @IsString()
-  questions?: string;
-
-  @IsOptional()
-  @IsString()
-  summary?: string;
-}
-
-export class NarrativeItemDto {
-  @IsString()
-  template: string;
-
-  @ValidateNested()
-  @Type(() => NarrativeBindingsDto)
-  bindings: NarrativeBindingsDto;
+  title: string;
+  narrativeText: Array<{
+    template: string;
+    bindings: Record<string, any>;
+  }>;
+  lessons: Array<{
+    lessonId: string;
+    title: string;
+    narrativeText: Array<{
+      template: string;
+      bindings: Record<string, any>;
+    }>;
+    contents: Array<{
+      contentId: string;
+      type: string;
+      title: string;
+      durationMin: number;
+      narrativeText: Array<{
+        template: string;
+        bindings: Record<string, any>;
+      }>;
+    }>;
+  }>;
 }
 
 export class CreateLearningPlanDto {
-  @IsUUID()
+  @IsString()
   userId: string;
 
-  @IsUUID()
-  courseId: string;
+  @IsOptional()
+  @IsObject()
+  targetLearningPath?: TargetLearningPath;
 
+  @IsOptional()
+  @IsArray()
+  learningPathCourses?: LearningPathCourse[];
+
+  @IsOptional()
   @IsString()
-  studyGoal: string;
-
-  @IsNumber()
-  totalWeeks: number;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanConstraintDto)
-  constraints: CreatePlanConstraintDto[];
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanPreferenceDto)
-  preferences: CreatePlanPreferenceDto[];
+  courseId?: string; // For backward compatibility
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => NarrativeItemDto)
-  narrativeTemplates?: NarrativeItemDto[];
+  constraints?: Array<{
+    constraintType: string;
+    constraintValue: string;
+  }>;
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateScheduleItemDto)
-  scheduleItems?: CreateScheduleItemDto[];
+  preferences?: Array<{
+    preferenceType: string;
+    preferenceValue: string;
+  }>;
 }
 
 export class UpdateLearningPlanDto {
   @IsOptional()
-  @IsString()
-  studyGoal?: string;
-
-  @IsOptional()
-  @IsNumber()
-  totalWeeks?: number;
+  @IsObject()
+  targetLearningPath?: TargetLearningPath;
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanConstraintDto)
-  constraints?: CreatePlanConstraintDto[];
+  learningPathCourses?: LearningPathCourse[];
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePlanPreferenceDto)
-  preferences?: CreatePlanPreferenceDto[];
+  constraints?: Array<{
+    constraintType: string;
+    constraintValue: string;
+  }>;
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => NarrativeItemDto)
-  narrativeTemplates?: NarrativeItemDto[];
+  preferences?: Array<{
+    preferenceType: string;
+    preferenceValue: string;
+  }>;
+}
 
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateScheduleItemDto)
-  scheduleItems?: CreateScheduleItemDto[];
+// DTO for receiving n8n processed data
+interface NarrativeItem {
+  template: string;
+  bindings: Record<string, unknown>;
+}
+
+interface ContentItem {
+  contentId: string;
+  type: string;
+  title: string;
+  durationMin: number;
+  narrativeText: NarrativeItem[];
+}
+
+interface LessonItem {
+  lessonId: string;
+  title: string;
+  narrativeText: NarrativeItem[];
+  contents: ContentItem[];
+}
+
+interface CourseItem {
+  courseId: string;
+  title: string;
+  narrativeText: NarrativeItem[];
+  lessons: LessonItem[];
+}
+
+export interface TargetLearningPath {
+  topic: string;
+  learning_goal: string;
+  target_level: string;
+  current_level: string;
+  has_prior_knowledge: boolean;
+  desired_duration: string;
+  preferred_learning_styles: string[];
+  learning_order: string;
+  output_expectations: {
+    want_progress_tracking: boolean;
+    want_mentor_or_AI_assist: boolean;
+    post_learning_outcome: string;
+  };
+  userId: string;
+  userName: string;
+}
+
+// New DTO for n8n data
+export interface N8nLearningPathDto {
+  userId: string;
+  learningPath: [
+    { learningPathCourses: CourseItem[] },
+    { tagetLearningPath: TargetLearningPath },
+  ];
+}
+
+export interface N8nLearningPathDtOut {
+  learningPath: N8nLearningPathDto[];
 }
