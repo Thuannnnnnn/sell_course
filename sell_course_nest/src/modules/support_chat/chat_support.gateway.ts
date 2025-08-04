@@ -137,6 +137,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+
+  @SubscribeMessage('joinRoom')
+  async handleJoinRoom(client: Socket, sessionId: string) {
+    client.join(sessionId);
+    console.log(`[Chat] Client ${client.id} joined room: ${sessionId}`);
+    
+    // Send existing messages to the newly joined client
+    const messages = await this.chatService.getMessagesFromRedis(sessionId);
+    if (messages.length > 0) {
+      const transformedMessages = messages.map((msg) => ({
+        id: msg.id,
+        sessionId: msg.sessionId || msg.chatSessionId,
+        senderId: msg.senderId,
+        messageText: msg.messageText,
+        timestamp:
+          typeof msg.timestamp === 'string'
+            ? msg.timestamp
+            : msg.timestamp.toISOString(),
+      }));
+      client.emit('history', transformedMessages);
+    }
+  }
+
   async handleDisconnect(client: Socket & { sessionId?: string }) {
     const sessionId = client.sessionId;
     if (!sessionId) {
@@ -251,6 +274,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       !!chatSession,
     );
 
+    const isNewSession = !chatSession;
+    
     if (!chatSession) {
       console.log(`[Chat] Creating new session: ${data.sessionId}`);
       const userInfo = data.sender ? await this.getUserInfo(data.sender) : null;
@@ -275,6 +300,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const allSessions = await this.getAllSessions();
       this.server.emit('sessionsList', allSessions);
+
+      // Notify support team when new chat session is created (triggered by first message)
+      if (chatSession.user) {
+        await this.notificationService.notifyChatSessionCreated(
+          chatSession.user.user_id,
+          chatSession.user.username || `User ${chatSession.user.user_id}`,
+          data.sessionId,
+        );
+      }
     } else {
       // Session đã tồn tại, refresh TTL để không bị expire
       console.log(`[Chat] Refreshing existing session: ${data.sessionId}`);
@@ -289,6 +323,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timestamp: new Date().toISOString(),
     };
 
+    // Ensure client is in the room before processing message
+    client.join(data.sessionId);
+
     // Sử dụng service để lưu message vào Redis
     try {
       await this.chatService.saveMessageToRedis(data.sessionId, message);
@@ -296,29 +333,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Refresh session TTL sau khi lưu message thành công
       await this.cacheManager.set(sessionKey, chatSession, SESSION_TTL);
       console.log(
-        `[Chat] Session ${data.sessionId} TTL refreshed to ${SESSION_TTL} seconds`,
+        `[Chat] Message saved successfully for session ${data.sessionId}`,
       );
 
-      // Notify support team of new chat message
-      if (chatSession.user) {
-        await this.notificationService.notifyChatMessageReceived(
-          chatSession.user.user_id,
-          chatSession.user.username || `User ${chatSession.user.user_id}`,
-          data.message,
-          data.sessionId,
-        );
-      }
     } catch (error) {
       console.error('Failed to save message to Redis:', error);
+      // Don't return here - still emit the message for real-time chat
     }
 
+    // Emit message to all clients in the room ONCE
     this.server.to(data.sessionId).emit('message', message);
+    console.log(`[Chat] Message emitted to room ${data.sessionId}: "${message.messageText.substring(0, 50)}..."`);
+    
+    // Also emit to sender to confirm message was sent
+    client.emit('messageSent', { 
+      messageId: message.id, 
+      sessionId: data.sessionId,
+      status: 'sent' 
+    });
   }
 
   @SubscribeMessage('getHistory')
   async handleGetHistory(client: Socket, sessionId: string) {
+    console.log(`[Chat] Getting history for session: ${sessionId}`);
+    
     // Sử dụng service để lấy messages từ Redis
     const messages = await this.chatService.getMessagesFromRedis(sessionId);
+    console.log(`[Chat] Found ${messages.length} messages for session ${sessionId}`);
 
     if (messages.length === 0) {
       client.emit('history', []);
@@ -337,6 +378,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }));
 
     client.emit('history', transformedMessages);
+    console.log(`[Chat] History sent to client for session ${sessionId}`);
   }
 
   // Thêm method để check session status

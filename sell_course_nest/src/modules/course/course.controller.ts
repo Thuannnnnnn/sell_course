@@ -51,9 +51,6 @@ export class CourseController {
   }
 
   @Get('instructor/courses/view_course')
-  @Roles(UserRole.INSTRUCTOR)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({
     status: 200,
@@ -68,10 +65,7 @@ export class CourseController {
     return await this.courseService.getAllCourses();
   }
 
-  @Roles(UserRole.INSTRUCTOR)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('instructor/courses/view_course/:id')
-  @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiResponse({
     status: 200,
@@ -82,8 +76,6 @@ export class CourseController {
     status: 404,
     description: 'Course not found with the given ID.',
   })
-  @Roles(UserRole.INSTRUCTOR)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async getCourseByIdAmin(
     @Param('id') courseId: string,
   ): Promise<CourseResponseDTO> {
@@ -192,9 +184,6 @@ export class CourseController {
   }
 
   @Get('courses/details/:id')
-  @ApiBearerAuth('Authorization')
-  @Roles(UserRole.INSTRUCTOR)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({ summary: 'Get course details with lessons and contents' })
   @ApiResponse({
     status: 200,
@@ -239,9 +228,6 @@ export class CourseController {
     status: 404,
     description: 'Course not found.',
   })
-  @ApiBearerAuth('Authorization')
-  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async updateCourseStatus(
     @Param('courseId') courseId: string,
     @Body() updateStatusDto: UpdateCourseStatusDto,
@@ -258,9 +244,6 @@ export class CourseController {
   }
 
   @Patch('admin/courses/:courseId/review')
-  @ApiBearerAuth('Authorization')
-  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiOperation({
     summary: 'Review course status (admin only - PUBLISHED/REJECTED)',
   })
@@ -277,8 +260,6 @@ export class CourseController {
     description: 'Course not found.',
   })
   @ApiBearerAuth('Authorization')
-  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async reviewCourseStatus(
     @Param('courseId') courseId: string,
     @Body() reviewStatusDto: ReviewCourseStatusDto,
@@ -286,11 +267,13 @@ export class CourseController {
   ): Promise<{ message: string }> {
     // This should be extracted from JWT token in real implementation
     const reviewerId = 'temp-reviewer-id'; // Replace with actual JWT extraction
-    return this.courseService.reviewCourseStatus(courseId, reviewStatusDto, reviewerId);
+    return this.courseService.reviewCourseStatus(
+      courseId,
+      reviewStatusDto,
+      reviewerId,
+    );
   }
 
-  @Roles(UserRole.INSTRUCTOR, UserRole.COURSEREVIEWER)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('admin/courses/status/:status')
   @ApiBearerAuth('Authorization')
   @ApiOperation({ summary: 'Get courses by status (admin only)' })

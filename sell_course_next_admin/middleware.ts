@@ -11,7 +11,7 @@ const roleRoutesMap: Record<string, string[]> = {
   INSTRUCTOR: ["/course"],
 };
 
-const publicRoutes = ["/auth/login"];
+const publicRoutes = ["/auth/login", "/"];
 
 function isAuthorized(pathname: string, role?: string): boolean {
   if (!role) return false;
