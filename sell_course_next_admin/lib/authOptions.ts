@@ -122,9 +122,16 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  events: {
+    async signOut(message) {
+      console.log("🚪 SignOut event:", message);
+      // Additional cleanup on signout event
+    },
+  },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/auth/login",
-    error: "/error",
+    error: "/auth/error",
+    signOut: "/auth/login", // Redirect after signout
   },
 };

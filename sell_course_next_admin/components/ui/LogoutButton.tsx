@@ -9,9 +9,30 @@ export default function LogoutButton() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {
+    if (isLoading) return; // Prevent double clicks
+    
     setIsLoading(true);
     try {
-      await signOut({ callbackUrl: "/" });
+      console.log("🚪 Starting logout process...");
+      
+      // Clear local storage before logout
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      console.log("🧹 Cleared storage, signing out...");
+      
+      await signOut({ 
+        callbackUrl: "/auth/login",
+        redirect: true 
+      });
+      
+      // If redirect doesn't work, force redirect
+      setTimeout(() => {
+        if (window.location.pathname !== "/auth/login") {
+          window.location.href = "/auth/login";
+        }
+      }, 2000);
+      
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout. Please try again.");

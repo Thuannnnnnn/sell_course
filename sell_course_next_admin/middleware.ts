@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const roleRoutesMap: Record<string, string[]> = {
-  ADMIN: ["/", "/users"],
+  ADMIN: ["/", "/users", "/settings", "/promotion", "/categories", "/course", "/chat-support"],
   CONTENTMANAGER: ["/categories"],
   COURSEREVIEWER: ["/course", "/course/review/"],
   MARKETINGMANAGER: ["/settings", "/promotion"],
@@ -11,7 +11,7 @@ const roleRoutesMap: Record<string, string[]> = {
   INSTRUCTOR: ["/course"],
 };
 
-const publicRoutes = ["/auth/login", "/"];
+const publicRoutes = ["/auth/login", "/auth/register", "/auth/error"];
 
 function isAuthorized(pathname: string, role?: string): boolean {
   if (!role) return false;
@@ -39,8 +39,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // ✅ Đã đăng nhập nhưng không có quyền truy cập route → redirect về trang chính theo role
-  if (session?.accessToken && !isAuthorized(pathname, session.role)) {
-    const defaultRoute = roleRoutesMap[session.role || ""]?.[0] || "/";
+  if (session?.accessToken && !isPublicRoute && !isAuthorized(pathname, session.role)) {
+    const userRole = session.role as string;
+    const allowedRoutes = roleRoutesMap[userRole] || [];
+    const defaultRoute = allowedRoutes[0] || "/"; // Fallback to root
     return NextResponse.redirect(new URL(defaultRoute, request.url));
   }
 
