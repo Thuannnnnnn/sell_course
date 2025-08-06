@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, forwardRef, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Notification } from './entities/notification.entity';
@@ -6,15 +6,21 @@ import { UserNotification } from './entities/user-notification.entity';
 import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { 
-  NotificationResponseDto, 
-  NotificationListResponseDto, 
+import {
+  NotificationResponseDto,
+  NotificationListResponseDto,
   NotificationDetailResponseDto,
-  RealTimeNotificationData 
+  RealTimeNotificationData,
 } from './dto/notification-response.dto';
-import { MarkNotificationDto, MarkAllNotificationsDto } from './dto/mark-notification.dto';
+import {
+  MarkNotificationDto,
+  MarkAllNotificationsDto,
+} from './dto/mark-notification.dto';
 import { NotificationStatus } from './enums/notification-type.enum';
-import { NotificationRuleService, NotificationContext } from './notification-rule.service';
+import {
+  NotificationRuleService,
+  NotificationContext,
+} from './notification-rule.service';
 import { NotificationEvent } from './constants/notification.constants';
 import { INotificationGateway } from './interfaces/notification-gateway.interface';
 
@@ -39,15 +45,20 @@ export class NotificationService {
     this.notificationGateway = gateway;
   }
 
-  async createNotification(createNotificationDto: CreateNotificationDto): Promise<Notification> {
-    const { recipientIds, courseId, createdBy, ...notificationData } = createNotificationDto;
+  async createNotification(
+    createNotificationDto: CreateNotificationDto,
+  ): Promise<Notification> {
+    const { recipientIds, courseId, createdBy, ...notificationData } =
+      createNotificationDto;
 
     // Tạo notification
     const notification = this.notificationRepository.create(notificationData);
 
     // Gán course nếu có
     if (courseId) {
-      const course = await this.courseRepository.findOne({ where: { courseId } });
+      const course = await this.courseRepository.findOne({
+        where: { courseId },
+      });
       if (course) {
         notification.course = course;
       }
@@ -55,19 +66,22 @@ export class NotificationService {
 
     // Gán người tạo nếu có
     if (createdBy) {
-      const creator = await this.userRepository.findOne({ where: { user_id: createdBy } });
+      const creator = await this.userRepository.findOne({
+        where: { user_id: createdBy },
+      });
       if (creator) {
         notification.createdBy = creator;
       }
     }
 
-    const savedNotification = await this.notificationRepository.save(notification);
+    const savedNotification =
+      await this.notificationRepository.save(notification);
 
     // Tạo user notifications cho từng recipient
-    const userNotifications = recipientIds.map(userId => {
+    const userNotifications = recipientIds.map((userId) => {
       const userNotification = this.userNotificationRepository.create({
         notification: savedNotification,
-        user: { user_id : userId } as User,
+        user: { user_id: userId } as User,
         status: NotificationStatus.UNREAD,
       });
       return userNotification;
@@ -84,15 +98,20 @@ export class NotificationService {
         type: savedNotification.type,
         priority: savedNotification.priority,
         createdAt: savedNotification.createdAt,
-        course: savedNotification.course ? {
-          courseId: savedNotification.course.courseId,
-          title: savedNotification.course.title,
-        } : undefined,
+        course: savedNotification.course
+          ? {
+              courseId: savedNotification.course.courseId,
+              title: savedNotification.course.title,
+            }
+          : undefined,
       };
 
       // Gửi cho từng recipient
       try {
-        await this.notificationGateway.sendNotificationToUsers(recipientIds, notificationData);
+        await this.notificationGateway.sendNotificationToUsers(
+          recipientIds,
+          notificationData,
+        );
       } catch (error) {
         console.error('Failed to send real-time notification:', error);
       }
@@ -108,45 +127,52 @@ export class NotificationService {
   ): Promise<NotificationListResponseDto> {
     const skip = (page - 1) * limit;
 
-    const [userNotifications, total] = await this.userNotificationRepository.findAndCount({
-      where: { user: { user_id } },
-      relations: [
-        'notification',
-        'notification.course',
-        'notification.course.instructor',
-        'notification.createdBy',
-      ],
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const [userNotifications, total] =
+      await this.userNotificationRepository.findAndCount({
+        where: { user: { user_id } },
+        relations: [
+          'notification',
+          'notification.course',
+          'notification.course.instructor',
+          'notification.createdBy',
+        ],
+        order: { createdAt: 'DESC' },
+        skip,
+        take: limit,
+      });
 
     const unreadCount = await this.userNotificationRepository.count({
-      where: { 
+      where: {
         user: { user_id },
         status: NotificationStatus.UNREAD,
       },
     });
 
-    const notifications: NotificationResponseDto[] = userNotifications.map(userNotification => ({
-      id: userNotification.notification.id,
-      title: userNotification.notification.title,
-      message: userNotification.notification.message,
-      type: userNotification.notification.type,
-      priority: userNotification.notification.priority,
-      metadata: userNotification.notification.metadata || {},
-      status: userNotification.status,
-      readAt: userNotification.readAt,
-      createdAt: userNotification.notification.createdAt,
-      course: userNotification.notification.course ? {
-        courseId: userNotification.notification.course.courseId,
-        title: userNotification.notification.course.title,
-        instructor: {
-          user_id: userNotification.notification.course.instructor.user_id,
-          username: userNotification.notification.course.instructor.username,
-        },
-      } : undefined,
-    }));
+    const notifications: NotificationResponseDto[] = userNotifications.map(
+      (userNotification) => ({
+        id: userNotification.notification.id,
+        title: userNotification.notification.title,
+        message: userNotification.notification.message,
+        type: userNotification.notification.type,
+        priority: userNotification.notification.priority,
+        metadata: userNotification.notification.metadata || {},
+        status: userNotification.status,
+        readAt: userNotification.readAt,
+        createdAt: userNotification.notification.createdAt,
+        course: userNotification.notification.course
+          ? {
+              courseId: userNotification.notification.course.courseId,
+              title: userNotification.notification.course.title,
+              instructor: {
+                user_id:
+                  userNotification.notification.course.instructor.user_id,
+                username:
+                  userNotification.notification.course.instructor.username,
+              },
+            }
+          : undefined,
+      }),
+    );
 
     return {
       notifications,
@@ -155,7 +181,10 @@ export class NotificationService {
     };
   }
 
-  async markNotification(userId: string, markNotificationDto: MarkNotificationDto): Promise<void> {
+  async markNotification(
+    userId: string,
+    markNotificationDto: MarkNotificationDto,
+  ): Promise<void> {
     const userNotification = await this.userNotificationRepository.findOne({
       where: {
         user: { user_id: userId },
@@ -168,16 +197,22 @@ export class NotificationService {
     }
 
     userNotification.status = markNotificationDto.status;
-    if (markNotificationDto.status === NotificationStatus.READ && !userNotification.readAt) {
+    if (
+      markNotificationDto.status === NotificationStatus.READ &&
+      !userNotification.readAt
+    ) {
       userNotification.readAt = new Date();
     }
 
     await this.userNotificationRepository.save(userNotification);
   }
 
-  async markAllNotifications(userId: string, markAllDto: MarkAllNotificationsDto): Promise<void> {
+  async markAllNotifications(
+    userId: string,
+    markAllDto: MarkAllNotificationsDto,
+  ): Promise<void> {
     const userNotifications = await this.userNotificationRepository.find({
-      where: { 
+      where: {
         user: { user_id: userId },
         status: NotificationStatus.UNREAD,
       },
@@ -185,7 +220,10 @@ export class NotificationService {
 
     for (const userNotification of userNotifications) {
       userNotification.status = markAllDto.status;
-      if (markAllDto.status === NotificationStatus.READ && !userNotification.readAt) {
+      if (
+        markAllDto.status === NotificationStatus.READ &&
+        !userNotification.readAt
+      ) {
         userNotification.readAt = new Date();
       }
     }
@@ -195,14 +233,17 @@ export class NotificationService {
 
   async getUnreadCount(userId: string): Promise<number> {
     return this.userNotificationRepository.count({
-      where: { 
+      where: {
         user: { user_id: userId },
         status: NotificationStatus.UNREAD,
       },
     });
   }
 
-  async deleteNotification(userId: string, notificationId: string): Promise<void> {
+  async deleteNotification(
+    userId: string,
+    notificationId: string,
+  ): Promise<void> {
     const userNotification = await this.userNotificationRepository.findOne({
       where: {
         user: { user_id: userId },
@@ -217,8 +258,13 @@ export class NotificationService {
     await this.userNotificationRepository.remove(userNotification);
   }
 
-  async getNotificationDetail(userId: string, notificationId: string): Promise<NotificationDetailResponseDto> {
-    console.log(`📖 Getting notification detail: ${notificationId} for user: ${userId}`);
+  async getNotificationDetail(
+    userId: string,
+    notificationId: string,
+  ): Promise<NotificationDetailResponseDto> {
+    console.log(
+      `📖 Getting notification detail: ${notificationId} for user: ${userId}`,
+    );
 
     const userNotification = await this.userNotificationRepository.findOne({
       where: {
@@ -249,28 +295,41 @@ export class NotificationService {
       status: userNotification.status,
       readAt: userNotification.readAt,
       createdAt: userNotification.notification.createdAt,
-      course: userNotification.notification.course ? {
-        courseId: userNotification.notification.course.courseId,
-        title: userNotification.notification.course.title,
-        thumbnail: userNotification.notification.course.thumbnail,
-        instructor: {
-          user_id: userNotification.notification.course.instructor.user_id,
-          username: userNotification.notification.course.instructor.username,
-        },
-        category: userNotification.notification.course.category ? {
-          categoryId: userNotification.notification.course.category.categoryId,
-          name: userNotification.notification.course.category.name,
-        } : null,
-      } : null,
-      createdBy: userNotification.notification.createdBy ? {
-        user_id: userNotification.notification.createdBy.user_id,
-        username: userNotification.notification.createdBy.username,
-      } : null,
+      course: userNotification.notification.course
+        ? {
+            courseId: userNotification.notification.course.courseId,
+            title: userNotification.notification.course.title,
+            thumbnail: userNotification.notification.course.thumbnail,
+            instructor: {
+              user_id: userNotification.notification.course.instructor.user_id,
+              username:
+                userNotification.notification.course.instructor.username,
+            },
+            category: userNotification.notification.course.category
+              ? {
+                  categoryId:
+                    userNotification.notification.course.category.categoryId,
+                  name: userNotification.notification.course.category.name,
+                }
+              : null,
+          }
+        : null,
+      createdBy: userNotification.notification.createdBy
+        ? {
+            user_id: userNotification.notification.createdBy.user_id,
+            username: userNotification.notification.createdBy.username,
+          }
+        : null,
     };
   }
 
-  async archiveNotification(userId: string, notificationId: string): Promise<void> {
-    console.log(`📦 Archiving notification: ${notificationId} for user: ${userId}`);
+  async archiveNotification(
+    userId: string,
+    notificationId: string,
+  ): Promise<void> {
+    console.log(
+      `📦 Archiving notification: ${notificationId} for user: ${userId}`,
+    );
 
     const userNotification = await this.userNotificationRepository.findOne({
       where: {
@@ -299,19 +358,25 @@ export class NotificationService {
   async createRuleBasedNotification(
     event: NotificationEvent,
     context: NotificationContext,
-    skipUsers?: string[] // Users to exclude from notification
+    skipUsers?: string[], // Users to exclude from notification
   ): Promise<Notification> {
     console.log(`🔔 Creating rule-based notification for event: ${event}`);
 
     // Process event using rule service
-    const ruleResult = await this.notificationRuleService.processNotificationEvent(event, context);
-    
+    const ruleResult =
+      await this.notificationRuleService.processNotificationEvent(
+        event,
+        context,
+      );
+
     // Get recipient user IDs based on database roles
-    const recipientIds = await this.getUsersByDatabaseRoles(ruleResult.databaseRoles);
-    
+    const recipientIds = await this.getUsersByDatabaseRoles(
+      ruleResult.databaseRoles,
+    );
+
     // Filter out excluded users
-    const filteredRecipientIds = skipUsers 
-      ? recipientIds.filter(id => !skipUsers.includes(id))
+    const filteredRecipientIds = skipUsers
+      ? recipientIds.filter((id) => !skipUsers.includes(id))
       : recipientIds;
 
     if (filteredRecipientIds.length === 0) {
@@ -334,8 +399,8 @@ export class NotificationService {
           courseId: context.courseId,
           userId: context.userId,
           chatSessionId: context.chatSessionId,
-        }
-      }
+        },
+      },
     };
 
     return await this.createNotification(createNotificationDto);
@@ -344,19 +409,21 @@ export class NotificationService {
   /**
    * Helper: Get user IDs by their database role strings
    */
-  private async getUsersByDatabaseRoles(databaseRoles: string[]): Promise<string[]> {
+  private async getUsersByDatabaseRoles(
+    databaseRoles: string[],
+  ): Promise<string[]> {
     if (databaseRoles.length === 0) {
       return [];
     }
 
     const users = await this.userRepository.find({
       where: {
-        role: In(databaseRoles)
+        role: In(databaseRoles),
       },
-      select: ['user_id']
+      select: ['user_id'],
     });
 
-    return users.map(user => user.user_id);
+    return users.map((user) => user.user_id);
   }
 
   // ========== CONVENIENCE METHODS FOR SPECIFIC EVENTS ==========
@@ -364,10 +431,13 @@ export class NotificationService {
   /**
    * Flow 1: Course submitted for review
    */
-  async notifyCourseSubmittedForReview(courseId: string, instructorId: string): Promise<Notification> {
-    const course = await this.courseRepository.findOne({ 
+  async notifyCourseSubmittedForReview(
+    courseId: string,
+    instructorId: string,
+  ): Promise<Notification> {
+    const course = await this.courseRepository.findOne({
       where: { courseId },
-      relations: ['instructor']
+      relations: ['instructor'],
     });
 
     if (!course) {
@@ -379,23 +449,26 @@ export class NotificationService {
       courseTitle: course.title,
       instructorId,
       instructorName: course.instructor?.username || 'Unknown',
-      triggeredBy: instructorId
+      triggeredBy: instructorId,
     };
 
     return await this.createRuleBasedNotification(
       NotificationEvent.COURSE_SUBMITTED_FOR_REVIEW,
       context,
-      [instructorId] // Don't notify the instructor who submitted
+      [instructorId], // Don't notify the instructor who submitted
     );
   }
 
   /**
    * Flow 2: Course published (approved)
    */
-  async notifyCoursePublished(courseId: string, reviewerId: string): Promise<Notification> {
-    const course = await this.courseRepository.findOne({ 
+  async notifyCoursePublished(
+    courseId: string,
+    reviewerId: string,
+  ): Promise<Notification> {
+    const course = await this.courseRepository.findOne({
       where: { courseId },
-      relations: ['instructor']
+      relations: ['instructor'],
     });
 
     if (!course) {
@@ -407,23 +480,27 @@ export class NotificationService {
       courseTitle: course.title,
       instructorId: course.instructor?.user_id,
       instructorName: course.instructor?.username || 'Unknown',
-      triggeredBy: reviewerId
+      triggeredBy: reviewerId,
     };
 
     return await this.createRuleBasedNotification(
       NotificationEvent.COURSE_PUBLISHED,
       context,
-      [reviewerId] // Don't notify the reviewer who approved
+      [reviewerId], // Don't notify the reviewer who approved
     );
   }
 
   /**
    * Flow 3: Course rejected
    */
-  async notifyCourseRejected(courseId: string, reviewerId: string, rejectionReason: string): Promise<Notification> {
+  async notifyCourseRejected(
+    courseId: string,
+    reviewerId: string,
+    rejectionReason: string,
+  ): Promise<Notification> {
     const course = await this.courseRepository.findOne({
       where: { courseId },
-      relations: ['instructor']
+      relations: ['instructor'],
     });
 
     if (!course) {
@@ -435,23 +512,27 @@ export class NotificationService {
       courseTitle: course.title,
       instructorId: course.instructor?.user_id,
       rejectionReason,
-      triggeredBy: reviewerId
+      triggeredBy: reviewerId,
     };
 
     return await this.createRuleBasedNotification(
       NotificationEvent.COURSE_REJECTED,
       context,
-      [reviewerId] // Don't notify the reviewer who rejected
+      [reviewerId], // Don't notify the reviewer who rejected
     );
   }
 
   /**
    * Flow 4: User enrolled in course
    */
-  async notifyUserEnrolled(courseId: string, studentId: string, studentName: string): Promise<Notification> {
-    const course = await this.courseRepository.findOne({ 
+  async notifyUserEnrolled(
+    courseId: string,
+    studentId: string,
+    studentName: string,
+  ): Promise<Notification> {
+    const course = await this.courseRepository.findOne({
       where: { courseId },
-      relations: ['instructor']
+      relations: ['instructor'],
     });
 
     if (!course) {
@@ -464,50 +545,59 @@ export class NotificationService {
       instructorId: course.instructor?.user_id,
       userId: studentId,
       studentName,
-      triggeredBy: studentId
+      triggeredBy: studentId,
     };
 
     return await this.createRuleBasedNotification(
       NotificationEvent.USER_ENROLLED,
       context,
-      [studentId]
+      [studentId],
     );
   }
 
   /**
    * Flow 5: Support chat session created
    */
-  async notifyChatSessionCreated(userId: string, userName: string, chatSessionId?: string): Promise<Notification> {
+  async notifyChatSessionCreated(
+    userId: string,
+    userName: string,
+    chatSessionId?: string,
+  ): Promise<Notification> {
     const context: NotificationContext = {
       userId,
       userName,
       chatSessionId,
-      triggeredBy: userId
+      triggeredBy: userId,
     };
 
     return await this.createRuleBasedNotification(
       NotificationEvent.CHAT_SESSION_CREATED,
       context,
-      [userId]
+      [userId],
     );
   }
 
   /**
    * Flow 6: Support chat message received
    */
-  async notifyChatMessageReceived(userId: string, userName: string, messageText: string, chatSessionId?: string): Promise<Notification> {
+  async notifyChatMessageReceived(
+    userId: string,
+    userName: string,
+    messageText: string,
+    chatSessionId?: string,
+  ): Promise<Notification> {
     const context: NotificationContext = {
       userId,
       userName,
       messageText,
       chatSessionId,
-      triggeredBy: userId
+      triggeredBy: userId,
     };
 
     return await this.createRuleBasedNotification(
       NotificationEvent.CHAT_MESSAGE_RECEIVED,
       context,
-      [userId]
+      [userId],
     );
   }
 }

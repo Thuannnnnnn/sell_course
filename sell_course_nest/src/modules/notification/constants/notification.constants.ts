@@ -1,4 +1,7 @@
-import { NotificationType, NotificationPriority } from '../enums/notification-type.enum';
+import {
+  NotificationType,
+  NotificationPriority,
+} from '../enums/notification-type.enum';
 import { UserRole } from '../../Auth/user.enum';
 
 /**
@@ -7,17 +10,17 @@ import { UserRole } from '../../Auth/user.enum';
 export enum NotificationEvent {
   // Course related events
   COURSE_SUBMITTED_FOR_REVIEW = 'COURSE_SUBMITTED_FOR_REVIEW',
-  COURSE_PUBLISHED = 'COURSE_PUBLISHED', 
+  COURSE_PUBLISHED = 'COURSE_PUBLISHED',
   COURSE_REJECTED = 'COURSE_REJECTED',
   COURSE_UPDATED = 'COURSE_UPDATED',
-  
+
   // Enrollment related events
   USER_ENROLLED = 'USER_ENROLLED',
-  
+
   // Support related events
   CHAT_SESSION_CREATED = 'CHAT_SESSION_CREATED',
   CHAT_MESSAGE_RECEIVED = 'CHAT_MESSAGE_RECEIVED',
-  
+
   // General events
   SYSTEM_MAINTENANCE = 'SYSTEM_MAINTENANCE',
 }
@@ -38,7 +41,7 @@ export interface NotificationRule {
  * Notification Rules Mapping - Central configuration for all notification flows
  */
 export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
-  // Flow 1: Instructor → CourseReviewer 
+  // Flow 1: Instructor → CourseReviewer
   [NotificationEvent.COURSE_SUBMITTED_FOR_REVIEW]: {
     event: NotificationEvent.COURSE_SUBMITTED_FOR_REVIEW,
     recipients: [UserRole.COURSEREVIEWER],
@@ -51,7 +54,11 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
   // Flow 2: CourseReviewer Accept → Instructor + Admin + Marketing
   [NotificationEvent.COURSE_PUBLISHED]: {
     event: NotificationEvent.COURSE_PUBLISHED,
-    recipients: [UserRole.INSTRUCTOR, UserRole.ADMIN, UserRole.MARKETINGMANAGER],
+    recipients: [
+      UserRole.INSTRUCTOR,
+      UserRole.ADMIN,
+      UserRole.MARKETINGMANAGER,
+    ],
     notificationType: NotificationType.COURSE_PUBLISHED,
     priority: NotificationPriority.HIGH,
     titleTemplate: 'Course Published Successfully',
@@ -65,7 +72,8 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
     notificationType: NotificationType.COURSE_REJECTED,
     priority: NotificationPriority.HIGH,
     titleTemplate: 'Course Rejected',
-    messageTemplate: 'Your course "{courseTitle}" has been rejected. Reason: {rejectionReason}',
+    messageTemplate:
+      'Your course "{courseTitle}" has been rejected. Reason: {rejectionReason}',
   },
 
   // Flow 4: User buy course → Instructor
@@ -75,7 +83,8 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
     notificationType: NotificationType.ENROLLMENT_CREATED,
     priority: NotificationPriority.MEDIUM,
     titleTemplate: 'New Student Enrolled',
-    messageTemplate: 'Student {studentName} has enrolled in your course "{courseTitle}".',
+    messageTemplate:
+      'Student {studentName} has enrolled in your course "{courseTitle}".',
   },
 
   // Flow 5: User sends first message → Creates chat session → Notify Support (triggered once per session)
@@ -105,7 +114,8 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
     notificationType: NotificationType.COURSE_UPDATED,
     priority: NotificationPriority.MEDIUM,
     titleTemplate: 'Course Updated',
-    messageTemplate: 'Course "{courseTitle}" has been updated and may need re-review.',
+    messageTemplate:
+      'Course "{courseTitle}" has been updated and may need re-review.',
   },
 
   // System maintenance (using existing type)
@@ -127,7 +137,7 @@ export const NOTIFICATION_RULES: Record<NotificationEvent, NotificationRule> = {
  */
 export const ROLE_TO_DATABASE_STRING: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'ADMIN',
-  [UserRole.INSTRUCTOR]: 'INSTRUCTOR', 
+  [UserRole.INSTRUCTOR]: 'INSTRUCTOR',
   [UserRole.USER]: 'USER',
   [UserRole.COURSEREVIEWER]: 'COURSEREVIEWER',
   [UserRole.SUPPORT]: 'SUPPORT',

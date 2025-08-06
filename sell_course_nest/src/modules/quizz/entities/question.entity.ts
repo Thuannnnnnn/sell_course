@@ -21,9 +21,9 @@ export class Questionentity {
   @Column({ type: 'text' })
   question: string;
 
-  @Column({ 
-    type: 'enum', 
-    enum: ['easy', 'medium', 'hard'], 
+  @Column({
+    type: 'enum',
+    enum: ['easy', 'medium', 'hard'],
     default: 'medium',
   })
   difficulty: 'easy' | 'medium' | 'hard';
@@ -33,7 +33,7 @@ export class Questionentity {
 
   @OneToMany(() => AnswerEntity, (answer) => answer.question, {
     cascade: true,
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   answers: AnswerEntity[];
 
@@ -43,6 +43,4 @@ export class Questionentity {
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
-
-  
 }

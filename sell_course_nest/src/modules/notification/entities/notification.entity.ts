@@ -10,7 +10,10 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Course } from '../../course/entities/course.entity';
-import { NotificationType, NotificationPriority } from '../enums/notification-type.enum';
+import {
+  NotificationType,
+  NotificationPriority,
+} from '../enums/notification-type.enum';
 import { UserNotification } from './user-notification.entity';
 
 @Entity('notifications')
@@ -57,6 +60,9 @@ export class Notification {
   updatedAt: Date;
 
   // Quan hệ với user notifications
-  @OneToMany(() => UserNotification, (userNotification) => userNotification.notification)
+  @OneToMany(
+    () => UserNotification,
+    (userNotification) => userNotification.notification,
+  )
   userNotifications: UserNotification[];
 }

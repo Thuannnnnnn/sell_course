@@ -20,7 +20,11 @@ export class UserNotification {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Notification, (notification) => notification.userNotifications, { onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => Notification,
+    (notification) => notification.userNotifications,
+    { onDelete: 'CASCADE' },
+  )
   @JoinColumn({ name: 'notification_id' })
   notification: Notification;
 
