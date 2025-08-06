@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LearningPlan } from './learning-plan.entity';
 import { Repository } from 'typeorm';
@@ -25,15 +25,12 @@ export class LearningPlanService {
   async createFromN8nData(
     n8nData: N8nLearningPathDtOut,
   ): Promise<LearningPlan[]> {
-    console.log(
-      'n8nData',
-      JSON.stringify(
-        n8nData[0].learningPath[1].targetLearningPath.userId,
-        null,
-        2,
-      ),
-    );
+    const courses = n8nData[0].learningPath[0].learningPathCourses;
+    if (!courses || courses.length === 0) {
+      throw new HttpException('No courses found', HttpStatus.NOT_FOUND);
+    }
 
+    const target = n8nData[0].learningPath[1].targetLearningPath;
     const user = await this.userRepo.findOne({
       where: {
         user_id: n8nData[0].learningPath[1].targetLearningPath.userId,
@@ -43,8 +40,6 @@ export class LearningPlanService {
       throw new Error('User not found');
     }
     const savedPlans: LearningPlan[] = [];
-    const courses = n8nData[0].learningPath[0].learningPathCourses;
-    const target = n8nData[0].learningPath[1].targetLearningPath;
 
     for (const course of courses) {
       const newPlan = this.planRepo.create({

@@ -57,17 +57,14 @@ export class LearningPathAPI {
   /**
    * Lưu learning path từ dữ liệu n8n đã xử lý
    */
-  async saveLearningPathFromN8n(
-    n8nData: LearningPlanData
-  ): Promise<LearningPlanData> {
-    const response: AxiosResponse<LearningPlanData> = await axios.post(
+  async saveLearningPathFromN8n(n8nData: LearningPlanData) {
+    const response: AxiosResponse<void> = await axios.post(
       `${API_BASE_URL}/learningPath/from-n8n`,
       n8nData,
       { headers: this.getHeaders() }
     );
-    return response.data;
+    return response;
   }
-
   /**
    * Cập nhật learning path
    */

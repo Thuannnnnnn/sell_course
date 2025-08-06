@@ -6,9 +6,6 @@ import {
   CourseItem,
   LessonItem,
   ContentItem,
-  CourseWithProgress,
-  LessonWithProgress,
-  ContentWithProgress,
 } from "@/app/types/learningPath/learningPath";
 import { createLearningPathAPI } from "@/app/api/learningPath/learningPathAPI";
 
@@ -242,15 +239,6 @@ export const checkCanCreateNewLearningPath = async (
 };
 
 /**
- * Sắp xếp courses theo order
- */
-export const sortCoursesByOrder = (courses: CourseItem[]): CourseItem[] => {
-  return courses.sort(
-    (a: CourseItem, b: CourseItem) => (a.order || 0) - (b.order || 0)
-  );
-};
-
-/**
  * Lấy màu sắc cho progress bar dựa trên phần trăm
  */
 export const getProgressColor = (percentage: number): string => {
@@ -289,144 +277,4 @@ export const getStatusColor = (
     default:
       return "border-gray-200 bg-white";
   }
-};
-
-/**
- * Tạo course với progress data
- */
-export const createCourseWithProgress = (
-  course: CourseItem,
-  contentProgress: Record<string, ContentProgress>
-): CourseWithProgress => {
-  const progress = calculateCourseProgress(course, contentProgress);
-  const status = getCourseStatus(course, contentProgress);
-
-  return {
-    course,
-    progress,
-    status,
-    contentProgress,
-  };
-};
-
-/**
- * Tạo lesson với progress data
- */
-export const createLessonWithProgress = (
-  lesson: LessonItem,
-  contentProgress: Record<string, ContentProgress>
-): LessonWithProgress => {
-  const progress = calculateLessonProgress(lesson, contentProgress);
-  const status = getLessonStatus(lesson, contentProgress);
-
-  return {
-    lesson,
-    progress,
-    status,
-    contentProgress,
-  };
-};
-
-/**
- * Tạo content với progress data
- */
-export const createContentWithProgress = (
-  content: ContentItem,
-  contentProgress: Record<string, ContentProgress>
-): ContentWithProgress => {
-  const progress = contentProgress[content.contentId] || null;
-  const status = getContentStatus(content, contentProgress);
-
-  return {
-    content,
-    progress,
-    status,
-  };
-};
-
-/**
- * Tạo roadmap data từ learning plans
- */
-export const createRoadmapData = (
-  learningPlans: LearningPlanData[],
-  progressData: Record<string, LearningPathProgress>
-) => {
-  return learningPlans.map((plan: LearningPlanData) => {
-    const progress = progressData[plan.planId];
-    const sortedCourses = sortCoursesByOrder(plan.learningPathCourses);
-
-    return {
-      plan,
-      progress,
-      courses: sortedCourses,
-      canCreateNew: progress
-        ? progress.overallProgressPercentage >= 100
-        : false,
-    };
-  });
-};
-
-/**
- * Validate learning plan data
- */
-export const validateLearningPlanData = (plan: LearningPlanData): boolean => {
-  if (!plan.planId || !plan.userId || !plan.targetLearningPath) {
-    return false;
-  }
-
-  if (!plan.learningPathCourses || plan.learningPathCourses.length === 0) {
-    return false;
-  }
-
-  // Validate each course has required fields
-  for (const course of plan.learningPathCourses) {
-    if (!course.courseId || !course.title || !course.lessons) {
-      return false;
-    }
-
-    // Validate each lesson has required fields
-    for (const lesson of course.lessons) {
-      if (!lesson.lessonId || !lesson.title || !lesson.contents) {
-        return false;
-      }
-
-      // Validate each content has required fields
-      for (const content of lesson.contents) {
-        if (!content.contentId || !content.title || content.durationMin < 0) {
-          return false;
-        }
-      }
-    }
-  }
-
-  return true;
-};
-
-/**
- * Calculate total contents in learning plan
- */
-export const calculateTotalContents = (plan: LearningPlanData): number => {
-  return plan.learningPathCourses.reduce(
-    (total: number, course: CourseItem) => {
-      return (
-        total +
-        course.lessons.reduce((lessonTotal: number, lesson: LessonItem) => {
-          return lessonTotal + lesson.contents.length;
-        }, 0)
-      );
-    },
-    0
-  );
-};
-
-/**
- * Calculate total lessons in learning plan
- */
-export const calculateTotalLessons = (plan: LearningPlanData): number => {
-  return plan.learningPathCourses.reduce(
-    (total: number, course: CourseItem) => {
-      return total + course.lessons.length;
-    },
-    0
-  );
 };

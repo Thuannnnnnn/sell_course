@@ -10,7 +10,6 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import {
   createLearningPathAPI,
   createN8nAPI,
@@ -23,7 +22,8 @@ import {
   CompletionCheckResult,
 } from "@/app/types/learningPath/learningPath";
 import { checkCanCreateNewLearningPath } from "@/utils/learningPathUtils";
-
+import axios from "axios";
+import { useToast } from "../ui/toast";
 
 interface CreateLearningPathModalProps {
   isOpen: boolean;
@@ -42,12 +42,11 @@ interface SurveyAnswers {
   current_level: string;
   has_prior_knowledge: string;
   target_level: string;
-  desired_duration: string;
+
   preferred_learning_styles: string[];
   learning_order: string;
-  want_progress_tracking: string;
-  want_mentor_or_AI_assist: string;
-  post_learning_outcome: string;
+
+  post_learning_outcome: string[];
   userName: string;
   userId: string;
   other_values: Record<string, string>;
@@ -59,12 +58,10 @@ const defaultSurveyAnswers: SurveyAnswers = {
   current_level: "",
   has_prior_knowledge: "",
   target_level: "",
-  desired_duration: "",
   preferred_learning_styles: [],
   learning_order: "",
-  want_progress_tracking: "",
-  want_mentor_or_AI_assist: "",
-  post_learning_outcome: "",
+
+  post_learning_outcome: [],
   userName: "",
   userId: "",
   other_values: {},
@@ -87,11 +84,10 @@ export default function CreateLearningPathModal({
   const [completionCheck, setCompletionCheck] =
     useState<CompletionCheckResult | null>(null);
   const [checkingCompletion, setCheckingCompletion] = useState(false);
-
   const surveyAPI = createSurveyAPI();
   const n8nAPI = createN8nAPI();
   const learningPathAPI = createLearningPathAPI(token);
-
+  const { toast } = useToast();
   useEffect(() => {
     const initializeModal = async () => {
       if (!isOpen) return;
@@ -127,7 +123,11 @@ export default function CreateLearningPathModal({
         setCurrentStep(0);
       } catch (error) {
         console.error("Failed to initialize modal:", error);
-        toast.error("Failed to load. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to load. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
         setCheckingCompletion(false);
@@ -135,7 +135,7 @@ export default function CreateLearningPathModal({
     };
 
     initializeModal();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId, userName, token, existingLearningPlans]);
 
   const currentQuestion = questions[currentStep];
@@ -149,11 +149,8 @@ export default function CreateLearningPathModal({
       "f7e006de-22c1-42b1-95cb-152d30ce3e03": "current_level",
       "133d5b24-bb22-46a4-82e1-1bf89764431a": "has_prior_knowledge",
       "068818da-02ee-4402-8037-9c5648a14a2d": "target_level",
-      "7d1fd292-cde2-4466-bc5f-6aea40049831": "desired_duration",
       "43d6b66a-845e-458f-9443-d0cf11d4b4c2": "preferred_learning_styles",
       "b855c9b8-b0a0-41ec-a501-c65373330322": "learning_order",
-      "f18a0d34-d6a2-46fc-8249-bcc7550a43be": "want_progress_tracking",
-      "2745b2e1-f21d-4f72-ac12-83f4567b855c": "want_mentor_or_AI_assist",
       "cb42d249-5f5e-4e53-a589-9457d131c507": "post_learning_outcome",
       "4a50e5d5-36e4-464d-b8af-2940d289cc46": "userName",
     };
@@ -213,7 +210,7 @@ export default function CreateLearningPathModal({
       answer: string,
       otherValue: string | undefined
     ): string => {
-      return answer.toLowerCase().includes("khác") && otherValue
+      return answer.toLowerCase().includes("other") && otherValue
         ? otherValue
         : answer;
     };
@@ -221,10 +218,6 @@ export default function CreateLearningPathModal({
     const finalLearningGoal = getFinalValue(
       surveyAnswers.learning_goal,
       surveyAnswers.other_values["learning_goal"]
-    );
-    const finalPostLearningOutcome = getFinalValue(
-      surveyAnswers.post_learning_outcome,
-      surveyAnswers.other_values["post_learning_outcome"]
     );
 
     return {
@@ -235,16 +228,13 @@ export default function CreateLearningPathModal({
       target_level: levelMapping[surveyAnswers.target_level] || "Beginner",
       current_level: levelMapping[surveyAnswers.current_level] || "Beginner",
       has_prior_knowledge:
-        booleanMapping[surveyAnswers.has_prior_knowledge] || false,
-      desired_duration: surveyAnswers.desired_duration,
+        booleanMapping[surveyAnswers.has_prior_knowledge] || true,
       preferred_learning_styles: surveyAnswers.preferred_learning_styles,
       learning_order: surveyAnswers.learning_order,
       output_expectations: {
-        want_progress_tracking:
-          booleanMapping[surveyAnswers.want_progress_tracking] || false,
-        want_mentor_or_AI_assist:
-          booleanMapping[surveyAnswers.want_mentor_or_AI_assist] || false,
-        post_learning_outcome: finalPostLearningOutcome,
+        want_progress_tracking: true,
+        want_mentor_or_AI_assist: true,
+        post_learning_outcome: surveyAnswers.post_learning_outcome,
       },
     };
   };
@@ -258,9 +248,12 @@ export default function CreateLearningPathModal({
       !completionCheck.canCreateNew &&
       existingLearningPlans.length > 0
     ) {
-      toast.error(
-        "You must complete at least one learning path 100% before creating a new one."
-      );
+      toast({
+        title: "Cannot Create New Path",
+        description:
+          "You must complete at least one learning path 100% before creating a new one.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -274,23 +267,34 @@ export default function CreateLearningPathModal({
         userName
       );
 
-      toast.info("Processing your learning path...", {
-        duration: 3000,
+      toast({
+        title: "Processing",
+        description: "Processing your learning path...",
+        variant: "default",
       });
 
       // Step 2: Send data to n8n for processing
       const n8nResponse = await n8nAPI.processLearningPath(learningPathInput);
 
-      toast.info("Saving your learning path...", {
-        duration: 2000,
+      toast({
+        title: "Saving",
+        description: "Saving your learning path...",
+        variant: "default",
       });
 
-      // Step 3: Save the processed data to backend
       if (n8nResponse) {
         await learningPathAPI.saveLearningPathFromN8n(n8nResponse);
-        toast.success("Learning path created successfully!");
+        toast({
+          title: "Learning Path Created",
+          description: "Your learning path has been created successfully!",
+          variant: "default",
+        });
       } else {
-        toast.error("Failed to create learning path. Invalid data from n8n.");
+        toast({
+          title: "Creation Failed",
+          description: "Failed to create learning path. Please try again.",
+          variant: "destructive",
+        });
       }
 
       // Step 4: Call the onSubmit callback to refresh the parent component
@@ -298,16 +302,30 @@ export default function CreateLearningPathModal({
 
       // Step 5: Close modal
       onClose();
-    } catch (error) {
-      console.error("Error in learning path creation flow:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to create learning path. Please try again.",
-        {
-          duration: 5000,
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status === 404) {
+          toast({
+            title: "No Courses Found",
+            description:
+              "No courses found for target topic. Please wait for the courses to be loaded!",
+            variant: "default",
+          });
+          onClose();
         }
-      );
+        toast({
+          title: "Error",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to create learning path. Please try again.",
+          variant: "destructive",
+        });
+        onClose();
+      } else {
+        console.error("Unexpected error:", error);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -331,7 +349,7 @@ export default function CreateLearningPathModal({
     ): boolean => {
       if (!answer) return false;
       const otherOptionText = question.options?.find((opt) =>
-        opt.text.toLowerCase().includes("khác")
+        opt.text.toLowerCase().includes("other")
       )?.text;
       if (!otherOptionText) return false;
 
@@ -393,7 +411,7 @@ export default function CreateLearningPathModal({
                 <div className="pt-2 pl-4">
                   <input
                     type="text"
-                    placeholder="Vui lòng nhập lựa chọn của bạn..."
+                    placeholder="Please enter your choice..."
                     value={answers.other_values[answerKey] || ""}
                     onChange={handleOtherInputChange}
                     className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
@@ -462,7 +480,7 @@ export default function CreateLearningPathModal({
                 <div className="pt-2 pl-4">
                   <input
                     type="text"
-                    placeholder="Vui lòng nhập lựa chọn của bạn..."
+                    placeholder="Please enter your choice..."
                     value={answers.other_values[answerKey] || ""}
                     onChange={handleOtherInputChange}
                     className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
@@ -477,7 +495,7 @@ export default function CreateLearningPathModal({
           <textarea
             value={(currentAnswer as string) || ""}
             onChange={(e) => handleAnswer(e.target.value)}
-            placeholder="Nhập câu trả lời của bạn..."
+            placeholder="Please enter your answer..."
             className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none resize-none h-32"
           />
         );

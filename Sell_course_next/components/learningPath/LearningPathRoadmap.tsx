@@ -24,7 +24,6 @@ import {
   extractAllContentIds,
   calculateCourseProgress,
   getCourseStatus,
-  sortCoursesByOrder,
   formatDuration,
   calculateTotalDuration,
   getStatusColor,
@@ -52,7 +51,6 @@ interface LearningPathRoadmapProps {
   learningPlans: LearningPlanData[];
   onCreateNew: () => void;
   onViewCourse: (plan: LearningPlanData, course: CourseItem) => void;
-  onDeletePlan: (planId: string) => void;
   updatePlan: () => void;
   userId: string;
   token: string;
@@ -81,7 +79,6 @@ export default function LearningPathRoadmap({
         setCanCreateNewPath(true); // Allow creation if no paths exist
         return;
       }
-      console.log("Fetching and grouping data for roadmap...", learningPlans);
 
       try {
         setLoading(true);
@@ -159,7 +156,7 @@ export default function LearningPathRoadmap({
 
         const results = await Promise.all(finalGroupedData);
         setGroupedRoadmapData(finalGroupedData);
-
+        console.log("Grouped roadmap data:", finalGroupedData);
         const hasCompletedPath = results.some(
           (result) => result.overallProgress.percentage === 100
         );
@@ -339,92 +336,95 @@ export default function LearningPathRoadmap({
 
                   {/* Course Nodes List */}
                   <div className="space-y-6">
-                    {groupedPath.plans.flatMap((data) =>
-                      sortCoursesByOrder(data.plan.learningPathCourses).map(
-                        (course) => {
-                          const courseProgress = calculateCourseProgress(
-                            course,
-                            data.contentProgress
-                          );
-                          const courseStatus = getCourseStatus(
-                            course,
-                            data.contentProgress
-                          );
-
-                          return (
-                            <div
-                              key={course.courseId}
-                              className="flex items-start gap-6 relative"
-                            >
-                              <div className="absolute left-[-3.25rem] top-6 w-6 h-px bg-gray-300"></div>
-                              <div className="flex flex-col items-center self-stretch">
-                                <div
-                                  className={`w-12 h-12 rounded-full border-4 flex items-center justify-center shadow-md flex-shrink-0`}
-                                >
-                                  <div className="font-bold text-xl">
-                                    {course.order}
-                                  </div>
+                    {groupedPath.plans
+                      .flatMap((data) =>
+                        data.plan.learningPathCourses.map((course) => ({
+                          course,
+                          data,
+                        }))
+                      )
+                      .sort(
+                        (a, b) => (a.course.order || 0) - (b.course.order || 0)
+                      )
+                      .map(({ course, data }) => {
+                        const courseProgress = calculateCourseProgress(
+                          course,
+                          data.contentProgress
+                        );
+                        const courseStatus = getCourseStatus(
+                          course,
+                          data.contentProgress
+                        );
+                        return (
+                          <div
+                            key={course.courseId}
+                            className="flex items-start gap-6 relative"
+                          >
+                            <div className="absolute left-[-3.25rem] top-6 w-6 h-px bg-gray-300"></div>
+                            <div className="flex flex-col items-center self-stretch">
+                              <div
+                                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center shadow-md flex-shrink-0`}
+                              >
+                                <div className="font-bold text-xl">
+                                  {course.order}
                                 </div>
-                                <div className="w-1 flex-grow bg-gradient-to-b from-purple-500 to-blue-500 mt-2"></div>
-                                {/* danh dau */}
                               </div>
+                              <div className="w-1 flex-grow bg-gradient-to-b from-purple-500 to-blue-500 mt-2"></div>
+                              {/* danh dau */}
+                            </div>
 
-                              <div className="flex-1">
-                                <Button
-                                  variant="outline"
-                                  className={`w-full justify-start p-6 h-auto text-left ${getStatusColor(
-                                    courseStatus
-                                  )} hover:shadow-lg transition-all duration-200`}
-                                  onClick={() =>
-                                    onViewCourse(data.plan, course)
-                                  }
-                                >
-                                  <div className="flex items-center justify-between w-full">
-                                    <div>
-                                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                        {course.title}
-                                      </h3>
-                                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
-                                        <span>
-                                          {course.lessons.length} lessons
-                                        </span>
-                                        <span>
-                                          {formatDuration(
-                                            course.lessons.reduce(
-                                              (total, lesson) =>
-                                                total +
-                                                lesson.contents.reduce(
-                                                  (lessonTotal, content) =>
-                                                    lessonTotal +
-                                                    content.durationMin,
-                                                  0
-                                                ),
-                                              0
-                                            )
-                                          )}
-                                        </span>
-                                        <span className="font-medium text-blue-600">
-                                          {courseProgress}% completed
-                                        </span>
-                                      </div>
+                            <div className="flex-1">
+                              <Button
+                                variant="outline"
+                                className={`w-full justify-start p-6 h-auto text-left ${getStatusColor(
+                                  courseStatus
+                                )} hover:shadow-lg transition-all duration-200`}
+                                onClick={() => onViewCourse(data.plan, course)}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                      {course.title}
+                                    </h3>
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+                                      <span>
+                                        {course.lessons.length} lessons
+                                      </span>
+                                      <span>
+                                        {formatDuration(
+                                          course.lessons.reduce(
+                                            (total, lesson) =>
+                                              total +
+                                              lesson.contents.reduce(
+                                                (lessonTotal, content) =>
+                                                  lessonTotal +
+                                                  content.durationMin,
+                                                0
+                                              ),
+                                            0
+                                          )
+                                        )}
+                                      </span>
+                                      <span className="font-medium text-blue-600">
+                                        {courseProgress}% completed
+                                      </span>
                                     </div>
-                                    <ArrowRight className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
                                   </div>
-                                </Button>
-                                <div className="mt-3 px-2">
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                      style={{ width: `${courseProgress}%` }}
-                                    ></div>
-                                  </div>
+                                  <ArrowRight className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
+                                </div>
+                              </Button>
+                              <div className="mt-3 px-2">
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${courseProgress}%` }}
+                                  ></div>
                                 </div>
                               </div>
                             </div>
-                          );
-                        }
-                      )
-                    )}
+                          </div>
+                        );
+                      })}
                   </div>
 
                   {/* Completion Status */}

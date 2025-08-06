@@ -7,7 +7,6 @@ import {
   User,
   Plus,
   Eye,
-  Trash2,
   GraduationCap,
   CheckCircle,
   AlertCircle,
@@ -30,7 +29,6 @@ interface LearningPathListProps {
   learningPlans: LearningPlanData[];
   onCreateNew: () => void;
   onViewPlan: (plan: LearningPlanData) => void;
-  onDeletePlan: (planId: string) => void;
   updatePlan: () => void;
   userId: string;
   token: string;
@@ -40,7 +38,6 @@ export default function LearningPathList({
   learningPlans,
   onCreateNew,
   onViewPlan,
-  onDeletePlan,
   updatePlan,
   userId,
   token,
@@ -110,7 +107,7 @@ export default function LearningPathList({
     };
 
     fetchProgressData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [learningPlans, userId, token]);
 
   const getLevelColor = (level: string): string => {
@@ -125,13 +122,6 @@ export default function LearningPathList({
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent, planId: string) => {
-    e.stopPropagation();
-    if (confirm("Are you sure you want to delete this learning path?")) {
-      onDeletePlan(planId);
     }
   };
 
@@ -350,14 +340,6 @@ export default function LearningPathList({
                       >
                         <Eye className="w-4 h-4" />
                         View
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => handleDeleteClick(e, plan.planId)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

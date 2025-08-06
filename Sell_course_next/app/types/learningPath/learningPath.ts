@@ -93,13 +93,12 @@ export interface LearningPathInput {
   target_level: string;
   current_level: string;
   has_prior_knowledge: boolean;
-  desired_duration: string;
   preferred_learning_styles: string[];
   learning_order: string;
   output_expectations: {
     want_progress_tracking: boolean;
     want_mentor_or_AI_assist: boolean;
-    post_learning_outcome: string;
+    post_learning_outcome: string[];
   };
   userId: string;
   userName: string;
