@@ -292,8 +292,8 @@ export default function CreateLearningPathModal({
       } else {
         toast({
           title: "Creation Failed",
-          description: "Failed to create learning path. Please try again.",
-          variant: "destructive",
+          description: "No courses found for target topic. Please wait for the courses to be loaded!",
+          variant: "default",
         });
       }
 
@@ -314,14 +314,16 @@ export default function CreateLearningPathModal({
           });
           onClose();
         }
-        toast({
+        else {
+          toast({
           title: "Error",
           description:
             error instanceof Error
               ? error.message
-              : "Failed to create learning path. Please try again.",
-          variant: "destructive",
+              : "No courses found for target topic. Please wait for the courses to be loaded!",
+          variant: "default",
         });
+      }
         onClose();
       } else {
         console.error("Unexpected error:", error);
