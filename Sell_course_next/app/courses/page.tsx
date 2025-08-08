@@ -34,10 +34,9 @@ interface FilterState {
     min: number;
     max: number;
   };
-  rating: number;
 }
 
-type SortBy = "newest" | "oldest" | "price-low" | "price-high" | "rating" | "duration";
+type SortBy = "newest" | "oldest" | "price-low" | "price-high" | "duration";
 type ViewMode = "grid" | "list";
 
 export default function CoursesPage() {
@@ -55,7 +54,6 @@ export default function CoursesPage() {
     skills: [],
     priceRange: { min: 0, max: 10000000 },
     durationRange: { min: 0, max: 1000 },
-    rating: 0,
   });
 
   // Fetch courses
@@ -105,11 +103,8 @@ export default function CoursesPage() {
       const matchesDuration = course.duration >= filters.durationRange.min && 
         course.duration <= filters.durationRange.max;
 
-      // Rating filter
-      const matchesRating = course.rating >= filters.rating;
-
       return matchesSearch && matchesCategory && matchesLevel && 
-             matchesSkill && matchesPrice && matchesDuration && matchesRating;
+             matchesSkill && matchesPrice && matchesDuration;
     });
 
     // Sort courses
@@ -125,9 +120,6 @@ export default function CoursesPage() {
         break;
       case "price-high":
         filtered.sort((a, b) => b.price - a.price);
-        break;
-      case "rating":
-        filtered.sort((a, b) => b.rating - a.rating);
         break;
       case "duration":
         filtered.sort((a, b) => a.duration - b.duration);
@@ -153,7 +145,6 @@ export default function CoursesPage() {
       skills: [],
       priceRange: { min: 0, max: 10000000 },
       durationRange: { min: 0, max: 1000 },
-      rating: 0,
     });
     setSearchTerm("");
     setCurrentPage(1);
@@ -167,7 +158,6 @@ export default function CoursesPage() {
     if (filters.skills.length > 0) count++;
     if (filters.priceRange.min > 0 || filters.priceRange.max < 10000000) count++;
     if (filters.durationRange.min > 0 || filters.durationRange.max < 1000) count++;
-    if (filters.rating > 0) count++;
     return count;
   }, [filters]);
 
@@ -220,7 +210,6 @@ export default function CoursesPage() {
                 <SelectItem value="oldest">Oldest</SelectItem>
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="rating">Highest Rating</SelectItem>
                 <SelectItem value="duration">Duration</SelectItem>
               </SelectContent>
             </Select>
