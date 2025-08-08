@@ -48,18 +48,26 @@ import Link from "next/link";
 
 // AI Quiz Response interfaces
 interface AIQuizQuestion {
-  id: string;
+  id: number; // Changed from string to number
   question: string;
   options: string[];
-  correctAnswer: number;
+  correctAnswer: string; // Changed from number to string (the actual answer text)
   difficulty: "easy" | "medium" | "hard";
   weight: number;
 }
 
+interface AIQuizResponseItem {
+  output: {
+    generated_questions: AIQuizQuestion[];
+  };
+}
+
+type AIQuizApiResponse = AIQuizResponseItem[] | AIQuizResponse;
+
 interface AIQuizResponse {
-  success: boolean;
-  quizzes: AIQuizQuestion[];
-  source_files: string[];
+  success?: boolean;
+  quizzes?: AIQuizQuestion[];
+  source_files?: string[];
   error?: string;
 }
 
@@ -146,16 +154,30 @@ function QuizPageContent({ params }: QuizPageProps) {
   useEffect(() => {
     if (aiQuestions && !quizId) {
       try {
-        const parsedQuestions: AIQuizQuestion[] = JSON.parse(
-          decodeURIComponent(aiQuestions)
-        );
+        const parsedData = JSON.parse(decodeURIComponent(aiQuestions));
+        let questions: AIQuizQuestion[] = [];
+        
+        if (Array.isArray(parsedData)) {
+          // Handle array format
+          questions = parsedData.flatMap(item => item.output?.generated_questions || []);
+        } else if (parsedData.generated_questions) {
+          questions = parsedData.generated_questions;
+        } else if (Array.isArray(parsedData.quizzes)) {
+          questions = parsedData.quizzes;
+        }
+
         // Add all AI questions to the quiz
-        parsedQuestions.forEach((question: AIQuizQuestion) => {
+        questions.forEach((question: AIQuizQuestion) => {
+          // Find the correct answer index from the options
+          const correctAnswerIndex = question.options.findIndex(
+            option => option === question.correctAnswer
+          );
+
           const formattedQuestion: QuizFormData = {
-            id: question.id,
+            id: question.id.toString(),
             question: question.question,
             options: question.options,
-            correctAnswer: question.correctAnswer,
+            correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
             difficulty: question.difficulty,
             weight: question.weight,
           };
@@ -279,7 +301,7 @@ function QuizPageContent({ params }: QuizPageProps) {
 
     try {
       const response = await fetch(
-        "https://fastapi.coursemaster.io.vn/generate-quiz",
+        "https://n8n.coursemaster.io.vn/webhook/genquiz",
         {
           method: "POST",
           headers: {
@@ -297,28 +319,46 @@ function QuizPageContent({ params }: QuizPageProps) {
         throw new Error("Failed to generate AI quiz");
       }
 
-      const result: AIQuizResponse = await response.json();
+      const result: AIQuizApiResponse = await response.json();
 
-      if (!result.success) {
+      // Handle new response format - check if it's an array or has generated_questions
+      let aiQuestions: AIQuizQuestion[] = [];
+      
+      if (Array.isArray(result)) {
+        // New format: array of objects with output.generated_questions
+        aiQuestions = result.flatMap(item => item.output?.generated_questions || []);
+      } else if (result.quizzes) {
+        // Old format with quizzes
+        aiQuestions = result.quizzes;
+      } else if (result.success === false) {
         throw new Error(result.error || "AI quiz generation failed");
       }
 
-      // Add all AI questions to current quiz
-      result.quizzes.forEach((question: AIQuizQuestion) => {
+      if (aiQuestions.length === 0) {
+        throw new Error("No questions were generated");
+      }
+
+      // Convert AI questions to our format
+      aiQuestions.forEach((question: AIQuizQuestion) => {
+        // Find the correct answer index from the options
+        const correctAnswerIndex = question.options.findIndex(
+          option => option === question.correctAnswer
+        );
+
         const formattedQuestion: QuizFormData = {
-          id: question.id,
+          id: question.id.toString(), // Convert number to string
           question: question.question,
           options: question.options,
-          correctAnswer: question.correctAnswer,
+          correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0, // Use index, fallback to 0
           difficulty: question.difficulty,
           weight: question.weight,
         };
         addQuestion(formattedQuestion);
       });
 
-      // Show success message (generic for security)
+      // Show success message
       toast.success(
-        `Successfully generated ${result.quizzes.length} quiz questions from lesson content!`
+        `Successfully generated ${aiQuestions.length} quiz questions from lesson content!`
       );
 
       // Close dialog and reset form
