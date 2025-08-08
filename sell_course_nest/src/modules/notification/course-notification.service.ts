@@ -5,7 +5,10 @@ import { User } from '../user/entities/user.entity';
 import { Course } from '../course/entities/course.entity';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { NotificationService } from './notification.service';
-import { NotificationType, NotificationPriority } from './enums/notification-type.enum';
+import {
+  NotificationType,
+  NotificationPriority,
+} from './enums/notification-type.enum';
 import { UserRole } from '../Auth/user.enum';
 import { CourseStatus } from '../course/enums/course-status.enum';
 
@@ -23,7 +26,7 @@ export class CourseNotificationService {
     // Lấy danh sách users cần thông báo - sử dụng format database
     const [courseReviewers, admins, contentManagers] = await Promise.all([
       this.getUsersByDatabaseRole('COURSEREVIEWER'),
-      this.getUsersByDatabaseRole('ADMIN'), 
+      this.getUsersByDatabaseRole('ADMIN'),
       this.getUsersByDatabaseRole('CONTENTMANAGER'),
     ]);
 
@@ -42,7 +45,7 @@ export class CourseNotificationService {
           categoryId: course.category?.categoryId,
           action: 'review_required',
         },
-        recipientIds: courseReviewers.map(user => user.user_id),
+        recipientIds: courseReviewers.map((user) => user.user_id),
       });
     }
 
@@ -61,7 +64,7 @@ export class CourseNotificationService {
           categoryId: course.category?.categoryId,
           action: 'course_created',
         },
-        recipientIds: admins.map(user => user.user_id),
+        recipientIds: admins.map((user) => user.user_id),
       });
     }
 
@@ -81,16 +84,23 @@ export class CourseNotificationService {
           categoryName: course.category.name,
           action: 'content_management',
         },
-        recipientIds: contentManagers.map(user => user.user_id),
+        recipientIds: contentManagers.map((user) => user.user_id),
       });
     }
-    
-    console.log(`🎉 Completed notification process for course: ${course.title}`);
+
+    console.log(
+      `🎉 Completed notification process for course: ${course.title}`,
+    );
   }
 
-  async notifyOnCourseUpdated(course: Course, updatedFields: string[]): Promise<void> {
-    console.log(`🔄 Course updated notification for: ${course.title}, Status: ${course.status}`);
-    
+  async notifyOnCourseUpdated(
+    course: Course,
+    updatedFields: string[],
+  ): Promise<void> {
+    console.log(
+      `🔄 Course updated notification for: ${course.title}, Status: ${course.status}`,
+    );
+
     const updatedFieldsText = updatedFields.join(', ');
 
     // Nếu khóa học đã PUBLISHED - gửi cho enrolled users
@@ -120,7 +130,7 @@ export class CourseNotificationService {
           updatedFields,
           action: 'review_required',
         },
-        recipientIds: courseReviewers.map(user => user.user_id),
+        recipientIds: courseReviewers.map((user) => user.user_id),
       });
     }
 
@@ -139,7 +149,7 @@ export class CourseNotificationService {
           updatedFields,
           action: 'course_updated',
         },
-        recipientIds: admins.map(user => user.user_id),
+        recipientIds: admins.map((user) => user.user_id),
       });
     }
   }
@@ -170,7 +180,7 @@ export class CourseNotificationService {
     if (!course.instructor) {
       return;
     }
-    
+
     // Notify instructor
     await this.notificationService.createNotification({
       title: 'Course Rejected',
@@ -191,14 +201,19 @@ export class CourseNotificationService {
    * Gửi notification cho enrolled users khi published course được update
    * Flow 2: Enrolled Users Course Update Notification
    */
-  private async notifyEnrolledUsersOnCourseUpdate(course: Course, updatedFields: string[]): Promise<void> {
-    console.log(`📢 Sending course update notifications to enrolled users for: ${course.title}`);
-    
+  private async notifyEnrolledUsersOnCourseUpdate(
+    course: Course,
+    updatedFields: string[],
+  ): Promise<void> {
+    console.log(
+      `📢 Sending course update notifications to enrolled users for: ${course.title}`,
+    );
+
     // Lấy tất cả users đã enrolled vào course này
     const enrollments = await this.enrollmentRepository.find({
-      where: { 
+      where: {
         course: { courseId: course.courseId },
-        status: 'active' // Chỉ lấy enrollment đang active
+        status: 'active', // Chỉ lấy enrollment đang active
       },
       relations: ['user'],
       select: {
@@ -206,17 +221,17 @@ export class CourseNotificationService {
           user_id: true,
           username: true,
           email: true,
-        }
-      }
+        },
+      },
     });
 
     if (enrollments.length === 0) {
       return;
     }
 
-    const enrolledUsers = enrollments.map(enrollment => enrollment.user);
+    const enrolledUsers = enrollments.map((enrollment) => enrollment.user);
     const updatedFieldsText = updatedFields.join(', ');
-    
+
     // Send notification to all enrolled users
     await this.notificationService.createNotification({
       title: 'Course Updated',
@@ -233,7 +248,7 @@ export class CourseNotificationService {
         courseStatus: course.status,
         enrolledUsersCount: enrolledUsers.length,
       },
-      recipientIds: enrolledUsers.map(user => user.user_id),
+      recipientIds: enrolledUsers.map((user) => user.user_id),
     });
   }
 

@@ -16,7 +16,6 @@ import { Exam } from './modules/exam/entities/exam.entity';
 
 import { Lesson } from './modules/lesson/entities/lesson.entity';
 
-import { QuestionsExam } from './modules/questions_exam/entities/questions_exam.entity';
 import { Quizz } from './modules/quizz/entities/quizz.entity';
 import { Video } from './modules/video/entities/video.entity';
 
@@ -32,17 +31,13 @@ import { ExamModule } from './modules/exam/exam.module';
 
 import { LessonModule } from './modules/lesson/lesson.module';
 
-import { QuestionsExamModule } from './modules/questions_exam/questions_exam.module';
 import { QuizzModule } from './modules/quizz/quizz.module';
 import { VideoModule } from './modules/video/video.module';
 
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { Category } from './modules/category/entities/category.entity';
 import { CategoryModule } from './modules/category/category.module';
-import { Notify } from './modules/notify/entities/notify.entity';
-import { UserNotify } from './modules/User_Notify/entities/User_Notify.entity';
-import { NotifyModule } from './modules/notify/notify.module';
-import { UserNotifyModule } from './modules/User_Notify/User_Notify.module';
+
 import { Permission } from './modules/permission/entities/permission.entity';
 import { PermissionModule } from './modules/permission/permission.module';
 import { PermissionMiddleware } from './modules/permission/permission.middleware';
@@ -81,12 +76,9 @@ import { RefreshToken } from './modules/Auth/entities/refresh-token.entity';
  */
 import * as redisStore from 'cache-manager-ioredis';
 import { CacheModule } from '@nestjs/cache-manager';
-import { PlanConstraint } from './modules/plan-constraint/plan-constraint.entity';
-import { PlanPreference } from './modules/plan-preference/plan-preference.entity';
+
 import { LearningPlan } from './modules/learning-plan/learning-plan.entity';
 
-import { PlanConstraintModule } from './modules/plan-constraint/plan-constraint.module';
-import { PlanPreferenceModule } from './modules/plan-preference/plan-preference.module';
 import { LearningPlanModule } from './modules/learning-plan/learning-plan.module';
 import { SurveyQuestionModule } from './modules/survey-response/survey-response.module';
 import { SurveyAnswerOption } from './modules/surveyAnswerOption/survey-answer-option.entity';
@@ -125,15 +117,12 @@ import { ScheduleModule } from '@nestjs/schedule';
       // },
       entities: [
         SurveyQuestion,
-        PlanConstraint,
-        PlanPreference,
         LearningPlan,
         SurveyAnswerOption,
         LogoSetting,
         VersionSetting,
         CarouselSetting,
-        Notify,
-        UserNotify,
+
         Notification,
         UserNotification,
         User,
@@ -145,7 +134,6 @@ import { ScheduleModule } from '@nestjs/schedule';
         ExamQuestion,
         Answer,
         Lesson,
-        QuestionsExam,
         Quizz,
         Questionentity,
         AnswerEntity,
@@ -156,7 +144,6 @@ import { ScheduleModule } from '@nestjs/schedule';
         Permission,
         ResultExam,
         ProgressTracking,
-        UserNotify,
         ChatSession,
         Message,
         Promotion,
@@ -169,15 +156,12 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     TypeOrmModule.forFeature([User, Permission]),
     SurveyAnswerOptionModule,
-    PlanConstraintModule,
-    PlanPreferenceModule,
     LearningPlanModule,
     SurveyQuestionModule,
     LogoSettingModule,
     VersionSettingModule,
     ProcessModule,
-    NotifyModule,
-    UserNotifyModule,
+
     UserModule,
     authModule,
     CertificateModule,
@@ -188,7 +172,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     ExamQuestion,
     Answer,
     LessonModule,
-    QuestionsExamModule,
+
     QuizzStoreModule,
     QuizzModule,
     VideoModule,

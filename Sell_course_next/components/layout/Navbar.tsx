@@ -104,7 +104,15 @@ export function Navbar() {
                 About Us
               </NavigationMenuLink>
             </NavigationMenuItem>
-                      </NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                className={navigationMenuTriggerStyle()}
+                href="/learningPath"
+              >
+                My Learning Path
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
         </NavigationMenu>
         <div className="flex items-center gap-2">
           {isLoggedIn ? (

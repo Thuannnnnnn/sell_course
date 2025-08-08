@@ -20,7 +20,7 @@ export class Contents {
 
   @OneToMany(() => Quizz, (quizz) => quizz.contents, {
     cascade: true,
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   quizzes: Quizz[];
 

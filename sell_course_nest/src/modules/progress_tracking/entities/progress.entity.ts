@@ -32,4 +32,3 @@ export class ProgressTracking {
   @Column({ type: 'timestamp', nullable: true })
   completed_at: Date;
 }
-

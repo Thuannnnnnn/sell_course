@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { toast } from "sonner";
 import { LearningPlanData } from "../types/learningPath/learningPath";
 import { createLearningPathAPI } from "../api/learningPath/learningPathAPI";
 import LearningPathList from "@/components/learningPath/LearningPathList";
@@ -30,6 +29,21 @@ export default function LearningPathPage() {
     fetchLearningPlans();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token]);
+  // useEffect(() => {
+  //   if (status) {
+  //     if (status.type === "success") {
+  //       toast.(status.message);
+  //     } else {
+  //       toast.error(status.message);
+  //     }
+
+  //     const timer = setTimeout(() => {
+  //       setStatus(null);
+  //     }, 5000);
+
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [status]);
 
   const fetchLearningPlans = async () => {
     try {
@@ -43,7 +57,7 @@ export default function LearningPathPage() {
         // No learning paths found, this is normal for new users
         setLearningPlans([]);
       } else {
-        toast.error("Failed to load learning paths");
+        // toast.error("Failed to load learning paths");
       }
     } finally {
       setLoading(false);
@@ -62,17 +76,6 @@ export default function LearningPathPage() {
   const handleViewCourse = (plan: LearningPlanData) => {
     setSelectedPlan(plan);
     setViewMode("display");
-  };
-
-  const handleDeletePlan = async (planId: string) => {
-    try {
-      await api.deleteLearningPath(planId);
-      toast.success("Learning path deleted successfully");
-      await fetchLearningPlans();
-    } catch (error) {
-      console.error("Failed to delete learning path:", error);
-      toast.error("Failed to delete learning path");
-    }
   };
 
   const handleBackToRoadmap = () => {
@@ -147,7 +150,6 @@ export default function LearningPathPage() {
           learningPlans={learningPlans}
           onCreateNew={handleCreateNew}
           onViewPlan={handleViewPlan}
-          onDeletePlan={handleDeletePlan}
           updatePlan={fetchLearningPlans}
           userId={userId || ""}
           token={token}
@@ -183,7 +185,6 @@ export default function LearningPathPage() {
         learningPlans={learningPlans}
         onCreateNew={handleCreateNew}
         onViewCourse={handleViewCourse}
-        onDeletePlan={handleDeletePlan}
         updatePlan={fetchLearningPlans}
         userId={userId || ""}
         token={token}

@@ -1,7 +1,11 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { Quizz } from '../../quizz/entities/quizz.entity';
 import { User } from '../../user/entities/user.entity';
-import { ScoreResult, DetailedAnalysis, QuizFeedback } from '../interfaces/score-analysis.interface';
+import {
+  ScoreResult,
+  DetailedAnalysis,
+  QuizFeedback,
+} from '../interfaces/score-analysis.interface';
 
 @Entity('quizz_store')
 export class QuizzStore {

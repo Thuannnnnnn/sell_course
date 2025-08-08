@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import { Permission } from '../../permission/entities/permission.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { UserNotify } from '../../User_Notify/entities/User_Notify.entity';
 
 import { ChatSession } from '../../support_chat/entities/chat-session.entity';
 import { Message } from '../../support_chat/entities/message.entity';
@@ -70,8 +69,6 @@ export class User {
       this.user_id = uuidv4();
     }
   }
-  @OneToMany(() => UserNotify, (userNotify) => userNotify.user)
-  userNotifies: UserNotify[];
   @OneToMany(() => Certificate, (certificate) => certificate.user)
   certificates: Certificate[];
   @OneToMany(() => ChatSession, (chatSession) => chatSession.user)

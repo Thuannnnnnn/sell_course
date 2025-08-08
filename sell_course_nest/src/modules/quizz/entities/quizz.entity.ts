@@ -23,13 +23,15 @@ export class Quizz {
   @Column({ name: 'course_id', type: 'uuid' })
   courseId: string;
 
-  @ManyToOne(() => Contents, (contents) => contents.quizzes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Contents, (contents) => contents.quizzes, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'content_id' })
   contents: Contents;
 
   @OneToMany(() => Questionentity, (question) => question.quizz, {
     cascade: true,
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   questions: Questionentity[];
 

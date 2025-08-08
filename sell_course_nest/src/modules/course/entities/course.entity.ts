@@ -1,5 +1,4 @@
 import { Category } from '../../category/entities/category.entity';
-import { Notify } from '../../notify/entities/notify.entity';
 import { User } from '../../user/entities/user.entity';
 import { Promotion } from '../../promotion/entities/promotion.entity';
 import { Certificate } from '../../certificate/entities/certificate.entity';
@@ -72,9 +71,6 @@ export class Course {
 
   @Column({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
-
-  @OneToMany(() => Notify, (notify) => notify.course)
-  notifies: Notify[];
 
   @OneToMany(() => Promotion, (promotion) => promotion.course)
   promotions: Promotion[];
