@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, Clock, BookOpen } from "lucide-react";
+import { Clock, BookOpen } from "lucide-react";
 import { CourseResponseDTO } from "../../app/types/Course/Course";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -24,7 +24,9 @@ export default function CourseCard({ course }: CourseCardProps) {
     if (duration < 60) {
       return `${duration} min`;
     }
-    return `${Math.floor(duration / 60)}h${duration % 60 > 0 ? ` ${duration % 60}m` : ""}`;
+    return `${Math.floor(duration / 60)}h${
+      duration % 60 > 0 ? ` ${duration % 60}m` : ""
+    }`;
   };
 
   const getLevelColor = (level: string) => {
@@ -74,7 +76,7 @@ export default function CourseCard({ course }: CourseCardProps) {
 
         {/* Title */}
         <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
-          <Link 
+          <Link
             href={`/courses/${course.courseId}`}
             className="hover:text-blue-600 transition-colors"
           >
@@ -113,26 +115,8 @@ export default function CourseCard({ course }: CourseCardProps) {
           <span className="text-sm text-gray-700">{course.instructorName}</span>
         </div>
 
-        {/* Rating and Price */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <div className="flex items-center">
-              {[...Array(5)].map((_, index) => (
-                <Star
-                  key={index}
-                  className={`h-4 w-4 ${
-                    index < Math.floor(course.rating)
-                      ? "text-yellow-400 fill-current"
-                      : "text-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-sm text-gray-600 ml-1">
-              ({course.rating.toFixed(1)})
-            </span>
-          </div>
-          
+        {/* Price only (rating removed) */}
+        <div className="flex items-center justify-end">
           <div className="text-right">
             {course.price === 0 ? (
               <span className="text-green-600 font-bold">Free</span>
@@ -147,9 +131,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         {/* Action Button */}
         <div className="mt-4">
           <Button asChild className="w-full">
-            <Link href={`/courses/${course.courseId}`}>
-              View Details
-            </Link>
+            <Link href={`/courses/${course.courseId}`}>View Details</Link>
           </Button>
         </div>
       </div>

@@ -48,17 +48,21 @@ import Link from "next/link";
 
 // AI Quiz Response interfaces
 interface AIQuizQuestion {
-  id: number; // Changed from string to number
+  id: string | number; // support both string (e.g., "NQ001") and number
   question: string;
   options: string[];
-  correctAnswer: string; // Changed from number to string (the actual answer text)
+  correctAnswer: number | string; // support index (number) and answer text (string)
   difficulty: "easy" | "medium" | "hard";
   weight: number;
 }
 
 interface AIQuizResponseItem {
   output: {
-    generated_questions: AIQuizQuestion[];
+    generated_questions?: AIQuizQuestion[];
+    quizzes?: AIQuizQuestion[];
+    success?: boolean;
+    source_files?: string[];
+    error?: string | null;
   };
 }
 
@@ -67,8 +71,9 @@ type AIQuizApiResponse = AIQuizResponseItem[] | AIQuizResponse;
 interface AIQuizResponse {
   success?: boolean;
   quizzes?: AIQuizQuestion[];
+  generated_questions?: AIQuizQuestion[];
   source_files?: string[];
-  error?: string;
+  error?: string | null;
 }
 
 interface QuizPageProps {
@@ -158,9 +163,12 @@ function QuizPageContent({ params }: QuizPageProps) {
         let questions: AIQuizQuestion[] = [];
         
         if (Array.isArray(parsedData)) {
-          // Handle array format
-          questions = parsedData.flatMap(item => item.output?.generated_questions || []);
-        } else if (parsedData.generated_questions) {
+          // Handle array format from n8n output
+          questions = parsedData.flatMap(
+            (item: AIQuizResponseItem) =>
+              item.output?.generated_questions ?? item.output?.quizzes ?? []
+          );
+        } else if (Array.isArray(parsedData.generated_questions)) {
           questions = parsedData.generated_questions;
         } else if (Array.isArray(parsedData.quizzes)) {
           questions = parsedData.quizzes;
@@ -168,13 +176,14 @@ function QuizPageContent({ params }: QuizPageProps) {
 
         // Add all AI questions to the quiz
         questions.forEach((question: AIQuizQuestion) => {
-          // Find the correct answer index from the options
-          const correctAnswerIndex = question.options.findIndex(
-            option => option === question.correctAnswer
-          );
+          // Resolve correct answer index whether provided as index (number) or text (string)
+          const correctAnswerIndex =
+            typeof question.correctAnswer === "number"
+              ? question.correctAnswer
+              : question.options.findIndex((option) => option === question.correctAnswer);
 
           const formattedQuestion: QuizFormData = {
-            id: question.id.toString(),
+            id: String(question.id),
             question: question.question,
             options: question.options,
             correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
@@ -237,7 +246,7 @@ function QuizPageContent({ params }: QuizPageProps) {
         }
         if (content.contentType.toLowerCase() === "video") {
           try {
-            const videos = await getVideoByContentId(content.contentId);
+            const videos = await getVideoByContentId(content.contentId, session.accessToken as string);
             if (videos?.urlScript) {
               urls.push(videos.urlScript);
               console.log("Loaded video script:", videos.urlScript);
@@ -321,14 +330,17 @@ function QuizPageContent({ params }: QuizPageProps) {
 
       const result: AIQuizApiResponse = await response.json();
 
-      // Handle new response format - check if it's an array or has generated_questions
+      // Handle new and old response formats
       let aiQuestions: AIQuizQuestion[] = [];
-      
+
       if (Array.isArray(result)) {
-        // New format: array of objects with output.generated_questions
-        aiQuestions = result.flatMap(item => item.output?.generated_questions || []);
-      } else if (result.quizzes) {
-        // Old format with quizzes
+        // n8n array output: prefer generated_questions, fallback to quizzes
+        aiQuestions = result.flatMap(
+          (item) => item.output?.generated_questions ?? item.output?.quizzes ?? []
+        );
+      } else if (Array.isArray(result.generated_questions)) {
+        aiQuestions = result.generated_questions;
+      } else if (Array.isArray(result.quizzes)) {
         aiQuestions = result.quizzes;
       } else if (result.success === false) {
         throw new Error(result.error || "AI quiz generation failed");
@@ -340,16 +352,17 @@ function QuizPageContent({ params }: QuizPageProps) {
 
       // Convert AI questions to our format
       aiQuestions.forEach((question: AIQuizQuestion) => {
-        // Find the correct answer index from the options
-        const correctAnswerIndex = question.options.findIndex(
-          option => option === question.correctAnswer
-        );
+        // Resolve correct answer index from index or text
+        const correctAnswerIndex =
+          typeof question.correctAnswer === "number"
+            ? question.correctAnswer
+            : question.options.findIndex((option) => option === question.correctAnswer);
 
         const formattedQuestion: QuizFormData = {
-          id: question.id.toString(), // Convert number to string
+          id: String(question.id),
           question: question.question,
           options: question.options,
-          correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0, // Use index, fallback to 0
+          correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
           difficulty: question.difficulty,
           weight: question.weight,
         };

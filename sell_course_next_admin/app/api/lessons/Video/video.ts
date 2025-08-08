@@ -53,10 +53,18 @@ export const getVideoById = async (videoId: string): Promise<VideoState> => {
   }
 };
 
-export const getVideoByContentId = async (contentId: string): Promise<VideoState> => {
+export const getVideoByContentId = async (
+  contentId: string,
+  accessToken: string
+): Promise<VideoState> => {
   try {
     const response = await axios.get<VideoState>(
-      `${API_BASE_URL}/video/view_video_content/${contentId}`
+      `${API_BASE_URL}/video/view_video_content/${contentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
     return response.data;
   } catch (error) {

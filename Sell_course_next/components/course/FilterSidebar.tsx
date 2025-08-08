@@ -25,7 +25,6 @@ interface FilterState {
     min: number;
     max: number;
   };
-  rating: number;
 }
 
 interface FilterSidebarProps {
@@ -41,7 +40,6 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
     skills: true,
     price: true,
     duration: true,
-    rating: true,
   });
 
   // Extract unique values from courses
@@ -146,7 +144,6 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
       skills: [],
       priceRange: { min: priceRange.min, max: priceRange.max },
       durationRange: { min: durationRange.min, max: durationRange.max },
-      rating: 0,
     });
   };
 
@@ -351,45 +348,6 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
                 <span>{formatDuration(filters.durationRange.min)}</span>
                 <span>{formatDuration(filters.durationRange.max)}</span>
               </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Rating */}
-        <Collapsible open={openSections.rating}>
-          <CollapsibleTrigger
-            className="flex items-center justify-between w-full p-0 text-left"
-            onClick={() => toggleSection('rating')}
-          >
-            <span className="font-medium text-gray-900">Minimum Rating</span>
-            {openSections.rating ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-3">
-            <div className="space-y-2">
-              {[4.5, 4.0, 3.5, 3.0].map((rating) => (
-                <div key={rating} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`rating-${rating}`}
-                    checked={filters.rating === rating}
-                    onCheckedChange={(checked) => 
-                      setFilters(prev => ({
-                        ...prev,
-                        rating: checked ? rating : 0
-                      }))
-                    }
-                  />
-                  <label
-                    htmlFor={`rating-${rating}`}
-                    className="text-sm text-gray-700 cursor-pointer"
-                  >
-                    {rating}+ stars
-                  </label>
-                </div>
-              ))}
             </div>
           </CollapsibleContent>
         </Collapsible>
