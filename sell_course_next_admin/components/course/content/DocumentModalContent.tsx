@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  createDocument,
   getDocumentById,
   updateDocument,
   deleteDocument,
@@ -46,6 +45,9 @@ import {
 } from "lucide-react";
 
 import { toast } from "sonner";
+import { useUploadManager } from '../../upload/UploadManagerContext';
+import { createDocumentWithProgress } from 'app/api/lessons/Doc/document';
+
 interface DocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -73,6 +75,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const [previewKey, setPreviewKey] = useState(0);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { data: session } = useSession();
+  const { startUpload } = useUploadManager();
 
   useEffect(() => {
     if (isOpen) {
@@ -192,8 +195,37 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       return;
     }
 
-    setLoading(true);
+    if (!doc) {
+      // Create mode with background upload
+      if (!session?.accessToken) {
+        showMessage('Authentication required', 'error');
+        return;
+      }
+      if (!file) {
+        showMessage('Please select a file to upload', 'error');
+        return;
+      }
+      try {
+        startUpload({
+          type: 'doc',
+          file,
+            contentId: params.contentId,
+          token: session.accessToken,
+          title,
+          uploader: async ({ file, contentId, token, title, signal, onProgress }) => {
+            await createDocumentWithProgress(title || file.name, file, contentId, token, signal, onProgress);
+          }
+        });
+        showMessage('Document uploading in background', 'success');
+        onClose();
+      } catch {
+        showMessage('Failed to start background upload', 'error');
+      }
+      return;
+    }
 
+    // Existing update logic
+    setLoading(true);
     try {
       if (doc && session?.accessToken) {
         const updatedDoc = await updateDocument(
@@ -206,28 +238,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
         showMessage("Document updated successfully!", "success");
         setDoc(updatedDoc);
         setIsEditing(false);
-      } else {
-        if (!session?.accessToken) {
-          throw new Error("Please log in to create a document.");
-        }
-        if (!file) {
-          showMessage("Please select a file to upload", "error");
-          return;
-        }
-        const newDoc = await createDocument(
-          title,
-          file,
-          params.contentId,
-          session.accessToken
-        );
-        showMessage("Document created successfully!", "success");
-        setDoc(newDoc);
       }
-
-      // Fetch lại tài liệu sau khi tạo hoặc cập nhật
       const fetchedDoc = await getDocumentById(params.contentId);
       setDoc(fetchedDoc);
-      setPreviewKey((prev) => prev + 1); // Cập nhật preview
+      setPreviewKey((prev) => prev + 1);
     } catch (error: unknown) {
       showMessage(
         error instanceof Error

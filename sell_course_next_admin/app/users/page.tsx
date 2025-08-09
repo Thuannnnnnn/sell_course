@@ -55,7 +55,7 @@ interface CreateUserModalProps {
   allRoles: string[];
 }
 const ALLOWED_CREATION_ROLES = [
-  "ADMIN",
+  // Removed 'ADMIN' to prevent creating new admin accounts
   "INSTRUCTOR",
   "CONTENTMANAGER",
   "MARKETINGMANAGER",
@@ -150,7 +150,7 @@ function CreateUserModal({
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Create New User</CardTitle>
+            <CardTitle>Create New Employee</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -247,18 +247,10 @@ function CreateUserModal({
                     backgroundColor: '#513deb',
                     color: 'white',
                   }}
-                  onMouseEnter={(e) => {
-                    if (!loading) {
-                      e.currentTarget.style.backgroundColor = '#4f46e5';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!loading) {
-                      e.currentTarget.style.backgroundColor = '#513deb';
-                    }
-                  }}
+                  onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#4f46e5'; }}
+                  onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#513deb'; }}
                 >
-                  {loading ? "Creating..." : "Create User"}
+                  {loading ? "Creating..." : "Create Employee"}
                 </Button>
               </div>
             </form>
@@ -303,6 +295,12 @@ function EditUserModal({
       setError("");
     }
   }, [user, open]);
+
+  // Derive selectable roles (do not allow promoting to ADMIN, but allow existing admin to retain role)
+  const editableRoleOptions = React.useMemo(() => {
+    if (user?.role === 'ADMIN') return ['ADMIN', ...ALLOWED_CREATION_ROLES];
+    return ALLOWED_CREATION_ROLES; // no ADMIN option for non-admin users
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -433,7 +431,7 @@ function EditUserModal({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {ALLOWED_CREATION_ROLES.map((roleOption: string) => (
+                    {editableRoleOptions.map((roleOption: string) => (
                       <SelectItem key={roleOption} value={roleOption}>
                         {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
                       </SelectItem>
@@ -482,6 +480,16 @@ function EditUserModal({
 
 export default function UserManagementPage() {
   const { data: session } = useSession();
+  // Tabs: users (all users) vs employees (internal roles)
+  const [activeTab, setActiveTab] = useState<'users' | 'employees'>("users");
+  const employeeRoles = [
+    "ADMIN",
+    "INSTRUCTOR",
+    "CONTENTMANAGER",
+    "MARKETINGMANAGER",
+    "COURSEREVIEWER",
+    "SUPPORT",
+  ];
   const [users, setUsers] = useState<UserWithPermissions[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -597,19 +605,28 @@ export default function UserManagementPage() {
     setShowEditModal(true);
   };
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsers = users
+    // Narrow by tab selection first
+    .filter((user) =>
+      activeTab === 'employees'
+        ? employeeRoles.includes(user.role?.toUpperCase())
+        : user.role?.toUpperCase() === 'USER'
+    )
+    .filter((user) => {
+      const matchesSearch =
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
-    const matchesStatus = statusFilter === "all" ||
-      (statusFilter === "active" && !user.isBan) ||
-      (statusFilter === "banned" && user.isBan);
+      const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
+      const matchesStatus = statusFilter === "all" ||
+        (statusFilter === "active" && !user.isBan) ||
+        (statusFilter === "banned" && user.isBan);
 
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  // Dynamic role list for filter dropdown
+  const roleFilterOptions = activeTab === 'employees' ? employeeRoles : ['USER'];
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
@@ -633,40 +650,49 @@ export default function UserManagementPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-8">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 border-b pb-2">
+          {[{key:'users',label:'Users'},{key:'employees',label:'Employees'}].map(t => (
+            <button
+              key={t.key}
+              onClick={() => { setActiveTab(t.key as 'users' | 'employees'); setRoleFilter('all'); setStatusFilter('all'); setSearchTerm(''); }}
+              className={`px-4 py-2 text-sm font-medium rounded-t-md border transition-colors ${
+                activeTab === t.key
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted text-muted-foreground hover:text-foreground border-transparent'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Users</h2>
+            <h2 className="text-3xl font-bold tracking-tight">
+              {activeTab === 'users' ? 'Users' : 'Employees'}
+            </h2>
             <p className="text-muted-foreground">
-              Manage your users and their permissions here.
+              {activeTab === 'users'
+                ? 'View platform end-user accounts'
+                : 'Manage internal employee / staff accounts.'}
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              style={{
-                backgroundColor: '#513deb',
-                color: 'white',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4f46e5';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#513deb';
-              }}
-            >
-              <UserIcon className="h-4 w-4 mr-2" />
-              Create User
-            </Button>
+            {activeTab === 'employees' && (
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                style={{ backgroundColor: '#513deb', color: 'white' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#4f46e5'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#513deb'; }}
+              >
+                <UserIcon className="h-4 w-4 mr-2" />
+                Create Employee
+              </Button>
+            )}
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-sm">
-                Total: {users.length}
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                Active: {users.filter(u => !u.isBan).length}
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                Banned: {users.filter(u => u.isBan).length}
-              </Badge>
+              <Badge variant="outline" className="text-sm">Total: {filteredUsers.length}</Badge>
+              <Badge variant="outline" className="text-sm">Active: {filteredUsers.filter(u => !u.isBan).length}</Badge>
+              <Badge variant="outline" className="text-sm">Banned: {filteredUsers.filter(u => u.isBan).length}</Badge>
             </div>
           </div>
         </div>
@@ -691,7 +717,7 @@ export default function UserManagementPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Roles</SelectItem>
-                  {ALLOWED_CREATION_ROLES.map((roleOption: string) => (
+                  {roleFilterOptions.map((roleOption: string) => (
                     <SelectItem key={roleOption} value={roleOption}>
                       {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
                     </SelectItem>
@@ -788,18 +814,18 @@ export default function UserManagementPage() {
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Edit</span>
                             </Button>
-                            {/* ADD THIS DELETE BUTTON HERE */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(user)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              title="Delete user"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                            {/* END OF DELETE BUTTON */}
+                            {activeTab === 'employees' && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(user)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete user"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Delete</span>
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="icon"

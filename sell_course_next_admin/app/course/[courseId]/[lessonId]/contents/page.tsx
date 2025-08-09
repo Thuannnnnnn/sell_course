@@ -32,7 +32,7 @@ import {
   Image,
   CircleFadingPlus,
   HelpCircle,
-  School,
+  Loader2,
 } from "lucide-react";
 import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
@@ -48,6 +48,8 @@ import { toast } from "sonner";
 import VideoModal from "components/course/content/VideoModal";
 import { getAllVideos } from "app/api/lessons/Video/video";
 import { VideoState } from "app/types/video";
+import { useUploadManager } from '../../../../../components/upload/UploadManagerContext';
+import type { UploadTask } from '../../../../../components/upload/UploadManagerContext';
 
 interface AddContentModalProps {
   open: boolean;
@@ -127,7 +129,7 @@ function EditContentModal({
       setHasVideo(false);
       setCheckingContent(false);
     }
-  }, [content, open, courseId, lessonId]);
+  }, [content, open, courseId, lessonId, session?.accessToken]);
 
   const hasExistingContent = hasDocument || hasQuiz || hasVideo;
 
@@ -462,6 +464,8 @@ export default function LessonContentsPage() {
     string | null
   >(null);
   const [allVideos, setAllVideos] = useState<VideoState[]>([]);
+  const { tasks } = useUploadManager();
+  const [search, setSearch] = useState("");
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -500,6 +504,36 @@ export default function LessonContentsPage() {
       loadData();
     }
   }, [session, lessonId]);
+
+  const refreshContents = React.useCallback(async () => {
+    if (!session?.accessToken) return;
+    console.log('🔄 Refreshing contents for lesson:', lessonId);
+    try {
+      const contentsData = await fetchContentsByLesson(
+        lessonId,
+        session.accessToken
+      );
+      setContents(contentsData);
+      const videosData = await getAllVideos(session.accessToken);
+      setAllVideos(videosData);
+    } catch {
+      setError("Failed to reload contents.");
+    }
+  }, [lessonId, session?.accessToken]);
+
+  useEffect(() => {
+    const justFinished = tasks.filter((t: UploadTask) => t.status === 'success');
+    if (justFinished.length > 0) {
+      refreshContents();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, refreshContents]);
+
+  const filteredContents = contents.filter(c => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return c.contentName.toLowerCase().includes(q) || c.contentType.toLowerCase().includes(q);
+  });
 
   const handleAdd = () => {
     setShowAddModal(true);
@@ -544,20 +578,8 @@ export default function LessonContentsPage() {
       toast.error(msg);
     }
   };
-  const refreshContents = async () => {
-    if (!session?.accessToken) return;
-    console.log('🔄 Refreshing contents for lesson:', lessonId);
-    try {
-      const contentsData = await fetchContentsByLesson(
-        lessonId,
-        session.accessToken
-      );
-      setContents(contentsData);
-      const videosData = await getAllVideos(session.accessToken);
-      setAllVideos(videosData);
-    } catch {
-      setError("Failed to reload contents.");
-    }
+  const isContentUploading = (contentId: string, type: string) => {
+    return tasks.some((t: UploadTask) => t.status === 'uploading' && t.contentId === contentId && t.type === (type === 'video' ? 'video' : type === 'doc' ? 'doc' : ''));
   };
 
   const getContentTypeIcon = (contentType: string) => {
@@ -649,26 +671,18 @@ export default function LessonContentsPage() {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Badge variant="secondary">
-            {contents.length} content item{contents.length !== 1 ? "s" : ""}
+            {search
+              ? `${filteredContents.length} / ${contents.length} item${contents.length !== 1 ? 's' : ''}`
+              : `${contents.length} content item${contents.length !== 1 ? 's' : ''}`}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => router.push(`/course/${courseId}/exam`)}
-            style={{
-              backgroundColor: "#513deb",
-              color: "white",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#4f46e5";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#513deb";
-            }}
-          >
-            <School className="h-4 w-4 mr-2" />
-            Exam
-          </Button>
+          <Input
+            placeholder="Search contents..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-56"
+          />
           <Button
             onClick={handleAdd}
             style={{
@@ -703,7 +717,7 @@ export default function LessonContentsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="space-y-3">
-              {contents
+              {filteredContents
                 .sort((a, b) => a.order - b.order)
                 .map((content) => {
                   console.log('🎨 Rendering content:', {
@@ -740,8 +754,9 @@ export default function LessonContentsPage() {
                           variant="outline"
                           onClick={() => handleManageContent(content)}
                           title={`Manage ${content.contentType}`}
+                          disabled={isContentUploading(content.contentId, content.contentType.toLowerCase())}
                         >
-                          <CircleFadingPlus className="h-4 w-4" />
+                          {isContentUploading(content.contentId, content.contentType.toLowerCase()) ? <Loader2 className="h-4 w-4 animate-spin" /> : <CircleFadingPlus className="h-4 w-4" />}
                         </Button>
                         <Button
                           size="icon"
@@ -762,10 +777,11 @@ export default function LessonContentsPage() {
                   );
                 })}
 
-              {contents.length === 0 && (
+              {filteredContents.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
-                  No content found for this lesson. Add your first content item
-                  to get started.
+                  {contents.length === 0
+                    ? 'No content found for this lesson. Add your first content item to get started.'
+                    : 'No contents match your search.'}
                 </div>
               )}
             </div>

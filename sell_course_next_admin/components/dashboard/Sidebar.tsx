@@ -74,7 +74,7 @@ export function Sidebar({ open, setOpen, versionId, logoUrl }: SidebarProps) {
       roles: ["MARKETINGMANAGER"],
     },
     {
-      name: "User",
+      name: "Users",
       href: "/users",
       icon: Users,
       roles: ["ADMIN"],

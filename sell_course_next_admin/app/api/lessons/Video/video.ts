@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosProgressEvent } from "axios";
 import { VideoState } from "app/types/video";
 import { ApiResponse } from "app/types/api-response";
 
@@ -35,6 +35,44 @@ export const createVideo = async (
     } else {
       throw new Error("An unexpected error occurred");
     }
+  }
+};
+
+export const createVideoWithProgress = async (
+  title: string,
+  file: File,
+  contentId: string,
+  accessToken: string,
+  signal: AbortSignal,
+  onProgress: (p: number) => void
+): Promise<VideoState> => {
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('contentId', contentId);
+  formData.append('file', file);
+  try {
+    const response = await axios.post<VideoState>(
+      `${API_BASE_URL}/instructor/video/create_video`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        signal,
+        onUploadProgress: (evt: AxiosProgressEvent) => {
+          if (evt.total) {
+            const percent = (evt.loaded / evt.total) * 100;
+            onProgress(percent);
+          }
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Failed to create video');
+    }
+    throw error;
   }
 };
 

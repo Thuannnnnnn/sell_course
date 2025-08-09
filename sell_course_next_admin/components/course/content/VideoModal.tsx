@@ -14,13 +14,13 @@ import { toast } from "sonner";
 import ReactPlayer from "react-player";
 
 import {
-  createVideo,
-  // Removed getVideoById
   updateVideoFile,
   updateVideoScript,
   deleteVideo,
 } from "app/api/lessons/Video/video";
 import { VideoState } from "app/types/video";
+import { useUploadManager } from '../../upload/UploadManagerContext';
+import { createVideoWithProgress } from '../../../app/api/lessons/Video/video';
 
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -102,6 +102,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
   const videoFileInputRef = useRef<HTMLInputElement>(null);
   const playerRef = useRef<ReactPlayer>(null);
   const { data: session } = useSession();
+  const { startUpload } = useUploadManager();
 
   useEffect(() => {
     if (isOpen) {
@@ -306,10 +307,10 @@ const VideoModal: React.FC<VideoModalProps> = ({
       return;
     }
 
-    setLoading(true);
-    try {
-      if (videoData) {
-        // Update mode
+    // Update mode keeps existing logic
+    if (videoData) {
+      setLoading(true);
+      try {
         let updateOccurred = false;
         if (videoFile) {
           await updateVideoFile(
@@ -329,7 +330,6 @@ const VideoModal: React.FC<VideoModalProps> = ({
           showMessage("Video script updated successfully!", "success");
           updateOccurred = true;
         }
-
         if (
           isScriptEditing &&
           scriptContent !==
@@ -353,54 +353,46 @@ const VideoModal: React.FC<VideoModalProps> = ({
           showMessage("Video script updated successfully!", "success");
           updateOccurred = true;
         }
-
         if (!updateOccurred) {
           showMessage("No new file selected for update.", "success");
         }
-
-        // Close modal and reload page after successful update
         onClose();
-        if (onVideoUpdate) {
-          onVideoUpdate(); // This will trigger page reload in parent
-        } else {
-          window.location.reload(); // Fallback reload if no parent callback
-        }
-      } else {
-        // Create mode
-        if (!videoFile) {
-          showMessage("Please select a video file to upload", "error");
-          setLoading(false);
-          return;
-        }
-        const newVideo = await createVideo(
-          title,
-          videoFile,
-          params.contentId, // contentId phải có khi tạo video mới
-          session.accessToken
+        if (onVideoUpdate) onVideoUpdate();
+      } catch (error) {
+        showMessage(
+          error instanceof Error ? error.message : "An unknown error occurred",
+          "error"
         );
-        setVideoData(newVideo);
-        showMessage("Video created successfully!", "success");
-
-        // Close modal and reload page after successful creation
-        onClose();
-        if (onVideoUpdate) {
-          onVideoUpdate(); // This will trigger page reload in parent
-        } else {
-          window.location.reload(); // Fallback reload if no parent callback
-        }
+      } finally {
+        setLoading(false);
       }
+      return;
+    }
 
-      setVideoFile(null);
-      setScriptFile(null);
-      setIsEditing(false);
-      setIsScriptEditing(false);
-    } catch (error) {
+    // Create mode -> background upload
+    if (!videoFile) {
+      showMessage("Please select a video file to upload", "error");
+      return;
+    }
+    try {
+      startUpload({
+        type: 'video',
+        file: videoFile,
+        contentId: params.contentId,
+        token: session.accessToken,
+        title,
+        uploader: async ({ file, contentId, token, title, signal, onProgress }) => {
+          await createVideoWithProgress(title || file.name, file, contentId, token, signal, onProgress);
+        }
+      });
+      showMessage("Video uploading in background", "success");
+      onClose();
+      // Do not reload page immediately; user can continue working
+    } catch (err) {
       showMessage(
-        error instanceof Error ? error.message : "An unknown error occurred",
-        "error"
+        err instanceof Error ? err.message : 'Failed to start background upload',
+        'error'
       );
-    } finally {
-      setLoading(false);
     }
   };
 

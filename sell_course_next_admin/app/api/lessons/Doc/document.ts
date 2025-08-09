@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosProgressEvent } from "axios";
 import { Docs } from "app/types/doc";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -22,6 +22,40 @@ export const createDocument = async (
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data as Docs;
+  } catch {
+    throw new Error("Failed to create document");
+  }
+};
+
+export const createDocumentWithProgress = async (
+  title: string,
+  file: File,
+  contentsId: string,
+  token: string,
+  signal: AbortSignal,
+  onProgress: (p: number) => void
+): Promise<Docs> => {
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("file", file);
+  formData.append("contentsId", contentsId);
+  try {
+    const response = await axios.post(
+      `${API_URL}/api/admin/docs/create_docs`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        signal,
+        onUploadProgress: (evt: AxiosProgressEvent) => {
+          if (evt.total) {
+            onProgress((evt.loaded / evt.total) * 100);
+          }
         },
       }
     );

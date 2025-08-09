@@ -8,6 +8,8 @@ import React, { useState } from "react";
 import { Toaster } from "sonner";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { UploadManagerProvider } from '../components/upload/UploadManagerContext';
+import { FloatingUploadPanel } from '../components/upload/FloatingUploadPanel';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -57,54 +59,58 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider refetchOnWindowFocus={false}>
-          <Toaster
-            position="top-right"
-            theme="light"
-            toastOptions={{
-              unstyled: false,
-              style: {
-                background: 'white',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '14px',
-                padding: '12px 16px',
-              },
-              classNames: {
-                toast: 'group toast group-[.toaster]:bg-white group-[.toaster]:text-slate-950 group-[.toaster]:border-slate-200 group-[.toaster]:shadow-lg',
-                success: 'group-[.toast]:bg-green-50 group-[.toast]:text-green-800 group-[.toast]:border-green-200',
-                error: 'group-[.toast]:bg-red-50 group-[.toast]:text-red-800 group-[.toast]:border-red-200',
-                warning: 'group-[.toast]:bg-yellow-50 group-[.toast]:text-yellow-800 group-[.toast]:border-yellow-200',
-                info: 'group-[.toast]:bg-blue-50 group-[.toast]:text-blue-800 group-[.toast]:border-blue-200',
-              },
-            }}
-          />
-          {isAuthPage ? (
-            // Auth pages - full page without sidebar and header
-            <div className="min-h-screen">
-              {children}
-            </div>
-          ) : (
-            // Regular pages - with sidebar and header
-            <div className="flex h-screen bg-background">
-              {/* Sidebar */}
-              <Sidebar
-                open={sidebarOpen}
-                setOpen={setSidebarOpen}
-                versionId={activeVersionId}
-              />
-
-              {/* Main Content */}
-              <div className="flex-1 flex flex-col md:ml-64">
-                {/* Header */}
-                <Header onMenuClick={() => setSidebarOpen(true)} />
-
-                {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-6">
-                  {children}
-                </main>
+          <UploadManagerProvider>
+            <Toaster
+              position="top-right"
+              theme="light"
+              toastOptions={{
+                unstyled: false,
+                style: {
+                  background: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  padding: '12px 16px',
+                },
+                classNames: {
+                  toast: 'group toast group-[.toaster]:bg-white group-[.toaster]:text-slate-950 group-[.toaster]:border-slate-200 group-[.toaster]:shadow-lg',
+                  success: 'group-[.toast]:bg-green-50 group-[.toast]:text-green-800 group-[.toast]:border-green-200',
+                  error: 'group-[.toast]:bg-red-50 group-[.toast]:text-red-800 group-[.toast]:border-red-200',
+                  warning: 'group-[.toast]:bg-yellow-50 group-[.toast]:text-yellow-800 group-[.toast]:border-yellow-200',
+                  info: 'group-[.toast]:bg-blue-50 group-[.toast]:text-blue-800 group-[.toast]:border-blue-200',
+                },
+              }}
+            />
+            {isAuthPage ? (
+              // Auth pages - full page without sidebar and header
+              <div className="min-h-screen">
+                {children}
               </div>
-            </div>
-          )}
+            ) : (
+              // Regular pages - with sidebar and header
+              <div className="flex h-screen bg-background">
+                {/* Sidebar */}
+                <Sidebar
+                  open={sidebarOpen}
+                  setOpen={setSidebarOpen}
+                  versionId={activeVersionId}
+                />
+
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col md:ml-64">
+                  {/* Header */}
+                  <Header onMenuClick={() => setSidebarOpen(true)} />
+
+                  {/* Page Content */}
+                  <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                    {children}
+                  </main>
+                </div>
+
+                <FloatingUploadPanel />
+              </div>
+            )}
+          </UploadManagerProvider>
         </SessionProvider>
       </body>
     </html>
