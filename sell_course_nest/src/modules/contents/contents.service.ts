@@ -93,6 +93,16 @@ export class ContentService {
       throw new HttpException('Content not found', HttpStatus.NOT_FOUND);
     }
 
+    // Remove associated video & docs explicitly (legacy data safety)
+    await this.contentRepository.manager.query(
+      'DELETE FROM video WHERE content_id = $1',
+      [contentId],
+    );
+    await this.contentRepository.manager.query(
+      'DELETE FROM docs WHERE content_id = $1',
+      [contentId],
+    );
+
     // Get all quizzes for this content
     const quizzes = await this.quizzRepository.find({
       where: { contentId },

@@ -17,11 +17,11 @@ export class Exam {
   @Column({ name: 'course_id', type: 'uuid' })
   courseId: string;
 
-  @OneToOne(() => Course)
+  @OneToOne(() => Course, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'course_id' })
   course: Course;
 
-  @OneToMany(() => ExamQuestion, (question) => question.exam)
+  @OneToMany(() => ExamQuestion, (question) => question.exam, { cascade: true, onDelete: 'CASCADE' })
   questions: ExamQuestion[];
 
   @Column({

@@ -6,7 +6,7 @@ export class Docs {
   @PrimaryColumn({ name: 'docs_id' })
   docsId: string;
 
-  @OneToOne(() => Contents)
+  @OneToOne(() => Contents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'content_id' })
   contents: Contents;
 

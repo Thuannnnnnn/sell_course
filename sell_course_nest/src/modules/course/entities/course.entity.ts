@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Enrollment } from '../../enrollment/entities/enrollment.entity';
 import { LearningPlan } from 'src/modules/learning-plan/learning-plan.entity';
 import { CourseStatus } from '../enums/course-status.enum';
+import { Lesson } from '../../lesson/entities/lesson.entity';
 
 @Entity('course')
 export class Course {
@@ -89,4 +90,7 @@ export class Course {
   }
   @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
   enrollments: Enrollment[];
+
+  @OneToMany(() => Lesson, (lesson) => lesson.course, { cascade: true })
+  lessons: Lesson[];
 }

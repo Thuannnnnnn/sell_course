@@ -6,7 +6,7 @@ export class Video {
   @PrimaryColumn({ name: 'video_id' })
   videoId: string;
 
-  @OneToOne(() => Contents)
+  @OneToOne(() => Contents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'content_id' })
   contents: Contents;
 

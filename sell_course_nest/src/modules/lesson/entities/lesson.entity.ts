@@ -15,7 +15,7 @@ export class Lesson {
   @PrimaryGeneratedColumn('uuid', { name: 'lesson_id' })
   lessonId: string;
 
-  @ManyToOne(() => Course)
+  @ManyToOne(() => Course, { onDelete: 'CASCADE' })
   course: Course;
 
   @Column({ name: 'lesson_name' })
@@ -30,6 +30,6 @@ export class Lesson {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Contents, (content) => content.lesson)
+  @OneToMany(() => Contents, (content) => content.lesson, { cascade: true, onDelete: 'CASCADE' })
   contents: Contents[];
 }

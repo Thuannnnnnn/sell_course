@@ -373,10 +373,93 @@ export class CourseService {
       );
     }
 
-    // Delete related notifications first
+    // Check enrollments first – block deletion if any
+    const enrollmentCount = await this.CourseRepository.manager.getRepository(Enrollment).count({ where: { course: { courseId } } });
+    if (enrollmentCount > 0) {
+      throw new HttpException('Cannot delete course that has enrollments. Please remove enrollments first.', HttpStatus.BAD_REQUEST);
+    }
+
+    // Manually cascade delete dependent entities (in case DB FKs missing cascade)
+    // Delete exam questions & exam
+    const exam = await this.examRepository.findOne({ where: { course: { courseId } }, relations: ['questions'] });
+    if (exam) {
+      if (exam.questions?.length) {
+        await this.examRepository.manager
+          .createQueryBuilder()
+          .delete()
+          .from('exam_question')
+          .where('exam_id = :examId', { examId: exam.examId })
+          .execute();
+      }
+      await this.examRepository.delete({ examId: exam.examId });
+    }
+
+    // Fetch lessons
+    const lessons = await this.lessonRepository.find({ where: { course: { courseId } } });
+    for (const lesson of lessons) {
+      const contents = await this.contentsRepository.find({ where: { lesson: { lessonId: lesson.lessonId } } });
+      for (const content of contents) {
+        // Delete quizzes and nested questions/answers
+        const quizzes = await this.quizzRepository.find({ where: { contentId: content.contentId }, relations: ['questions', 'questions.answers'] });
+        for (const quiz of quizzes) {
+          for (const question of quiz.questions || []) {
+            if (question.answers?.length) {
+              await this.videoRepository.manager
+                .createQueryBuilder()
+                .delete()
+                .from('answer')
+                .where('question_id = :questionId', { questionId: question.questionId })
+                .execute();
+            }
+          }
+          await this.videoRepository.manager
+            .createQueryBuilder()
+            .delete()
+            .from('question')
+            .where('quizz_id = :quizzId', { quizzId: quiz.quizzId })
+            .execute();
+        }
+        if (quizzes.length) {
+          await this.quizzRepository
+            .createQueryBuilder()
+            .delete()
+            .where('content_id = :contentId', { contentId: content.contentId })
+            .execute();
+        }
+
+        // Delete video / docs
+        await this.videoRepository
+          .createQueryBuilder()
+          .delete()
+          .where('content_id = :contentId', { contentId: content.contentId })
+          .execute();
+        await this.docsRepository
+          .createQueryBuilder()
+          .delete()
+          .where('content_id = :contentId', { contentId: content.contentId })
+          .execute();
+      }
+      // Delete contents
+      await this.contentsRepository
+        .createQueryBuilder()
+        .delete()
+        .where('lesson_lesson_id = :lessonId', { lessonId: lesson.lessonId })
+        .execute();
+    }
+
+    // Delete lessons
+    await this.lessonRepository
+      .createQueryBuilder()
+      .delete()
+      .where('courseCourseId = :courseId', { courseId })
+      .execute();
+
+    // Delete related notifications
     await this.notificationRepository.delete({ course: { courseId } });
 
-    await this.CourseRepository.remove(course);
+    // Finally delete the course
+    await this.CourseRepository.delete({ courseId });
+
     throw new HttpException('Removed', HttpStatus.OK);
   }
 

@@ -45,7 +45,7 @@ export function OverviewCards() {
   const stats = [
     {
       title: "Total Revenue",
-      value: `$${overview.totalRevenue.toLocaleString()}`,
+      value: `${overview.totalRevenue.toLocaleString()} VND`,
       change: `${overview.revenueGrowthPercentage >= 0 ? '+' : ''}${overview.revenueGrowthPercentage.toFixed(1)}%`,
       increasing: overview.revenueGrowthPercentage >= 0,
       icon: DollarSign,
