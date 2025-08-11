@@ -25,6 +25,9 @@ import { UserProfile } from "@/app/types/profile/editProfile";
 import Image from "next/image";
 import { WishlistResponseDto } from "@/app/types/profile/wishlist/wishlist";
 import { Enrollment } from "@/app/types/enrollment/enrollment";
+import { enrollmentApi } from "@/app/api/enrollment/enrollment";
+import { wishlistApi } from "@/app/api/wishlist/wishlist-api";
+import { getCertificatesByUserId, Certificate } from "@/app/api/profile/certificate";
 
 export function ProfileInfo() {
   const { data: session, status: sessionStatus } = useSession();
@@ -34,21 +37,19 @@ export function ProfileInfo() {
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
 
-  const [enrollments] = useState<Enrollment[]>([]);
-  const [wishlistItems] = useState<WishlistResponseDto[]>([]);
-  const [statsLoading] = useState(false);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistResponseDto[]>([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
   const coverImage =
     "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?q=80&w=1470&auto=format&fit=crop";
 
   // Calculate stats from loaded data
   const coursesEnrolled = enrollments.length;
   const wishlistedCourses = wishlistItems.length;
-  const completedCourses = enrollments.filter(
-    (enrollment) =>
-      enrollment.status.toLowerCase() === "completed" ||
-      enrollment.status.toLowerCase() === "paid"
-  ).length;
+  const completedCourses = certificates.length; // Count by certificates instead of enrollment status
 
+  // Load user profile
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (sessionStatus === "loading") {
@@ -81,6 +82,46 @@ export function ProfileInfo() {
 
     fetchUserProfile();
   }, [session, sessionStatus]);
+
+  // Load user statistics (enrollments and wishlist)
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!session?.accessToken || !userProfile?.user_id) {
+        setStatsLoading(false);
+        return;
+      }
+
+      try {
+        setStatsLoading(true);
+
+        // Fetch enrollments, wishlist, and certificates in parallel
+        const [enrollmentsData, wishlistData, certificatesData] = await Promise.all([
+          enrollmentApi.getUserEnrollments(session.accessToken).catch((err: Error) => {
+            console.error("Failed to fetch enrollments:", err);
+            return [];
+          }),
+          wishlistApi.getWishlist(userProfile.user_id.toString(), session.accessToken).catch((err: Error) => {
+            console.error("Failed to fetch wishlist:", err);
+            return [];
+          }),
+          getCertificatesByUserId(session.accessToken, userProfile.user_id.toString()).catch((err: Error) => {
+            console.error("Failed to fetch certificates:", err);
+            return [];
+          })
+        ]);
+
+        setEnrollments(enrollmentsData);
+        setWishlistItems(wishlistData);
+        setCertificates(certificatesData);
+      } catch (err) {
+        console.error("Failed to fetch user statistics:", err);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, [session?.accessToken, userProfile?.user_id]);
 
   if (sessionStatus === "loading" || loading) {
     return (
@@ -226,14 +267,17 @@ export function ProfileInfo() {
                     <PencilIcon className="h-4 w-4 mr-2" />
                     Edit Profile
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/auth/change-password")}
-                    className="w-full border-gray-300 hover:bg-gray-50 transition-all duration-300"
-                  >
-                    <KeyIcon className="h-4 w-4 mr-2" />
-                    Change Password
-                  </Button>
+                  {/* Only show Change Password button for non-OAuth users */}
+                  {!userProfile?.isOAuth && (
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push("/auth/change-password")}
+                      className="w-full border-gray-300 hover:bg-gray-50 transition-all duration-300"
+                    >
+                      <KeyIcon className="h-4 w-4 mr-2" />
+                      Change Password
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>

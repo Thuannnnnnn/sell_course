@@ -56,6 +56,43 @@ export class CourseService {
   async getAllCourses(): Promise<CourseResponseDTO[]> {
     const courses = await this.CourseRepository.find({
       relations: ['instructor', 'category'],
+      where: {
+        status: CourseStatus.PUBLISHED,
+      },
+    });
+    if (courses.length === 0) {
+      throw new HttpException('No courses found.', HttpStatus.NOT_FOUND);
+    }
+    const courseResponseDTOs = courses.map((course) => {
+      return new CourseResponseDTO(
+        course.courseId,
+        course.title,
+        course.short_description,
+        course.description,
+        course.duration,
+        course.price,
+        course.videoIntro,
+        course.thumbnail,
+        course.rating,
+        course.skill,
+        course.level,
+        course.status,
+        course.createdAt,
+        course.updatedAt,
+        course.instructor.user_id,
+        course.instructor.username,
+        course.instructor.avatarImg,
+        course.category.categoryId,
+        course.category.name,
+      );
+    });
+    return courseResponseDTOs;
+  }
+
+  // Method for admin to get all courses regardless of status
+  async getAllCoursesForAdmin(): Promise<CourseResponseDTO[]> {
+    const courses = await this.CourseRepository.find({
+      relations: ['instructor', 'category'],
     });
     if (courses.length === 0) {
       throw new HttpException('No courses found.', HttpStatus.NOT_FOUND);
@@ -87,6 +124,46 @@ export class CourseService {
   }
 
   async getCourseById(courseId: string): Promise<CourseResponseDTO> {
+    const course = await this.CourseRepository.findOne({
+      relations: ['instructor', 'category'],
+      where: { 
+        courseId,
+        status: CourseStatus.PUBLISHED,
+      },
+    });
+
+    if (!course) {
+      throw new HttpException(
+        `Course with ID ${courseId} not found or not published`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const courseResponseDTO = new CourseResponseDTO(
+      course.courseId,
+      course.title,
+      course.short_description,
+      course.description,
+      course.duration,
+      course.price,
+      course.videoIntro,
+      course.thumbnail,
+      course.rating,
+      course.skill,
+      course.level,
+      course.status,
+      course.createdAt,
+      course.updatedAt,
+      course.instructor.user_id,
+      course.instructor.username,
+      course.instructor.avatarImg,
+      course.category.categoryId,
+      course.category.name,
+    );
+    return courseResponseDTO;
+  }
+
+  // Method for admin/enrolled users to get course by ID regardless of status
+  async getCourseByIdForAdmin(courseId: string): Promise<CourseResponseDTO> {
     const course = await this.CourseRepository.findOne({
       relations: ['instructor', 'category'],
       where: { courseId },
@@ -500,7 +577,10 @@ export class CourseService {
 
   async getCoursesByCategory(categoryId: string): Promise<Course[]> {
     return this.CourseRepository.find({
-      where: { category: { categoryId } },
+      where: {
+        category: { categoryId },
+        status: CourseStatus.PUBLISHED,
+      },
       relations: ['category'],
       order: { createdAt: 'DESC' },
     });

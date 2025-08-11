@@ -5,8 +5,6 @@ import {
   ShoppingCart,
   Users,
   BookOpen,
-  TrendingUp,
-  TrendingDown,
 } from "lucide-react";
 import { useDashboardOverview } from "../../hooks/useDashboard";
 
@@ -93,20 +91,6 @@ export function OverviewCards() {
             <div className={`p-2 rounded-full ${stat.iconColor} bg-opacity-10`}>
               <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
             </div>
-          </div>
-          <div className="flex items-center mt-4">
-            {stat.increasing ? (
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-500" />
-            )}
-            <span
-              className={`ml-1 text-xs font-medium ${
-                stat.increasing ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              {stat.change} from last month
-            </span>
           </div>
         </div>
       ))}

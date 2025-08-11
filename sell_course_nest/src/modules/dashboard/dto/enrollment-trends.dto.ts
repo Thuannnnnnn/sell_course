@@ -41,7 +41,7 @@ export class MonthlyEnrollmentDto {
 export class EnrollmentStatusDto {
   @ApiProperty({
     description: 'Enrollment status',
-    example: 'PAID',
+    example: 'paid',
   })
   status: string;
 

@@ -18,6 +18,10 @@ export function Analytics() {
   const { data: revenueData, loading: revenueLoading, error: revenueError } = useRevenueAnalytics();
   const { data: enrollmentData, loading: enrollmentLoading, error: enrollmentError } = useEnrollmentTrends();
 
+  // Debug: log enrollment data
+  console.log('Enrollment Data:', enrollmentData);
+  console.log('Status Distribution:', enrollmentData?.statusDistribution);
+
   if (revenueLoading || enrollmentLoading) {
     return (
       <div className="space-y-6">
@@ -55,8 +59,9 @@ export function Analytics() {
   const completionData = enrollmentData?.statusDistribution?.map(item => ({
     name: item.status,
     value: item.percentage,
-    color: item.status === 'COMPLETED' ? '#3b82f6' : 
-           item.status === 'ACTIVE' ? '#f59e0b' : '#e5e7eb',
+    color: item.status === 'paid' ? '#22c55e' : 
+           item.status === 'pending' ? '#f59e0b' : 
+           item.status === 'cancelled' ? '#ef4444' : '#e5e7eb',
   })) || [];
   return (
     <div className="space-y-6">
@@ -91,46 +96,54 @@ export function Analytics() {
       <div className="bg-card rounded-lg shadow-sm border border-border p-4">
         <h2 className="text-lg font-semibold mb-4">Enrollment Status Distribution</h2>
         <div className="h-64 flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={completionData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {completionData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "0.375rem",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="flex justify-center space-x-6 mt-2">
-          {completionData.map((item, index) => (
-            <div key={index} className="flex items-center">
-              <div
-                className="w-3 h-3 rounded-full mr-2"
-                style={{
-                  backgroundColor: item.color,
-                }}
-              ></div>
-              <span className="text-sm text-muted-foreground">
-                {item.name}: {item.value}%
-              </span>
+          {completionData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={completionData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {completionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "0.375rem",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-center text-gray-500">
+              <p>No enrollment data available</p>
             </div>
-          ))}
+          )}
         </div>
+        {completionData.length > 0 && (
+          <div className="flex justify-center space-x-6 mt-2">
+            {completionData.map((item, index) => (
+              <div key={index} className="flex items-center">
+                <div
+                  className="w-3 h-3 rounded-full mr-2"
+                  style={{
+                    backgroundColor: item.color,
+                  }}
+                ></div>
+                <span className="text-sm text-muted-foreground">
+                  {item.name}: {item.value}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

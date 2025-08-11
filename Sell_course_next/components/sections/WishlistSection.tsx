@@ -18,11 +18,11 @@ const transformWishlistData = (wishlistItem: WishlistResponseDto): CourseCardDat
   title: wishlistItem.course.title,
   instructor: wishlistItem.course.instructorName,
   price: `$${wishlistItem.course.price.toFixed(2)}`,
-  rating: wishlistItem.course.rating,
   image: wishlistItem.course.thumbnail || "/placeholder-course.jpg",
   description: wishlistItem.course.short_description,
   level: wishlistItem.course.level,
   duration: wishlistItem.course.duration,
+  rating: 0
 });
 
 export function WishlistSection() {
@@ -31,7 +31,7 @@ export function WishlistSection() {
 
   const [wishlistCourses, setWishlistCourses] = useState<CourseCardData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "price" | "rating">("date");
+  const [sortBy, setSortBy] = useState<"date" | "price">("date");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,8 +121,6 @@ export function WishlistSection() {
     switch (sortBy) {
       case "price":
         return parseFloat(a.price.slice(1)) - parseFloat(b.price.slice(1));
-      case "rating":
-        return b.rating - a.rating;
       default:
         return 0; // For "date" sorting, keep original order since we don't have date info
     }
@@ -233,13 +231,6 @@ export function WishlistSection() {
               size="sm"
             >
               Price
-            </Button>
-            <Button 
-              variant={sortBy === "rating" ? "default" : "outline"} 
-              onClick={() => setSortBy("rating")}
-              size="sm"
-            >
-              Rating
             </Button>
           </div>
         </div>

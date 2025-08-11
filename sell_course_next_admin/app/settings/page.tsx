@@ -1,8 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { Trash2, Edit, Plus, X, Upload, RefreshCw } from "lucide-react";
+import { 
+  Trash2, 
+  Edit, 
+  Plus, 
+  X, 
+  Upload, 
+  RefreshCw, 
+  Settings,
+  ImageIcon,
+  Monitor,
+  Layers,
+  CheckCircle,
+  Eye
+} from "lucide-react";
 import { BannerSetting, LogoSetting, VersionSetting } from "app/types/setting";
 import { settingsApi } from "app/api/settings/settings";
 import { Card, CardContent, CardHeader, CardTitle } from "components/ui/card";
@@ -10,6 +24,7 @@ import { Button } from "components/ui/button";
 import { Label } from "components/ui/label";
 import { Input } from "components/ui/input";
 import { Checkbox } from "@radix-ui/react-checkbox";
+import { Badge } from "components/ui/badge";
 import { toast } from 'sonner';
 
 // Extended version type to include logo and banner IDs
@@ -19,6 +34,7 @@ interface ExtendedVersionSetting extends VersionSetting {
 }
 
 export default function SettingsPage() {
+  const { data: session, status } = useSession();
   const [versions, setVersions] = useState<ExtendedVersionSetting[]>([]);
   const [selectedVersion, setSelectedVersion] =
     useState<ExtendedVersionSetting | null>(null);
@@ -86,8 +102,11 @@ export default function SettingsPage() {
   }, []); // Remove selectedVersion dependency to prevent infinite loop
 
   useEffect(() => {
-    loadVersions();
-  }, [loadVersions]);
+    if (status === "loading") return;
+    if (status === "authenticated") {
+      loadVersions();
+    }
+  }, [loadVersions, status]);
 
   useEffect(() => {
     const loadDetails = async () => {
@@ -238,44 +257,20 @@ export default function SettingsPage() {
     try {
       if (version.isActive) return;
 
-      const currentSelectedId = selectedVersion?.versionSettingId;
       await settingsApi.updateVersionActive(version.versionSettingId, true);
 
-      const data = await settingsApi.getVersionSettings();
-      // Reload versions with IDs
-      const versionsWithIds = await Promise.all(
-        data.map(async (v: VersionSetting) => {
-          try {
-            const [logoData, bannerData] = await Promise.all([
-              settingsApi.getLogoByVersionId(v.versionSettingId),
-              settingsApi.getBannerByVersionId(v.versionSettingId),
-            ]);
+      // Update versions state locally without full reload
+      setVersions(prev => prev.map(v => ({
+        ...v,
+        isActive: v.versionSettingId === version.versionSettingId
+      })));
 
-            return {
-              ...v,
-              logoId: logoData?.[0]?.logoSettingId || undefined,
-              bannerId: bannerData?.carouselSettingId || undefined,
-            };
-          } catch {
-            return {
-              ...v,
-              logoId: undefined,
-              bannerId: undefined,
-            };
-          }
-        })
-      );
-
-      setVersions(versionsWithIds);
-      console.log("versionsWithIds", versionsWithIds);
-
-      if (currentSelectedId) {
-        const updatedSelectedVersion = versionsWithIds.find(
-          (v) => v.versionSettingId === currentSelectedId
-        );
-        if (updatedSelectedVersion) {
-          setSelectedVersion(updatedSelectedVersion);
-        }
+      // Update selected version if it's the one being activated
+      if (selectedVersion) {
+        setSelectedVersion(prev => prev ? {
+          ...prev,
+          isActive: prev.versionSettingId === version.versionSettingId
+        } : null);
       }
 
       localStorage.setItem("activeVersionId", version.versionSettingId);
@@ -377,328 +372,427 @@ export default function SettingsPage() {
     setEditingVersion(null);
   };
 
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2" style={{borderColor: 'rgb(81, 61, 235)'}}></div>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600">Please log in to access this page.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-lg font-medium text-gray-600 animate-pulse">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg shadow-violet-200/50 border border-violet-200/50">
+          <div className="w-12 h-12 rounded-xl mx-auto flex items-center justify-center shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+            <RefreshCw className="w-6 h-6 text-white animate-spin" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-slate-700">Loading Settings</h3>
+            <p className="text-slate-500">Please wait while we load your configuration...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-          Settings
-        </h1>
+    <div className="min-h-screen">
+      {/* Header Section */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-violet-200/50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center space-x-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800">
+                Settings
+              </h1>
+              <p className="text-slate-600 mt-1">Manage your platform&apos;s visual identity and branding</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Panel - Version List */}
-          <div className="lg:col-span-4">
-            <Card className="shadow-xl rounded-2xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg font-semibold">
-                    Available Settings
-                  </CardTitle>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          {/* Left Sidebar - Version Management */}
+          <div className="xl:col-span-1">
+            <Card className="bg-white/90 backdrop-blur-sm shadow-xl shadow-violet-200/60 hover:shadow-2xl hover:shadow-violet-300/60 transition-all duration-300 border border-violet-200/50">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+                      <Layers className="w-4 h-4 text-white" />
+                    </div>
+                    <CardTitle className="text-lg font-semibold text-slate-800">Versions</CardTitle>
+                  </div>
                   <Button
-                    variant="secondary"
-                    size="sm"
                     onClick={handleAddVersion}
-                    className="bg-white text-indigo-600 hover:bg-gray-100 transition-colors"
+                    size="sm"
+                    className="text-white border-0 shadow-lg hover:shadow-violet-500/40 transition-all duration-200 hover:opacity-90"
+                    style={{backgroundColor: 'rgb(81, 61, 235)'}}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add New
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-4 bg-white">
-                <div className="space-y-3">
-                  {versions.map((version) => (
-                    <div key={version.versionSettingId} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <button
-                          className={`flex-1 text-left px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            selectedVersion?.versionSettingId ===
-                            version.versionSettingId
-                              ? "bg-indigo-500 text-white hover:bg-indigo-600"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
-                          onClick={() => handleVersionSelect(version)}
-                        >
-                          {version.VersionSettingtitle}
-                        </button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditVersion(version)}
-                          className="border-gray-300 hover:bg-indigo-50"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleDeleteVersion(version.versionSettingId)
-                          }
-                          disabled={version.isActive}
-                          className="border-gray-300 text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+              <CardContent className="space-y-3">
+                {versions.map((version) => (
+                  <div
+                    key={version.versionSettingId}
+                    className={`group relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
+                      selectedVersion?.versionSettingId === version.versionSettingId
+                        ? "border-violet-500 bg-gradient-to-r from-violet-50 to-purple-50 shadow-lg shadow-violet-500/20"
+                        : "border-slate-200 bg-white hover:border-violet-300 hover:shadow-md"
+                    }`}
+                    onClick={() => handleVersionSelect(version)}
+                  >
+                    {/* Active Badge */}
+                    {version.isActive && (
+                      <div className="absolute -top-2 -right-2">
+                        <Badge className="bg-green-500 text-white border-0 shadow-lg">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Active
+                        </Badge>
                       </div>
-                      <div className="flex items-center space-x-2 pl-2">
-                        <div className="flex items-center">
-                          <button
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              version.isActive
-                                ? "bg-indigo-500"
-                                : "bg-gray-300"
-                            } ${
-                              version.isActive
-                                ? "cursor-default"
-                                : "cursor-pointer"
-                            }`}
-                            onClick={() =>
-                              !version.isActive && handleToggleActive(version)
-                            }
-                          >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                version.isActive
-                                  ? "translate-x-6"
-                                  : "translate-x-1"
-                              }`}
-                            />
-                          </button>
-                          <Label
-                            htmlFor={`active-switch-${version.versionSettingId}`}
-                            className="text-sm text-gray-600 ml-2"
-                          >
-                            Active
-                          </Label>
+                    )}
+
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-slate-800 group-hover:text-violet-600 transition-colors">
+                            {version.VersionSettingtitle}
+                          </h4>
+                          <div className="flex items-center space-x-2 mt-2">
+                            {version.logoId && (
+                              <Badge variant="outline" className="text-xs border-green-300 text-green-700 bg-green-50">
+                                <ImageIcon className="w-3 h-3 mr-1" />
+                                Logo
+                              </Badge>
+                            )}
+                            {version.bannerId && (
+                              <Badge variant="outline" className="text-xs border-purple-300 text-purple-700 bg-purple-50">
+                                <Monitor className="w-3 h-3 mr-1" />
+                                Banner
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditVersion(version);
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-violet-100"
+                          >
+                            <Edit className="w-3 h-3 text-slate-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteVersion(version.versionSettingId);
+                            }}
+                            disabled={version.isActive}
+                            className="h-8 w-8 p-0 hover:bg-red-100 disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-500" />
+                          </Button>
+                        </div>
+
+                        {/* Toggle Switch */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleActive(version);
+                          }}
+                          disabled={version.isActive}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                            version.isActive
+                              ? "bg-green-500"
+                              : "bg-slate-300 hover:bg-slate-400"
+                          } ${version.isActive ? "cursor-default" : "cursor-pointer"}`}
+                        >
+                          <span
+                            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                              version.isActive ? "translate-x-5" : "translate-x-1"
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Panel - Settings Details */}
-          <div className="lg:col-span-8">
-            {selectedVersion && (
-              <Card className="shadow-xl rounded-2xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg font-semibold">
-                      Setting Details
-                    </CardTitle>
-                    {selectedVersion.isActive && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="bg-green-500 text-white hover:bg-green-600 transition-colors"
-                      >
-                        Active
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6 bg-white">
-                  {/* Logo Section */}
-                  <div className="mb-8">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        Logo
-                      </h3>
-                      {(logoSetting?.logo || selectedVersion.logoId) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openUpdateModal("logo")}
-                          className="border-gray-300 hover:bg-indigo-50"
-                        >
-                          <RefreshCw className="h-4 w-4 mr-1" />
-                          Update Logo
-                        </Button>
+          {/* Main Content Area */}
+          <div className="xl:col-span-3">
+            {selectedVersion ? (
+              <div className="space-y-8">
+                {/* Header */}
+                <Card className="bg-white/90 backdrop-blur-sm shadow-xl shadow-violet-200/60 hover:shadow-2xl hover:shadow-violet-300/60 transition-all duration-300 border border-violet-200/50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+                          <Eye className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-slate-800">
+                            {selectedVersion.VersionSettingtitle}
+                          </h2>
+                          <p className="text-slate-600">Configure branding assets for this version</p>
+                        </div>
+                      </div>
+                      {selectedVersion.isActive && (
+                        <Badge className="bg-green-500 text-white border-0 shadow-lg px-4 py-2">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Currently Active
+                        </Badge>
                       )}
                     </div>
-                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center bg-gray-50 relative transition-all hover:border-indigo-300">
-                      {logoSetting?.logo ? (
-                        <div className="group relative">
-                          <Image
-                            src={logoSetting.logo}
-                            alt="Logo"
-                            width={200}
-                            height={100}
-                            className="mx-auto object-contain"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
-                            <div className="text-white text-center">
-                              <RefreshCw className="h-8 w-8 mx-auto mb-2" />
-                              <p className="text-sm">Click to update</p>
-                            </div>
-                          </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadOrUpdate(
-                                  file,
-                                  "logo",
-                                  selectedVersion.logoId
-                                );
-                              }
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            disabled={uploadingLogo}
-                          />
-                        </div>
-                      ) : (
-                        <div className="py-8">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadOrUpdate(
-                                  file,
-                                  "logo",
-                                  selectedVersion.logoId
-                                );
-                              }
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            disabled={uploadingLogo}
-                          />
-                          <div className="text-gray-500">
-                            {uploadingLogo ? (
-                              <div className="flex items-center justify-center">
-                                <RefreshCw className="h-8 w-8 animate-spin mr-2 text-indigo-500" />
-                                <span>Uploading...</span>
-                              </div>
-                            ) : (
-                              <>
-                                <Upload className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                                <p className="text-gray-600">Click to upload logo</p>
-                                <p className="text-sm text-gray-400">
-                                  PNG, JPG, GIF up to 10MB
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Banner Section */}
-                  <div className="mb-8">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        Banner
-                      </h3>
-                      <div className="flex gap-2">
-                        {(bannerSetting?.carousel ||
-                          selectedVersion.bannerId) && (
+                {/* Logo and Banner Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Logo Management */}
+                  <Card className="bg-white/90 backdrop-blur-sm shadow-xl shadow-violet-200/60 group hover:shadow-2xl hover:shadow-violet-300/60 transition-all duration-300 border border-violet-200/50">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+                            <ImageIcon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-xl font-semibold text-slate-800">Logo</CardTitle>
+                            <p className="text-slate-500 text-sm">Brand logo image</p>
+                          </div>
+                        </div>
+                        {(logoSetting?.logo || selectedVersion.logoId) && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => openUpdateModal("banner")}
-                            className="border-gray-300 hover:bg-indigo-50"
+                            onClick={() => openUpdateModal("logo")}
+                            className="border-violet-300 hover:border-violet-500 hover:text-violet-600 transition-colors"
                           >
-                            <RefreshCw className="h-4 w-4 mr-1" />
-                            Update Banner
-                          </Button>
-                        )}
-                        {bannerSetting?.carousel && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleDeleteBanner}
-                            className="border-gray-300 text-red-500 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Update
                           </Button>
                         )}
                       </div>
-                    </div>
-                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center bg-gray-50 relative transition-all hover:border-indigo-300">
-                      {bannerSetting?.carousel ? (
-                        <div className="group relative">
-                          <Image
-                            src={bannerSetting.carousel}
-                            alt="Banner"
-                            width={400}
-                            height={200}
-                            className="mx-auto object-contain"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
-                            <div className="text-white text-center">
-                              <RefreshCw className="h-8 w-8 mx-auto mb-2" />
-                              <p className="text-sm">Click to update</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="relative">
+                        {logoSetting?.logo ? (
+                          <div className="group/logo relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8 border-2 border-dashed border-slate-200 hover:border-violet-500 transition-all duration-300">
+                            <div className="flex items-center justify-center min-h-[120px]">
+                              <Image
+                                src={logoSetting.logo}
+                                alt="Logo"
+                                width={200}
+                                height={80}
+                                className="max-h-20 object-contain"
+                              />
+                            </div>
+                            <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
+                              <div className="text-white text-center">
+                                <RefreshCw className="w-8 h-8 mx-auto mb-2" />
+                                <p className="text-sm font-medium">Click to update logo</p>
+                              </div>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadOrUpdate(file, "logo", selectedVersion.logoId);
+                                }
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              disabled={uploadingLogo}
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-8 border-2 border-dashed border-violet-200 hover:border-violet-400 transition-all duration-300 cursor-pointer group/upload">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadOrUpdate(file, "logo", selectedVersion.logoId);
+                                }
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              disabled={uploadingLogo}
+                            />
+                            <div className="text-center min-h-[120px] flex flex-col items-center justify-center">
+                              {uploadingLogo ? (
+                                <div className="space-y-3">
+                                  <RefreshCw className="w-12 h-12 animate-spin mx-auto" style={{color: 'rgb(81, 61, 235)'}} />
+                                  <p className="font-medium" style={{color: 'rgb(81, 61, 235)'}}>Uploading logo...</p>
+                                </div>
+                              ) : (
+                                <div className="space-y-3 group-hover/upload:scale-105 transition-transform">
+                                  <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+                                    <Upload className="w-8 h-8 text-white" />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold" style={{color: 'rgb(81, 61, 235)'}}>Upload Logo</p>
+                                    <p className="text-sm" style={{color: 'rgb(81, 61, 235)'}}>PNG, JPG, SVG up to 10MB</p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadOrUpdate(
-                                  file,
-                                  "banner",
-                                  selectedVersion.bannerId
-                                );
-                              }
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            disabled={uploadingBanner}
-                          />
-                        </div>
-                      ) : (
-                        <div className="py-8">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleUploadOrUpdate(
-                                  file,
-                                  "banner",
-                                  selectedVersion.bannerId
-                                );
-                              }
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            disabled={uploadingBanner}
-                          />
-                          <div className="text-gray-500">
-                            {uploadingBanner ? (
-                              <div className="flex items-center justify-center">
-                                <RefreshCw className="h-8 w-8 animate-spin mr-2 text-indigo-500" />
-                                <span>Uploading...</span>
-                              </div>
-                            ) : (
-                              <>
-                                <Upload className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                                <p className="text-gray-600">Click to upload banner</p>
-                                <p className="text-sm text-gray-400">
-                                  PNG, JPG, GIF up to 10MB
-                                </p>
-                              </>
-                            )}
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Banner Management */}
+                  <Card className="bg-white/90 backdrop-blur-sm shadow-xl shadow-violet-200/60 group hover:shadow-2xl hover:shadow-violet-300/60 transition-all duration-300 border border-violet-200/50">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+                            <Monitor className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-xl font-semibold text-slate-800">Banner</CardTitle>
+                            <p className="text-slate-500 text-sm">Hero banner image</p>
                           </div>
                         </div>
-                      )}
+                        <div className="flex space-x-2">
+                          {(bannerSetting?.carousel || selectedVersion.bannerId) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openUpdateModal("banner")}
+                              className="border-violet-300 hover:border-violet-500 hover:text-violet-600 transition-colors"
+                            >
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Update
+                            </Button>
+                          )}
+                          {bannerSetting?.carousel && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleDeleteBanner}
+                              className="border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="relative">
+                        {bannerSetting?.carousel ? (
+                          <div className="group/banner relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 border-2 border-dashed border-slate-200 hover:border-purple-500 transition-all duration-300">
+                            <div className="flex items-center justify-center min-h-[120px]">
+                              <Image
+                                src={bannerSetting.carousel}
+                                alt="Banner"
+                                width={300}
+                                height={120}
+                                className="max-h-28 object-contain rounded-lg"
+                              />
+                            </div>
+                            <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center opacity-0 group-hover/banner:opacity-100 transition-opacity">
+                              <div className="text-white text-center">
+                                <RefreshCw className="w-8 h-8 mx-auto mb-2" />
+                                <p className="text-sm font-medium">Click to update banner</p>
+                              </div>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadOrUpdate(file, "banner", selectedVersion.bannerId);
+                                }
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              disabled={uploadingBanner}
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-8 border-2 border-dashed border-violet-200 hover:border-violet-400 transition-all duration-300 cursor-pointer group/upload">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleUploadOrUpdate(file, "banner", selectedVersion.bannerId);
+                                }
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              disabled={uploadingBanner}
+                            />
+                            <div className="text-center min-h-[120px] flex flex-col items-center justify-center">
+                              {uploadingBanner ? (
+                                <div className="space-y-3">
+                                  <RefreshCw className="w-12 h-12 animate-spin mx-auto" style={{color: 'rgb(81, 61, 235)'}} />
+                                  <p className="font-medium" style={{color: 'rgb(81, 61, 235)'}}>Uploading banner...</p>
+                                </div>
+                              ) : (
+                                <div className="space-y-3 group-hover/upload:scale-105 transition-transform">
+                                  <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+                                    <Upload className="w-8 h-8 text-white" />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold" style={{color: 'rgb(81, 61, 235)'}}>Upload Banner</p>
+                                    <p className="text-sm" style={{color: 'rgb(81, 61, 235)'}}>PNG, JPG, SVG up to 10MB</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            ) : (
+              <Card className="bg-white/90 backdrop-blur-sm shadow-xl shadow-violet-200/60 hover:shadow-2xl hover:shadow-violet-300/60 transition-all duration-300 border border-violet-200/50">
+                <CardContent className="p-12 text-center">
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 rounded-xl mx-auto flex items-center justify-center shadow-lg shadow-violet-500/30" style={{backgroundColor: 'rgb(81, 61, 235)'}}>
+                      <Settings className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-slate-700">Select a Version</h3>
+                      <p className="text-slate-500 mt-2">Choose a version from the sidebar to manage its branding assets</p>
                     </div>
                   </div>
                 </CardContent>
@@ -708,65 +802,86 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Update Modal */}
+      {/* Modern Update Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {modalType === "logo" ? "Update Logo" : "Update Banner"}
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeModal}
-                className="hover:bg-gray-100 rounded-full"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="file-upload" className="text-sm font-medium text-gray-700">
-                  {modalType === "logo"
-                    ? "Select New Logo Image"
-                    : "Select New Banner Image"}
-                </Label>
-                <Input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="mt-2 border-gray-300 rounded-lg"
-                />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4" style={{background: 'rgb(81, 61, 235)'}}>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    {modalType === "logo" ? (
+                      <ImageIcon className="w-4 h-4 text-white" />
+                    ) : (
+                      <Monitor className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">
+                    Update {modalType === "logo" ? "Logo" : "Banner"}
+                  </h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeModal}
+                  className="text-white hover:bg-white/20 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
               </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              <div>
+                <Label htmlFor="file-upload" className="text-sm font-semibold text-slate-700 block mb-3">
+                  Select New {modalType === "logo" ? "Logo" : "Banner"} Image
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:text-white hover:file:opacity-90 border-2 border-dashed border-violet-300 rounded-xl p-4"
+                    style={{'--file-bg': 'rgb(81, 61, 235)'} as React.CSSProperties}
+                  />
+                </div>
+              </div>
+
               {previewUrl && (
-                <div className="text-center">
-                  <Label className="text-sm font-medium text-gray-700">Preview</Label>
-                  <div className="mt-2 border rounded-xl p-2 bg-gray-50">
-                    <Image
-                      src={previewUrl}
-                      alt="Preview"
-                      width={200}
-                      height={200}
-                      className="mx-auto object-contain"
-                    />
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-slate-700">Preview</Label>
+                  <div className="bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-2xl p-6">
+                    <div className="flex justify-center">
+                      <Image
+                        src={previewUrl}
+                        alt="Preview"
+                        width={modalType === "logo" ? 200 : 300}
+                        height={modalType === "logo" ? 100 : 150}
+                        className="object-contain rounded-lg max-h-32"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
             </div>
-            <div className="flex justify-end space-x-2 mt-6">
+
+            {/* Footer */}
+            <div className="bg-slate-50 px-6 py-4 flex justify-end space-x-3">
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={closeModal}
-                className="border-gray-300 hover:bg-gray-100"
+                className="text-slate-600 hover:bg-slate-200"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleUpdate}
                 disabled={!selectedFile}
-                className="bg-indigo-600 text-white hover:bg-indigo-700"
+                className="text-white border-0 shadow-lg disabled:opacity-50"
+                style={{backgroundColor: 'rgb(81, 61, 235)'}}
               >
                 Update {modalType === "logo" ? "Logo" : "Banner"}
               </Button>
@@ -775,26 +890,36 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Version Modal */}
+      {/* Modern Version Modal */}
       {showVersionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {editingVersion ? "Edit Version" : "Add New Version"}
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeVersionModal}
-                className="hover:bg-gray-100 rounded-full"
-              >
-                <X className="h-5 w-5" />
-              </Button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4" style={{background: 'rgb(81, 61, 235)'}}>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Layers className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">
+                    {editingVersion ? "Edit Version" : "Create New Version"}
+                  </h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeVersionModal}
+                  className="text-white hover:bg-white/20 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
-            <div className="space-y-4">
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
               <div>
-                <Label htmlFor="version-title" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="version-title" className="text-sm font-semibold text-slate-700 block mb-3">
                   Version Title
                 </Label>
                 <Input
@@ -802,38 +927,50 @@ export default function SettingsPage() {
                   type="text"
                   value={versionTitle}
                   onChange={(e) => setVersionTitle(e.target.value)}
-                  placeholder="Enter version title"
-                  className="mt-2 border-gray-300 rounded-lg"
+                  placeholder="Enter version title (e.g., Spring 2025, Dark Theme)"
+                  className="border-2 border-violet-200 rounded-xl focus:border-violet-500 focus:ring-violet-500"
                 />
               </div>
-              <div className="flex items-center space-x-2">
+
+              <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl">
                 <Checkbox
                   id="version-active"
                   checked={versionActive}
-                  onCheckedChange={(checked) =>
-                    setVersionActive(checked === true)
-                  }
+                  onCheckedChange={(checked) => setVersionActive(checked === true)}
                   disabled={editingVersion?.isActive}
+                  className="data-[state=checked]:border-violet-500"
+                  style={{"--checkbox-bg": "rgb(81, 61, 235)"} as React.CSSProperties}
                 />
-                <Label htmlFor="version-active" className="text-sm text-gray-600">
-                  Active
-                </Label>
+                <div className="flex-1">
+                  <Label htmlFor="version-active" className="text-sm font-medium text-slate-700">
+                    Set as Active Version
+                  </Label>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {editingVersion?.isActive 
+                      ? "This version is currently active and cannot be deactivated"
+                      : "This will become the active version used across the platform"
+                    }
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end space-x-2 mt-6">
+
+            {/* Footer */}
+            <div className="bg-slate-50 px-6 py-4 flex justify-end space-x-3">
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={closeVersionModal}
-                className="border-gray-300 hover:bg-gray-100"
+                className="text-slate-600 hover:bg-slate-200"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSaveVersion}
                 disabled={!versionTitle}
-                className="bg-indigo-600 text-white hover:bg-indigo-700"
+                className="text-white border-0 shadow-lg disabled:opacity-50 hover:opacity-90"
+                style={{backgroundColor: 'rgb(81, 61, 235)'}}
               >
-                Save Changes
+                {editingVersion ? "Update Version" : "Create Version"}
               </Button>
             </div>
           </div>

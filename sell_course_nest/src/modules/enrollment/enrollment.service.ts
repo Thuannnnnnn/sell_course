@@ -84,7 +84,7 @@ export class EnrollmentService {
     }
 
     // Only consider PAID status as enrolled
-    const isPaid = enrollment.status?.toUpperCase() === 'PAID';
+    const isPaid = enrollment.status === 'paid';
 
     return {
       enrolled: isPaid,
@@ -115,7 +115,7 @@ export class EnrollmentService {
 
   async getEnrollmentsByUser(userId: string): Promise<Enrollment[]> {
     return this.enrollmentRepository.find({
-      where: { user: { user_id: userId }, status: 'active' },
+      where: { user: { user_id: userId }, status: 'paid' },
       relations: ['course'],
     });
   }

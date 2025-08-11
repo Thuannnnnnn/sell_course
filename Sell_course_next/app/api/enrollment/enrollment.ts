@@ -140,7 +140,6 @@ export const enrollmentApi = {
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
-    
     // Use the my-enrollments endpoint for current user
     return apiCall<Enrollment[]>("/api/enrollment/my-enrollments", {
       headers

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import courseApi from "@/app/api/courses/courses";
 import {
   createPaymentLinkAPI,
@@ -21,6 +21,7 @@ import PageHead from "@/components/layout/Head";
 
 export default function CheckoutPage() {
   const params = useParams();
+  const router = useRouter();
   const courseId = params.courseId;
   const [course, setCourse] = useState<CourseResponseDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,17 +77,61 @@ export default function CheckoutPage() {
   };
 
   const checkPaymentStatus = async () => {
-    if (orderCode) {
+    if (orderCode && session?.accessToken) {
       try {
-        const response = await checkPaymentStatusAPI(orderCode);
+        const response = await checkPaymentStatusAPI(orderCode, session.accessToken);
         if (response.paymentStatus === "paid") {
           setIsPaymentCompleted(true);
+          // Auto redirect after 2 seconds
+          setTimeout(() => {
+            router.push(`/enrolled/${courseId}`);
+          }, 2000);
         }
       } catch (error) {
         console.error("Failed to check payment status:", error);
       }
     }
   };
+
+  // Auto-polling payment status when orderCode exists
+  useEffect(() => {
+    const pollPaymentStatus = async () => {
+      if (orderCode && session?.accessToken) {
+        try {
+          const response = await checkPaymentStatusAPI(orderCode, session.accessToken);
+          if (response.paymentStatus === "paid") {
+            setIsPaymentCompleted(true);
+            // Auto redirect after 2 seconds
+            setTimeout(() => {
+              router.push(`/enrolled/${courseId}`);
+            }, 2000);
+          }
+        } catch (error) {
+          console.error("Failed to check payment status:", error);
+        }
+      }
+    };
+
+    if (orderCode && !isPaymentCompleted) {
+      // Check immediately
+      pollPaymentStatus();
+      
+      // Then poll every 3 seconds
+      const interval = setInterval(() => {
+        pollPaymentStatus();
+      }, 3000);
+
+      // Stop polling after 10 minutes
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+      }, 600000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [orderCode, isPaymentCompleted, router, courseId, session?.accessToken]);
 
   const handleCheckPaymentStatus = () => {
     if (orderCode) {
@@ -125,7 +170,7 @@ export default function CheckoutPage() {
           <Button
             size="lg"
             className="w-full text-lg py-6"
-            // onClick={() => (window.location.href = `/courses/${courseId}`)}
+            onClick={() => router.push(`/enrolled/${courseId}`)}
           >
             Go to Course
           </Button>

@@ -24,7 +24,6 @@ import {
 
 interface FilterState {
   categories: string[];
-  levels: string[];
   skills: string[];
   priceRange: {
     min: number;
@@ -50,7 +49,6 @@ export default function CoursesPage() {
   
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
-    levels: [],
     skills: [],
     priceRange: { min: 0, max: 10000000 },
     durationRange: { min: 0, max: 1000 },
@@ -87,10 +85,6 @@ export default function CoursesPage() {
       const matchesCategory = filters.categories.length === 0 || 
         filters.categories.includes(course.categoryId);
 
-      // Level filter
-      const matchesLevel = filters.levels.length === 0 || 
-        filters.levels.includes(course.level);
-
       // Skill filter
       const matchesSkill = filters.skills.length === 0 || 
         filters.skills.includes(course.skill);
@@ -103,7 +97,7 @@ export default function CoursesPage() {
       const matchesDuration = course.duration >= filters.durationRange.min && 
         course.duration <= filters.durationRange.max;
 
-      return matchesSearch && matchesCategory && matchesLevel && 
+      return matchesSearch && matchesCategory && 
              matchesSkill && matchesPrice && matchesDuration;
     });
 
@@ -141,7 +135,6 @@ export default function CoursesPage() {
   const clearAllFilters = () => {
     setFilters({
       categories: [],
-      levels: [],
       skills: [],
       priceRange: { min: 0, max: 10000000 },
       durationRange: { min: 0, max: 1000 },
@@ -154,7 +147,6 @@ export default function CoursesPage() {
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.categories.length > 0) count++;
-    if (filters.levels.length > 0) count++;
     if (filters.skills.length > 0) count++;
     if (filters.priceRange.min > 0 || filters.priceRange.max < 10000000) count++;
     if (filters.durationRange.min > 0 || filters.durationRange.max < 1000) count++;

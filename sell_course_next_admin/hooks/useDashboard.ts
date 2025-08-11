@@ -126,6 +126,7 @@ export const useEnrollmentTrends = () => {
       setLoading(true);
       setError(null);
       const result = await clientDashboardApi.getEnrollmentTrends();
+      console.log('Enrollment Trends Data:', result);
       setData(result);
     } catch (err) {
       setError(err instanceof ClientDashboardApiError ? err.message : 'Failed to fetch enrollment trends');

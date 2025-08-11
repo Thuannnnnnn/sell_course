@@ -13,7 +13,8 @@ import { Button } from "../../../components/ui/button";
 import { Progress } from "../../../components/ui/progress";
 import { ArrowLeft, BookOpen, GraduationCap, Loader2 } from "lucide-react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { courseApi, contentApi } from "../../api/courses/lessons/lessons";
+import { courseApi as lessonApi, contentApi } from "../../api/courses/lessons/lessons";
+import courseApi from "../../api/courses/courses";
 import { examApi } from "../../api/courses/exam/exam";
 import { resultExamApi } from "../../api/courses/exam/result-exam";
 import {
@@ -285,14 +286,14 @@ export default function CourseLearnPage() {
       try {
         console.log("🔄 Fetching course data for:", courseId);
 
-        // Fetch course details
-        const course = (await courseApi.getCourseById(
+        // Fetch course details using enrolled endpoint (bypasses status check)
+        const course = (await courseApi.getCourseByIdForEnrolled(
           courseId,
           token
         )) as CourseResponse;
 
         // Fetch lessons for this course
-        const lessonsResponse = (await courseApi.getLessonsByCourseId(
+        const lessonsResponse = (await lessonApi.getLessonsByCourseId(
           courseId,
           token
         )) as { lessons: LessonResponse[] };
@@ -688,6 +689,15 @@ export default function CourseLearnPage() {
     }
   };
 
+  // Handle tab change with validation
+  const handleTabChange = (value: string) => {
+    if (value === "exams" && courseProgress < 100) {
+      // Don't allow switching to exam tab if progress is not 100%
+      return;
+    }
+    setActiveTab(value);
+  };
+
   // Check enrollment status before rendering content
   if (status === 'loading' || isCheckingEnrollment) {
     return (
@@ -804,7 +814,7 @@ export default function CourseLearnPage() {
           <div className="max-w-7xl mx-auto">
             <Tabs
               value={activeTab}
-              onValueChange={setActiveTab}
+              onValueChange={handleTabChange}
               className="w-full"
             >
               <TabsList className="mb-4">
@@ -815,9 +825,18 @@ export default function CourseLearnPage() {
                   <BookOpen className="h-4 w-4" />
                   Lesson Content
                 </TabsTrigger>
-                <TabsTrigger value="exams" className="flex items-center gap-2">
+                <TabsTrigger 
+                  value="exams" 
+                  className="flex items-center gap-2"
+                  disabled={courseProgress < 100}
+                >
                   <GraduationCap className="h-4 w-4" />
                   Exams & Assessments
+                  {courseProgress < 100 && (
+                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full ml-2">
+                      Complete course first
+                    </span>
+                  )}
                 </TabsTrigger>
               </TabsList>
 
@@ -839,7 +858,33 @@ export default function CourseLearnPage() {
 
               <TabsContent value="exams" className="mt-0">
                 <div className="grid md:grid-cols-1 gap-6">
-                  {!examData ? (
+                  {courseProgress < 100 ? (
+                    <div className="text-center py-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <GraduationCap className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-200">
+                        Complete Course to Unlock Exam
+                      </h3>
+                      <p className="text-yellow-700 dark:text-yellow-300 mb-4">
+                        You need to complete all course content (100% progress) before taking the exam.
+                      </p>
+                      <div className="max-w-xs mx-auto">
+                        <div className="flex justify-between text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                          <span>Current Progress</span>
+                          <span>{Math.round(courseProgress)}%</span>
+                        </div>
+                        <Progress 
+                          value={courseProgress} 
+                          className="h-2"
+                        />
+                      </div>
+                      <Button
+                        onClick={() => setActiveTab("content")}
+                        className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white"
+                      >
+                        Continue Learning
+                      </Button>
+                    </div>
+                  ) : !examData ? (
                     <div className="text-center py-8">
                       <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-semibold mb-2">

@@ -66,6 +66,18 @@ export const courseApi = {
     return apiCall<CourseResponseDTO>(`/api/courses/getByCourse/${courseId}`);
   },
 
+  // Get course by ID for enrolled users (bypasses status check)
+  getCourseByIdForEnrolled: async (
+    courseId: string,
+    token: string
+  ): Promise<CourseResponseDTO> => {
+    return apiCall<CourseResponseDTO>(`/api/courses/enrolled/${courseId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
   // Get courses by category (public endpoint)
   getCoursesByCategory: async (
     categoryId: string

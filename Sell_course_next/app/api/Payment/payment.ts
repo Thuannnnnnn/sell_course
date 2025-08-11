@@ -46,15 +46,25 @@ export const createPaymentLinkAPI = async (
 };
 
 export const checkPaymentStatusAPI = async (
-  orderCode: string
+  orderCode: string,
+  accessToken?: string
 ): Promise<{
   paymentStatus: string;
 }> => {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_API_URL}/payment/check-payment-status`,
       {
         params: { orderCode },
+        headers,
       }
     );
 

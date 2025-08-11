@@ -15,7 +15,6 @@ import {
 
 interface FilterState {
   categories: string[];
-  levels: string[];
   skills: string[];
   priceRange: {
     min: number;
@@ -36,7 +35,6 @@ interface FilterSidebarProps {
 export default function FilterSidebar({ filters, setFilters, courses }: FilterSidebarProps) {
   const [openSections, setOpenSections] = useState({
     categories: true,
-    levels: true,
     skills: true,
     price: true,
     duration: true,
@@ -55,14 +53,6 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
       };
     });
     return categories.sort((a, b) => b.count - a.count);
-  }, [courses]);
-
-  const uniqueLevels = useMemo(() => {
-    const levels = Array.from(new Set(courses.map(course => course.level)));
-    return levels.map(level => ({
-      value: level,
-      count: courses.filter(c => c.level === level).length
-    })).sort((a, b) => b.count - a.count);
   }, [courses]);
 
   const uniqueSkills = useMemo(() => {
@@ -105,15 +95,6 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
     }));
   };
 
-  const handleLevelChange = (level: string, checked: boolean) => {
-    setFilters(prev => ({
-      ...prev,
-      levels: checked
-        ? [...prev.levels, level]
-        : prev.levels.filter(l => l !== level)
-    }));
-  };
-
   const handleSkillChange = (skill: string, checked: boolean) => {
     setFilters(prev => ({
       ...prev,
@@ -140,7 +121,6 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
   const clearAllFilters = () => {
     setFilters({
       categories: [],
-      levels: [],
       skills: [],
       priceRange: { min: priceRange.min, max: priceRange.max },
       durationRange: { min: durationRange.min, max: durationRange.max },
@@ -196,45 +176,6 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
                 </div>
                 <Badge variant="secondary" className="text-xs">
                   {category.count}
-                </Badge>
-              </div>
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Levels */}
-        <Collapsible open={openSections.levels}>
-          <CollapsibleTrigger
-            className="flex items-center justify-between w-full p-0 text-left"
-            onClick={() => toggleSection('levels')}
-          >
-            <span className="font-medium text-gray-900">Levels</span>
-            {openSections.levels ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-3 space-y-2">
-            {uniqueLevels.map((level) => (
-              <div key={level.value} className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={level.value}
-                    checked={filters.levels.includes(level.value)}
-                    onCheckedChange={(checked) => 
-                      handleLevelChange(level.value, checked as boolean)
-                    }
-                  />
-                  <label
-                    htmlFor={level.value}
-                    className="text-sm text-gray-700 cursor-pointer"
-                  >
-                    {level.value}
-                  </label>
-                </div>
-                <Badge variant="secondary" className="text-xs">
-                  {level.count}
                 </Badge>
               </div>
             ))}

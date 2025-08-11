@@ -10,6 +10,7 @@ import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { Category } from '../category/entities/category.entity';
 import { ResultExam } from '../result_exam/entities/result_exam.entity';
 import { ProgressTracking } from '../progress_tracking/entities/progress.entity';
+import { PaymentStatus } from '../payment/entities/payment.entity';
 
 import { DashboardOverviewDto } from './dto/dashboard-overview.dto';
 import {
@@ -101,7 +102,7 @@ export class DashboardService {
     const paidEnrollments = await this.enrollmentRepository
       .createQueryBuilder('enrollment')
       .leftJoinAndSelect('enrollment.course', 'course')
-      .where('enrollment.status = :status', { status: 'paid' })
+      .where('enrollment.status = :status', { status: PaymentStatus.PAID })
       .getMany();
 
     const totalRevenue = paidEnrollments.reduce((sum, enrollment) => {
@@ -198,7 +199,7 @@ export class DashboardService {
       const enrollments = await this.enrollmentRepository
         .createQueryBuilder('enrollment')
         .leftJoinAndSelect('enrollment.course', 'course')
-        .where('enrollment.status = :status', { status: 'paid' })
+        .where('enrollment.status = :status', { status: PaymentStatus.PAID })
         .andWhere('enrollment.enroll_at BETWEEN :start AND :end', {
           start: monthStart,
           end: monthEnd,
@@ -239,7 +240,7 @@ export class DashboardService {
         : 0;
 
     const totalPaidEnrollments = await this.enrollmentRepository.count({
-      where: { status: 'PAID' },
+      where: { status: PaymentStatus.PAID },
     });
 
     const averageOrderValue =
@@ -386,7 +387,7 @@ export class DashboardService {
       const paidEnrollments = await this.enrollmentRepository.count({
         where: {
           course: { courseId: course.courseId },
-          status: 'PAID',
+          status: PaymentStatus.PAID,
         },
       });
 
@@ -552,7 +553,7 @@ export class DashboardService {
       const paidEnrollments = await this.enrollmentRepository.count({
         where: {
           enroll_at: Between(monthStart, monthEnd),
-          status: 'PAID',
+          status: PaymentStatus.PAID,
         },
       });
 
@@ -605,7 +606,11 @@ export class DashboardService {
 
     // Get enrollment status distribution
     const statusDistribution: EnrollmentStatusDto[] = [];
-    const statuses = ['PAID', 'PENDING', 'CANCELLED'];
+    const statuses = [
+      PaymentStatus.PAID,
+      PaymentStatus.PENDING,
+      PaymentStatus.CANCELLED,
+    ];
     const totalEnrollments = await this.enrollmentRepository.count();
 
     for (const status of statuses) {
@@ -654,7 +659,7 @@ export class DashboardService {
     const paidEnrollmentsThisMonth = await this.enrollmentRepository.count({
       where: {
         enroll_at: Between(currentMonth, now),
-        status: 'PAID',
+        status: 'paid',
       },
     });
 

@@ -290,7 +290,7 @@ export function DocLesson({
                 {documentData.fileType?.toUpperCase()} •{" "}
                 {documentData.fileSize
                   ? `${(documentData.fileSize / 1024 / 1024).toFixed(1)}MB`
-                  : "Unknown size"}
+                  : ""}
               </p>
             )}
           </div>
@@ -390,30 +390,6 @@ export function DocLesson({
                       }}
                     />
                   </div>
-                  <div className="prose max-w-none">
-                    <h4>Document Information</h4>
-                    <p>
-                      <strong>Title:</strong>{" "}
-                      {documentData.contentName || lesson.title}
-                    </p>
-                    <p>
-                      <strong>Type:</strong>{" "}
-                      {documentData.fileType?.toUpperCase() || "PDF"}
-                    </p>
-                    <p>
-                      <strong>Size:</strong>{" "}
-                      {documentData.fileSize
-                        ? `${(documentData.fileSize / 1024 / 1024).toFixed(
-                            1
-                          )}MB`
-                        : "Unknown"}
-                    </p>
-                    {documentData.description && (
-                      <p>
-                        <strong>Description:</strong> {documentData.description}
-                      </p>
-                    )}
-                  </div>
                 </div>
               );
             } else if (
@@ -438,30 +414,6 @@ export function DocLesson({
                         }
                       }}
                     />
-                  </div>
-                  <div className="prose max-w-none">
-                    <h4>Document Information</h4>
-                    <p>
-                      <strong>Title:</strong>{" "}
-                      {documentData.contentName || lesson.title}
-                    </p>
-                    <p>
-                      <strong>Type:</strong>{" "}
-                      {documentData.fileType?.toUpperCase() || "DOC"}
-                    </p>
-                    <p>
-                      <strong>Size:</strong>{" "}
-                      {documentData.fileSize
-                        ? `${(documentData.fileSize / 1024 / 1024).toFixed(
-                            1
-                          )}MB`
-                        : "Unknown"}
-                    </p>
-                    {documentData.description && (
-                      <p>
-                        <strong>Description:</strong> {documentData.description}
-                      </p>
-                    )}
                   </div>
                 </div>
               );
@@ -498,7 +450,7 @@ export function DocLesson({
                                   1024 /
                                   1024
                                 ).toFixed(1)}MB`
-                              : "Unknown size"}
+                              : ""}
                           </p>
                         </div>
                       </div>

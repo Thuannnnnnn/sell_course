@@ -62,7 +62,7 @@ export class CourseController {
     description: 'No courses found.',
   })
   async getAllCoursesAdmin(): Promise<CourseResponseDTO[]> {
-    return await this.courseService.getAllCourses();
+    return await this.courseService.getAllCoursesForAdmin();
   }
 
   @Get('instructor/courses/view_course/:id')
@@ -79,7 +79,7 @@ export class CourseController {
   async getCourseByIdAmin(
     @Param('id') courseId: string,
   ): Promise<CourseResponseDTO> {
-    return await this.courseService.getCourseById(courseId);
+    return await this.courseService.getCourseByIdForAdmin(courseId);
   }
 
   @Get('courses/getByCourse/:id')
@@ -97,6 +97,25 @@ export class CourseController {
     @Param('id') courseId: string,
   ): Promise<CourseResponseDTO> {
     return await this.courseService.getCourseById(courseId);
+  }
+
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Get('courses/enrolled/:id')
+  @ApiOperation({ summary: 'Get course by ID for enrolled users (bypass status check)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the course.',
+    type: CourseResponseDTO,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Course not found with the given ID.',
+  })
+  async getCourseByIdForEnrolled(
+    @Param('id') courseId: string,
+  ): Promise<CourseResponseDTO> {
+    return await this.courseService.getCourseByIdForAdmin(courseId);
   }
 
   @ApiBearerAuth('Authorization')

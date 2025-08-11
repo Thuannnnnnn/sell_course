@@ -38,7 +38,6 @@ export default function LearningPathList({
   learningPlans,
   onCreateNew,
   onViewPlan,
-  updatePlan,
   userId,
   token,
 }: LearningPathListProps) {
@@ -188,13 +187,6 @@ export default function LearningPathList({
                 </Button>
               )}
 
-              <Button
-                onClick={updatePlan}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                Update
-              </Button>
             </div>
           </div>
         </div>

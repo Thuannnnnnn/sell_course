@@ -13,7 +13,6 @@ import {
   Play,
   Clock,
   Award,
-  Star,
   CheckCircle,
   BookOpen,
   User,
@@ -35,8 +34,6 @@ export default function UpdatedCourseDetailPage({
   const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState("overview");
-  
-  // Use the custom hook for enrollment check
   const { isEnrolled, isLoading: isCheckingEnrollment } = useEnrollmentCheck(params.courseId);
 
   useEffect(() => {
@@ -77,10 +74,9 @@ export default function UpdatedCourseDetailPage({
       icon: <Clock className="w-5 h-5" />,
       text: `${course?.duration || 0} hours on-demand video`,
     },
-    { icon: <BookOpen className="w-5 h-5" />, text: "Downloadable resources" },
     { icon: <Award className="w-5 h-5" />, text: "Certificate of completion" },
     { icon: <Globe className="w-5 h-5" />, text: "Lifetime access" },
-    { icon: <Download className="w-5 h-5" />, text: "Access on mobile and TV" },
+    { icon: <Download className="w-5 h-5" />, text: "Access on mobile" },
   ];
 
   const renderActionButton = () => {
@@ -169,15 +165,6 @@ export default function UpdatedCourseDetailPage({
                 {/* Course Header */}
                 <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 rounded-full text-sm font-semibold">
-                      {course.level}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                      <span className="font-semibold text-gray-700">
-                        {course.rating}
-                      </span>
-                    </div>
                   </div>
                   <h1 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-tight">
                     {course.title}
@@ -309,14 +296,14 @@ export default function UpdatedCourseDetailPage({
                     </div>
 
                   {/* Price */} 
-                  <div className="text-center mb-6">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                      {isEnrolled && (
-                        <p className="text-lg">{course.price} VND</p>
-                      )}
+                  {!isEnrolled && (
+                    <div className="text-center mb-6">
+                      <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        {course.price} VND
+                      </div>
+                      <p className="text-gray-600">{course.short_description}</p>
                     </div>
-                    <p className="text-gray-600">{course.short_description}</p>
-                  </div>
+                  )}
 
                     {/* Action Buttons */}
                     <div className="mb-6 space-y-3">{renderActionButton()}</div>
@@ -335,17 +322,6 @@ export default function UpdatedCourseDetailPage({
                           <span className="text-sm">{feature.text}</span>
                         </div>
                       ))}
-                    </div>
-
-                    {/* Money Back Guarantee */}
-                    <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                      <div className="flex items-center gap-2 text-green-700 font-semibold mb-1">
-                        <CheckCircle className="w-5 h-5" />
-                        30-Day Money-Back Guarantee
-                      </div>
-                      <p className="text-sm text-green-600">
-                        Full refund if you are not satisfied
-                      </p>
                     </div>
                   </div>
                 </div>
