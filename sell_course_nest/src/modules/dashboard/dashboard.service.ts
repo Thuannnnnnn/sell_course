@@ -198,7 +198,7 @@ export class DashboardService {
       const enrollments = await this.enrollmentRepository
         .createQueryBuilder('enrollment')
         .leftJoinAndSelect('enrollment.course', 'course')
-        .where('enrollment.status = :status', { status: 'paid' })
+        .where('enrollment.status = :status', { status: 'active' })
         .andWhere('enrollment.enroll_at BETWEEN :start AND :end', {
           start: monthStart,
           end: monthEnd,
