@@ -34,7 +34,7 @@ interface ExtendedVersionSetting extends VersionSetting {
 }
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [versions, setVersions] = useState<ExtendedVersionSetting[]>([]);
   const [selectedVersion, setSelectedVersion] =
     useState<ExtendedVersionSetting | null>(null);
@@ -415,7 +415,7 @@ export default function SettingsPage() {
           <div className="flex items-center space-x-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-800">
-                Settings
+                Brand Settings
               </h1>
               <p className="text-slate-600 mt-1">Manage your platform&apos;s visual identity and branding</p>
             </div>
