@@ -37,6 +37,7 @@ import {
 } from "@/app/types/Progress/progress";
 import { useSession } from "next-auth/react";
 import { createProgressTrackingAPI } from "@/app/api/Progress/progress";
+import { useEnrollmentCheck } from "@/hooks/useEnrollmentCheck";
 // Enhanced types for progress tracking
 interface LessonWithProgress extends LessonResponse {
   isCompleted: boolean;
@@ -70,7 +71,7 @@ export default function CourseLearnPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const courseId = params.courseId as string;
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
   // UI State
@@ -271,6 +272,8 @@ export default function CourseLearnPage() {
   useEffect(() => {
     const fetchCourseData = async () => {
       if (!courseId || !userId || !token) return;
+      // Only fetch course data if enrolled or user is admin
+      if (!isEnrolled && session?.user?.role !== 'ADMIN') return;
 
       setLoading(true);
       setError(null);
@@ -453,6 +456,11 @@ export default function CourseLearnPage() {
                     setCurrentContent(targetLessonWithContent);
                   }
                 }
+              } else {
+                // No contentId in URL, select first content
+                if (initialLessons[0].contents.length > 0) {
+                  setSelectedContent(initialLessons[0].contents[0]);
+                }
               }
             } else {
               // No contentId in URL, select first content
@@ -479,7 +487,7 @@ export default function CourseLearnPage() {
 
     fetchCourseData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, userId]);
+  }, [courseId, userId, isEnrolled]);
 
   // Load progress data after lessons are loaded
   useEffect(() => {
@@ -676,6 +684,33 @@ export default function CourseLearnPage() {
     }
   };
 
+  const { isEnrolled, isLoading: isCheckingEnrollment } = useEnrollmentCheck(courseId);
+
+  if (status === 'loading' || isCheckingEnrollment) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Checking enrollment...</p>
+        </div>
+      </div>
+    );
+  }
+  if (!isEnrolled && session?.user?.role !== 'ADMIN') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center max-w-md mx-auto space-y-4">
+          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto" />
+            <h2 className="text-xl font-semibold">Access Restricted</h2>
+            <p className="text-muted-foreground">Bạn chưa enroll khóa học này. Vui lòng enroll trước khi học.</p>
+            <Button asChild>
+              <a href={`/courses/${courseId}`}>Go to Course Page</a>
+            </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -785,12 +820,13 @@ export default function CourseLearnPage() {
               <TabsContent value="content" className="mt-0">
                 {currentContent && (
                   <LessonContent
+                    key={selectedContent?.contentId || currentContent.id} // force remount on content change
                     lesson={currentContent}
                     content={selectedContent}
                     onContentComplete={handleContentComplete}
                     courseId={courseId}
                     isContentCompleted={
-                      selectedContent ? selectedContent.isCompleted : false
+                      selectedContent ? completedContents.has(selectedContent.contentId) : false
                     }
                     token={token || ""}
                   />

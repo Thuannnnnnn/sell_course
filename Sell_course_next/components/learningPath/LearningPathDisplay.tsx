@@ -56,6 +56,14 @@ export default function LearningPathDisplay({
 
   const api = createLearningPathAPI(token);
 
+  // Determine enrollment status heuristically from progress data
+  const isEnrolled = React.useMemo(() => {
+    // If any content has progress (in_progress or completed) treat as enrolled
+    return Object.values(contentProgress).some(
+      (p) => p.status === "completed" || p.status === "in_progress"
+    );
+  }, [contentProgress]);
+
   useEffect(() => {
     const fetchProgressData = async () => {
       try {
@@ -399,7 +407,7 @@ export default function LearningPathDisplay({
             )}
 
             <div className="space-y-3">
-              <h5 className="font-medium text-gray-900">Nội dung bài học:</h5>
+              <h5 className="font-medium text-gray-900">Lesson Content:</h5>
               {lesson.contents.map((content, contentIndex) =>
                 renderContentItem(
                   content,
@@ -474,7 +482,7 @@ export default function LearningPathDisplay({
             )}
 
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-gray-900">Bài học:</h4>
+              <h4 className="text-lg font-semibold text-gray-900">Lesson:</h4>
               {course.lessons.map((lesson, lessonIndex) =>
                 renderLessonItem(lesson, courseIndex, lessonIndex)
               )}
@@ -486,7 +494,13 @@ export default function LearningPathDisplay({
   };
 
   const goToCourse = () => {
-    route.push(`/enrolled/${learningPlan.courseId}`);
+    const targetCourseId = learningPlan.courseId || learningPlan.learningPathCourses[0]?.courseId;
+    if (!targetCourseId) return;
+    if (isEnrolled) {
+      route.push(`/enrolled/${targetCourseId}`);
+    } else {
+      route.push(`/courses/${targetCourseId}`);
+    }
   };
 
   if (loading) {
@@ -532,7 +546,7 @@ export default function LearningPathDisplay({
                 className="flex items-center gap-2"
               >
                 <Rocket className="w-4 h-4" />
-                Go to Course
+                {isEnrolled ? "Continue Learning" : "Go to Course"}
               </Button>
             </div>
           </div>

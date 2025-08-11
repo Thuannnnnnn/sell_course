@@ -43,7 +43,10 @@ export const useEnrollmentCheck = (courseId: string): UseEnrollmentCheckResult =
         }
 
         const data = await response.json();
-        setIsEnrolled(data.enrolled || false);
+        // Only treat ACTIVE status as enrolled
+        const backendStatus = (data.status || data.enrollmentStatus || '').toString().toUpperCase();
+        const enrolled = !!data.enrolled && backendStatus === 'active';
+        setIsEnrolled(enrolled);
       } catch (err) {
         console.error('Error checking enrollment:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');

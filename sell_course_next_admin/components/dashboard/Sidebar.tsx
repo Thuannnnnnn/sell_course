@@ -29,17 +29,22 @@ export function Sidebar({ open, setOpen, versionId, logoUrl }: SidebarProps) {
   const { data: session } = useSession();
   const role = session?.user?.role;
   useEffect(() => {
-    async function fetchLogo() {
-      if (!versionId) {
-        console.log("Sidebar: versionId is undefined");
-        return;
+    async function initVersionAndLogo() {
+      try {
+        let vId = versionId;
+        if (!vId) {
+          const activeVersion = await settingsApi.getActiveVersion();
+          vId = activeVersion?.versionSettingId;
+        }
+        if (vId) {
+          const logos = await settingsApi.getLogoByVersionId(vId);
+          setDefaultLogo(logos[0]?.logo);
+        }
+      } catch (e) {
+        console.warn('Sidebar: failed to load active version/logo', e);
       }
-      console.log("Sidebar: Fetching logo for versionId:", versionId);
-      const logos = await settingsApi.getLogoByVersionId(versionId);
-      console.log("Sidebar: API logos result:", logos);
-      setDefaultLogo(logos[0]?.logo);
     }
-    fetchLogo();
+    initVersionAndLogo();
   }, [versionId]);
 
   const navigation = [
@@ -107,7 +112,7 @@ export function Sidebar({ open, setOpen, versionId, logoUrl }: SidebarProps) {
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full overflow-hidden">
               <Image
-                src={logoUrl || defaultLogo || "/logo.png"}
+                src={logoUrl || defaultLogo || '/logo.png'}
                 alt="Logo"
                 width={40}
                 height={40}
@@ -146,7 +151,7 @@ export function Sidebar({ open, setOpen, versionId, logoUrl }: SidebarProps) {
           <div className="flex items-center h-16 px-4 border-b border-border">
             <div className="w-10 h-10 rounded-full overflow-hidden">
               <Image
-                src={logoUrl || defaultLogo || "/logo.png"}
+                src={logoUrl || defaultLogo || '/logo.png'}
                 alt="Logo"
                 width={45}
                 height={45}

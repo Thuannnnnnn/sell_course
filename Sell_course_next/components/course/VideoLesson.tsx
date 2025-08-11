@@ -474,7 +474,7 @@ export function VideoLesson({
   return (
     <div className="w-full">
       {/* Progress and Completion Indicator */}
-      {duration > 0 && isCompleted && (
+      {duration > 0 && (
         <div className="mb-4 p-3 bg-muted/50 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">

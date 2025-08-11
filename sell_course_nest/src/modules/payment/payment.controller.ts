@@ -39,10 +39,14 @@ export class PaymentController {
   // @ApiBearerAuth('Authorization')
   // @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('create-payment-link')
-  async createPaymentLink(@Body() body: CreatePaymentLinkDto, @Res() res: Response) {
+  async createPaymentLink(
+    @Body() body: CreatePaymentLinkDto,
+    @Res() res: Response,
+  ) {
     const orderCode = Number(String(Date.now()).slice(-6));
     const course = await this.courseService.getCourseById(body.courseId);
     console.log(course.price);
+    console.log(body.courseId);
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
@@ -72,43 +76,57 @@ export class PaymentController {
     // Calculate final price with promotion discount
     let finalPrice = course.price;
     let promotionDetails = null;
-    
+
+    // Helper to ensure integer amount (PayOS requires integer > 0)
+    const toIntegerAmount = (value: number) => {
+      if (!Number.isFinite(value)) return 0;
+      return Math.round(value); // round to nearest VND
+    };
+
     if (body.promotionCode) {
       try {
-        const promotion = await this.promotionService.validatePromotionCode(body.promotionCode, body.courseId);
-        
+        const promotion = await this.promotionService.validatePromotionCode(
+          body.promotionCode,
+          body.courseId,
+        );
+
         // Check if promotion is active
         if (promotion.status === 'active') {
           // Check if promotion applies to this course (if course-specific)
-          if (!promotion.course || promotion.course.courseId === body.courseId) {
-            const discountAmount = (course.price * promotion.discount) / 100;
-            finalPrice = course.price - discountAmount;
+          if (
+            !promotion.course ||
+            promotion.course.courseId === body.courseId
+          ) {
+            // Compute discount using integer arithmetic to avoid float precision issues
+            const rawDiscountAmount = (course.price * promotion.discount) / 100;
+            const discountAmount = toIntegerAmount(rawDiscountAmount);
+            finalPrice = toIntegerAmount(course.price - discountAmount);
             promotionDetails = {
               id: promotion.id,
               name: promotion.name,
               discount: promotion.discount,
               discountAmount: discountAmount,
               originalPrice: course.price,
-              finalPrice: finalPrice
+              finalPrice: finalPrice,
             };
           } else {
-            return res.status(400).json({ 
-              message: 'Promotion is not applicable to this course' 
+            return res.status(400).json({
+              message: 'Promotion is not applicable to this course',
             });
           }
         } else if (promotion.status === 'expired') {
-          return res.status(400).json({ 
-            message: 'Promotion has expired' 
+          return res.status(400).json({
+            message: 'Promotion has expired',
           });
         } else if (promotion.status === 'pending') {
-          return res.status(400).json({ 
-            message: 'Promotion is not yet active' 
+          return res.status(400).json({
+            message: 'Promotion is not yet active',
           });
         }
       } catch (error) {
         console.error('Error fetching promotion:', error);
-        return res.status(404).json({ 
-          message: 'Promotion not found' 
+        return res.status(404).json({
+          message: 'Promotion not found',
         });
       }
     }
@@ -119,24 +137,46 @@ export class PaymentController {
       body.courseId,
       PaymentStatus.PENDING,
     );
+    console.log(finalPrice);
+    console.log(body.courseId);
+    console.log(orderCode);
+
+    // Ensure finalPrice is an integer (in case no promotion or already integer)
+    finalPrice = toIntegerAmount(finalPrice);
+    if (finalPrice <= 0) {
+      return res
+        .status(400)
+        .json({ message: 'Final amount must be greater than zero' });
+    }
+
+    // Prepare payment data for PayOS
     const paymentData = {
       orderCode,
-      amount: finalPrice,
+      amount: finalPrice, // integer amount
       description: `Order ${orderCode}`,
-      courseId: body.courseId,
-      returnUrl: `${process.env.URL_FE}/payment/success`,
-      cancelUrl: `${process.env.URL_FE}/payment/failure`,
+      returnUrl: `${process.env.URL_FE}/payment/success?orderCode=${orderCode}&courseId=${body.courseId}`,
+      cancelUrl: `${process.env.URL_FE}/payment/failure?orderCode=${orderCode}&courseId=${body.courseId}`,
+      items: [
+        {
+          name: course.title,
+          quantity: 1,
+          price: finalPrice, // integer price
+        },
+      ],
+      // If PayOS supports extra data, you can add one of these (uncomment the appropriate one):
+      // metadata: { courseId: body.courseId },
+      // extraData: body.courseId,
     };
     try {
       const paymentLinkResponse =
         await this.payOS.createPaymentLink(paymentData);
-      
+
       // Include promotion details in response
       const response = {
         ...paymentLinkResponse,
-        promotionDetails: promotionDetails
+        promotionDetails: promotionDetails,
       };
-      
+
       return res.json(response);
     } catch (error) {
       console.error('Error creating payment link:', error);
@@ -198,7 +238,10 @@ export class PaymentController {
   @ApiBearerAuth('Authorization')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('validate-promotion')
-  async validatePromotion(@Body() body: ValidatePromotionDto, @Res() res: Response) {
+  async validatePromotion(
+    @Body() body: ValidatePromotionDto,
+    @Res() res: Response,
+  ) {
     try {
       if (!body.promotionId) {
         return res.status(400).json({ message: 'Promotion ID is required' });
@@ -217,7 +260,7 @@ export class PaymentController {
         if (!promotion.course || promotion.course.courseId === body.courseId) {
           const discountAmount = (course.price * promotion.discount) / 100;
           const finalPrice = course.price - discountAmount;
-          
+
           return res.json({
             valid: true,
             promotion: {
@@ -226,31 +269,31 @@ export class PaymentController {
               discount: promotion.discount,
               discountAmount: discountAmount,
               originalPrice: course.price,
-              finalPrice: finalPrice
-            }
+              finalPrice: finalPrice,
+            },
           });
         } else {
-          return res.status(400).json({ 
+          return res.status(400).json({
             valid: false,
-            message: 'Promotion is not applicable to this course' 
+            message: 'Promotion is not applicable to this course',
           });
         }
       } else if (promotion.status === 'expired') {
-        return res.status(400).json({ 
+        return res.status(400).json({
           valid: false,
-          message: 'Promotion has expired' 
+          message: 'Promotion has expired',
         });
       } else if (promotion.status === 'pending') {
-        return res.status(400).json({ 
+        return res.status(400).json({
           valid: false,
-          message: 'Promotion is not yet active' 
+          message: 'Promotion is not yet active',
         });
       }
     } catch (error) {
       console.error('Error validating promotion:', error);
-      return res.status(404).json({ 
+      return res.status(404).json({
         valid: false,
-        message: 'Promotion not found' 
+        message: 'Promotion not found',
       });
     }
   }
