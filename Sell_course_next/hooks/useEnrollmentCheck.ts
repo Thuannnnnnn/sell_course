@@ -43,9 +43,9 @@ export const useEnrollmentCheck = (courseId: string): UseEnrollmentCheckResult =
         }
 
         const data = await response.json();
-        // Only treat ACTIVE status as enrolled
+        // Only treat PAID status as enrolled (matching database values)
         const backendStatus = (data.status || data.enrollmentStatus || '').toString().toUpperCase();
-        const enrolled = !!data.enrolled && backendStatus === 'active';
+        const enrolled = !!data.enrolled && backendStatus === 'PAID';
         setIsEnrolled(enrolled);
       } catch (err) {
         console.error('Error checking enrollment:', err);

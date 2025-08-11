@@ -41,14 +41,16 @@ export class EnrollmentController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('Authorization')
   @Post('check')
-  async checkEnrollment(
-    @Body() body: CheckEnrollmentDto,
-  ): Promise<{ enrolled: boolean }> {
-    const isEnrolled = await this.enrollmentService.checkEnrollment(
+  async checkEnrollment(@Body() body: CheckEnrollmentDto): Promise<{
+    enrolled: boolean;
+    status?: string;
+    enrollmentStatus?: string;
+  }> {
+    const result = await this.enrollmentService.checkEnrollment(
       body.userId,
       body.courseId,
     );
-    return { enrolled: isEnrolled };
+    return result;
   }
 
   @Get()

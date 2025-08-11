@@ -101,7 +101,7 @@ export class DashboardService {
     const paidEnrollments = await this.enrollmentRepository
       .createQueryBuilder('enrollment')
       .leftJoinAndSelect('enrollment.course', 'course')
-      .where('enrollment.status = :status', { status: 'active' })
+      .where('enrollment.status = :status', { status: 'paid' })
       .getMany();
 
     const totalRevenue = paidEnrollments.reduce((sum, enrollment) => {
@@ -198,7 +198,7 @@ export class DashboardService {
       const enrollments = await this.enrollmentRepository
         .createQueryBuilder('enrollment')
         .leftJoinAndSelect('enrollment.course', 'course')
-        .where('enrollment.status = :status', { status: 'active' })
+        .where('enrollment.status = :status', { status: 'paid' })
         .andWhere('enrollment.enroll_at BETWEEN :start AND :end', {
           start: monthStart,
           end: monthEnd,

@@ -63,14 +63,34 @@ export class EnrollmentService {
     return savedEnrollment;
   }
 
-  async checkEnrollment(userId: string, courseId: string): Promise<boolean> {
+  async checkEnrollment(
+    userId: string,
+    courseId: string,
+  ): Promise<{
+    enrolled: boolean;
+    status?: string;
+    enrollmentStatus?: string;
+  }> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: {
         user: { user_id: userId },
         course: { courseId: courseId },
       },
+      relations: ['user', 'course'],
     });
-    return !!enrollment;
+
+    if (!enrollment) {
+      return { enrolled: false };
+    }
+
+    // Only consider PAID status as enrolled
+    const isPaid = enrollment.status?.toUpperCase() === 'PAID';
+
+    return {
+      enrolled: isPaid,
+      status: enrollment.status,
+      enrollmentStatus: enrollment.status,
+    };
   }
 
   async getEnrollmentById(enrollmentId: number): Promise<Enrollment> {
