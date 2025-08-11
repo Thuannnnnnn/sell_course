@@ -103,6 +103,10 @@ export default function CourseLearnPage() {
 
   const token = session?.accessToken;
   const api = createProgressTrackingAPI(token || "");
+  
+  // Check enrollment status
+  const { isEnrolled, isLoading: isCheckingEnrollment } = useEnrollmentCheck(courseId);
+  
   // Load all progress data for the course
   const loadProgressData = async () => {
     if (!userId || !token || lessons.length === 0) return;
@@ -684,8 +688,7 @@ export default function CourseLearnPage() {
     }
   };
 
-  const { isEnrolled, isLoading: isCheckingEnrollment } = useEnrollmentCheck(courseId);
-
+  // Check enrollment status before rendering content
   if (status === 'loading' || isCheckingEnrollment) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -696,6 +699,7 @@ export default function CourseLearnPage() {
       </div>
     );
   }
+  
   if (!isEnrolled && session?.user?.role !== 'ADMIN') {
     return (
       <div className="flex items-center justify-center min-h-screen">

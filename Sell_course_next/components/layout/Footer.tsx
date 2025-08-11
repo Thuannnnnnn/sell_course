@@ -1,19 +1,15 @@
 "use client";
 import React from "react";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 import logo from "../../public/logo.png";
 import Image from "next/image";
 import { CertificateVerifyDialog } from "../certificates/CertificateVerifyDialog";
-import { CertificateTestDialog } from "../certificates/CertificateTestDialog";
 export function Footer() {
   return (
-    <footer className="w-full py-12 md:py-16 lg:py-20 border-t bg-background flex items-center justify-center">
+    <footer className="w-full py-12 md:py-16 lg:py-20 border-t bg-background flex items-start justify-center">
       <div className="container px-4 md:px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="flex flex-col space-y-4">
-            <div className="flex items-center gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-start text-left max-w-4xl mx-auto">
+          <div className="flex flex-col space-y-4 text-start">
+            <div className="flex items-center gap-2 justify-start">
               <Image
                 src={logo}
                 alt="Course Master Logo"
@@ -23,47 +19,10 @@ export function Footer() {
               />
               <span className="font-bold text-xl">Course Master</span>
             </div>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground max-w-xs text-start mx-auto">
               Empowering learners worldwide with quality education and expert
               instruction.
             </p>
-            <div className="flex space-x-3">
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Facebook size={20} />
-                <span className="sr-only">Facebook</span>
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Twitter size={20} />
-                <span className="sr-only">Twitter</span>
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Instagram size={20} />
-                <span className="sr-only">Instagram</span>
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Linkedin size={20} />
-                <span className="sr-only">LinkedIn</span>
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Youtube size={20} />
-                <span className="sr-only">YouTube</span>
-              </a>
-            </div>
           </div>
           {/* Quick Links */}
           <div className="space-y-4">
@@ -98,7 +57,6 @@ export function Footer() {
               </li>
             </ul>
           </div>
-          {/* Policies */}
           <div className="space-y-4">
             <h4 className="font-semibold text-base">Policies</h4>
             <ul className="space-y-2">
@@ -144,35 +102,7 @@ export function Footer() {
               </li>
             </ul>
           </div>
-          {/* Newsletter */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-base">
-              Subscribe to our Newsletter
-            </h4>
-            <p className="text-muted-foreground">
-              Get the latest updates and offers
-            </p>
-            <div className="flex space-x-2">
-              <Input
-                type="email"
-                placeholder="Your email"
-                className="max-w-[220px]"
-              />
-              <Button type="submit">Subscribe</Button>
-            </div>
-          </div>
         </div>
-        
-        {/* Certificate Verification Section */}
-        <div className="mt-12 pt-8 border-t text-center space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <CertificateVerifyDialog />
-            {process.env.NODE_ENV === "development" && (
-              <CertificateTestDialog />
-            )}
-          </div>
-        </div>
-
         <div className="mt-12 pt-6 border-t text-center text-muted-foreground">
           <p>
             &copy; {new Date().getFullYear()} Course Master. All rights
