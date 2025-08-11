@@ -24,6 +24,7 @@ import { azureUpload } from 'src/utilities/azure.service';
 import { CourseNotificationService } from '../notification/course-notification.service';
 import { NotificationService } from '../notification/notification.service';
 import { Notification } from '../notification/entities/notification.entity';
+import { Enrollment } from '../enrollment/entities/enrollment.entity';
 
 @Injectable()
 export class CourseService {
@@ -196,13 +197,20 @@ export class CourseService {
       console.log(`🚀 Triggering notifications for course: ${newCourse.title}`);
       try {
         await this.courseNotificationService.notifyOnCourseCreated(newCourse);
-        console.log(`✅ Notifications sent successfully for course: ${newCourse.title}`);
+        console.log(
+          `✅ Notifications sent successfully for course: ${newCourse.title}`,
+        );
       } catch (error) {
-        console.error('❌ Failed to send course creation notifications:', error);
+        console.error(
+          '❌ Failed to send course creation notifications:',
+          error,
+        );
         // Không throw error để không ảnh hưởng đến việc tạo khóa học
       }
     } else {
-      console.log(`⏸️ No notifications sent - course status is not PENDING_REVIEW`);
+      console.log(
+        `⏸️ No notifications sent - course status is not PENDING_REVIEW`,
+      );
     }
 
     return {
@@ -315,10 +323,17 @@ export class CourseService {
     });
 
     if (originalCourse) {
-      if (updateData.title && originalCourse.title !== updateData.title) changedFields.push('title');
-      if (updateData.description && originalCourse.description !== updateData.description) changedFields.push('description');
-      if (updateData.price && originalCourse.price !== updateData.price) changedFields.push('price');
-      if (updateData.status && originalCourse.status !== updateData.status) changedFields.push('status');
+      if (updateData.title && originalCourse.title !== updateData.title)
+        changedFields.push('title');
+      if (
+        updateData.description &&
+        originalCourse.description !== updateData.description
+      )
+        changedFields.push('description');
+      if (updateData.price && originalCourse.price !== updateData.price)
+        changedFields.push('price');
+      if (updateData.status && originalCourse.status !== updateData.status)
+        changedFields.push('status');
       if (files?.videoIntro?.[0]) changedFields.push('video intro');
       if (files?.thumbnail?.[0]) changedFields.push('thumbnail');
     }
@@ -330,7 +345,10 @@ export class CourseService {
     // Gửi thông báo tự động khi khóa học được cập nhật
     if (changedFields.length > 0) {
       try {
-        await this.courseNotificationService.notifyOnCourseUpdated(updatedCourse, changedFields);
+        await this.courseNotificationService.notifyOnCourseUpdated(
+          updatedCourse,
+          changedFields,
+        );
       } catch (error) {
         console.error('Failed to send course update notifications:', error);
         // Không throw error để không ảnh hưởng đến việc cập nhật khóa học
@@ -374,14 +392,22 @@ export class CourseService {
     }
 
     // Check enrollments first – block deletion if any
-    const enrollmentCount = await this.CourseRepository.manager.getRepository(Enrollment).count({ where: { course: { courseId } } });
+    const enrollmentCount = await this.CourseRepository.manager
+      .getRepository(Enrollment)
+      .count({ where: { course: { courseId } } });
     if (enrollmentCount > 0) {
-      throw new HttpException('Cannot delete course that has enrollments. Please remove enrollments first.', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Cannot delete course that has enrollments. Please remove enrollments first.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Manually cascade delete dependent entities (in case DB FKs missing cascade)
     // Delete exam questions & exam
-    const exam = await this.examRepository.findOne({ where: { course: { courseId } }, relations: ['questions'] });
+    const exam = await this.examRepository.findOne({
+      where: { course: { courseId } },
+      relations: ['questions'],
+    });
     if (exam) {
       if (exam.questions?.length) {
         await this.examRepository.manager
@@ -395,12 +421,19 @@ export class CourseService {
     }
 
     // Fetch lessons
-    const lessons = await this.lessonRepository.find({ where: { course: { courseId } } });
+    const lessons = await this.lessonRepository.find({
+      where: { course: { courseId } },
+    });
     for (const lesson of lessons) {
-      const contents = await this.contentsRepository.find({ where: { lesson: { lessonId: lesson.lessonId } } });
+      const contents = await this.contentsRepository.find({
+        where: { lesson: { lessonId: lesson.lessonId } },
+      });
       for (const content of contents) {
         // Delete quizzes and nested questions/answers
-        const quizzes = await this.quizzRepository.find({ where: { contentId: content.contentId }, relations: ['questions', 'questions.answers'] });
+        const quizzes = await this.quizzRepository.find({
+          where: { contentId: content.contentId },
+          relations: ['questions', 'questions.answers'],
+        });
         for (const quiz of quizzes) {
           for (const question of quiz.questions || []) {
             if (question.answers?.length) {
@@ -408,7 +441,9 @@ export class CourseService {
                 .createQueryBuilder()
                 .delete()
                 .from('answer')
-                .where('question_id = :questionId', { questionId: question.questionId })
+                .where('question_id = :questionId', {
+                  questionId: question.questionId,
+                })
                 .execute();
             }
           }
@@ -684,18 +719,26 @@ export class CourseService {
     const updatedCourse = await this.CourseRepository.save(course);
 
     // Gửi thông báo khi status thay đổi thành PENDING_REVIEW
-    if (oldStatus !== CourseStatus.PENDING_REVIEW && updateStatusDto.status === CourseStatus.PENDING_REVIEW) {
+    if (
+      oldStatus !== CourseStatus.PENDING_REVIEW &&
+      updateStatusDto.status === CourseStatus.PENDING_REVIEW
+    ) {
       try {
         // Use new rule-based notification system
         await this.notificationService.notifyCourseSubmittedForReview(
           updatedCourse.courseId,
-          updatedCourse.instructor?.user_id || 'unknown'
+          updatedCourse.instructor?.user_id || 'unknown',
         );
-        
+
         // Keep old notification for backward compatibility (optional)
-        await this.courseNotificationService.notifyOnCourseCreated(updatedCourse);
+        await this.courseNotificationService.notifyOnCourseCreated(
+          updatedCourse,
+        );
       } catch (error) {
-        console.error('Failed to send course review request notifications:', error);
+        console.error(
+          'Failed to send course review request notifications:',
+          error,
+        );
       }
     }
 
@@ -736,24 +779,31 @@ export class CourseService {
         // Use new rule-based notification system
         await this.notificationService.notifyCoursePublished(
           updatedCourse.courseId,
-          reviewerId
+          reviewerId,
         );
-        
+
         // Keep old notification for backward compatibility (optional)
-        await this.courseNotificationService.notifyOnCoursePublished(updatedCourse);
-        
+        await this.courseNotificationService.notifyOnCoursePublished(
+          updatedCourse,
+        );
       } else if (reviewStatusDto.status === CourseStatus.REJECTED) {
-        const rejectionReason = reviewStatusDto.rejectionReason || reviewStatusDto.reason || 'Không đáp ứng yêu cầu chất lượng';
-        
+        const rejectionReason =
+          reviewStatusDto.rejectionReason ||
+          reviewStatusDto.reason ||
+          'Không đáp ứng yêu cầu chất lượng';
+
         // Use new rule-based notification system
         await this.notificationService.notifyCourseRejected(
           updatedCourse.courseId,
           reviewerId,
-          rejectionReason
+          rejectionReason,
         );
-        
+
         // Keep old notification for backward compatibility (optional)
-        await this.courseNotificationService.notifyOnCourseRejected(updatedCourse, rejectionReason);
+        await this.courseNotificationService.notifyOnCourseRejected(
+          updatedCourse,
+          rejectionReason,
+        );
       }
     } catch (error) {
       console.error('Failed to send course review notifications:', error);
