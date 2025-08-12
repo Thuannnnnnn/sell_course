@@ -71,6 +71,26 @@ export default function CoursesPage() {
     fetchCourses();
   }, []);
 
+  // Update filter ranges when courses are loaded
+  useEffect(() => {
+    if (courses.length > 0) {
+      const prices = courses.map(course => course.price);
+      const durations = courses.map(course => course.duration);
+      
+      setFilters(prev => ({
+        ...prev,
+        priceRange: {
+          min: Math.min(...prices),
+          max: Math.max(...prices)
+        },
+        durationRange: {
+          min: Math.min(...durations),
+          max: Math.max(...durations)
+        }
+      }));
+    }
+  }, [courses]);
+
   // Filter and search courses
   const filteredCourses = useMemo(() => {
     const filtered = courses.filter((course) => {

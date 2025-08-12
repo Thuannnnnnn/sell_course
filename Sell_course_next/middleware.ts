@@ -13,16 +13,22 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = [
     "/",
     "/auth/login",
-    "/auth/register",
+    "/auth/register", 
     "/auth/forgot-password",
     "/auth/login-google",
     "/about",
+    "/courses",
+    "/blog",
+    "/contact",
   ];
 
   // Routes that require authentication
   const authenticatedAuthRoutes = ["/auth/change-password"];
 
-  const isPublicRoute = publicRoutes.includes(pathname);
+  const isPublicRoute = publicRoutes.includes(pathname) || 
+    pathname.startsWith("/courses/") || // Allow course detail pages (/courses/[id] and /courses/[courseId]) 
+    pathname.startsWith("/blog/") ||    // Allow blog detail pages  
+    pathname.startsWith("/categories/"); // Allow category pages
   const isAuthRoute = pathname.startsWith("/auth");
   const isAuthenticatedAuthRoute = authenticatedAuthRoutes.includes(pathname);
 

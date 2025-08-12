@@ -31,6 +31,7 @@ import { fetchCategories } from "app/api/categories/category";
 import { useRouter } from "next/navigation";
 import { createCourse } from "app/api/courses/course";
 import { useSession } from "next-auth/react";
+import { Session } from "next-auth";
 
 const LEVELS = [
   { id: 1, name: "Beginner" },
@@ -59,12 +60,36 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function AddCourseForm() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  
+  // Check if user can create courses
+  const canCreateCourse = session?.user?.role === 'ADMIN' || session?.user?.role === 'INSTRUCTOR';
+  
+  // Block access for course reviewers
+  if (session && !canCreateCourse) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don&apos;t have permission to create courses.</p>
+          <Button variant="outline" onClick={() => router.back()}>
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return <AddCourseFormComponent session={session} />;
+}
+
+function AddCourseFormComponent({ session }: { session: Session | null }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
-  const { data: session } = useSession();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {

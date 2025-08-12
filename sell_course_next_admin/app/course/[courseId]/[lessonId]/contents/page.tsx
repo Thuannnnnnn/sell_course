@@ -737,8 +737,8 @@ export default function LessonContentsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           {getContentTypeIcon(content.contentType)}
-                          <div>
-                            <h3 className="font-medium">{content.contentName}</h3>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium break-words whitespace-normal">{content.contentName}</h3>
                             <Badge
                               variant="outline"
                               className={getContentTypeColor(content.contentType)}

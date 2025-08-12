@@ -32,6 +32,7 @@ import { CourseStatus } from "app/types/course.d";
 import { fetchCategories } from "app/api/categories/category";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { Session } from "next-auth";
 import { fetchCourseById, updateCourse } from "app/api/courses/course";
 
 const LEVELS = [
@@ -62,11 +63,36 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function EditCoursePage({ params }: { params: { id: string } }) {
+  const { data: session } = useSession();
+  const router = useRouter();
+  
+  // Check if user can edit courses
+  const canEditCourse = session?.user?.role === 'ADMIN' || session?.user?.role === 'INSTRUCTOR';
+  
+  // Block access for course reviewers
+  if (session && !canEditCourse) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don&apos;t have permission to edit courses.</p>
+          <Button variant="outline" onClick={() => router.back()}>
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return <EditCourseForm params={params} session={session} />;
+}
+
+function EditCourseForm({ params, session }: { params: { id: string }, session: Session | null }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
-  const { data: session } = useSession();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -82,6 +108,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
       categoryId: "",
     },
   });
+
   useEffect(() => {
     const fetchInitialData = async () => {
       if (!session?.accessToken) return;

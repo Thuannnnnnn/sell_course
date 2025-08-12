@@ -56,12 +56,23 @@ export default function CourseReviewPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
+    // Check if user has permission to review courses
+    const canReviewCourse = session?.user?.role === 'COURSEREVIEWER' || session?.user?.role === 'ADMIN';
+    const isInstructor = session?.user?.role === 'INSTRUCTOR';
+
     const handleBack = () => {
         router.back();
     };
 
     const handleApprove = async () => {
         if (!session?.accessToken || !courseId) return;
+        
+        // Check permission
+        if (!canReviewCourse) {
+            toast.error("You don't have permission to approve courses.");
+            return;
+        }
+        
         try {
             setActionLoading(true);
             await reviewCourseStatus(courseId, CourseStatus.PUBLISHED, session.accessToken);
@@ -77,6 +88,11 @@ export default function CourseReviewPage() {
     };
 
     const handleReject = () => {
+        // Check permission
+        if (!canReviewCourse) {
+            toast.error("You don't have permission to reject courses.");
+            return;
+        }
         setRejectDialogOpen(true);
     };
 
@@ -126,6 +142,26 @@ export default function CourseReviewPage() {
         );
     }
 
+    // Block access for instructors
+    if (isInstructor) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                    <p className="text-lg text-gray-600 mb-2">Access Denied</p>
+                    <p className="text-sm text-gray-500">Instructors cannot review their own courses.</p>
+                    <Button
+                        variant="outline"
+                        onClick={handleBack}
+                        className="mt-4"
+                    >
+                        Go Back
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
     if (error || !courseData) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -157,23 +193,33 @@ export default function CourseReviewPage() {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        className="text-red-600 border-red-600 hover:bg-red-50"
-                        onClick={handleReject}
-                        disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
-                    >
-                        {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
-                        Reject
-                    </Button>
-                    <Button
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={handleApprove}
-                        disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
-                    >
-                        {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                        Approve
-                    </Button>
+                    {canReviewCourse && (
+                        <>
+                            <Button
+                                variant="outline"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={handleReject}
+                                disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
+                            >
+                                {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
+                                Reject
+                            </Button>
+                            <Button
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={handleApprove}
+                                disabled={actionLoading || course.status === CourseStatus.PUBLISHED || course.status === CourseStatus.REJECTED}
+                            >
+                                {actionLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                                Approve
+                            </Button>
+                        </>
+                    )}
+                    {!canReviewCourse && (
+                        <div className="flex items-center gap-2 text-gray-500">
+                            <Shield className="h-4 w-4" />
+                            <span className="text-sm">View Only Mode</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -353,8 +399,8 @@ function ContentCard({ content }: { content: ContentReviewData }) {
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getTypeColor()}`}>
                         {getIcon()}
                     </div>
-                    <div>
-                        <h4 className="font-medium">{content.contentName}</h4>
+                    <div className="min-w-0 flex-1">
+                        <h4 className="font-medium break-words whitespace-normal">{content.contentName}</h4>
                         <Badge variant="outline" className="text-xs">
                             {content.contentType.toUpperCase()}
                         </Badge>

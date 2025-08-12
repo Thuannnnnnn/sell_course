@@ -141,7 +141,7 @@ export function CourseSidebar({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm leading-tight mb-1">
+                      <div className="font-medium text-sm leading-tight mb-1 break-words whitespace-normal">
                         {lesson.lessonName}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -223,7 +223,7 @@ export function CourseSidebar({
                               <div className="flex-1 min-w-0">
                                 <div
                                   className={cn(
-                                    "font-medium text-sm leading-tight mb-1",
+                                    "font-medium text-sm leading-tight mb-1 break-words whitespace-normal",
                                     isCompleted &&
                                       "text-green-700"
                                   )}

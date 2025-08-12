@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   ColumnDef,
   flexRender,
@@ -35,10 +36,15 @@ interface CourseTableProps {
 }
 export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
+
+  // Check if user can review courses and perform CRUD operations
+  const canReviewCourse = session?.user?.role === 'COURSEREVIEWER' || session?.user?.role === 'ADMIN';
+  const canCRUDCourse = session?.user?.role === 'ADMIN' || session?.user?.role === 'INSTRUCTOR';
 
   const columns: ColumnDef<Course>[] = [
     {
@@ -79,7 +85,7 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("title")}</div>
+        <div className="font-medium break-words whitespace-normal max-w-xs">{row.getValue("title")}</div>
       ),
     },
     {
@@ -193,33 +199,37 @@ export function CourseTable({ courses, onDelete, onUpdate }: CourseTableProps) {
         const course = row.original;
         return (
           <div className="flex justify-end gap-2">
-            {course.status === "PENDING_REVIEW" && (
+            {course.status === "PENDING_REVIEW" && canReviewCourse && (
               <Button
               variant="ghost"
               size="icon"
               onClick={() => router.push(`/course/review/${course.courseId}`)}
               >
               <Eye className="h-4 w-4" />
-              <span className="sr-only">Preview</span>
+              <span className="sr-only">Review</span>
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onUpdate(course.courseId)}
-            >
-              <Edit2 className="h-4 w-4" />
-              <span className="sr-only">Edit</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(course.courseId)}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
+            {canCRUDCourse && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onUpdate(course.courseId)}
+                >
+                  <Edit2 className="h-4 w-4" />
+                  <span className="sr-only">Edit</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(course.courseId)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Delete</span>
+                </Button>
+              </>
+            )}
           </div>
         );
       },

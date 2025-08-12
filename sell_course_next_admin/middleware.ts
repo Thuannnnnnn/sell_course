@@ -8,13 +8,29 @@ const roleRoutesMap: Record<string, string[]> = {
   COURSEREVIEWER: ["/course", "/course/review/"],
   MARKETINGMANAGER: ["/settings", "/promotion"],
   SUPPORT: ["/chat-support"],
-  INSTRUCTOR: ["/course"],
+  INSTRUCTOR: ["/course"], // Instructors can only access course listing, not review
 };
 
 const publicRoutes = ["/auth/login", "/auth/register", "/auth/error"];
 
 function isAuthorized(pathname: string, role?: string): boolean {
   if (!role) return false;
+  
+  // Special case: Block INSTRUCTOR from accessing review routes
+  if (role === 'INSTRUCTOR' && pathname.includes('/review/')) {
+    return false;
+  }
+  
+  // Special case: Block COURSEREVIEWER from CRUD operations (add, edit, create)
+  if (role === 'COURSEREVIEWER' && (
+    pathname.includes('/course/add') || 
+    pathname.includes('/course/edit/') || 
+    pathname.includes('/course/create') ||
+    (pathname.match(/\/course\/[^\/]+\/[^\/]+/) && !pathname.includes('/course/review/')) // Block lesson management and content management but allow review
+  )) {
+    return false;
+  }
+  
   const allowedRoutes = roleRoutesMap[role] || [];
   return allowedRoutes.some((route) =>
     pathname === route || pathname.startsWith(route + "/")

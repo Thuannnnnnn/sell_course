@@ -14,6 +14,9 @@ export default function AdminCoursesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { data: session } = useSession();
+  
+  // Check if user can create/update/delete courses
+  const canCRUDCourse = session?.user?.role === 'ADMIN' || session?.user?.role === 'INSTRUCTOR';
   useEffect(() => {
     const loadCourses = async () => {
       try {
@@ -32,6 +35,12 @@ export default function AdminCoursesPage() {
   }, [session?.accessToken]);
 
   const handleDelete = async (id: string) => {
+    // Check permission
+    if (!canCRUDCourse) {
+      alert("You don't have permission to delete courses.");
+      return;
+    }
+    
     try {
       if (!session?.accessToken) return;
       await deleteCourse(id, session.accessToken);
@@ -42,6 +51,11 @@ export default function AdminCoursesPage() {
   };
 
   const handleUpdate = (id: string) => {
+    // Check permission
+    if (!canCRUDCourse) {
+      alert("You don't have permission to edit courses.");
+      return;
+    }
     router.push(`/course/edit/${id}`);
   };
 
@@ -60,16 +74,18 @@ export default function AdminCoursesPage() {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Courses</h2>
             <p className="text-muted-foreground">
-              Manage your course catalog here.
+              {canCRUDCourse ? "Manage your course catalog here." : "Review courses that need approval."}
             </p>
           </div>
-          <Button
-            className="flex items-center gap-2"
-            onClick={() => router.push("/course/add")}
-          >
-            <PlusCircle className="h-5 w-5" />
-            Create Course
-          </Button>
+          {canCRUDCourse && (
+            <Button
+              className="flex items-center gap-2"
+              onClick={() => router.push("/course/add")}
+            >
+              <PlusCircle className="h-5 w-5" />
+              Create Course
+            </Button>
+          )}
         </div>
         <CourseTable
           courses={courses}

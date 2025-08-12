@@ -98,7 +98,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         <div className="flex items-center justify-end">
           <div className="text-right">
             {course.price === 0 ? (
-              <span className="text-green-600 font-bold">Free</span>
+              <span className="text-green-600 font-bold">Miễn phí</span>
             ) : (
               <span className="text-blue-600 font-bold">
                 {formatPrice(course.price)}

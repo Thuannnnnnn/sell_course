@@ -324,7 +324,7 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <BookOpen className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">{lesson.lessonName}</CardTitle>
+                  <CardTitle className="text-lg break-words whitespace-normal">{lesson.lessonName}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
@@ -390,7 +390,26 @@ function LessonListOfCourse({ courseId }: { courseId: string }) {
 
 export default function CourseLessonPage({ params }: { params: { courseId: string } }) {
   const { courseId } = params;
-
+  const { data: session } = useSession();
+  const router = useRouter();
+  
+  // Check if user can manage lessons
+  const canManageLessons = session?.user?.role === 'ADMIN' || session?.user?.role === 'INSTRUCTOR';
+  
+  // Block access for course reviewers
+  if (session && !canManageLessons) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don&apos;t have permission to manage lesson content.</p>
+          <Button variant="outline" onClick={() => router.back()}>
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

@@ -105,12 +105,11 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
   };
 
   const formatPrice = (price: number) => {
-    if (price === 0) return "Free";
-    return new Intl.NumberFormat("en-US", {
+    if (price === 0) return "Miễn phí";
+    return new Intl.NumberFormat("vi-VN", {
       style: "currency",
-      currency: "USD",
-      notation: "compact"
-    }).format(price / 25000); // Convert VND to USD roughly
+      currency: "VND",
+    }).format(price);
   };
 
   const formatDuration = (duration: number) => {
@@ -240,7 +239,7 @@ export default function FilterSidebar({ filters, setFilters, courses }: FilterSi
                 value={[filters.priceRange.min, filters.priceRange.max]}
                 min={priceRange.min}
                 max={priceRange.max}
-                step={100000}
+                step={50000}
                 onValueChange={(value) => 
                   setFilters(prev => ({
                     ...prev,

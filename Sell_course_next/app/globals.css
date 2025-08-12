@@ -23,6 +23,22 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+
+  .line-clamp-4 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+
+  .word-break-all {
+    word-break: break-all;
+  }
+
+  .word-wrap-break {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
 }
 
 @layer base {

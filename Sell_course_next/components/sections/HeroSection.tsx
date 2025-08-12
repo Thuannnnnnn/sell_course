@@ -1,31 +1,16 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button } from "../ui/button";
 import { AspectRatio } from "../ui/aspect-ratio";
 import Image from "next/image";
-import { settingsApi } from "../../lib/api/settingsApi";
+import { useHomeData } from "../../contexts/HomeDataContext";
 import Link from "next/link";
 
 export function HeroSection() {
-  const [bannerUrl, setBannerUrl] = useState<string | undefined>(undefined);
-  const [bannerTitle, setBannerTitle] = useState<string>("Learn Programming with Experts");
-  useEffect(() => {
-    async function fetchBanner() {
-      try {
-        // 1. Lấy version active
-        const version = await settingsApi.getActiveVersion();
-        if (!version?.versionSettingId) return;
-        // 2. Lấy banner theo versionId
-        const banner = await settingsApi.getBannerByVersionId(version.versionSettingId);
-        // banner là object, không phải mảng!
-        setBannerUrl(banner?.carousel);
-        setBannerTitle(banner?.versionSetting?.VersionSettingtitle || "Learn Programming with Experts");
-      } catch {
-        setBannerUrl(undefined);
-      }
-    }
-    fetchBanner();
-  }, []);
+  const { bannerData } = useHomeData();
+  
+  const bannerUrl = bannerData?.carousel;
+  const bannerTitle = bannerData?.versionSetting?.VersionSettingtitle || "Learn Programming with Experts";
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-background flex items-center justify-center">

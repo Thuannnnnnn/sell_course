@@ -34,9 +34,9 @@ const ChatWindow: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const sessionFetched = useRef(false); // Để tránh fetch lại session
 
-  // Fetch user ID and start chat session
+  // Fetch user ID only (don't create session yet)
   useEffect(() => {
-    const fetchUserIdAndSession = async () => {
+    const fetchUserId = async () => {
       if (!session?.accessToken || sessionFetched.current) return;
       sessionFetched.current = true; // Đánh dấu đã fetch
       setIsLoading(true);
@@ -45,46 +45,47 @@ const ChatWindow: React.FC = () => {
         if (!user?.user_id) return;
         setCurrentUserId(user.user_id);
 
-        // Lấy sessionId từ localStorage
+        // Check if there's an existing active session in localStorage
         let localSessionId = null;
         if (typeof window !== 'undefined') {
           localSessionId = localStorage.getItem(SESSION_KEY);
+          const expireTime = localStorage.getItem(SESSION_EXPIRE_KEY);
+          
+          // Check if session is expired
+          if (expireTime && Date.now() > parseInt(expireTime)) {
+            localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem(SESSION_EXPIRE_KEY);
+            localSessionId = null;
+          }
         }
 
-        // Gọi BE để kiểm tra session và tạo/load messages
-        const chatSession = await StartOrGetChatSession(
-          user.user_id, 
-          localSessionId, 
-          session.accessToken
-        );
-        
-        if (!chatSession?.sessionId) {
-          return;
-        }
-
-        setChatSessionId(chatSession.sessionId);
-        
-        // Cập nhật localStorage với session mới hoặc hiện tại
-        if (typeof window !== 'undefined') {
-          const now = Date.now();
-          localStorage.setItem(SESSION_KEY, chatSession.sessionId);
-          localStorage.setItem(SESSION_EXPIRE_KEY, (now + SESSION_DURATION).toString());
-        }
-
-        // Load messages nếu có
-        if (chatSession.messages && chatSession.messages.length > 0) {
-          const formattedMessages = chatSession.messages.map(msg => ({
-            id: msg.id,
-            sessionId: msg.sessionId,
-            messageText: msg.messageText,
-            timestamp: msg.timestamp,
-            senderId: msg.sender,
-          }));
-          setMessages(formattedMessages);
+        // Only load existing session, don't create new one
+        if (localSessionId) {
+          const chatSession = await StartOrGetChatSession(
+            user.user_id, 
+            localSessionId, 
+            session.accessToken
+          );
+          
+          if (chatSession?.sessionId) {
+            setChatSessionId(chatSession.sessionId);
+            
+            // Load messages if available
+            if (chatSession.messages && chatSession.messages.length > 0) {
+              const formattedMessages = chatSession.messages.map(msg => ({
+                id: msg.id,
+                sessionId: msg.sessionId,
+                messageText: msg.messageText,
+                timestamp: msg.timestamp,
+                senderId: msg.sender,
+              }));
+              setMessages(formattedMessages);
+            }
+          }
         }
 
       } catch (error) {
-        console.error('Error fetching user and session:', error);
+        console.error('Error fetching user:', error);
         sessionFetched.current = false; // Reset nếu có lỗi
       } finally {
         setIsLoading(false);
@@ -92,7 +93,7 @@ const ChatWindow: React.FC = () => {
     };
 
     if (session?.accessToken) {
-      fetchUserIdAndSession();
+      fetchUserId();
     }
   }, [session?.accessToken]);
 
@@ -203,30 +204,97 @@ const ChatWindow: React.FC = () => {
   }, [messages]);
 
   // Handle sending messages
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const messageText = input.trim();
 
-    if (!messageText || !socketRef.current || !chatSessionId || !currentUserId) return;
+    if (!messageText || !currentUserId || !session?.accessToken) return;
+
+    // If no session exists, create one first
+    if (!chatSessionId) {
+      try {
+        setIsLoading(true);
+        const chatSession = await StartOrGetChatSession(
+          currentUserId, 
+          null, // No existing session
+          session.accessToken
+        );
+        
+        if (!chatSession?.sessionId) {
+          console.error('Failed to create chat session');
+          return;
+        }
+
+        setChatSessionId(chatSession.sessionId);
+        
+        // Update localStorage with new session
+        if (typeof window !== 'undefined') {
+          const now = Date.now();
+          localStorage.setItem(SESSION_KEY, chatSession.sessionId);
+          localStorage.setItem(SESSION_EXPIRE_KEY, (now + SESSION_DURATION).toString());
+        }
+
+        // Wait for socket connection to be established
+        // The useEffect for socket connection will trigger after setChatSessionId
+        let attempts = 0;
+        const maxAttempts = 10;
+        const waitForSocketAndSend = () => {
+          attempts++;
+          if (socketRef.current?.connected) {
+            sendMessageToSocket(chatSession.sessionId, messageText);
+          } else if (attempts < maxAttempts) {
+            setTimeout(waitForSocketAndSend, 500);
+          } else {
+            // Fallback: add message optimistically
+            setInput('');
+            const tempMessage: Message = {
+              id: 'temp-' + uuidv4(),
+              sessionId: chatSession.sessionId,
+              messageText: messageText,
+              timestamp: new Date().toISOString(),
+              senderId: currentUserId,
+            };
+            setMessages([tempMessage]);
+          }
+        };
+        
+        setTimeout(waitForSocketAndSend, 1000);
+        
+      } catch (error) {
+        console.error('Error creating chat session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // If session exists, send message normally
+    if (socketRef.current && chatSessionId) {
+      sendMessageToSocket(chatSessionId, messageText);
+    }
+  };
+
+  // Helper function to send message via socket
+  const sendMessageToSocket = (sessionId: string, messageText: string) => {
+    if (!socketRef.current || !currentUserId) return;
 
     const tempId = 'temp-' + uuidv4();
 
     const messagePayload = {
-      sessionId: chatSessionId,
+      sessionId: sessionId,
       message: messageText,
-      sender: currentUserId, // BE expects string userId
+      sender: currentUserId,
       timestamp: new Date().toISOString(),
       id: tempId,
     };
 
     const optimisticMessage: Message = {
       id: tempId,
-      sessionId: chatSessionId,
+      sessionId: sessionId,
       messageText: messageText,
       timestamp: messagePayload.timestamp,
       senderId: currentUserId,
     };
-
 
     socketRef.current.emit('sendMessage', messagePayload);
     setMessages((prev) => [...prev, optimisticMessage]);
@@ -269,8 +337,9 @@ const ChatWindow: React.FC = () => {
             <h3 className="font-semibold text-sm">Online Support</h3>
             <p className="text-xs opacity-90">
               {isLoading ? 'Connecting...' : 
+               !chatSessionId ? 'Click to start chat' :
                isConnected ? 'Online' : 
-               (chatSessionId && currentUserId ? 'Reconnecting...' : 'Offline')}
+               'Reconnecting...'}
             </p>
           </div>
         </div>
@@ -285,7 +354,9 @@ const ChatWindow: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
         {isLoading && <div className="text-gray-400 text-center mt-10">Loading...</div>}
         {!isLoading && messages.length === 0 && (
-          <div className="text-gray-400 text-center mt-10">No messages yet. Say hello!</div>
+          <div className="text-gray-400 text-center mt-10">
+            {chatSessionId ? "No messages yet. Say hello!" : "Send your first message to start a support session!"}
+          </div>
         )}
         {messages.map((msg, idx) => {
           const isCurrentUser = msg.senderId === currentUserId;
@@ -315,7 +386,7 @@ const ChatWindow: React.FC = () => {
         <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
           <input
             type="text"
-            placeholder="Type your message..."
+            placeholder={chatSessionId ? "Type your message..." : "Type your first message to start chat..."}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -323,8 +394,8 @@ const ChatWindow: React.FC = () => {
           />
           <button
             type="submit"
-            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors"
-            disabled={isLoading}
+            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50"
+            disabled={isLoading || !input.trim()}
           >
             <span className="font-bold text-lg">→</span>
           </button>
