@@ -563,28 +563,33 @@ export function VideoLesson({
 
                   {/* Custom Controls Overlay */}
                   <div
-                    className={`absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-300 ${
+                    className={`absolute inset-0 transition-opacity duration-300 ${
                       showControls ? "opacity-100" : "opacity-0"
-                    }`}
+                    } z-40 ${showControls ? 'pointer-events-auto' : 'pointer-events-none'}`}
                   >
+                    {/* Background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                    
                     {/* Play/Pause Button (Center) */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Button
-                        variant="ghost"
-                        size="lg"
-                        className="w-16 h-16 rounded-full bg-black/30 hover:bg-black/50 text-white"
-                        onClick={handlePlayPause}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <button
+                        className="pointer-events-auto p-4 rounded-full hover:bg-black/20 transition-all duration-200 group"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Center play/pause clicked!');
+                          handlePlayPause();
+                        }}
                       >
                         {playing ? (
-                          <Pause className="w-8 h-8" />
+                          <Pause className="w-12 h-12 text-white drop-shadow-lg group-hover:scale-110 transition-transform duration-200" />
                         ) : (
-                          <Play className="w-8 h-8 ml-1" />
+                          <Play className="w-12 h-12 ml-1 text-white drop-shadow-lg group-hover:scale-110 transition-transform duration-200" />
                         )}
-                      </Button>
+                      </button>
                     </div>
 
                     {/* Bottom Controls */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 z-50">
                       {/* Progress Bar */}
                       <div className="mb-3">
                         <Slider
@@ -599,13 +604,17 @@ export function VideoLesson({
                       </div>
 
                       {/* Control Buttons */}
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between z-50">
                         <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white hover:bg-white/20"
-                            onClick={handlePlayPause}
+                            className="text-white hover:bg-white/20 z-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Bottom play/pause clicked!');
+                              handlePlayPause();
+                            }}
                           >
                             {playing ? (
                               <Pause className="w-4 h-4" />
@@ -617,8 +626,12 @@ export function VideoLesson({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white hover:bg-white/20"
-                            onClick={handleSkipBackward}
+                            className="text-white hover:bg-white/20 z-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Skip backward clicked!');
+                              handleSkipBackward();
+                            }}
                           >
                             <SkipBack className="w-4 h-4" />
                           </Button>
@@ -626,8 +639,12 @@ export function VideoLesson({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white hover:bg-white/20"
-                            onClick={handleSkipForward}
+                            className="text-white hover:bg-white/20 z-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Skip forward clicked!');
+                              handleSkipForward();
+                            }}
                           >
                             <SkipForward className="w-4 h-4" />
                           </Button>
@@ -635,8 +652,12 @@ export function VideoLesson({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white hover:bg-white/20"
-                            onClick={handleToggleMute}
+                            className="text-white hover:bg-white/20 z-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Mute toggle clicked!');
+                              handleToggleMute();
+                            }}
                           >
                             {muted ? (
                               <VolumeX className="w-4 h-4" />
@@ -664,10 +685,14 @@ export function VideoLesson({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`text-white hover:bg-white/20 ${
+                            className={`text-white hover:bg-white/20 z-50 ${
                               showTranscript ? 'bg-white/20' : ''
                             }`}
-                            onClick={() => setShowTranscript(!showTranscript)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Transcript toggle clicked!');
+                              setShowTranscript(!showTranscript);
+                            }}
                             title={
                               isFullscreen 
                                 ? (showTranscript ? "Hide Subtitles" : "Show Subtitles")
@@ -685,8 +710,12 @@ export function VideoLesson({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white hover:bg-white/20"
-                            onClick={handleFullscreen}
+                            className="text-white hover:bg-white/20 z-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Fullscreen toggle clicked!');
+                              handleFullscreen();
+                            }}
                             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                           >
                             {isFullscreen ? (

@@ -340,7 +340,7 @@ export default function CourseLearnPage() {
                         token
                       )) as VideoState;
                       lessonContent = videoContent;
-                      duration = "10:25";
+                      duration = "Video";
                       break;
                     case "doc":
                       lessonType = "text";
@@ -536,19 +536,6 @@ export default function CourseLearnPage() {
     }
   }, [courseProgress, completedContents, lessons]);
 
-  // Helper functions for sidebar
-  const getContentDuration = (content: ContentResponse): string => {
-    switch (content.contentType.toLowerCase()) {
-      case "video":
-        return "10:25";
-      case "doc":
-        return "5 mins read";
-      case "quiz":
-        return "10 questions";
-      default:
-        return "5 mins";
-    }
-  };
 
   const isContentCompleted = (content: ContentResponse): boolean => {
     return completedContents.has(content.contentId);
@@ -804,7 +791,6 @@ export default function CourseLearnPage() {
             currentContent={currentContent}
             onLessonSelect={handleLessonSelect}
             onContentSelect={handleContentSelect}
-            getContentDuration={getContentDuration}
             isContentCompleted={isContentCompleted}
           />
         </aside>
