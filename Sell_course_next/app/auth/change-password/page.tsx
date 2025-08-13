@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ChangePasswordRequest } from "@/app/types/auth/change-password/api";
 import { changePasswordAPI } from "@/app/api/auth/change-password/changePassword";
@@ -17,6 +17,7 @@ import { PasswordRequirements, PasswordStrengthIndicator } from "@/components/ui
 import { PasswordConfirmation } from "@/components/ui/password-confirmation";
 import Image from "next/image";
 import logo from "../../../public/logo.png";
+import { Eye, EyeOff } from "lucide-react";
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -24,6 +25,9 @@ export default function ChangePasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { data: session } = useSession();
   const router = useRouter();
@@ -86,14 +90,19 @@ export default function ChangePasswordPage() {
 
       await changePasswordAPI(requestData, session.accessToken);
 
-      setSuccess("Password changed successfully!");
+      setSuccess("Password changed successfully! You'll be logged out.");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
 
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 2000);
+      // Force re-login after password change
+      setTimeout(async () => {
+        try {
+          await signOut({ callbackUrl: "/auth/login", redirect: true });
+        } catch {
+          router.push("/auth/login");
+        }
+      }, 1500);
     } catch {
       setError("An error occurred while changing password");
     } finally {
@@ -138,13 +147,24 @@ export default function ChangePasswordPage() {
               >
                 Current Password
               </label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showCurrent ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={showCurrent ? "Hide password" : "Show password"}
+                >
+                  {showCurrent ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <label
@@ -153,14 +173,25 @@ export default function ChangePasswordPage() {
               >
                 New Password
               </label>
-              <Input
-                id="newPassword"
-                type="password"
-                placeholder="Enter your new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="newPassword"
+                  type={showNew ? "text" : "password"}
+                  placeholder="Enter your new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={showNew ? "Hide password" : "Show password"}
+                >
+                  {showNew ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               <PasswordRequirements 
                 password={newPassword} 
                 showRequirements={newPassword.length > 0} 
@@ -174,14 +205,25 @@ export default function ChangePasswordPage() {
               >
                 Confirm Password
               </label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm your new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Confirm your new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                >
+                  {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               <PasswordConfirmation 
                 password={newPassword} 
                 confirmPassword={confirmPassword}
