@@ -127,7 +127,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
               {/* Price */}
               <div className="flex items-center gap-2">
                 {course.price === 0 ? (
-                  <span className="text-green-600 font-bold text-xl">Free</span>
+                  <span className="text-green-600 font-bold text-xl">Miễn phí</span>
                 ) : (
                   <span className="text-blue-600 font-bold text-xl">
                     {formatPrice(course.price)}
