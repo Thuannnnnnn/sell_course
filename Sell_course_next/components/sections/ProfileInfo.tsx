@@ -184,7 +184,7 @@ export function ProfileInfo() {
     : "N/A";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-0 ">
       {/* Cover Image với Gradient Overlay */}
       <div className="relative h-64 overflow-hidden rounded-2xl shadow-2xl">
         <Image
@@ -372,7 +372,7 @@ export function ProfileInfo() {
 
           {/* Personal Information */}
           <Card className="border-0 shadow-xl">
-            <CardContent className="p-8">
+            <CardContent className="p-0">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                   <User className="h-5 w-5 text-blue-500" />

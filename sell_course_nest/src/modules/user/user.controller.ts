@@ -106,28 +106,33 @@ export class UserController {
     }
   }
 
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Put('/users/user/change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
-    @Req() req,
+    @Req() req: any,
   ) {
-    console.log('Received changePassword request:', {
-      username: req.user.username,
-      user_id: req.user.user_id,
-    });
-    if (!req.user || !req.user.username || !req.user.user_id) {
+    if (!req.user || !req.user.user_id) {
       throw new UnauthorizedException('User not authenticated');
     }
+
+    console.log('Received changePassword request:', {
+      username: req.user?.username,
+      user_id: req.user.user_id,
+    });
 
     const user_id = req.user.user_id;
     console.log('Found user ID:', user_id);
 
-    return this.userService.changePassword(
+    const message = await this.userService.changePassword(
       user_id,
       changePasswordDto.currentPassword,
       changePasswordDto.newPassword,
       changePasswordDto.confirmPassword,
     );
+
+    return { message };
   }
 
   @ApiBearerAuth('Authorization')

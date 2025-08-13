@@ -242,7 +242,7 @@ export function EditProfileModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 p-0 m-0">
       <Card className="w-full max-w-[500px] max-h-[90vh] overflow-y-auto mx-auto shadow-2xl border-0 bg-white animate-in slide-in-from-bottom-4 duration-300 sm:max-h-none">
         <CardHeader className="text-center pb-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
           <div className="mx-auto w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mb-3">
