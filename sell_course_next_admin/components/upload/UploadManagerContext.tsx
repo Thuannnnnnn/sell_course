@@ -2,13 +2,15 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 
 export type UploadStatus = 'uploading' | 'success' | 'error' | 'canceled';
-export type UploadType = 'video' | 'doc';
+export type UploadType = 'video' | 'doc' | 'video-update' | 'doc-update' | 'video-script-update';
 
 export interface UploadTask {
   id: string;
   type: UploadType;
   filename: string;
-  contentId: string;
+  contentId?: string;
+  videoId?: string;
+  docsId?: string;
   progress: number; // 0 - 100
   status: UploadStatus;
   error?: string;
@@ -19,10 +21,21 @@ export interface UploadTask {
 interface StartUploadParams {
   type: UploadType;
   file: File;
-  contentId: string;
+  contentId?: string;
+  videoId?: string; // for update operations
+  docsId?: string;  // for document update operations
   token: string;
   title?: string; // for video
-  uploader: (args: { file: File; contentId: string; token: string; title?: string; signal: AbortSignal; onProgress: (p: number) => void; }) => Promise<unknown>;
+  uploader: (args: { 
+    file: File; 
+    contentId?: string; 
+    videoId?: string;
+    docsId?: string;
+    token: string; 
+    title?: string; 
+    signal: AbortSignal; 
+    onProgress: (p: number) => void; 
+  }) => Promise<unknown>;
 }
 
 interface UploadManagerContextValue {
@@ -43,7 +56,7 @@ export const useUploadManager = () => {
 export const UploadManagerProvider = ({ children }: { children: ReactNode }) => {
   const [tasks, setTasks] = useState<UploadTask[]>([]);
 
-  const startUpload = useCallback(({ type, file, contentId, token, title, uploader }: StartUploadParams) => {
+  const startUpload = useCallback(({ type, file, contentId, videoId, docsId, token, title, uploader }: StartUploadParams) => {
     const controller = new AbortController();
     const id = simpleId();
     const newTask: UploadTask = {
@@ -51,6 +64,8 @@ export const UploadManagerProvider = ({ children }: { children: ReactNode }) => 
       type,
       filename: file.name,
       contentId,
+      videoId,
+      docsId,
       progress: 0,
       status: 'uploading',
       startedAt: Date.now(),
@@ -64,6 +79,8 @@ export const UploadManagerProvider = ({ children }: { children: ReactNode }) => 
         await uploader({
           file,
           contentId,
+          videoId,
+          docsId,
           token,
           title,
           signal: controller.signal,

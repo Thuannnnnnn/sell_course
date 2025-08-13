@@ -46,7 +46,7 @@ import {
 
 import { toast } from "sonner";
 import { useUploadManager } from '../../upload/UploadManagerContext';
-import { createDocumentWithProgress } from 'app/api/lessons/Doc/document';
+import { createDocumentWithProgress, updateDocumentWithProgress } from 'app/api/lessons/Doc/document';
 
 interface DocumentModalProps {
   isOpen: boolean;
@@ -213,8 +213,9 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           token: session.accessToken,
           title,
           uploader: async ({ file, contentId, token, title, signal, onProgress }) => {
-            await createDocumentWithProgress(title || file.name, file, contentId, token, signal, onProgress);
-          }
+          if (!contentId) throw new Error('Content ID is required');
+          await createDocumentWithProgress(title || file.name, file, contentId, token, signal, onProgress);
+        }
         });
         showMessage('Document uploading in background', 'success');
         onClose();
@@ -224,33 +225,62 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       return;
     }
 
-    // Existing update logic
-    setLoading(true);
-    try {
-      if (doc && session?.accessToken) {
-        const updatedDoc = await updateDocument(
-          doc.docsId,
-          title,
-          file || undefined,
-          session.accessToken,
-          params.contentId
-        );
-        showMessage("Document updated successfully!", "success");
-        setDoc(updatedDoc);
-        setIsEditing(false);
+    // Document update logic with background upload
+    if (doc && session?.accessToken) {
+      if (file) {
+        // Use background upload for file updates
+        try {
+          startUpload({
+            type: 'doc-update',
+            file: file,
+            docsId: doc.docsId,
+            token: session.accessToken,
+            title,
+            uploader: async ({ file, docsId, token, title, signal, onProgress }) => {
+              if (!docsId) throw new Error('Document ID is required');
+              await updateDocumentWithProgress(docsId, title || file.name, file, token, params.contentId, signal, onProgress);
+            }
+          });
+          showMessage("Document update started in background", "success");
+          setIsEditing(false);
+          onClose();
+          return;
+        } catch (err) {
+          showMessage(
+            err instanceof Error ? err.message : 'Failed to start document update',
+            'error'
+          );
+          return;
+        }
+      } else {
+        // Title-only update (immediate)
+        setLoading(true);
+        try {
+          const updatedDoc = await updateDocument(
+            doc.docsId,
+            title,
+            undefined,
+            session.accessToken,
+            params.contentId
+          );
+          showMessage("Document title updated successfully!", "success");
+          setDoc(updatedDoc);
+          setIsEditing(false);
+          const fetchedDoc = await getDocumentById(params.contentId);
+          setDoc(fetchedDoc);
+          setPreviewKey((prev) => prev + 1);
+        } catch (error: unknown) {
+          showMessage(
+            error instanceof Error
+              ? error.message
+              : "An error occurred while updating the document title",
+            "error"
+          );
+        } finally {
+          setLoading(false);
+        }
       }
-      const fetchedDoc = await getDocumentById(params.contentId);
-      setDoc(fetchedDoc);
-      setPreviewKey((prev) => prev + 1);
-    } catch (error: unknown) {
-      showMessage(
-        error instanceof Error
-          ? error.message
-          : "An error occurred while saving the document",
-        "error"
-      );
-    } finally {
-      setLoading(false);
+      return;
     }
   };
 

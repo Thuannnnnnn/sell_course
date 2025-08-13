@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { useUploadManager } from './UploadManagerContext';
-import { FileText, Film, Trash2, PauseCircle, Loader2 } from 'lucide-react';
+import { FileText, Film, Trash2, PauseCircle, Loader2, FileVideo } from 'lucide-react';
 import { Progress } from '../../components/ui/progress';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -37,8 +37,35 @@ export const FloatingUploadPanel: React.FC = () => {
       {!collapsed && (
         <div className="max-h-96 overflow-y-auto divide-y">
           {visibleTasks.map(task => {
-            const Icon = task.type === 'video' ? Film : FileText;
+            const getIcon = (type: string) => {
+              switch(type) {
+                case 'video':
+                case 'video-update':
+                  return Film;
+                case 'video-script-update':
+                  return FileVideo;
+                case 'doc':
+                case 'doc-update':
+                  return FileText;
+                default:
+                  return FileText;
+              }
+            };
+            
+            const Icon = getIcon(task.type);
             const statusColor = task.status === 'success' ? 'text-green-600' : task.status === 'error' ? 'text-red-600' : task.status === 'canceled' ? 'text-yellow-600' : 'text-blue-600';
+            
+            const getTypeLabel = (type: string) => {
+              switch(type) {
+                case 'video': return 'Creating Video';
+                case 'video-update': return 'Updating Video';
+                case 'video-script-update': return 'Updating Script';
+                case 'doc': return 'Creating Document';
+                case 'doc-update': return 'Updating Document';
+                default: return type;
+              }
+            };
+            
             return (
               <div key={task.id} className="p-3 text-xs flex flex-col gap-2">
                 <div className="flex items-start gap-2">
@@ -50,6 +77,8 @@ export const FloatingUploadPanel: React.FC = () => {
                         {task.status === 'uploading' && <Loader2 className="h-3 w-3 animate-spin" />}
                         {task.status}
                       </span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-muted-foreground">{getTypeLabel(task.type)}</span>
                       {task.error && <span className="text-red-500" title={task.error}>Error</span>}
                     </div>
                   </div>
