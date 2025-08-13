@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useSession } from 'next-auth/react'
 import { getUserById } from '../../app/api/profile/profile'
-import { StartOrGetChatSession } from '../../app/api/chat/chat'
+
 import { v4 as uuidv4 } from 'uuid'
 
 const SOCKET_SERVER = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -36,74 +36,45 @@ const ChatWindow: React.FC = () => {
 
   // Fetch user ID only (don't create session yet)
   useEffect(() => {
-    const fetchUserId = async () => {
+    const initUser = async () => {
       if (!session?.accessToken || sessionFetched.current) return;
-      sessionFetched.current = true; // Đánh dấu đã fetch
+      sessionFetched.current = true; // Mark fetched
       setIsLoading(true);
       try {
         const user = await getUserById(session.accessToken);
         if (!user?.user_id) return;
         setCurrentUserId(user.user_id);
 
-        // Check if there's an existing active session in localStorage
-        let localSessionId = null;
+        // Restore existing sessionId from localStorage if not expired
         if (typeof window !== 'undefined') {
-          localSessionId = localStorage.getItem(SESSION_KEY);
+          const localId = localStorage.getItem(SESSION_KEY);
           const expireTime = localStorage.getItem(SESSION_EXPIRE_KEY);
-          
-          // Check if session is expired
-          if (expireTime && Date.now() > parseInt(expireTime)) {
+          const now = Date.now();
+          if (localId && expireTime && now < parseInt(expireTime)) {
+            setChatSessionId(localId);
+          } else {
             localStorage.removeItem(SESSION_KEY);
             localStorage.removeItem(SESSION_EXPIRE_KEY);
-            localSessionId = null;
           }
         }
-
-        // Only load existing session, don't create new one
-        if (localSessionId) {
-          const chatSession = await StartOrGetChatSession(
-            user.user_id, 
-            localSessionId, 
-            session.accessToken
-          );
-          
-          if (chatSession?.sessionId) {
-            setChatSessionId(chatSession.sessionId);
-            
-            // Load messages if available
-            if (chatSession.messages && chatSession.messages.length > 0) {
-              const formattedMessages = chatSession.messages.map(msg => ({
-                id: msg.id,
-                sessionId: msg.sessionId,
-                messageText: msg.messageText,
-                timestamp: msg.timestamp,
-                senderId: msg.sender,
-              }));
-              setMessages(formattedMessages);
-            }
-          }
-        }
-
       } catch (error) {
         console.error('Error fetching user:', error);
-        sessionFetched.current = false; // Reset nếu có lỗi
+        sessionFetched.current = false; // Reset on error
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (session?.accessToken) {
-      fetchUserId();
-    }
+    initUser();
   }, [session?.accessToken]);
 
   // Debug effect để theo dõi chatSessionId
   useEffect(() => {
   }, [chatSessionId, currentUserId, session?.accessToken]);
 
-  // Connect to socket
+  // Connect to socket (can connect even without sessionId)
   useEffect(() => {
-    if (!chatSessionId || !currentUserId || !session?.accessToken) {
+    if (!currentUserId || !session?.accessToken) {
       setIsConnected(false);
       return;
     }
@@ -115,17 +86,19 @@ const ChatWindow: React.FC = () => {
     }
 
     const socket = io(SOCKET_SERVER, {
-      query: { sessionId: chatSessionId, userId: currentUserId },
+      query: chatSessionId ? { sessionId: chatSessionId, userId: currentUserId } : { userId: currentUserId },
       transports: ['websocket'],
       auth: { token: session.accessToken, userId: currentUserId },
-      forceNew: true, // Force new connection
+      forceNew: true,
     });
     socketRef.current = socket;
 
     socket.on('connect', () => {
       setIsConnected(true);
-      socket.emit('join', { sessionId: chatSessionId, userId: currentUserId });
-      // Không cần gọi getHistory nữa vì messages đã được load từ API
+      if (chatSessionId) {
+        socket.emit('join', { sessionId: chatSessionId, userId: currentUserId });
+        socket.emit('getHistory', chatSessionId);
+      }
     });
 
     socket.on('disconnect', () => {
@@ -136,31 +109,47 @@ const ChatWindow: React.FC = () => {
       setIsConnected(false);
     });
 
-    // Lắng nghe tin nhắn mới từ socket
-    socket.on('message', (msg: Message) => {
-      // msg: { id, sessionId, senderId, messageText, timestamp }
-      if (!msg.sessionId && chatSessionId) msg.sessionId = chatSessionId;
-      if (msg.sessionId === chatSessionId) {
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          const optimisticIdx = prev.findIndex(
-            (m) =>
-              m.id.startsWith('temp-') &&
-              m.senderId === msg.senderId &&
-              m.messageText === msg.messageText &&
-              Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 2000
-          );
-          if (optimisticIdx !== -1) {
-            const newMessages = [...prev];
-            newMessages[optimisticIdx] = msg;
-            return newMessages;
-          }
-          return [...prev, msg];
-        });
-      }
+    // Dedup state to prevent double-append (client optimistic + server echo)
+    let lastSentId: string | null = null;
+    socket.on('messageSent', ({ messageId }) => {
+      lastSentId = messageId;
     });
 
-    // Xóa listener history vì không cần thiết nữa
+    // Listen new messages, with strong de-dup logic
+    socket.on('message', (msg: Message) => {
+      const effectiveSessionId = chatSessionId || msg.sessionId;
+      if (!effectiveSessionId) return;
+      if (!msg.sessionId) msg.sessionId = effectiveSessionId;
+      if (msg.sessionId !== effectiveSessionId) return;
+
+      setMessages((prev) => {
+        // 1) exact id already exists
+        if (prev.some((m) => m.id === msg.id)) return prev;
+
+        // 2) if this is the echo of our last optimistic message, replace temp with server id
+        const optimisticIdx = prev.findIndex(
+          (m) =>
+            m.id.startsWith('temp-') &&
+            m.senderId === msg.senderId &&
+            m.messageText === msg.messageText &&
+            Math.abs(new Date(m.timestamp).getTime() - new Date(msg.timestamp).getTime()) < 3000
+        );
+        if (optimisticIdx !== -1) {
+          const newMessages = [...prev];
+          newMessages[optimisticIdx] = msg;
+          return newMessages;
+        }
+
+        // 3) also guard if matches lastSentId
+        if (lastSentId && msg.id === lastSentId) return prev;
+
+        return [...prev, msg];
+      });
+    });
+
+    socket.on('history', (msgs: Message[]) => {
+      setMessages(msgs || []);
+    });
 
     socket.on('error', () => {
       setIsConnected(false);
@@ -204,80 +193,37 @@ const ChatWindow: React.FC = () => {
   }, [messages]);
 
   // Handle sending messages
-  const handleSendMessage = async (e?: React.FormEvent) => {
+  const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const messageText = input.trim();
 
     if (!messageText || !currentUserId || !session?.accessToken) return;
 
-    // If no session exists, create one first
-    if (!chatSessionId) {
-      try {
-        setIsLoading(true);
-        const chatSession = await StartOrGetChatSession(
-          currentUserId, 
-          null, // No existing session
-          session.accessToken
-        );
-        
-        if (!chatSession?.sessionId) {
-          console.error('Failed to create chat session');
-          return;
-        }
-
-        setChatSessionId(chatSession.sessionId);
-        
-        // Update localStorage with new session
-        if (typeof window !== 'undefined') {
-          const now = Date.now();
-          localStorage.setItem(SESSION_KEY, chatSession.sessionId);
-          localStorage.setItem(SESSION_EXPIRE_KEY, (now + SESSION_DURATION).toString());
-        }
-
-        // Wait for socket connection to be established
-        // The useEffect for socket connection will trigger after setChatSessionId
-        let attempts = 0;
-        const maxAttempts = 10;
-        const waitForSocketAndSend = () => {
-          attempts++;
-          if (socketRef.current?.connected) {
-            sendMessageToSocket(chatSession.sessionId, messageText);
-          } else if (attempts < maxAttempts) {
-            setTimeout(waitForSocketAndSend, 500);
-          } else {
-            // Fallback: add message optimistically
-            setInput('');
-            const tempMessage: Message = {
-              id: 'temp-' + uuidv4(),
-              sessionId: chatSession.sessionId,
-              messageText: messageText,
-              timestamp: new Date().toISOString(),
-              senderId: currentUserId,
-            };
-            setMessages([tempMessage]);
-          }
-        };
-        
-        setTimeout(waitForSocketAndSend, 1000);
-        
-      } catch (error) {
-        console.error('Error creating chat session:', error);
-      } finally {
-        setIsLoading(false);
+    // If no session exists, create a new one on-the-fly with UUID and persist locally
+    let effectiveSessionId = chatSessionId;
+    if (!effectiveSessionId) {
+      effectiveSessionId = uuidv4();
+      setChatSessionId(effectiveSessionId);
+      if (typeof window !== 'undefined') {
+        const now = Date.now();
+        localStorage.setItem(SESSION_KEY, effectiveSessionId);
+        localStorage.setItem(SESSION_EXPIRE_KEY, (now + SESSION_DURATION).toString());
       }
-      return;
+      // Join room immediately so that echo comes back to this client
+      if (socketRef.current) {
+        socketRef.current.emit('join', { sessionId: effectiveSessionId, userId: currentUserId });
+      }
     }
 
-    // If session exists, send message normally
-    if (socketRef.current && chatSessionId) {
-      sendMessageToSocket(chatSessionId, messageText);
-    }
+    // Send message via socket with optimistic update
+    sendMessageToSocket(effectiveSessionId, messageText);
   };
 
   // Helper function to send message via socket
   const sendMessageToSocket = (sessionId: string, messageText: string) => {
     if (!socketRef.current || !currentUserId) return;
 
+    // Use a deterministic temp key to avoid duplicates when server echoes back quickly
     const tempId = 'temp-' + uuidv4();
 
     const messagePayload = {
@@ -296,8 +242,13 @@ const ChatWindow: React.FC = () => {
       senderId: currentUserId,
     };
 
+    // Append optimistically only if not already in list (rare race protection)
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === tempId)) return prev;
+      return [...prev, optimisticMessage];
+    });
+
     socketRef.current.emit('sendMessage', messagePayload);
-    setMessages((prev) => [...prev, optimisticMessage]);
     setInput('');
   };
 
