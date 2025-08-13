@@ -28,7 +28,6 @@ interface CourseSidebarProps {
   currentContent: LessonWithContent | null;
   onLessonSelect: (lesson: LessonResponse) => void;
   onContentSelect: (content: ContentResponse) => void;
-  getContentDuration: (content: ContentResponse) => string;
   isContentCompleted: (content: ContentResponse) => boolean;
 }
 
@@ -38,7 +37,6 @@ export function CourseSidebar({
   currentContent,
   onLessonSelect,
   onContentSelect,
-  getContentDuration,
   isContentCompleted,
 }: CourseSidebarProps) {
   const [openLessons, setOpenLessons] = useState<string[]>([
@@ -97,7 +95,7 @@ export function CourseSidebar({
 
   return (
     <div className="w-80 border-r bg-card/50 overflow-y-auto max-h-[calc(100vh-4rem)]">
-      <div className="p-4 font-semibold border-b bg-background/50 sticky top-0 z-10">
+      <div className="p-4 font-semibold border-b bg-background sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
           Course Lessons
@@ -193,7 +191,6 @@ export function CourseSidebar({
                       .sort((a, b) => a.order - b.order)
                       .map((content) => {
                         const isCompleted = isContentCompleted(content);
-                        const duration = getContentDuration(content);
                         const isCurrentContent = currentContent?.contents?.some(
                           (c) => c.contentId === content.contentId
                         );
@@ -232,9 +229,6 @@ export function CourseSidebar({
                                 </div>
                                 <div className="flex items-center gap-2 text-xs">
                                   <Clock className="h-3 w-3" />
-                                  <span className="text-muted-foreground">
-                                    {duration}
-                                  </span>
                                   {isCompleted && (
                                     <>
                                       <span className="text-muted-foreground">

@@ -14,13 +14,13 @@ import { toast } from "sonner";
 import ReactPlayer from "react-player";
 
 import {
-  updateVideoFile,
   updateVideoScript,
   deleteVideo,
 } from "app/api/lessons/Video/video";
 import { VideoState } from "app/types/video";
 import { useUploadManager } from '../../upload/UploadManagerContext';
 import { createVideoWithProgress } from '../../../app/api/lessons/Video/video';
+import { updateVideoFileWithProgress, updateVideoScriptWithProgress } from '../../../app/api/lessons/Video/video';
 
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -307,40 +307,69 @@ const VideoModal: React.FC<VideoModalProps> = ({
       return;
     }
 
-    // Update mode keeps existing logic
+    // Update mode - use background upload for file updates
     if (videoData) {
-      setLoading(true);
-      try {
-        let updateOccurred = false;
-        if (videoFile) {
-          await updateVideoFile(
-            videoData.videoId,
-            videoFile,
-            session.accessToken
+      // Handle background uploads for file updates
+      let backgroundUploadsStarted = false;
+      
+      if (videoFile) {
+        try {
+          startUpload({
+            type: 'video-update',
+            file: videoFile,
+            videoId: videoData.videoId,
+            token: session.accessToken,
+            uploader: async ({ file, videoId, token, signal, onProgress }) => {
+              if (!videoId) throw new Error('Video ID is required');
+              await updateVideoFileWithProgress(videoId, file, token, signal, onProgress);
+            }
+          });
+          showMessage("Video file update started in background", "success");
+          backgroundUploadsStarted = true;
+        } catch (err) {
+          showMessage(
+            err instanceof Error ? err.message : 'Failed to start video file update',
+            'error'
           );
-          showMessage("Video file updated successfully!", "success");
-          updateOccurred = true;
         }
-        if (scriptFile) {
-          await updateVideoScript(
-            videoData.videoId,
-            scriptFile,
-            session.accessToken
+      }
+      
+      if (scriptFile) {
+        try {
+          startUpload({
+            type: 'video-script-update',
+            file: scriptFile,
+            videoId: videoData.videoId,
+            token: session.accessToken,
+            uploader: async ({ file, videoId, token, signal, onProgress }) => {
+              if (!videoId) throw new Error('Video ID is required');
+              await updateVideoScriptWithProgress(videoId, file, token, signal, onProgress);
+            }
+          });
+          showMessage("Video script update started in background", "success");
+          backgroundUploadsStarted = true;
+        } catch (err) {
+          showMessage(
+            err instanceof Error ? err.message : 'Failed to start video script update',
+            'error'
           );
-          showMessage("Video script updated successfully!", "success");
-          updateOccurred = true;
         }
-        if (
-          isScriptEditing &&
-          scriptContent !==
-            JSON.stringify(
-              videoData.urlScript
-                ? await (await fetch(videoData.urlScript)).json()
-                : {},
-              null,
-              2
-            )
-        ) {
+      }
+      
+      // Handle inline script editing (immediate update)
+      if (
+        isScriptEditing &&
+        scriptContent !==
+          JSON.stringify(
+            videoData.urlScript
+              ? await (await fetch(videoData.urlScript)).json()
+              : {},
+            null,
+            2
+          )
+      ) {
+        setLoading(true);
+        try {
           const blob = new Blob([scriptContent], { type: "application/json" });
           const newScriptFile = new File([blob], "script.json", {
             type: "application/json",
@@ -351,21 +380,23 @@ const VideoModal: React.FC<VideoModalProps> = ({
             session.accessToken
           );
           showMessage("Video script updated successfully!", "success");
-          updateOccurred = true;
+          backgroundUploadsStarted = true;
+        } catch (error) {
+          showMessage(
+            error instanceof Error ? error.message : "Failed to update video script",
+            "error"
+          );
+        } finally {
+          setLoading(false);
         }
-        if (!updateOccurred) {
-          showMessage("No new file selected for update.", "success");
-        }
-        onClose();
-        if (onVideoUpdate) onVideoUpdate();
-      } catch (error) {
-        showMessage(
-          error instanceof Error ? error.message : "An unknown error occurred",
-          "error"
-        );
-      } finally {
-        setLoading(false);
       }
+      
+      if (!backgroundUploadsStarted) {
+        showMessage("No updates to perform", "success");
+      }
+      
+      onClose();
+      if (onVideoUpdate) onVideoUpdate();
       return;
     }
 
@@ -382,6 +413,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
         token: session.accessToken,
         title,
         uploader: async ({ file, contentId, token, title, signal, onProgress }) => {
+          if (!contentId) throw new Error('Content ID is required');
           await createVideoWithProgress(title || file.name, file, contentId, token, signal, onProgress);
         }
       });

@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent } from "../ui/card";
 import { Clock } from "lucide-react";
 import Image from "next/image";
+
 interface Course {
   id: string;
   title: string;
@@ -11,9 +12,20 @@ interface Course {
   image: string;
   originalPrice?: number;
 }
+
 interface CourseItemProps {
   course: Course;
 }
+
+// Helper function to format VND currency
+const formatVND = (amount: number): string => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+};
 export function CourseItem({ course }: CourseItemProps) {
   const { title, instructor, duration, price, image, originalPrice } = course;
   const discount = originalPrice
@@ -40,11 +52,11 @@ export function CourseItem({ course }: CourseItemProps) {
               <span>{duration}</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-lg font-semibold">${price.toFixed(2)}</span>
+              <span className="text-lg font-semibold">{formatVND(price)}</span>
               {originalPrice && (
                 <>
                   <span className="text-sm text-muted-foreground line-through">
-                    ${originalPrice.toFixed(2)}
+                    {formatVND(originalPrice)}
                   </span>
                   <span className="text-sm text-green-600 font-medium">
                     {discount}% off

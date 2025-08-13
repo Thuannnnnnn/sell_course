@@ -16,7 +16,12 @@ const transformWishlistData = (wishlistItem: WishlistResponseDto): CourseCardDat
   id: wishlistItem.course.courseId,
   title: wishlistItem.course.title,
   instructor: wishlistItem.course.instructorName,
-  price: `$${wishlistItem.course.price.toFixed(2)}`,
+  price: new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(wishlistItem.course.price),
   image: wishlistItem.course.thumbnail || "/placeholder-course.jpg",
   description: wishlistItem.course.short_description,
   level: wishlistItem.course.level,

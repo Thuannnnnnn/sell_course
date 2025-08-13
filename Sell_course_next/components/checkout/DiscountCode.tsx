@@ -105,12 +105,12 @@ export function DiscountCode({
           <div className="mt-2 space-y-2">
             <div className="flex items-center gap-2 text-sm text-green-600">
               <Check className="h-4 w-4" />
-              <span>Discount of {appliedDiscount}% applied!</span>
+              <span>Giảm giá {appliedDiscount}% đã được áp dụng!</span>
             </div>
             <div className="text-xs text-gray-600 bg-green-50 p-2 rounded">
-              <div><strong>Promotion:</strong> {promotionInfo.name}</div>
+              <div><strong>Khuyến mãi:</strong> {promotionInfo.name}</div>
               {promotionInfo.course && (
-                <div><strong>Valid for:</strong> {promotionInfo.course.title}</div>
+                <div><strong>Áp dụng cho:</strong> {promotionInfo.course.title}</div>
               )}
             </div>
           </div>
@@ -118,19 +118,19 @@ export function DiscountCode({
         {status === 'invalid' && (
           <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
             <X className="h-4 w-4" />
-            <span>{errorMessage || 'Invalid discount code'}</span>
+            <span>{errorMessage || 'Mã giảm giá không hợp lệ'}</span>
           </div>
         )}
         {status === 'expired' && (
           <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
             <AlertCircle className="h-4 w-4" />
-            <span>{errorMessage || 'This promotion code has expired'}</span>
+            <span>{errorMessage || 'Mã khuyến mãi này đã hết hạn'}</span>
           </div>
         )}
         {status === 'pending' && (
           <div className="flex items-center gap-2 mt-2 text-sm text-yellow-600">
             <AlertCircle className="h-4 w-4" />
-            <span>{errorMessage || 'This promotion code is not active yet'}</span>
+            <span>{errorMessage || 'Mã khuyến mãi này chưa có hiệu lực'}</span>
           </div>
         )}
       </CardContent>

@@ -145,6 +145,46 @@ export const updateVideoFile = async (
   }
 };
 
+export const updateVideoFileWithProgress = async (
+  videoId: string,
+  file: File,
+  accessToken: string,
+  signal: AbortSignal,
+  onProgress: (p: number) => void
+): Promise<ApiResponse> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await axios.put<ApiResponse>(
+      `${API_BASE_URL}/instructor/video/update_video/${videoId}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+        signal,
+        onUploadProgress: (evt: AxiosProgressEvent) => {
+          if (evt.total) {
+            const percent = (evt.loaded / evt.total) * 100;
+            onProgress(percent);
+          }
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to update video file"
+      );
+    } else {
+      throw new Error("An unexpected error occurred");
+    }
+  }
+};
+
 export const updateVideoScript = async (
   videoId: string,
   file: File,
@@ -161,6 +201,46 @@ export const updateVideoScript = async (
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to update video script"
+      );
+    } else {
+      throw new Error("An unexpected error occurred");
+    }
+  }
+};
+
+export const updateVideoScriptWithProgress = async (
+  videoId: string,
+  file: File,
+  accessToken: string,
+  signal: AbortSignal,
+  onProgress: (p: number) => void
+): Promise<ApiResponse> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await axios.put<ApiResponse>(
+      `${API_BASE_URL}/instructor/video/update_script/${videoId}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+        signal,
+        onUploadProgress: (evt: AxiosProgressEvent) => {
+          if (evt.total) {
+            const percent = (evt.loaded / evt.total) * 100;
+            onProgress(percent);
+          }
         },
       }
     );

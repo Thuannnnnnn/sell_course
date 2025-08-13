@@ -107,6 +107,45 @@ export const updateDocument = async (
   }
 };
 
+export const updateDocumentWithProgress = async (
+  docsId: string,
+  title: string,
+  file: File | undefined,
+  token: string,
+  contentsId: string,
+  signal: AbortSignal,
+  onProgress: (p: number) => void
+): Promise<Docs> => {
+  const formData = new FormData();
+  formData.append("title", title);
+  if (file) {
+    formData.append("file", file);
+  }
+  formData.append("contentsId", contentsId);
+
+  try {
+    const response = await axios.put(
+      `${API_URL}/api/admin/docs/update_docs/${docsId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+        signal,
+        onUploadProgress: (evt: AxiosProgressEvent) => {
+          if (evt.total) {
+            onProgress((evt.loaded / evt.total) * 100);
+          }
+        },
+      }
+    );
+    return response.data as Docs;
+  } catch {
+    throw new Error("Failed to update document");
+  }
+};
+
 export const deleteDocument = async (
   docsId: string,
   token: string

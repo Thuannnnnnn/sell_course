@@ -11,7 +11,12 @@ const transformCourseData = (course: CourseResponseDTO): CourseCardData => {
     id: course.courseId,
     title: course.title,
     instructor: course.instructorName,
-    price: `$${course.price.toFixed(2)}`,
+    price: new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(course.price),
     rating: course.rating,
     image: course.thumbnail || "/placeholder-course.jpg", // Fallback image
     description: course.short_description,
