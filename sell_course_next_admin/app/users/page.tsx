@@ -272,7 +272,6 @@ function EditUserModal({
   const [gender, setGender] = useState("");
   const [birthDay, setBirthDay] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -283,7 +282,6 @@ function EditUserModal({
       setGender(user.gender || "");
       setBirthDay(user.birthDay || "");
       setPhoneNumber(user.phoneNumber ? String(user.phoneNumber) : "");
-      setRole(user.role || "");
       setError("");
     } else if (!open) {
       setUsername("");
@@ -291,16 +289,9 @@ function EditUserModal({
       setGender("");
       setBirthDay("");
       setPhoneNumber("");
-      setRole("");
       setError("");
     }
   }, [user, open]);
-
-  // Derive selectable roles (do not allow promoting to ADMIN, but allow existing admin to retain role)
-  const editableRoleOptions = React.useMemo(() => {
-    if (user?.role === 'ADMIN') return ['ADMIN', ...ALLOWED_CREATION_ROLES];
-    return ALLOWED_CREATION_ROLES; // no ADMIN option for non-admin users
-  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -318,7 +309,6 @@ function EditUserModal({
         gender: gender || undefined,
         birthDay: birthDay || undefined,
         phoneNumber: phoneNumber || undefined,
-        role: role || undefined,
       };
 
       await updateUserAdmin(user.user_id, updateData, session.accessToken);
@@ -421,23 +411,6 @@ function EditUserModal({
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                 />
-              </div>
-              <div>
-                <Label htmlFor="edit-role">Role</Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger id="edit-role">
-                    <SelectValue placeholder="Select role">
-                      {role ? role : "Select role"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {editableRoleOptions.map((roleOption: string) => (
-                      <SelectItem key={roleOption} value={roleOption}>
-                        {roleOption.charAt(0).toUpperCase() + roleOption.slice(1).toLowerCase()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               {error && <div className="text-red-500 text-sm">{error}</div>}
               <div className="flex justify-end gap-2">
