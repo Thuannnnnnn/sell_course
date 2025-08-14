@@ -172,7 +172,7 @@ export default function CheckoutPage() {
             className="w-full text-lg py-6"
             onClick={() => router.push(`/enrolled/${courseId}`)}
           >
-            Vào khóa học
+            Go to Your Courses
           </Button>
         </div>
       </div>
