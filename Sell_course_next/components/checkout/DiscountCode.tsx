@@ -105,12 +105,12 @@ export function DiscountCode({
           <div className="mt-2 space-y-2">
             <div className="flex items-center gap-2 text-sm text-green-600">
               <Check className="h-4 w-4" />
-              <span>Giảm giá {appliedDiscount}% đã được áp dụng!</span>
+              <span>Discount {appliedDiscount}% has been applied!</span>
             </div>
             <div className="text-xs text-gray-600 bg-green-50 p-2 rounded">
-              <div><strong>Khuyến mãi:</strong> {promotionInfo.name}</div>
+              <div><strong>Promotion:</strong> {promotionInfo.name}</div>
               {promotionInfo.course && (
-                <div><strong>Áp dụng cho:</strong> {promotionInfo.course.title}</div>
+                <div><strong>Applicable for:</strong> {promotionInfo.course.title}</div>
               )}
             </div>
           </div>
