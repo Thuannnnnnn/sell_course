@@ -51,7 +51,7 @@ export class CertificateService {
     // Gửi email với template HTML
     await this.mailService.sendSimpleEmail(
       certificateData.user.email,
-      '🎉 Chúc mừng bạn đã hoàn thành khóa học!',
+      '🎉 Congratulations on completing the course!',
       htmlContent,
     );
 
