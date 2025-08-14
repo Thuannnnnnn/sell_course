@@ -146,7 +146,7 @@ export default function CheckoutPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Đang tải...
+        Loading...
       </div>
     );
   }
@@ -162,9 +162,9 @@ export default function CheckoutPage() {
   if (isPaymentCompleted) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col">
-        <h1 className="text-3xl font-bold">Thanh toán thành công!</h1>
+        <h1 className="text-3xl font-bold">Payment Successful!</h1>
         <p className="mt-4 text-lg">
-          Cảm ơn bạn đã mua khóa học. Bây giờ bạn có thể truy cập khóa học của mình.
+          Thank you for purchasing the course. You can now access your course.
         </p>
         <div className="mt-6">
           <Button
@@ -188,10 +188,10 @@ export default function CheckoutPage() {
         <div className="container max-w-6xl px-4 py-8 md:py-12">
           <div className="space-y-2 text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              Xác nhận đơn hàng
+             Order Confirmation
             </h1>
             <p className="text-muted-foreground">
-              Vui lòng xem lại khóa học và tổng tiền trước khi tiến hành thanh toán
+              Please review the course and total price before proceeding to payment.
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-[1fr_400px]">
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
               {qrCodeData ? (
                 <div className="flex flex-col items-center">
                   <h2 className="text-xl font-semibold mb-4">
-                    Quét mã QR để thanh toán
+                    Scan QR code to pay
                   </h2>
                   <QRCodeSVG
                     value={qrCodeData}
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
                       rel="noopener noreferrer"
                       className="text-primary underline mt-4"
                     >
-                      Hoặc nhấn vào đây để tiến hành thanh toán
+                      Or click here to proceed to payment
                     </a>
                   )}
                   <Button
@@ -256,7 +256,7 @@ export default function CheckoutPage() {
                     className="w-full text-lg py-6"
                     onClick={handleCheckPaymentStatus}
                   >
-                    Kiểm tra thanh toán
+                    Check payment status
                   </Button>
                 </div>
               ) : (
@@ -266,11 +266,11 @@ export default function CheckoutPage() {
                     className="w-full text-lg py-6"
                     onClick={handlePayment}
                   >
-                    Tiến hành thanh toán
+                    Make payment
                   </Button>
                   <div className="flex items-center justify-center text-sm text-muted-foreground gap-1">
                     <Lock className="h-4 w-4" />
-                    <span>Tất cả giao dịch đều được bảo mật</span>
+                    <span>All transactions are secure</span>
                   </div>
                 </div>
               )}
